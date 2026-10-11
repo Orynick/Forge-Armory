@@ -2,9 +2,7 @@ node_modules
 dist
 .env.local
 *.local
-CHANGELOG
 GUIDE-DEMARRAGE-INVITE
-TODO
 A-TESTER*
 
 # Sauvegardes de builds exportées (personnelles, pas dans le dépôt)
