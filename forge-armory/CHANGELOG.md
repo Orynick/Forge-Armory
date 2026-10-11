@@ -4,6 +4,22 @@ Historique daté de toutes les corrections, fonctionnalités et décisions du pr
 Le plus récent en premier. Pour l'état d'avancement actuel, voir `README.md` ;
 pour ce qui reste à faire, voir `TODO.md`.
 
+## 11/10/2026 — Mise en place du dépôt GitHub (pas de changement de version)
+
+**Numéro de version** : inchangé (0.3.19) ; aucune modification du code, de l'interface ni des données.
+
+**Création et mise en place du dépôt GitHub** (`Orynick/Forge-Armory`, public) :
+- le dossier `d2-build-analyzer` (ancienne version 0.1.0 du projet, avant le renommage) est **supprimé** du dépôt : la racine ne contient plus que `LICENSE`, `README.md` et le dossier `forge-armory` ;
+- **branche `test` créée** (depuis `main`) : les modifications poussées dessus permettront une prévisualisation sur l'hébergeur (Vercel ou Netlify) sans toucher au site principal ; merge vers `main` pour publier ;
+- `TODO.md` et `CHANGELOG.md` **sont désormais versionnés dans le dépôt** (ils étaient auparavant seulement dans les fichiers du projet d'assistance) ; le `.gitignore` a été mis à jour en conséquence ;
+- dossier de documentation interne `documentation/todo/` (archives de TODO) également versionné.
+
+**Règles adoptées** :
+- branche `main` = état publié ; branche `test` = essais et prévisualisation ;
+- chaque mise à jour suit le cycle : modifier en local (`npm run dev`), commit, push (sur `test` ou `main`), vérifier le déploiement.
+
+**Non couvert ici** : la connexion du dépôt à un hébergeur (Vercel ou Netlify) n'est pas encore faite ; aucun déploiement n'existe donc pour l'instant.
+
 ## 08/10/2026 — v0.3.19
 
 **Numéro de version** : 0.3.19 (installateur `Forge-Armory-Setup-0.3.19.exe`, liste `A-TESTER-0.3.19.pdf`, qui reprend les tests de la 0.3.18, non encore faits, et ajoute la nouveauté).

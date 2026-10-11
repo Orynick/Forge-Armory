@@ -36,8 +36,7 @@ le canal du lien « Contact » (section 23).
 
 **Menés dans d'autres conversations** (leur état à jour vit là-bas) :
 moteur de dégâts ; export DIM (repris le 28/09/2026, voir section 15) ;
-fiches de patch notes (section 10) ; Bibliothèque (section 11) ; dépôt
-GitHub.
+fiches de patch notes (section 10) ; Bibliothèque (section 11).
 
 ---
 
@@ -377,8 +376,7 @@ l'application soit prête. Rien n'est déplacé, copié ni supprimé. **Ne pas m
 « ⬇ Exporter tout » de sécurité. Texte complet d'origine : `documentation/todo/ARCHIVE-TODO-2026-10-06.md`.
 
 À faire / à décider :
-- **par l'utilisateur** : renommer l'application sur le portail développeur de Bungie (facultatif ; SANS en créer
-  une nouvelle, elle aurait de nouvelles clés) ; futur dépôt GitHub ;
+- **par l'utilisateur** : renommer l'application sur le portail développeur de Bungie (facultatif ; SANS en créer une nouvelle, elle aurait de nouvelles clés) ; ~~dépôt GitHub~~ ✅ fait le 11/10/2026 : dépôt `Orynick/Forge-Armory` créé (public), ancien dossier `d2-build-analyzer` supprimé, branche `test` créée pour la prévisualisation, `TODO.md` et `CHANGELOG.md` versionnés (détail : `CHANGELOG.md`, 11/10/2026) ;
 - **mise à jour par-dessus** : Windows réutilise le dossier d'installation de l'ancienne version (cosmétique : il
   peut encore s'appeler « D2 Build Analyzer »), et l'épingle de la barre des tâches est à refaire ;
 - **sélecteur « Build Analyzer / Bibliothèque »** : libellés inchangés (la forme « Forge Armory - Build Analyzer »
