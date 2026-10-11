@@ -1,0 +1,153 @@
+{
+ "forgeArmory": "0.3.3",
+ "date": "06/10/2026 22:40:13",
+ "tranches": 19,
+ "sur": 19,
+ "choix": {
+  "implement-of-curiosity|1|Transport de Horde": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/e59d66773e3f17fca0ce9a1db1ad26d4.png",
+   "objets": [
+    2596646301
+   ]
+  },
+  "implement-of-curiosity|2|Explosion entrelacée": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/1857757ec95e15d5e42311e647f86163.png",
+   "objets": [
+    3459646243
+   ]
+  },
+  "implement-of-curiosity|3|Broyeur de bouclier": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/fdd095c3fee6fff410f09a57fe5c9f0e.png",
+   "objets": [
+    2659604391
+   ]
+  },
+  "tablet-of-ruin|1|Orbes effilochants": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/14a1ddccf719d767162b94f3ff81db23.png",
+   "objets": [
+    521275122,
+    3585856464
+   ]
+  },
+  "tablet-of-ruin|1|Siphon élémentaire": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/cdbd8fb13483ef3c287727d88f53a5e0.png",
+   "objets": [
+    3585856466
+   ]
+  },
+  "tablet-of-ruin|2|Transport de horde": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/e59d66773e3f17fca0ce9a1db1ad26d4.png",
+   "objets": [
+    2596646301
+   ]
+  },
+  "hunters-journal|1|Siphon élémentaire": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/cdbd8fb13483ef3c287727d88f53a5e0.png",
+   "objets": [
+    3585856466
+   ]
+  },
+  "hunters-journal|1|Explosion entrelacée": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/1857757ec95e15d5e42311e647f86163.png",
+   "objets": [
+    3459646243
+   ]
+  },
+  "hunters-journal|3|Broyeur de bouclier": {
+   "option": "A",
+   "icone": "/common/destiny2_content/icons/d22083ccc81ece6444fa2c022df89705.png",
+   "objets": [
+    1533272844
+   ]
+  },
+  "hunters-journal|3|Choc et effroi": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/d0619bebb5fe2dbaede5282a51c6d3fb.png",
+   "objets": [
+    2311625537
+   ]
+  },
+  "queensfoil-censer|2|Orbes effilochants": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/14a1ddccf719d767162b94f3ff81db23.png",
+   "objets": [
+    521275122,
+    3585856464
+   ]
+  },
+  "queensfoil-censer|3|Transport de horde": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/e59d66773e3f17fca0ce9a1db1ad26d4.png",
+   "objets": [
+    2596646301
+   ]
+  },
+  "npa-repulsion-regulator|3|Choc et effroi": {
+   "option": "B",
+   "icone": "/common/destiny2_content/icons/d0619bebb5fe2dbaede5282a51c6d3fb.png",
+   "objets": [
+    2311625537
+   ]
+  },
+  "encrypted-data-disk|3|Combo tempêtes de lames": {
+   "option": "A",
+   "icone": "/common/destiny2_content/icons/daaa2ac873cf0d92f0386667b84450bd.png",
+   "objets": [
+    2742146816
+   ],
+   "nom_manifest": "Combo Tempête de lames"
+  },
+  "implement-of-curiosity|1|Tactique de meute": {
+   "option": "A",
+   "icone": "/common/destiny2_content/icons/b912d5f9bba66cc24c2c282d768c6061.png",
+   "objets": [
+    3153265453
+   ],
+   "nom_manifest": "Tactiques de meute"
+  },
+  "implement-of-curiosity|3|Surealimentation élémentaire": {
+   "option": "A",
+   "icone": "/common/destiny2_content/icons/08d63e99efb583e4d0d13058a7ed63f4.png",
+   "objets": [
+    2659604390
+   ],
+   "nom_manifest": "Suralimentation élémentaire"
+  },
+  "slayer-baron-apothecary-satchel|2|Appel tempête": {
+   "option": "A",
+   "icone": "/common/destiny2_content/icons/71e4fa0e5b358e6b731e0415de6ce0e9.png",
+   "objets": [
+    611645150,
+    1328115227
+   ],
+   "nom_manifest": "Appel de tempête"
+  },
+  "hunters-journal|1|Tirs soutenu": {
+   "option": "A",
+   "icone": "/common/destiny2_content/icons/3485c4751f37951002170d05c4468a87.png",
+   "objets": [
+    255237659,
+    3116632773
+   ],
+   "nom_manifest": "Tir soutenu"
+  },
+  "queensfoil-censer|1|Rayon de souffle": {
+   "option": "A",
+   "icone": "/common/destiny2_content/icons/08966e730bae193ec6f30ed90b54662e.png",
+   "objets": [
+    2317325399
+   ],
+   "nom_manifest": "Rayon du souffle"
+  }
+ },
+ "aucune_ne_correspond": [],
+ "non_tranches": []
+}

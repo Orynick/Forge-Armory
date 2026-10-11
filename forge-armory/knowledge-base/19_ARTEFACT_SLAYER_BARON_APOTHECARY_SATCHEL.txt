@@ -1,0 +1,58 @@
+Slayer Baron Apothecary Satchel - Sacoche d'apothicaire de Baron-Bourreau
+
+T1
+- Vent glacé
+Les tirs de précision rapides avec une arme [icone stase] "stasique" vous confèrent un cumul d'"Armure de Givre" ; les touches sur des cibles ralenties ou gelées créent également un "éclat stasique".
+- Convertisseur cristallin
+Après avoir activé votre compétence de classe, votre prochain frag avec une arme [icone stase] "stasique" crée un "éclat stasique".
+Récupérez des "éclats stasiques" pour obtenir des cumuls de Convertisseur cristallin, qui permettent à votre prochaine "attaque de mêlée [icone stase] stasique chargée" de créer des "cristaux de stase" égaux au nombre de cumuls que vous avez.
+- Carnage total
+Après un "coup de grâce" sur un combattant coriace, vous gagnez de la résistance aux dégâts temporaire et restaurez votre santé.
+- Douleur contre puissance
+Les frags rapides contre des combattants "affaiblis" vous confèrent "Dévoration" et créent une "Brèche abyssale".
+- Jeu de piste
+Les tirs de précision rapides ou les frags rapides sur des cibles affectées par "Secousse" ou "Cécité" génèrent des "Pistes ioniques".
+Ramasser une Piste ionique confère une "charge d'armure".
+- Au coeur de l'action
+Lorsque l'ennemi vous encercle, les frags rapides vous confèrent une "charge d'armure". 
+Quand vous êtes encerclés, le "maniement" de vos armes est amélioré ; les [icone épée] épées ont une meilleure "vitesse de charge".
+- Brise mortelle
+Les frags rapides avec une "arme" vous confèrent un bonus de mobilité.
+
+T2
+- Renouveau glacé
+Quand vous avez "Armure de Givre", subir des dégâts critiques libère une rafale qui "gèle" les combattants proches et vous confère Armure de Givre, ainsi qu'à vos alliés.
+- Appel tempête
+Briser des cibles "gelées" et des cristaux de "stase" augmente les dégâts.
+Briser des cristaux de "stase" libère des éclats de glace qui infligent des dégâts aux cibles et les "ralentissent".
+- Vague affaiblissante
+Les "coups de grâce" émettent une onde à dégâts correspondant à l'élément de votre "Super" équipé.
+Les ondes "cryo-électriques", "abyssales" ou "stasiques" appliquent "Cécité", "Affaiblissement" et "Ralentissement".
+- Affaiblissement clair
+Utiliser un lance-grenades, blesser un boss, blesser un Champion ou briser le bouclier d'un combattant recharge vos armes rangées et "affaiblit" votre cible.
+- Brûlure rétinienne
+Les frags rapides par tir de précision avec une arme [icone cryo-électrique] "cryo-électrique" utilisent une "charge d'armure" pour envoyer une rafale de "Cécité" à l'emplacement de la cible.
+- Orbes curatifs
+La première fois que vous brisez le bouclier d'une cible ou celui d'un Gardien utilisant son Super, vous créez un "orbe de puissance".
+Ramasser un "objet élémentaire", ramasser un "orbe de puissance" ou détruire un "Enchevêtrement" vous confère une petite quantité de santé.
+- Renouveau abyssal
+Lorsque "Dévoration" est activée, les frags à l'arme [icone abyssale] "abyssale" ont une chance de créer une "Brèche abyssale".
+Ramasser une Brèche abyssale augmente le "rechargement" et le "maniement" des armes ; les [icone fusil à pompe] "fusils à pompe" et les [icone lance-grenades] "lance-grenades" sont aussi rechargés depuis les réserves.
+
+T3
+- Gel cérébral
+Les combattants "gelés" sont entourés d'un brouillard glacial, qui "ralentit" ceux qui ne le sont pas encore.
+- Supernova
+Ramasser une "Brèche abyssale" permet à votre prochaine source de dégâts abyssaux de créer un grand rayon "affaiblissant".
+- Cristal cosmique conducteur
+Vos compétences [icone cryo-électrique] "cryo-électrique" et [icone abyssale] "abyssale" infligent des dégâts bonus aux cibles affectés par un malus |icone stase] "stasique".
+- Se mange froid
+Ramasser un [icone stase] "éclat stasique" vous confère de l'énergie de compétence de "classe".
+Ramasser une [icone abyssale] "Brèche abyssale" vous confère de l'énergie de "mêlée".
+- Impacts cinétiques
+Infliger des dégâts continus avec un [icone lance-grenades] "lance-grenades" augmente temporairement la vitesse de rechargement des lance-grenades et déclenche un "onde de choc cinétique".
+Cette onde de choc peut "étourdir" les [icone Implacable] Champions Implacables.
+- Combinaison cryo-électrique
+Les sources [icone cryo-électriques] "cryo-électriques" infligent plus de dégâts aux cibles souffrant de "Cécité".
+- Rite des dieux anciens
+Après avoir ramassé une [icone abyssale] "Brèche abyssale", infliger des dégâts à l'aide d'une arme "abyssale" crée une pluie de projectiles traqueurs.

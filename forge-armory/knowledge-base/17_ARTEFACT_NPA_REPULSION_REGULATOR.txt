@@ -1,0 +1,76 @@
+# Source : traduction manuelle par l'utilisateur (Ory), 17/08/2026
+#
+# Traduction française complète des 21 perks de cet artefact (7 par tier),
+# réalisée à la main par l'utilisateur à partir du jeu, faute de traduction
+# officielle exploitable dans le Manifest (voir
+# 13_ARTIFACTS_2_0_ET_ANTI_CHAMPION.md sur la structure héritée du Manifest).
+#
+# Conventions utilisées dans ce fichier, reprises telles quelles dans
+# src/data/artefacts.ts et rendues visuellement par le composant
+# RenduTextePerk.tsx :
+#   - [icone X] -> icône d'élément, de champion ou de type d'arme
+#   - "mot" entre guillemets -> verbe ou terme de jeu (affiché en cyan dans
+#     l'appli), matière première du futur graphe de chaînes de verbes
+#
+# Intégré dans src/data/artefacts.ts (id: "npa-repulsion-regulator") - voir CHANGELOG.md.
+# Ce fichier sert de RÉFÉRENCE et de SAUVEGARDE de la source, pas de source
+# vive : toute correction doit être faite ici ET reportée dans artefacts.ts.
+
+---
+
+NPA Repulsion Regulator - Régulateur Répulsif ANP
+
+T1
+- Effilochage amélioré
+Augmente la quantité de dégâts infligés en "Effilochant une cible.
+- Flux volatil
+Ramasser un orbe de puissance confère des "munitions volatiles" à vos armes [icone abyssale] "abyssales".
+- Jusqu'à la brèche
+Eliminer une cible qui subit un "malus [icone abyssale] abyssal" crée une "Brèche abyssale" quand vous avez votre doctrine abyssale ou prismatique équipée.
+- Energisé
+Vous restez plus longtemps sous l'effet d'"Amplificateur" quand vous avez votre doctrine cryo-électrique ou prismatique équipée.
+- Riposte foudroyante
+Confère un bonus de dégâts au "Super cryo-électrique" si ce dernier est activédurant une blessure critique ou sous l'effet d'"Amplificateur". 
+Dure jusqu'à la fin de l'activation du Super.
+- Tir soutenu
+Infliger des dégâts à des combattants ou soigner des alliés en continu avec un [icone fusil automatique] "fusil automatique" vous confère une résistance aux dégâts.
+- Orbes de brisure
+La première fois que vous brisez le bouclier d'un combattant, vous créez un orbe de puissance si vous le faitesavec le type de dégâts correspondant.
+
+T2
+- Soldat de filobscur
+Vos armes [icone filobscur] filobscures ont des "munitions effilochantes" dès que vous obtenez "Maille tissée" quand vousavez votre doctrine filobscure ou prismatique équipée.
+- Glaive neutralisant
+Blesser des combattants avec votre [icone glaive] glaive les "neutralise" et les empêche temporairement d'utiliser des "compétences".
+- Brèche protectrice
+Ramasser une "Brèche abyssale" vous procure un "surbouclier" supplémentaire ou restaure votre "surbouclier abyssale".
+- Charge de contre
+Gagnez une "charge d'armure" quand vous étourdissez un Champion.
+- Briques de l'au-delà
+Vaincre un combattant puissant avec une arme [icone abyssale] abyssale donne une chance de générer de la progression de munitions lourdes pour vous et vos coéquipiers.
+- Grenades à surcharge
+Les grenades abyssales perturbent les combattants et les "étourdissent", ralentissant la régénération d'énergie de compétence et réduisant les dégâts infligés par un combattant.
+Efficace contre les [icone surchargé] Champions surchargés.
+- Recharge automatique du ciblage
+Lorsqu'un [icone fusil automatique] "fusil automatique" est équipé, éliminer des combattants recharge votre arme équipée et augmente temporairement les dégâts d'arme.
+Les frags quand vous êtes encerclé octroient un bonus de progression.
+
+T3
+- Aiguille cosmique conductrice
+Les cibles affectées par des malus de [icone filobscur] filobscur subissent plus de dégâts des compétences [icone abyssal] abyssales et [icone cryo-électrique] cryo-électriques.
+- Choc et effroi
+Lorsqu'une doctrine [icone cryo-électrique] "Cryo-électrique" ou "Prismatique" est équipée, les frags "cryo-électriques" sous l'effet d'"Amplificateur" attirent un éclair qui inflige des dégâts ainsi que des "Secousses" aux cibles.
+- Supernova
+Ramasser une "Brèche abyssale" permet à votre prochaine source de dégâts abyssaux de créer un grand rayon "affaiblissant".
+- Chef d'équipe
+Réaliser un coup de grâce sous l'effet d'"Amplificateur" confère "Amplificateur" aux alliés proches.
+Réaliser un coup de grâce sous l'effet d'"Maille tissée" confère "Maille tissée" aux alliés proches.
+Réaliser un coup de grâce sous l'effet d'"Dévoration" confère "Dévoration" aux alliés proches.
+- Deuxième coup de foudre
+Après avoir jeté une grenade cryo-électrique, vous obtenez une recharge de grenade améliorée pendant un bref moment.
+Les frags cryo-électriques augmentent la durée de ce bonus.
+- Garde passive agressive
+Vous subissez moins de dégâts des combattants proches quand vous maniez un [icone de glaive] glaive.
+- Canalisation d'arme abyssale
+Vous gagnez un bonue temporaire aux dégats d'arme [icone abyssale] abyssale après avoir vaincu une cible avec une arme [icone abyssale] abyssale alors qu'au moins une de vos compétences abyssales est totalement chargée.
+Ces bonus augmentent en fonction de votre nombre de compétences abyssales totalement chargées.

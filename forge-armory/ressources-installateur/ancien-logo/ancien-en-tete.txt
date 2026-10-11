@@ -1,0 +1,23 @@
+ANCIEN EN-TÊTE ET ANCIEN FAVICON (conservés le 01/10/2026 avant l'essai du logo Forge Armory)
+
+=== 1. src/pages/DashboardPage.tsx : les deux imports à remettre (juste après les autres imports d'icônes) ===
+
+import IconeFantome from "../components/icones/IconeFantome";
+import IconeCryptarque from "../components/icones/IconeCryptarque";
+
+=== 2. src/pages/DashboardPage.tsx : l'en-tête à remettre (remplace le bloc <h1> actuel, commentaire compris) ===
+
+      <h1 style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+        <IconeCryptarque taille={32} />
+        D2 Build Analyzer <span style={{ fontSize: "0.9rem", fontWeight: 400, color: "#7d7a70" }}>par Orynick/Orygamer</span>
+        <IconeFantome taille={24} />
+      </h1>
+
+(Les composants IconeCryptarque.tsx et IconeFantome.tsx sont RESTÉS dans src/components/icones/ :
+rien à recréer, seulement à ré-importer et à ré-utiliser.)
+
+=== 3. index.html : l'ancienne ligne de favicon (à la place des trois lignes <link rel="icon" ... .png>) ===
+
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+
+(et copier ancien-logo/favicon.svg dans public/)

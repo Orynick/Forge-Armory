@@ -1,0 +1,78 @@
+# Source : traduction manuelle par l'utilisateur (Ory), 17/08/2026
+#
+# Traduction française complète des 21 perks de cet artefact (7 par tier),
+# réalisée à la main par l'utilisateur à partir du jeu, faute de traduction
+# officielle exploitable dans le Manifest (voir
+# 13_ARTIFACTS_2_0_ET_ANTI_CHAMPION.md sur la structure héritée du Manifest).
+#
+# Conventions utilisées dans ce fichier, reprises telles quelles dans
+# src/data/artefacts.ts et rendues visuellement par le composant
+# RenduTextePerk.tsx :
+#   - [icone X] -> icône d'élément, de champion ou de type d'arme
+#   - "mot" entre guillemets -> verbe ou terme de jeu (affiché en cyan dans
+#     l'appli), matière première du futur graphe de chaînes de verbes
+#
+# Intégré dans src/data/artefacts.ts (id: "encrypted-data-disk") - voir CHANGELOG.md.
+# Ce fichier sert de RÉFÉRENCE et de SAUVEGARDE de la source, pas de source
+# vive : toute correction doit être faite ici ET reportée dans artefacts.ts.
+
+---
+
+Encrypted Data Disk - Disque de Données Cryptées
+
+T1
+- Profiter de l'avantage
+Briser le bouclier d'un combattant augmente la stabilité, le maniement et la vitesse de rechargement d'"arme". les épées obtiennent une résistance de garde améliorée.
+- Synthèse cinétique
+Les "dégâts d'arme cinétique" continus et les frags rapides ont une chance de régénérer une seule brique de munitions. Ramasser cette brique vous donne des munitions pour les armes à dégâts cinétiques équipées et octroie de la progression de munitions lourdes et spéciales.
+- Rechargement à distance
+Les tirs de précision avec des [icone arc] "arcs" et des [icone fusil de précision] "fusils de précision" confèrent un bonus cumulé à leur vitesse de rechargement.
+- Riposte 
+Peu après avoir paré avec une [icone épée] "épée", vos attaques lourdes et légères "étourdissent" les combattants sans bouclier.
+Efficace contre les [icone implacable] Champions implacables.
+- Douleur contre puissance
+Les frags rapides contre des combattants "affaiblis" vous confèrent "Dévoration" et créent une "Brèche abyssale".
+- Proxémie féroce
+Les frags par "coup de grâce" confèrent de l'énergie de Grenade et de Mêlée.
+- Remède rapide
+Les frags rapides à la [icone mitrailleuse] "mitrailleuse" vous soignent.
+
+T2
+- Diélectrique
+Eliminer des cibles souffrant de malus [icone cryo-électrique] "cryo-électrique" confère "Charge éclair".
+Eliminer rapidement des cibles souffrants de malus "cryo-électrique" fait apparaître un "orbe de puissance" et restaure une petite portion de santé.
+- Spécialiste des armures
+Briser le bouclier d'un combattant vous confère temporairement de la résistance aux dégâts et des dégâts de mêlée augmentés.
+- Energie de contre
+Quand vous ou un membre de votre escouade "étourdissez" un Champion, vous gagnez de l'énergie pour votre compétence la moins chargée.
+- Combo lame d'argent
+Faites une courte pause après une attaque légère et attaque lourde pour énergiser votre [icone épée] "épée" pendant un court moment, ce qui lui confère un bonus de dégâts et de vitesse de charge.
+- Lame de singularité
+Quand vous bénéficiez d'un "bonus élémentaire abyssal", les coups de mêlée et d'épée "affaiblissent" les cibles, et les frags à l'épée et en mêlée créent une "rafale affaiblissante".
+- Secousses aveuglantes
+Les frags de combattants affectés par une "Secousse" infligent "Cécité" aux combattants avoisinants.
+- Equité de précision
+Les frags de précision font progresser un gros orbe de puissances, qui augmente les dégâts d'arme lorsqu'il est ramassé. 
+Les cibles de rang élevé font progresser plus vite.
+
+T3
+- Orbes élémentaires : cryo-électriques
+Les frags à l'arme [icone cryo-électrique] "cryo-électrique" ont une chance de faire apparaître un orbe élémentaire cryo-électrique.
+Les orbes cryo-électriques peuvent être lancés ou tirés pour créer une explosion cryo-électrique qui inflige "Secousse" aux ennemis touchés.
+- Rupture cinétique
+Les dégâts d'arme "cinétique" sur un combattant puissant ont une chance de créer une rupture cinétique.
+Cibler cette rupture crée une explosion qui inflige des dégâts et "fait chanceler" les combattants.
+fficace contre les [icone implacable] Champions implacables.
+- Méditation du tireur
+Les tirs au [icone fusil de précision] "fusil de précision" octroient un cumul de dégâts de fusil de précision, de stabilité et de bonus de rechargement. 
+Les tirs au fusil de précision avec munitions lourdes compte pour plus d'un tir.
+- Combo tempêtes de lames
+Réaliser 3 attaques légères à l'[icone épée] "épée" suivies d'une attaque lourde invoque des lames ténébreuses qui vous entourent afin d'infliger des dégâts et de désorienter les combattants.
+Les frags à l'épée allongent la durée de ces lames ténébreuses.
+- Infestation abyssale
+Eliminer une cible "affaiblie" fait apparaitre un projectile traqueur qui affaiblit d'autres cibles.
+- Tazer tag
+Les coups de mêlée [icone cryo-électrique] "cryo-électrique" infligent une "Secousse" aux combattants et augmentent les dégâts pendant un court moment.
+- Electroadhésion
+Les grenades fluctuantes [icone cryo-électrique] "cryo-électrique", magnétiques [icone abyssal] "abyssales" et à fusion [icone solaire] "solaires" infligent plus de dégâts lorsqu'elles sont attachées aux combattants.
+En cas de frag, elles libèrent des micro-missiles qui traquent les combattants avoisinants.

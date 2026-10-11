@@ -1,0 +1,53 @@
+Queensfoil Censer - Encensoir à feuilles de Reine
+
+T1
+- Fièvre et Frisson
+Les tirs de précision rapides avec des armes [icone solaire] "Solaires" confèrent "Raidance". 
+Les tirs de précision rapides avec des armes [icone stase] "Stasiques" confèrent "Armure de Givre".
+- Torche
+Lorsque "Radiance" est actif, les dégâts d'arme infligés aux combattants victimes de malus [icone filobscure] "filobscur" et [icone stasique] "stasique" augmentent.
+- Coeur de flamme
+Lancer votre Super solaire propage "Radiance" aux alliés et les dégâts du Super augmentent en fonction des alliés proches.
+- Spécialiste des armures
+Briser le bouclier d'un combattant vous confère temporairement de la résistance aux dégâts et des dégâts de mêlée augmentés.
+- Voeu d'existence
+Quand votre Super est presque entièrement chargé, les frags de compétence font apparaître des orbes de puissance.
+- Allume-feu
+Lorsque "Radiance" est actif, les armes [icone solaire] "solaire" infligent des "Blessures solaires" aux cibles qui n'en sont pas encore victimes.
+- Rayon de souffle
+Les frags rapides par [icone lance-roquettes] lance-roquettes et [icone lance-grenade] lance-grenades confèrent de la "charge d'armure".
+
+T2
+- Orbes effilochants
+Ramasser un "orbe de puissance" ou un "Enchevêtrement" confère des "munitions effilochantes" aux armes [icone filobscur] "filobscures".
+- Pilier de glace
+Eliminer une cible "gelée" fait apparaître des cristaux de "stase".
+- Explosion revitalisante
+Etourdir un Champion provoque un "Embrasement" et annule l'étourdissement de votre bouclier.
+- Coiffe anti-Champions
+Les [icone lance-roquettes] lance-roquettes infligent plus de dégats aux Champions.
+- Morsure du Dragon
+Briser le bouclier d'un combattant avec une arme [icone filobscure] filobscure ou [icone stasique] stasique offre une chance de "suspendre" ou "geler" ce combattant.
+- Frisson insidieux
+Les frags [icone stasique] "stasiques" face aux cibles "ralenties" ou "gelées" relâchent une explosion qui "ralentit" les combattants et confère "Armure de Givre" aux alliés pris dans l'explosion.
+- Destruction perpétuelle
+Les frags rapidesavec des [icone lance-roquettes] "lance-roquettes" non exotiques rechargent les munitions et augmentent la vitesse de rechargement pendant une courte durée.
+
+T3
+- Transport de horde
+Les dégâts d'arme infligés aux cibles "effilochées" font parfois apparaître une "Brindille".
+Les Brindilles "sectionnent" les cibles à qui elles infligent des dégats.
+- Appel de tempête
+Briser des cibles "gelées" et des cristaux de "stase" augmente les dégâts.
+Briser des cristaux de "stase" libère des éclats de glace qui infligent des dégâts aux cibles et les "ralentissent".
+- Rayons de précision
+Lorsque "Radiance" est activée, les frags de précision [icone solaire] "solaire" embrasent les combattants.
+- Opérateur solitaire
+Lorsque vous êtes l'unique membre de votre escouade, les frags à l'arme de précision augmentent les dégâts d'arme jusqu'à ce que vous soyez éliminé.
+- Artillerie d'argent
+Les tirs au [icone lance-roquettes] lance-roquettes consomment un cumul de "charge d'armure", augmentant les dégâts et la vitesse de rechargement jusqu'à ce que vous rechargiez ou rangiez votre lance-roquettes.
+- Regard glacial
+Quand "Armure de Givre" est active, les frags de précision [icone stasique] "stasique" poussent les combattants à libérer une rafale de "gel".
+- En Lambeaux
+INfliger des dégâts continus à des cibles victimes de "Sectionnement" les "effiloche".
+Eliminer une cible "sectionnée" crée un point d'énergie [icone filobscure] filobscure et confère "Maille tissée" aux alliés proches pendant une courte durée.

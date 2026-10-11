@@ -1,0 +1,75 @@
+# Source : traduction manuelle par l'utilisateur (Ory), 17/08/2026
+#
+# Traduction française complète des 21 perks de cet artefact (7 par tier),
+# réalisée à la main par l'utilisateur à partir du jeu, faute de traduction
+# officielle exploitable dans le Manifest (voir
+# 13_ARTIFACTS_2_0_ET_ANTI_CHAMPION.md sur la structure héritée du Manifest).
+#
+# Conventions utilisées dans ce fichier, reprises telles quelles dans
+# src/data/artefacts.ts et rendues visuellement par le composant
+# RenduTextePerk.tsx :
+#   - [icone X] -> icône d'élément, de champion ou de type d'arme
+#   - "mot" entre guillemets -> verbe ou terme de jeu (affiché en cyan dans
+#     l'appli), matière première du futur graphe de chaînes de verbes
+#
+# Intégré dans src/data/artefacts.ts (id: "implement-of-curiosity") - voir CHANGELOG.md.
+# Ce fichier sert de RÉFÉRENCE et de SAUVEGARDE de la source, pas de source
+# vive : toute correction doit être faite ici ET reportée dans artefacts.ts.
+
+---
+
+Implement of Curiosity - Outillage de sécurité
+
+
+T1
+- Fièvre et Frisson
+Les tirs de précision rapides avec des armes [icone solaire] "Solaires" confèrent "Raidance". 
+Les tirs de précision rapides avec des armes [icone stase] "Stasiques" confèrent "Armure de Givre".
+- Bienveillance élémentaire
+Donner un "bonus élémentaire" aux alliés confère de l'énergie de "compétence de classe".
+- Renouveau Glacé
+Quand vous avez "Armure de Givre", subir des dégats critiques libère une rafale qui "Gèle" les combattant proches et vous confère "Armure de Givre", ainsi qu'à vos alliés.
+- Transport de Horde
+Les dégats d'arme infligés aux cibles "Effilochées" font parfois apparaître une "Brindille".
+Les Brindilles "Sectionnent" les cibles à qui elles infligent des dégats.
+- Fils rafraîchis
+Rammasser un "objet élémentaire" qui correspond à votre doctrine ou un "Enchevêtrement" quand vous avec un Super [icone filobscur] "Filobscur" équipé confère de l'énergie à votre compétence la moins chargée.
+- Tactique de meute
+Infliger des dégâts avec des "Brindilles" augmente les dégats des Brindilles.
+Lorsque les cumuls sont au maximum, les Brindilles "étourdissent" les [icone Implacable] Champions Implacables.
+- Assaillant semi-automatique
+Si vous avez au moins 2 unités de charge d'armure, les tirs de précision rapides avec les arcs, les fusils de précision et les fusils d'éclaireurs génère une charge d'armure.
+
+T2
+- Explosion entrelacée
+Détruire un "Enchevêtrement" avec des dégats [icone filobscur] "Filobscurs" augmente le rayon de l'explosion et ses dégâts.
+- Ténèbres cautérisées
+Les combattants non boss avec des malus [icone stase] "Stasiques" ou [icone filobscur] "Filobscurs subissent plus de dégats [icone solaire] "Solaires" de toute source.
+- Confusion élémentaire
+Etourdir un Champion avec une arme élémentaire crée une explosion élémentaire alignée, qui applique un malus élémentaire correspondant au Champion et aux cibles proches.
+- Soutien mutuel
+Infliger des dégâts de précision continus contre des combattants quand vous êtes près d'au moins deux alliés vous confère de la résistance aux dégats.
+- Coalescence élémentaire
+Eliminer dés cibles confèreune chance de créer un "objet élémentaire" qui correspond à votre élément de "Super" équipé.
+- L'arôme des balles neuves
+Ramasser une brique de munitions augmente les dégâts de vos armes cinétiques pendant une courte durée.
+- Accélération énergétique
+Des dégâts continus avec des "micro-missiles" font émettre au combattant une onde de choc "cinétique" qui inflige des dégâts aux combattants proches.
+Efficace contre les [icone Implacable] Champions Implacable.
+
+T3 
+- Mitraille rayonnante
+Infliger des dégâts continus sous l'effet de "Radiance" ou éliminer un combattant souffrant de "Blessures solaires" avec une arme pousse la cible à libérer des projectiles solaires qui infligent des dégâts et des Blessures solaires à l'impact.
+- Broyeur de bouclier
+Lorsque vous avez "Maille tissée", "Armure de givre"ou un "Surbouclier abyssal", votre "Mêlée" se recharge plus vite et inflige plus de dégâts.
+Lorsque vous êtes sous l'effet d'"Amplificateur" ou de "Radiance", votre "Grenade" se recharge plus vite et inflige plus de dégâts.
+- Surealimentation élémentaire
+Ramasser un "objet élémentaire" ou un "Enchevêtrement" confère des dégâts accrus aux armes du même élément.
+- Toile enchevêtrée
+Créer un "Enchevêtrement" en éliminant une cible ayant un malus [icone filobscur] "Filobscur" "suspend" les combattants proches.
+- Regard glacial
+Quand "Armure de givre" est active, les frags de précision [icone stase] "Stasiques" poussent poussent les combattants à libérer une rafale de "gel".
+- Vigueur du Seigneur de Fer
+Quand vous portez une épée, vous subissez moins de dégâts ; les frags rapides octroient des munitions au porteur.
+- Carquois argenté
+Recharger un "arc" consomme un cumul de "charge d'armure", augmentant les dégâts et la vitesse de rechargement de vos 3 prochains tirs ou jusqu'à ce que vous rangiez votre arc.

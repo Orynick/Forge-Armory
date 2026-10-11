@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Forge Armory — Neutre (icône)</title>
+  <desc id="desc">Icône Neutre : symbole dans un cercle à cristaux, style Forge Armory.</desc>
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    
+    <linearGradient id="plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131923"/><stop offset="1" stop-color="#080b11"/>
+    </linearGradient>
+    <linearGradient id="fadeH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.12" stop-color="#e8ebef" stop-opacity="0.85"/>
+      <stop offset="0.88" stop-color="#e8ebef" stop-opacity="0.85"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fadeV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.25" stop-color="#e8ebef" stop-opacity="0.7"/>
+      <stop offset="0.75" stop-color="#e8ebef" stop-opacity="0.7"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glowStar" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#silver)" stroke-width="22"/>
+    <g transform="translate(512 512) scale(2.5434) translate(-179.00 -185.12)"><path d="M 176.5 121.8 L 172.0 123.0 L 167.2 126.0 L 164.0 130.2 L 162.2 135.2 L 162.2 173.8 L 164.0 178.2 L 165.8 180.8 L 168.8 183.5 L 173.0 185.8 L 180.0 186.8 L 185.2 185.5 L 189.2 183.2 L 191.8 180.8 L 194.8 175.0 L 195.0 134.8 L 193.5 130.2 L 191.8 127.5 L 189.2 125.0 L 183.5 122.2 Z M 107.5 109.2 L 103.2 112.0 L 99.0 116.2 L 96.0 120.8 L 94.0 125.5 L 92.5 132.5 L 92.5 137.5 L 93.2 142.5 L 95.2 148.2 L 97.8 152.5 L 100.8 155.8 L 103.5 158.0 L 114.5 165.0 L 120.2 169.5 L 125.8 174.8 L 132.8 183.0 L 139.8 193.2 L 144.0 201.5 L 149.0 214.8 L 152.0 229.0 L 153.2 244.2 L 155.5 250.2 L 159.0 255.5 L 164.8 260.5 L 168.5 262.5 L 176.0 264.2 L 183.0 264.0 L 190.8 261.5 L 194.0 259.5 L 197.5 256.5 L 200.5 252.8 L 202.8 248.8 L 204.8 241.0 L 204.8 235.8 L 205.8 227.0 L 209.5 212.2 L 213.0 203.0 L 220.8 189.0 L 227.2 180.2 L 236.5 170.2 L 244.0 164.2 L 254.5 157.5 L 258.5 153.8 L 262.8 147.8 L 264.8 142.2 L 265.5 133.0 L 264.5 127.2 L 262.2 121.5 L 258.5 116.0 L 252.2 110.5 L 245.2 107.0 L 240.5 106.0 L 235.5 106.0 L 231.0 107.0 L 226.5 108.8 L 222.0 111.5 L 215.2 116.8 L 208.0 120.5 L 207.5 121.2 L 207.8 172.8 L 207.0 177.0 L 205.8 180.5 L 201.0 188.0 L 196.8 192.2 L 193.2 194.8 L 186.0 197.8 L 178.0 198.8 L 175.0 198.5 L 169.0 197.0 L 162.5 193.8 L 155.5 187.0 L 151.8 181.0 L 149.8 173.5 L 149.5 121.0 L 142.5 116.8 L 133.8 110.0 L 127.2 107.0 L 122.5 106.0 L 117.8 106.0 L 112.8 107.0 Z" fill="url(#silver)" fill-rule="evenodd"/></g>
+    
+    <g filter="url(#glow)">
+      <path d="M 512 110 L 512 238 L 495 168.88 Z" fill="url(#cyanL)"/>
+      <path d="M 512 110 L 529 168.88 L 512 238 Z" fill="url(#cyanR)"/>
+      <path d="M 512 122 L 514.2 168.88 L 512 226 L 509.8 168.88 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 154.88 L 515 165.88 L 526 168.88 L 515 171.88 L 512 182.88 L 509 171.88 L 498 168.88 L 509 165.88 Z" fill="#ffffff"/>
+    </g>
+    
+    <g filter="url(#glow)">
+      <path d="M 512 786 L 512 914 L 495 844.88 Z" fill="url(#cyanL)"/>
+      <path d="M 512 786 L 529 844.88 L 512 914 Z" fill="url(#cyanR)"/>
+      <path d="M 512 798 L 514.2 844.88 L 512 902 L 509.8 844.88 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 830.88 L 515 841.88 L 526 844.88 L 515 847.88 L 512 858.88 L 509 847.88 L 498 844.88 L 509 841.88 Z" fill="#ffffff"/>
+    </g>
+  </g>
+</svg>

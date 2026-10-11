@@ -1,0 +1,23 @@
+// FR : ⚠️ CHANGÉ (08/10/2026, v0.3.18) - le complément compte maintenant CINQ visuels : les deux titres fixes de Connexion et Manifest, et les TROIS cartes du Scoring renumérotées (« 1. Doctrine élémentaire », « 2. Armes et Armures », « 3. Artefact »),
+// recomposées par `scripts/retoucher-visuels.mjs` ; les trois entrées correspondantes du catalogue généré (`1-element-doctrine`, `2-artefact`, `3-armes-armures`) sont REMPLACÉES : leurs fichiers sont supprimés de `public/assets/` (ils restent dans l'archive d'origine).
+// FR : ⚠️ AJOUT (07/10/2026, v0.3.17) - COMPLÉMENT au catalogue généré `forgeAssets.ts` (qu'on ne modifie JAMAIS à la main : il est régénéré par l'auteur des visuels) : les deux titres FIXES, sans losange + / −,
+// de « Connexion à Bungie » et « Recherche dans le Manifest ». Ces deux blocs ne sont pas repliables (retour de l'utilisateur du 07/10/2026) alors que l'archive actuelle ne leur donne que la version à deux états ;
+// on reprend donc leur version sans losange, livrée avec l'archive précédente (`ressources-installateur/forge-armory/titres-complets/`), importée dans `public/assets/titres/` par `scripts/retoucher-visuels.mjs`.
+// Même forme d'entrée que le catalogue ; cadre 7505 × 1024, comme la famille « titres ». Si l'auteur livre un jour ces deux titres dans son catalogue, ce fichier disparaît.
+// EN: ⚠️ ADDED - supplement to the generated catalogue: the two STATIC (no +/- diamond) titles for Connexion and Manifest, which are not collapsible blocks.
+
+import type { ForgeAsset } from "./forgeAssets";
+
+export const FORGE_ASSETS_COMPLEMENT: readonly ForgeAsset[] = [
+  { id: "titres.connexion.repos", famille: "titres", label: "Connexion à Bungie", etat: "repos", fichier: "assets/titres/titre-connexion.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
+  { id: "titres.manifest.repos", famille: "titres", label: "Recherche dans le Manifest", etat: "repos", fichier: "assets/titres/titre-manifest.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
+  { id: "titres.1-doctrine-elementaire.repos", famille: "titres", label: "1. Doctrine élémentaire", etat: "repos", fichier: "assets/titres/titre-1-doctrine-elementaire.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
+  { id: "titres.2-armes-armures.repos", famille: "titres", label: "2. Armes et Armures", etat: "repos", fichier: "assets/titres/titre-2-armes-armures.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
+  { id: "titres.3-artefact.repos", famille: "titres", label: "3. Artefact", etat: "repos", fichier: "assets/titres/titre-3-artefact.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
+];
+
+/**
+ * FR : entrées du catalogue GÉNÉRÉ remplacées par le complément ci-dessus (08/10/2026) : leurs fichiers n'existent plus dans `public/assets/` et l'appli ne les demande plus. Le test des visuels vérifie qu'elles sont bien absentes du disque et inutilisées.
+ * EN: generated-catalogue entries superseded by the supplement; their files no longer exist in public/assets.
+ */
+export const FORGE_ASSETS_REMPLACES: readonly string[] = ["titres.1-element-doctrine.repos", "titres.2-artefact.repos", "titres.3-armes-armures.repos"];

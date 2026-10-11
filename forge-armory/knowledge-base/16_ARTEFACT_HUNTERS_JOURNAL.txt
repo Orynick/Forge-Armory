@@ -1,0 +1,73 @@
+# Source : traduction manuelle par l'utilisateur (Ory), 17/08/2026
+#
+# Traduction française complète des 21 perks de cet artefact (7 par tier),
+# réalisée à la main par l'utilisateur à partir du jeu, faute de traduction
+# officielle exploitable dans le Manifest (voir
+# 13_ARTIFACTS_2_0_ET_ANTI_CHAMPION.md sur la structure héritée du Manifest).
+#
+# Conventions utilisées dans ce fichier, reprises telles quelles dans
+# src/data/artefacts.ts et rendues visuellement par le composant
+# RenduTextePerk.tsx :
+#   - [icone X] -> icône d'élément, de champion ou de type d'arme
+#   - "mot" entre guillemets -> verbe ou terme de jeu (affiché en cyan dans
+#     l'appli), matière première du futur graphe de chaînes de verbes
+#
+# Intégré dans src/data/artefacts.ts (id: "hunters-journal") - voir CHANGELOG.md.
+# Ce fichier sert de RÉFÉRENCE et de SAUVEGARDE de la source, pas de source
+# vive : toute correction doit être faite ici ET reportée dans artefacts.ts.
+
+---
+
+Hunter's Journal - Journal du Chasseur
+
+T1
+- Siphon élémentaire
+Les frags rapides à l'aide d'une arme [icone cinétique] "cinétique" ou d'une arme correspondant à votre "Super" équipé créent un "objet élémentaire" à ramasser qui correspond à votre Super équipé.
+- Substrat de diffusion énergétique
+Augmente légèrement votre résistance à tous les dégâts infligés par des combattants.
+- Frisson insidieux
+Les frags [icone stase] "Stasiques" face aux cibles "ralenties" ou "gelées" relâchent une explosion qui "ralentit" les combattants et confère "Armure de Givre" aux alliés pris dans l'explosion.
+- Profiter de l'avantage
+Briser le bouclier d'un combattant augmente la stabilité, le maniement et la vitesse de rechargement d'"arme". Les [icone épée] épées obtiennent une résistance de garde améliorée.
+- Explosion entrelacée
+Détruire un "Enchevêtrement" avec des dégâts [icone filobscur] "Filobscurs" augmente le rayon de l'explosion et ses dégâts.
+- Munitions incendiaires pour fusil
+Les tirs de précision réalisés avec un [icone fusil de précision][icone solaire] "fusil de précision solaire" infligent des "Blessures solaires" aux cibles.
+- Tirs soutenu
+Infliger des dégâts à des combattants ou soigner des alliés en continu avec un [icone fusil automatique] vous confère une résistance aux dégâts.
+
+T2
+- Energie de contre
+Quand vous ou un membre de votre escouade "étourdissez" un Champion, vous gagnez de l'énergie pour votre compétence la moins chargée.
+- Endurance de Lame
+Eliminer rapidement des combattants avec une [icone épée] "épée" recharge quelques munitions.
+- Hégémonie abyssale
+Lorsque vous avez une doctrine "Abyssale" ou "Prismatique" équipée, éliminer les cibles "affaibles" fournit un petit "surbouclier abyssal".
+- Orbes radieux
+Lorsque vous avez une doctrine "Solaire" ou "Prismatique" équipée, ramasser un orbe de puissance vous octroie "Radiance".
+- Mauvaise amplitude
+Blesser un Champion avec une compétence [icone cryo-électrique] "Cryo-électrique" lui inflige une "Secousse".
+- Fulmination solaire
+Vos "Embrasements" infligent plus de dégâts dans un rayon plus large.
+- Recharge automatique du ciblage
+Lorsqu'un [icone fusil automatique] "fusil automatique" est équipé, éliminer des combattants recharge votre arme équipée et augmente temporairement les dégâts d'arme.
+Les frags quand vous êtes encerclé octroient un bonus de progression.
+
+T3
+- Transfert prismatique
+Quand vous utilisez votre Super, chaque membre de votre escouade avec un type de Super différent du vôtre gagne de dégâts.
+- Lame d'argent
+Lorsque vous avez de la "charge d'armure", infliger des dégâts avec un épée consomme un cumul de charge d'armure et renforce votre [icone épée] "épée" pendant un court moment, lui octroyant des dégâts bonus et de l'énergie de vitesse de charge.
+- Abîme déployé 
+Les sources "abyssales" infligent des dégâts aux cibles "affaiblies".
+- Broyeur de bouclier
+Lorsque vous avez "Maille tissée", "Armure de givre"ou un "Surbouclier abyssal", votre "Mêlée" se recharge plus vite et inflige plus de dégâts.
+Lorsque vous êtes sous l'effet d'"Amplificateur" ou de "Radiance", votre "Grenade" se recharge plus vite et inflige plus de dégâts.
+- Transfert
+Les dégâts de "Grenade" et de "Mêlée" augmentent lorsque vous êtes sous l'effet de "Transcendance".
+Les frags avec une arme en étant sous l'effet de "Transcendance" rechargent votre énergie de "Lumière" et de "Ténèbres" une fois la Transcendance terminée.
+- Méditation du tireur
+Les tirs au [icone fusil de précision] "fusil de précision" octroient un cumul de dégâts de fusil de précision, de stabilité et de bonus de rechargement. 
+Les tirs au fusil de précision avec munitions lourdes compte pour plus d'un tir.
+- Choc et effroi
+Lorsqu'une doctrine [icone cryo-électrique] "Cryo-électrique" ou "Prismatique" est équipée, les frags "cryo-électriques" sous l'effet d'"Amplificateur" attirent un éclair qui inflige des dégâts ainsi que des "Secousses" aux cibles.

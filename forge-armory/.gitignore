@@ -1,0 +1,21 @@
+node_modules
+dist
+.env.local
+*.local
+CHANGELOG
+GUIDE-DEMARRAGE-INVITE
+TODO
+A-TESTER*
+
+# Sauvegardes de builds exportées (personnelles, pas dans le dépôt)
+builds/*.json
+
+# FR : artefact de compilation TypeScript incrémentale, apparu dans
+# l'archive d'audit du 06/09 - ne doit pas être versionné.
+# EN: incremental TypeScript build artifact, must not be committed.
+*.tsbuildinfo
+
+# FR : dossiers produits par la fabrication du logiciel (electron-builder).
+# EN: outputs of the desktop build.
+installateur/
+dist/

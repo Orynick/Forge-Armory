@@ -1,0 +1,51 @@
+Tablet of Ruin - Tablette de la Ruine
+
+T1
+- Tenir bon
+Quand vous êtes encerclé, les [icone mitrailleuses] "mitrailleuses" et les [icone glaive] "glaives" ont une meilleure vitesse de rechargement et stabilité ; les frags vous soignent.
+- Diélectrique
+Eliminer des cibles souffrant de malus [icone cryo-électrique] "cryo-électriques" confère "Charge éclair".
+Eliminer rapidement des cibles souffrant de malus "cryo-électriques" fait apparaître un "orbe de puissance" et restaure une petite porton de santé.
+- Tir d'élite volatil
+Les tirs de précision rapides par arme [icone abyssale] "abyssale" et les frags rapides par arme abyssale confèrent des "munitions volatiles".
+Les explosions "volatiles" confèrent de l'énergie de compétence de classe.
+- Orbes effilochants
+Ramasser un "orbe de puissance" ou un "Enchevêtrement" confère des "munitions effilochantes" aux armes [icone filobscur] "filobscur".
+- Eclat photonique
+Eliminer une cible "épuisée" ou "sectionnée" avec dégâts [icone cryo-électrique] "cryo-électriques" libère une rafale qui inflige "Cécité"
+- Siphon élémentaire
+Les frags rapides à l'aide d'une arme [icone cinétique] "cinétique" ou d'une arme correspondant à votre "Super" équipé créent un "objet élémentaire" à ramasser qui correspond à votre Super équipé. Les "objets élémentaires" confèrent de l'énergie de "Super" correspondante quand ils sont récupérés.
+- Destruction perpétuelle
+Les frags rapides avec des [icone lance-roquettes] "lance-roquettes" non exotiques rechargent les munitions et augmentent la vitesse de rechargement pendant une courte durée.
+
+T2
+- Tissage ignoble
+Les cibles touchées par vos "Enchevêtrements" sont victimes de "Sectionnement". Ramasser un Enchevêtrement réduit leur temps de récupération.
+- Récolte ignoble
+En appliquant rapidement "Volatil", votre prochaine occurence de dégâts d'arme [icone abyssale] "abyssale" crée une rafale "affaiblissante". Appliquer cet affaiblissement confère un petit "surbouclier abyssal".
+- Electrification
+Quand vous obtenez le maximum de "Charge éclair", vous recevez aussi "Amplificateur". Les éclairs infligent plus de dégâts.
+- Transport de horde
+Les dégâts d'arme infligés aux cibles "effilochées" font parfois apparaître une "Brindille". Les Brindilles "sectionnent" les cibles à qui elles infligent des dégâts.
+- Pas de cloche
+Les frags de mêlée rapides à l'aide de [icone glaive] "glaives" font apparaître des munitions spéciales de glaive supplémentaires. Bloquer des dégâts avec des glaives augmente les dégâts de mêlée qu'ils infligent aux cibles.
+- Réfraction cruelle
+Les [icone fusil à rayon] "fusil à rayon" infligent plus de dégâts aux cibles qui subissent des malus élémentaires correspondant à leur type d'élément.
+- Plomb en or
+Ramasser des munitions spéciales a une chance d'octroyer des munitions lourdes.
+
+T3
+- Reconstruction de particules
+Infliger des dégâts continus avec des [icone fusil à fusion] "fusils à fusion" ou des [icone fusil à fusion linéaire] "fusil à fusion linéaire" recharge partiellement le chargeur à partir des réserves et leur confère un bonus de dégâts pendant une courte durée contre cette cible.
+- Superchargeur élémentaire
+Eliminer des cibles "épuisées" ou "sectionnées" avec des armes correspondant à votre élément de "Super" confère de l'énergie de Super.
+- Régénération d'artillerie lourde
+Infliger des dégâts continus avec des [icone mitrailleuses] "mitrailleuses" ou des [icone lance-roquettes] "lance-roquettes" confère de la résistance aux dégâts et améliore la régénération d'énergie de "Grenade" et de "Mêlée" pendantune courte durée. Avec ce mod activé, éliminerdes combattants puissants désoriente les combattants de base proches.
+- Explosion défibrillatrice
+Etourdir un Champion confère le cumul maximum de "Charges éclair". Toucher des cibles avec ces charges leur inflige "Secousse" et vous soigne.
+- Flux abyssal
+Eliminer des cibles "affaiblies" avec une arme [icone abyssale] "abyssale" applique "Volatil" aux cibles proches. Les cibles puissantes augmentent le rayon d'explosion.
+- Plus de limite
+Lancer un "Super" lorsque vous êtes en état critique ou que vous bénéficiez d'un bonus élémentaire correspondant à votre élément de Super augmente temporairement vos dégâts de Super.
+- En lambeaux
+Infliger des dégâts continus à des cibles victimes de "Sectionnement" les "effiloche". Eliminer une cible "sectionnée" crée un point d'énergie [icone filobscur] filobscure et confère "Maille tissée" aux alliés proches pendant une courte durée.

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title">
+  <title id="title">Forge Armory — Mon Inventaire (icône)</title>
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <mask id="mChest" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect x="-2000" y="-2000" width="5000" height="5000" fill="#fff"/><path d="M 352 300 L 352 700 M 672 300 L 672 700" stroke="#000" stroke-width="14" fill="none"/><path d="M 482 440 L 542 440 L 542 494 L 512 520 L 482 494 Z" fill="#000" stroke="#000" stroke-width="22" stroke-linejoin="miter"/></mask><mask id="mLock" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect x="-2000" y="-2000" width="5000" height="5000" fill="#fff"/><circle cx="512" cy="468" r="10" fill="#000"/><path d="M 507 470 L 517 470 L 521 494 L 503 494 Z" fill="#000"/></mask>
+    <linearGradient id="plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131923"/><stop offset="1" stop-color="#080b11"/>
+    </linearGradient>
+    <linearGradient id="fadeH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.12" stop-color="#e8ebef" stop-opacity="0.85"/>
+      <stop offset="0.88" stop-color="#e8ebef" stop-opacity="0.85"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fadeV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.25" stop-color="#e8ebef" stop-opacity="0.7"/>
+      <stop offset="0.75" stop-color="#e8ebef" stop-opacity="0.7"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glowStar" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#silver)" stroke-width="22"/>
+    <g transform="translate(0 9)"><path d="M 272 462 L 272 410 C 272 340 380 316 512 316 C 644 316 752 340 752 410 L 752 462 Z" fill="url(#silver)" mask="url(#mChest)"/><path d="M 288 480 L 736 480 L 752 496 L 752 674 L 736 690 L 288 690 L 272 674 L 272 496 Z" fill="url(#silver)" mask="url(#mChest)"/><g filter="url(#glowSoft)"><path d="M 482 440 L 542 440 L 542 494 L 512 520 L 482 494 Z" fill="url(#cyanL)" mask="url(#mLock)"/></g></g>
+    
+  </g>
+</svg>

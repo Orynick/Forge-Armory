@@ -1,0 +1,63 @@
+{
+  "name": "d2-build-analyzer",
+  "private": true,
+  "version": "0.3.19",
+  "description": "Analyseur de builds Destiny 2 : score un build sur 5 piliers a partir de vos donnees Bungie.net.",
+  "author": "Orynick/Orygamer",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "electron:dev": "electron .",
+    "electron:build": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0",
+    "idb": "^8.0.0",
+    "sql.js": "^1.11.0",
+    "fflate": "^0.8.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/sql.js": "^1.4.11",
+    "@vitejs/plugin-react": "^4.3.1",
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.1",
+    "vite-plugin-mkcert": "^1.17.6"
+  },
+  "main": "electron/main.cjs",
+  "build": {
+    "appId": "com.orynick.d2buildanalyzer",
+    "productName": "Forge Armory",
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "installateur",
+      "buildResources": "ressources-installateur"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "Forge-Armory-Setup-${version}.${ext}",
+      "icon": "ressources-installateur/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Forge Armory",
+      "installerIcon": "ressources-installateur/icon.ico",
+      "uninstallerIcon": "ressources-installateur/icon.ico"
+    }
+  }
+}

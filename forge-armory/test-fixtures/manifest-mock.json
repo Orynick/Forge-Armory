@@ -1,0 +1,141 @@
+{
+    "_a_propos": "Jeu de donnees FACTICE (mais schema realiste) pour tester le code qui depend du Manifest, sans avoir besoin d'un vrai telechargement (~200 Mo). L'appli reelle continue de telecharger le vrai Manifest depuis Bungie - ce fichier ne sert QUE pour scripts/tester-avec-fixtures.mjs. Structure : table -> id SQLite (deja convert en signe si besoin) -> definition (meme forme JSON que le vrai Manifest).",
+    "DestinyInventoryItemDefinition": {
+        "fr": {
+            "1": {
+                "hash": 1,
+                "displayProperties": {
+                    "name": "Couronne des Tempêtes",
+                    "description": "Exotique Titan/Chasseur/Arcaniste. Tuer un ennemi avec une capacité Arc accorde des stacks de Grenade, Mêlée et régénération de Super.",
+                    "icon": "/common/destiny2_content/icons/exemple_couronne.jpg"
+                },
+                "inventory": {
+                    "bucketTypeHash": 3448274439,
+                    "tierTypeHash": 2759499571
+                }
+            },
+            "2": {
+                "hash": 2,
+                "displayProperties": {
+                    "name": "Nourris-toi du Vide",
+                    "description": "Aspect Arcaniste Vide. Une mise à mort avec une capacité Vide accorde Dévoration pendant 10 secondes.",
+                    "icon": ""
+                },
+                "inventory": {}
+            },
+            "3": {
+                "hash": 3,
+                "displayProperties": {
+                    "name": "Écho de Famine",
+                    "description": "En ramassant un Orbe de Puissance ou une Brèche Abyssale : accorde Dévoration pendant 5+2.5 secondes.",
+                    "icon": ""
+                },
+                "inventory": {}
+            },
+            "4": {
+                "hash": 4,
+                "displayProperties": {
+                    "name": "Fragment de test (Ralentissement)",
+                    "description": "Vos capacités Stase infligent Ralentissement aux cibles proches.",
+                    "icon": ""
+                },
+                "inventory": {}
+            }
+        },
+        "en": {
+            "1": {
+                "hash": 1,
+                "displayProperties": {
+                    "name": "Crown of Tempests",
+                    "description": "Exotic Titan/Hunter/Warlock. Arc ability kills grant stacks of Grenade, Melee, and Super regeneration.",
+                    "icon": "/common/destiny2_content/icons/exemple_couronne.jpg"
+                },
+                "inventory": {
+                    "bucketTypeHash": 3448274439,
+                    "tierTypeHash": 2759499571
+                }
+            },
+            "2": {
+                "hash": 2,
+                "displayProperties": {
+                    "name": "Feed the Void",
+                    "description": "Warlock Void aspect. Void ability kill grants Devour for 10 seconds.",
+                    "icon": ""
+                },
+                "inventory": {}
+            },
+            "3": {
+                "hash": 3,
+                "displayProperties": {
+                    "name": "Echo of Starvation",
+                    "description": "On Orb of Power or Void Breach pickup: grants Devour for 5+2.5 seconds.",
+                    "icon": ""
+                },
+                "inventory": {}
+            },
+            "4": {
+                "hash": 4,
+                "displayProperties": {
+                    "name": "Test Fragment (Slow)",
+                    "description": "Your Stasis abilities apply Slow to nearby targets.",
+                    "icon": ""
+                },
+                "inventory": {}
+            }
+        }
+    },
+    "DestinySandboxPerkDefinition": {
+        "fr": {
+            "100": {
+                "hash": 100,
+                "displayProperties": {
+                    "name": "Perk d'artefact d'exemple",
+                    "description": "Les mises à mort à l'arme infligent Électrocution aux ennemis proches."
+                }
+            }
+        },
+        "en": {
+            "100": {
+                "hash": 100,
+                "displayProperties": {
+                    "name": "Example artifact perk",
+                    "description": "Weapon kills inflict Jolt on nearby enemies."
+                }
+            }
+        }
+    },
+    "DestinyStatDefinition": {
+        "fr": {
+            "200": {
+                "hash": 200,
+                "displayProperties": {
+                    "name": "Grenade",
+                    "description": ""
+                }
+            },
+            "201": {
+                "hash": 201,
+                "displayProperties": {
+                    "name": "Mêlée",
+                    "description": ""
+                }
+            }
+        },
+        "en": {
+            "200": {
+                "hash": 200,
+                "displayProperties": {
+                    "name": "Grenade",
+                    "description": ""
+                }
+            },
+            "201": {
+                "hash": 201,
+                "displayProperties": {
+                    "name": "Melee",
+                    "description": ""
+                }
+            }
+        }
+    }
+}

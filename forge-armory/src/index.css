@@ -1,0 +1,313 @@
+:root {
+  color-scheme: dark;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #0d0f14;
+  color: #e8e6df;
+}
+
+.app-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.pilier-carte {
+  border: 1px solid #2a2e38;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+  /* ⚠️ CHANGÉ (06/10/2026) : légèrement TRANSLUCIDE (était #161922, opaque) pour laisser transparaître le logo de fond fixe (components/FondLogo.tsx). Les tiroirs et fenêtres
+     modales, eux, restent opaques. / EN: slightly translucent so the fixed background logo shows through; drawers and modals stay opaque. */
+  background: rgba(22, 25, 34, 0.86);
+}
+
+.pilier-carte h3 {
+  margin: 0 0 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1rem;
+  /* ⚠️ AJOUT (07/10/2026, v0.3.13) - sur une fenêtre étroite, le statut à droite passe SOUS le titre au lieu de le faire rétrécir : un titre illustré garde toujours la même taille. Sans effet quand la place suffit. */
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+}
+
+/* FR : ⚠️ AJOUT (27/09/2026, v0.2.3) - blocs principaux repliables, demande
+de l'utilisateur : « pareil que réduire/agrandir le Coffre ». Même mécanisme
+natif (<details>/<summary>) : triangle ▶/▼ devant le titre, toute la ligne
+cliquable. Le titre garde l'aspect des anciens <h3> (taille, gras, statut
+aligné à droite). Concerne Inventaire, Doctrine, Mon Build et Artefact ;
+PAS la connexion Bungie, la recherche Manifest ni la partie scoring.
+EN: ⚠️ ADDED - collapsible main blocks, same native mechanism as the Vault. */
+.bloc-repliable > summary {
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  margin: 0 0 0.5rem;
+}
+.bloc-repliable:not([open]) > summary {
+  margin-bottom: 0;
+}
+/* FR : le contenu du titre reste sur la même ligne que le triangle, avec le
+statut poussé à droite (comme l'ancien h3 en flex). Un <summary> lui-même en
+flex perdrait son triangle, d'où ce conteneur intérieur.
+EN: inner container keeps the triangle (a flex <summary> would lose it). */
+.bloc-repliable-ligne {
+  display: inline-flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  width: calc(100% - 1.4em);
+  vertical-align: middle;
+  /* ⚠️ AJOUT (07/10/2026, v0.3.13) - même raison que pour `.pilier-carte h3` : le statut passe sous le titre sur une fenêtre étroite. */
+  flex-wrap: wrap;
+}
+
+.pilier-carte ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  color: #b7b3a8;
+}
+
+/* FR : sous-liste des verbes, en retrait sous leur titre. Puce en tiret
+plutôt qu'un point, pour distinguer les deux niveaux (demande utilisateur,
+capture d'écran à l'appui). */
+.pilier-carte ul ul {
+  margin: 0.15rem 0 0;
+  padding-left: 1.3rem;
+  list-style-type: "– ";
+}
+
+.score-global {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+/* Sélecteur de classe : 3 rectangles égaux, côte à côte, espacés (ne se touchent pas) */
+.selecteur-classe {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.carte-classe {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  border: 2px solid #2a2e38;
+  border-radius: 8px;
+  background: #161922;
+  color: #b7b3a8;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.carte-classe:hover {
+  border-color: #3a3f4b;
+  background: #1c2029;
+}
+
+.carte-classe.selectionnee {
+  border-color: #7aa2f7;
+  background: #1a2436;
+  color: #e8e6df;
+}
+
+/* Coche visible uniquement sur la carte sélectionnée */
+.carte-classe .coche {
+  visibility: hidden;
+  color: #7aa2f7;
+}
+
+.carte-classe.selectionnee .coche {
+  visibility: visible;
+}
+
+/* FR : ⚠️ AJOUT (04/08/2026) - petit indicateur de chargement (disque qui
+tourne), demandé par l'utilisateur pour distinguer un traitement en cours
+d'un écran figé (ex: pendant le chargement/indexation du Manifest).
+EN: ⚠️ ADDED (2026-08-04) - small loading indicator (spinning disc),
+requested by the user to distinguish ongoing processing from a frozen
+screen (e.g. during Manifest loading/indexing). */
+@keyframes tourner-disque {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.indicateur-chargement {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #3a3f4b;
+  border-top-color: #7aa2f7;
+  border-radius: 50%;
+  animation: tourner-disque 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+
+/* FR : ⚠️ AJOUT (05/08/2026) - alignement uniforme des menus repliables
+(<details>/<summary>) dans toute l'appli. Chaque bloc gérait sa propre
+présentation au cas par cas (certains avec une icône avant le texte,
+d'autres non, tailles de police différentes) : le triangle natif du
+navigateur (le "marker") ne s'alignait donc pas de la même façon d'un bloc
+à l'autre - visible en comparant par exemple la liste des personnages dans
+l'Inventaire et le diagnostic dans l'Artefact.
+
+Solution : masquer le marker natif (::-webkit-details-marker et
+list-style pour Firefox) et le redessiner nous-mêmes avec ::before, à
+taille et alignement FIXES quel que soit le contenu du <summary>. Le
+contenu réel (icône + texte) est enveloppé dans un <span> par les
+composants pour bénéficier de l'alignement flex - voir summary > span
+ci-dessous.
+
+EN: ⚠️ ADDED - uniform alignment of collapsible blocks (<details>/<summary>)
+across the app. Each block handled its own presentation ad hoc, so the
+browser's native disclosure triangle didn't line up consistently.
+Solution: hide the native marker and redraw it ourselves with ::before, at
+a FIXED size and alignment regardless of the <summary>'s content. */
+
+summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary::before {
+  content: "▶";
+  display: inline-block;
+  flex-shrink: 0;
+  width: 10px;
+  /* FR : ⚠️ CORRIGÉ (05/08/2026) - `font-size: 0.7em` était RELATIF à la
+  taille de police du <summary> parent, donc pas fixe du tout malgré
+  l'intention affichée dans le commentaire plus haut : un bloc à 0.75rem
+  affichait un triangle de ~8px, un autre sans style personnalisé ~11px -
+  écart de 33%, repéré à l'œil par l'utilisateur sur l'aperçu ("le triangle
+  semble plus petit une fois ouvert"). Fixé en pixels absolus, qui ne
+  dépendent plus du texte à côté.
+  EN: ⚠️ FIXED - `font-size: 0.7em` was RELATIVE to the parent <summary>'s
+  font size, so not fixed at all despite the comment above's intent: one
+  block at 0.75rem showed a ~8px triangle, another with no custom size
+  ~11px - spotted by the user on the preview. Fixed to absolute pixels. */
+  font-size: 10px;
+  color: #7d7a70;
+  transition: transform 0.15s ease;
+}
+
+details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+/* FR : le contenu du résumé (icône + texte) doit être aligné sur la même
+ligne que le triangle, verticalement centré avec lui. */
+summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ============================================================================================================================
+   ⚠️ AJOUT (06/10/2026, v0.3.5) - NOUVEAUX BOUTONS (demande de l'utilisateur) : sélecteur de vues (SVG fournis, components/SelecteurVues.tsx)
+   et boutons de contexte du build (visuels fournis, v0.3.6, components/PastilleContexte.tsx). La proposition dessinée en CSS de la v0.3.5 a été retirée.
+   EN: ⚠️ ADDED - new buttons: view selector and build-context buttons (both from the user's supplied SVGs).
+   ============================================================================================================================ */
+.selecteur-vues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+/* Les trois boutons ont la MÊME hauteur ; la largeur suit (rapport 4316 / 1024 du cadre commun des SVG). */
+.bouton-vue,
+.bouton-vue:hover,
+.bouton-vue:active {
+  position: relative;
+  display: block;
+  /* ⚠️ CHANGÉ (07/10/2026, v0.3.11) - `--hauteur-bouton` permet d'afficher un bouton du sélecteur à une AUTRE hauteur (ex. 28px dans la confirmation d'enregistrement) ; sans elle : la hauteur du sélecteur, comme avant. */
+  height: var(--hauteur-bouton, var(--hauteur-logo-titre));
+  aspect-ratio: 4316 / 1024;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 10px;
+}
+.bouton-vue {
+  transition: filter 0.15s ease;
+}
+.bouton-vue img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 0.15s ease;
+}
+.bouton-vue__actif { opacity: 0; }
+.bouton-vue[data-actif="true"] .bouton-vue__actif { opacity: 1; }
+.bouton-vue[data-actif="true"] .bouton-vue__repos { opacity: 0; }
+.bouton-vue:not([data-actif="true"]):hover { filter: brightness(1.25); }
+.bouton-vue:focus-visible { outline: 2px solid #52e7ff; outline-offset: 3px; }
+
+/* ⚠️ AJOUT (07/10/2026, v0.3.6) - boutons de CONTEXTE DU BUILD (visuels fournis) : mêmes règles que le sélecteur, seul le rapport largeur/hauteur change (cadre 3781 × 1024, un peu plus court que celui du sélecteur 4316 × 1024). */
+.bouton-vue--profil,
+.bouton-vue--profil:hover,
+.bouton-vue--profil:active {
+  aspect-ratio: 3781 / 1024;
+  /* ⚠️ AJOUT (07/10/2026, v0.3.7) - échelle demandée par l'utilisateur, appliquée à la hauteur de base du sélecteur (la largeur suit le rapport) : 1 = taille du sélecteur ; voir ECHELLE_CONTEXTE_* dans PastilleContexte.tsx. */
+  height: calc(var(--hauteur-logo-titre) * var(--echelle-bouton, 1));
+}
+
+/* ============================================================================================================================
+   ⚠️ AJOUT (07/10/2026, v0.3.13) - TITRES DE CATÉGORIES illustrés (visuels fournis, components/TitreCategorie.tsx) : les six ont le même cadre
+   (7505 × 1024), donc UNE seule hauteur ; la largeur suit. Pas d'état sélectionné : ce ne sont pas des boutons.
+   EN: ⚠️ ADDED - illustrated category titles: one height for all six, width follows.
+   ============================================================================================================================ */
+.titre-categorie {
+  display: block;
+  /* ⚠️ CHANGÉ (07/10/2026, v0.3.17), demande de l'utilisateur : « les logo+titres des blocs doivent être agrandis : même taille que ceux des onglets Build Analyzer, Load-outs et Bibliothèque ».
+     Même hauteur que les boutons du sélecteur de vues, par la MÊME variable (`--hauteur-logo-titre`, définie en tête de ce bloc) : 3,5 rem (56 px) sur écran large, 2,6 rem (41,6 px) au minimum. Avant : 40 px. */
+  height: var(--hauteur-logo-titre);
+  aspect-ratio: 7505 / 1024;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+  flex-shrink: 0;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ⚠️ AJOUT (07/10/2026, v0.3.16) - TITRES DE BLOCS REPLIABLES à deux états (components/TitreRepliable.tsx). Le cadre est un peu plus large (7805 × 1024) que celui des titres fixes (7505 × 1024) à cause du losange + / −. Le CSS montre l'image « repliée »
+   ou « dépliée » selon l'attribut `open` du <details> parent : aucun état à synchroniser. ATTENTION : l'appli dessine DÉJÀ son propre triangle ▶ / ▼ (règle `summary::before`, qui remplace le triangle natif déjà masqué) : sans la règle ci-dessous, ces blocs auraient affiché un
+   triangle ET le losange. Pour eux le losange remplace le triangle, et la ligne d'en-tête reprend toute la largeur (elle en retirait 1,4 em pour le triangle). */
+.titre-repliable { display: inline-flex; line-height: 0; flex-shrink: 0; }
+.titre-repliable .titre-categorie { aspect-ratio: 7805 / 1024; }
+.titre-repliable .titre-repliable__deplie { display: none; }
+details[open] > summary .titre-repliable__replie { display: none; }
+details[open] > summary .titre-repliable__deplie { display: block; }
+summary:has(.titre-repliable)::before { content: none; display: none; }
+summary:has(.titre-repliable) .bloc-repliable-ligne { width: 100%; }
+
+/* ⚠️ AJOUT (07/10/2026, v0.3.17) - UNE SEULE hauteur pour tous les « logo + titre » (boutons du sélecteur de vues, titres de blocs, boutons de profil à l'échelle 1) : 3,5 rem (56 px) sur écran large,
+   jamais sous 2,6 rem (41,6 px) sur écran étroit. Un seul réglage : changer cette variable change tout. */
+:root { --hauteur-logo-titre: clamp(2.6rem, 7vw, 3.5rem); }
