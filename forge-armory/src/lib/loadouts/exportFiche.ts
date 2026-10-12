@@ -44,6 +44,7 @@ import { SlotArme, SlotArmure } from "../../types/build";
 export const LARGEUR_EXPORT = 900;
 
 import { htmlIconeClasse, htmlIconeElement, htmlLogoContexte, htmlLogoSection } from "./iconesExport";
+import { FILTRE_STASE_VERS_FILOBSCUR } from "../../data/teinteIconesDoctrine";   // ⚠️ AJOUT (12/10/2026, v0.4.1)
 
 const ORIGINE_ICONES = "https://www.bungie.net/";
 
@@ -62,8 +63,9 @@ function echapper(texte: string): string {
  * mise en page. Seules les adresses de www.bungie.net sont retenues.
  * EN: icon box, always drawn (neutral background) even without an image.
  */
-function icone(src: string | undefined, taille: number, classe = "icone"): string {
-  const image = src && src.startsWith(ORIGINE_ICONES) ? `<img src="${echapper(src)}" alt="">` : "";
+function icone(src: string | undefined, taille: number, classe = "icone", filtre?: string): string {
+  // FR : ⚠️ CHANGÉ (12/10/2026, v0.4.1) - `filtre` (facultatif) : filtre de couleur de l'image (recoloration des icônes de saut et de compétence de classe du Filobscur). Sans lui, le HTML est identique à avant. / EN: ⚠️ CHANGED - optional colour filter.
+  const image = src && src.startsWith(ORIGINE_ICONES) ? `<img src="${echapper(src)}" alt=""${filtre ? ` style="filter:${filtre}"` : ""}>` : "";
   return `<span class="${classe}" style="width:${taille}px;height:${taille}px">${image}</span>`;
 }
 
@@ -206,7 +208,7 @@ function blocDoctrine(f: FicheBuild): string {
     .map(
       (d) => `
     <div class="doctrine-ligne">
-      ${icone(d.valeur?.icone, 24)}
+      ${icone(d.valeur?.icone, 24, "icone", d.valeur?.teinteFilobscur ? FILTRE_STASE_VERS_FILOBSCUR : undefined)}
       <div><div class="etiquette">${echapper(d.libelle)}</div><div class="valeur">${d.valeur ? echapper(d.valeur.nom) : "—"}</div></div>
     </div>`
     )
@@ -451,7 +453,8 @@ body{position:relative;width:${LARGEUR_EXPORT}px;padding:28px 28px 20px;backgrou
 .titre-section{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid #303746}
 .titre-section h2{font-size:19px;font-weight:700;letter-spacing:.4px}
 /* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - logos de section et icônes du sous-titre (classe, élément, contexte). EN: section logos and subtitle icons. */
-.logo-section{display:inline-flex;width:30px;height:30px;margin-right:10px;vertical-align:-7px}
+/* FR : ⚠️ CHANGÉ (12/10/2026, v0.4.1) - 34 px au lieu de 30 : la notice de l'archive v3 recommande au moins 32 px (à 24 px les détails fins se brouillent). EN: 34 px (the archive notice recommends at least 32 px). */
+.logo-section{display:inline-flex;width:34px;height:34px;margin-right:10px;vertical-align:-10px}
 .logo-section svg,.logo-contexte svg{width:100%;height:100%;display:block}
 .logo-contexte{display:inline-flex;width:24px;height:24px;margin-right:7px;vertical-align:-6px}
 .ic-classe{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;vertical-align:-5px;margin-right:7px;flex-shrink:0}

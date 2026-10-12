@@ -2937,6 +2937,37 @@ export function obtenirIconeElementDoctrine(db: Database, element: DamageElement
   return undefined;
 }
 
+/**
+ * FR : ⚠️ AJOUT (12/10/2026, v0.4.1) - règle PURE : faut-il recolorer cette icône ? Oui si la doctrine est le Filobscur, que l'option est un saut ou une compétence de classe, ET que son fichier d'icône est l'un de ceux de la Stase (`urlsStase`).
+ * Voir `data/teinteIconesDoctrine.ts` pour le pourquoi. EN: ⚠️ ADDED - pure rule: should this icon be recoloured?
+ */
+export function iconeDoctrineEstTeintee(element: string | null | undefined, categorie: string | undefined, urlIcone: string | undefined, urlsStase: ReadonlySet<string>): boolean {
+  return element === "filobscur" && (categorie === "saut" || categorie === "classe") && !!urlIcone && urlsStase.has(urlIcone);
+}
+
+const CACHE_URLS_ICONES_STASE = new WeakMap<Database, Set<string>>();
+/**
+ * FR : ⚠️ AJOUT (12/10/2026, v0.4.1) - adresses des icônes de TOUTES les options des sous-classes STASE (les trois classes : hash connus de `ELEMENT_PAR_HASH_CONNU`), lues dans le Manifest et mises en cache. Sert à repérer les icônes du Filobscur qui ne sont en fait que celles de la Stase.
+ * EN: ⚠️ ADDED - icon addresses of every option of the three Stasis subclasses, cached per Manifest.
+ */
+export function obtenirUrlsIconesStase(db: Database): Set<string> {
+  let ensemble = CACHE_URLS_ICONES_STASE.get(db);
+  if (ensemble) return ensemble;
+  ensemble = new Set<string>();
+  for (const [hash, element] of Object.entries(ELEMENT_PAR_HASH_CONNU)) {
+    if (element !== "stase") continue;
+    for (const groupe of obtenirOptionsSousClasse(db, Number(hash))) for (const o of groupe.options) if (o.icone) ensemble.add(o.icone);
+  }
+  CACHE_URLS_ICONES_STASE.set(db, ensemble);
+  return ensemble;
+}
+
+/** FR : ⚠️ AJOUT (12/10/2026, v0.4.1) - comme `iconeDoctrineEstTeintee`, en lisant le Manifest : l'ensemble des icônes de la Stase n'est calculé QUE pour un saut ou une compétence de classe en Filobscur (jamais pour rien d'autre). / EN: reads the Manifest lazily. */
+export function iconeDoctrineATeinter(db: Database, element: string | null | undefined, categorie: string | undefined, urlIcone: string | undefined): boolean {
+  if (element !== "filobscur" || (categorie !== "saut" && categorie !== "classe") || !urlIcone) return false;
+  return iconeDoctrineEstTeintee(element, categorie, urlIcone, obtenirUrlsIconesStase(db));
+}
+
 // FR : ⚠️ AJOUT (04/08/2026) - icône d'un perk de doctrine (Super, Aspect,
 // Fragment...) résolue DIRECTEMENT depuis son hash, sans passer par
 // `obtenirOptionsSousClasse` (qui recharge toute la liste des options - trop

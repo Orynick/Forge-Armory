@@ -488,9 +488,31 @@
   {
    "id": "icones.armes-armures",
    "famille": "icones",
-   "label": "armes-armures",
+   "label": "Armes et Armures",
    "etat": null,
    "fichier": "assets/icones/icone-armes-armures.svg",
+   "largeur": 1024,
+   "hauteur": 1024,
+   "ratio": 1.0,
+   "hauteurMinPx": 24
+  },
+  {
+   "id": "icones.armes",
+   "famille": "icones",
+   "label": "Armes",
+   "etat": null,
+   "fichier": "assets/icones/icone-armes.svg",
+   "largeur": 1024,
+   "hauteur": 1024,
+   "ratio": 1.0,
+   "hauteurMinPx": 24
+  },
+  {
+   "id": "icones.armures",
+   "famille": "icones",
+   "label": "Armures",
+   "etat": null,
+   "fichier": "assets/icones/icone-armures.svg",
    "largeur": 1024,
    "hauteur": 1024,
    "ratio": 1.0,

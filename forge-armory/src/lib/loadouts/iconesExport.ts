@@ -30,7 +30,7 @@ export function htmlIconeElement(element: Exclude<DamageElement, null>, urlOffic
   return `<svg class="ic-element" width="${taille}" height="${taille}" viewBox="0 0 16 16" role="img" aria-label="${echapper(element)}"><path d="${FORMES_ELEMENT[element]}" fill="${trait ? "none" : couleur}" stroke="${trait ? couleur : "none"}" stroke-width="${trait ? 1.6 : 0}" stroke-linecap="round"/></svg>`;
 }
 
-/** FR : logo d'une section (DOCTRINE, ARMES, ARMURE, ARTEFACT), ou chaîne vide s'il n'existe pas (ARMES et ARMURE : logos à venir) : le titre s'affiche alors sans logo, comme avant. / EN: section logo, or "" when absent. */
+/** FR : logo d'une section (DOCTRINE, ARMES, ARMURE, ARTEFACT), ou chaîne vide s'il n'existe pas : le titre s'affiche alors sans logo, comme avant. ⚠️ Depuis l'archive de visuels v3 (12/10/2026) les quatre existent (ARMES : l'épée seule ; ARMURE : le bouclier seul). / EN: section logo, or "" when absent. */
 export function htmlLogoSection(cle: "doctrine" | "armes" | "armure" | "artefact"): string {
   const svg = LOGOS_EXPORT[cle as CleLogoExport];
   return svg ? `<span class="logo-section">${svg}</span>` : "";

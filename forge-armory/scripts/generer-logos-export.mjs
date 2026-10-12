@@ -3,13 +3,14 @@
 // Pourquoi un module généré : la page d'export est une page HTML AUTONOME, fabriquée de façon synchrone, avec une politique de sécurité qui n'autorise ni script ni image locale (images : seulement www.bungie.net) ; des SVG en ligne sont donc la seule façon
 // d'y mettre les logos de la charte, et il faut les avoir sous la main sans les charger. Source unique : les fichiers de `public/assets/icones/` (ne JAMAIS modifier le module généré à la main : relancer ce script ; le test de l'export vérifie qu'il est à jour).
 //   node scripts/generer-logos-export.mjs            (écrit le module)      ·      node scripts/generer-logos-export.mjs --verifier      (vérifie qu'il est à jour)
-// LOGOS à VENIR : « Arme » et « Armure » (demande de l'utilisateur du 12/10/2026) : dès que les fichiers `icone-arme.svg` et `icone-armure.svg` existent dans `public/assets/icones/`, ils sont repris AUTOMATIQUEMENT (clés `armes` et `armure`).
-// EN: ⚠️ ADDED - generates the inline SVG logos embedded in the standalone export page (sync build, strict CSP). "Weapon" and "Armor" logos will be picked up automatically once their files exist.
+// EN: ⚠️ ADDED - generates the inline SVG logos embedded in the standalone export page (sync build, strict CSP). Logos listed in LOGOS_A_VENIR are optional: picked up automatically once their file exists.
 import fs from "node:fs";
 import path from "node:path";
 
-export const LOGOS = { doctrine: "icone-doctrine", artefact: "icone-artefact", neutre: "icone-neutre", roaming: "icone-roaming", dps: "icone-dps", pvp: "icone-pvp" };
-export const LOGOS_A_VENIR = { armes: "icone-arme", armure: "icone-armure" };
+// FR : ⚠️ CHANGÉ (12/10/2026, v0.4.1) - les logos « Armes » (`icone-armes.svg`, l'épée seule) et « Armure » (`icone-armures.svg`, le bouclier seul) sont ARRIVÉS avec l'archive de visuels v3 : ils font maintenant partie des logos obligatoires (clés `armes` et `armure`). EN: the weapon and armor logos arrived with archive v3.
+export const LOGOS = { doctrine: "icone-doctrine", artefact: "icone-artefact", armes: "icone-armes", armure: "icone-armures", neutre: "icone-neutre", roaming: "icone-roaming", dps: "icone-dps", pvp: "icone-pvp" };
+// FR : mécanisme conservé pour de futurs logos facultatifs (clé → nom de fichier) ; vide aujourd'hui. EN: kept for future optional logos; empty today.
+export const LOGOS_A_VENIR = {};
 
 /** Allège un SVG pour l'inclure dans du HTML : sans prologue XML, sans titre ni description (inutiles dans une image), sans rôle ARIA (décoratif), sans espace entre balises. */
 export function alleger(svg) {
@@ -38,7 +39,7 @@ export function contenuModule(racine) {
 
 export type CleLogoExport = "doctrine" | "artefact" | "armes" | "armure" | "neutre" | "roaming" | "dps" | "pvp";
 
-/** SVG en ligne (déjà allégés) des logos de l'export infographique. \`armes\` et \`armure\` sont absents tant que leurs logos n'ont pas été fournis. */
+/** SVG en ligne (déjà allégés) des logos de l'export infographique : doctrine, artefact, armes, armure et les quatre contextes. */
 export const LOGOS_EXPORT: Readonly<Partial<Record<CleLogoExport, string>>> = {
 ${entrees.join("\n")}
 };

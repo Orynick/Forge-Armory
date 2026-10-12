@@ -41,6 +41,7 @@ import {
   obtenirIconePerkDoctrine,
   obtenirNomPerkDoctrine,
   obtenirIconeElementDoctrine,
+  iconeDoctrineATeinter,
 } from "../manifest/doctrine";
 
 export interface ElementFiche {
@@ -52,6 +53,8 @@ export interface ElementFiche {
    * Absent ou 1 : un seul. EN: count when the same perk/mod appears twice.
    */
   nombre?: number;
+  /** FR : ⚠️ AJOUT (12/10/2026, v0.4.1) - vrai si l'icône (saut ou compétence de classe du Filobscur) est en réalité celle de la Stase et doit être recolorée à l'affichage (voir data/teinteIconesDoctrine.ts). / EN: ⚠️ ADDED - icon must be recoloured on display. */
+  teinteFilobscur?: boolean;
   /** FR : ⚠️ AJOUT (05/10/2026) - effet du perk (perks d'artefact seulement), texte d'infobulle déjà nettoyé : affiché au survol dans la fenêtre « Voir ». Absent ailleurs. / EN: ⚠️ ADDED - perk effect (artifact perks only), tooltip-ready text, shown on hover in the "View" window. */
   infobulle?: string;
 }
@@ -342,6 +345,9 @@ export function construireFiche(loadout: Loadout, db: Database | null): FicheBui
 
   const element = (loadout.elementFige ?? sc.element) as DamageElement | null | undefined;
   const classe = loadout.classeFigee ?? sc.classe;
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.1) - marque les icônes de saut et de compétence de classe du Filobscur qui sont en réalité celles de la Stase (recolorées à l'affichage et dans l'export). / EN: ⚠️ ADDED - flags Strand icons that are really Stasis ones.
+  const avecTeinte = (valeur: ElementFiche | undefined, categorie: "saut" | "classe"): ElementFiche | undefined =>
+    valeur && db && iconeDoctrineATeinter(db, element, categorie, valeur.icone) ? { ...valeur, teinteFilobscur: true } : valeur;
 
   return {
     nom: loadout.nom,
@@ -360,8 +366,8 @@ export function construireFiche(loadout: Loadout, db: Database | null): FicheBui
       { libelle: LIBELLES_CATEGORIE.super, valeur: doctrineElement(sc.superHash) },
       { libelle: LIBELLES_CATEGORIE.melee, valeur: doctrineElement(sc.meleeHash) },
       { libelle: LIBELLES_CATEGORIE.grenade, valeur: doctrineElement(sc.grenadeHash) },
-      { libelle: LIBELLES_CATEGORIE.classe, valeur: doctrineElement(sc.classeHash) },
-      { libelle: LIBELLES_CATEGORIE.saut, valeur: doctrineElement(sc.sautHash) },
+      { libelle: LIBELLES_CATEGORIE.classe, valeur: avecTeinte(doctrineElement(sc.classeHash), "classe") },
+      { libelle: LIBELLES_CATEGORIE.saut, valeur: avecTeinte(doctrineElement(sc.sautHash), "saut") },
     ],
     aspects: (sc.aspectHashes ?? []).map(doctrineElement).filter((x): x is ElementFiche => Boolean(x)),
     fragments: (sc.fragmentHashes ?? []).map(doctrineElement).filter((x): x is ElementFiche => Boolean(x)),

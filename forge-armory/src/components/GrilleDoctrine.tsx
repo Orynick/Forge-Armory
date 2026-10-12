@@ -29,7 +29,9 @@ import {
   trouverIndexSocketPourPlug,
   obtenirDiagnosticTextesDoctrine,
   obtenirDiagnosticIconesDoctrine,   // ⚠️ AJOUT (12/10/2026, v0.4.0) : bug des icônes du Filobscur
+  iconeDoctrineATeinter,             // ⚠️ AJOUT (12/10/2026, v0.4.1) : recoloration de ces icônes
 } from "../lib/manifest/doctrine";
+import { FILTRE_STASE_VERS_FILOBSCUR } from "../data/teinteIconesDoctrine";
 import { DestinyMembership } from "../lib/bungie/api";
 import IconeEmplacementFragment from "./icones/IconeEmplacementFragment";
 import { surlignerVerbesConnus } from "./RenduTextePerk";
@@ -742,7 +744,7 @@ export default function GrilleDoctrine({ membership, db, classeActuelle, subclas
                               🎮
                             </span>
                           )}
-                          {opt.icone && <img src={opt.icone} alt="" width={28} height={28} style={{ borderRadius: 4 }} />}
+                          {opt.icone && <img src={opt.icone} alt="" width={28} height={28} style={{ borderRadius: 4, filter: db && iconeDoctrineATeinter(db, subclass.element, groupe.categorie, opt.icone) ? FILTRE_STASE_VERS_FILOBSCUR : undefined }} />}   {/* ⚠️ v0.4.1 : icônes de saut et de compétence de classe du Filobscur, recolorées (voir data/teinteIconesDoctrine.ts) */}
                           <span className="coche">✓</span>
                           <span>{opt.nom}</span>
                           {/* FR : ⚠️ AJOUT (04/08/2026) - nombre d'emplacements

@@ -1,6 +1,6 @@
 # Forge Armory — visuels à intégrer dans l'appli (Destiny 2 Build Analyzer)
 
-60 SVG prêts à l'emploi, fond transparent, aucune police à charger. Détails, dimensions et catalogue : `docs/charte-graphique.html`.
+62 SVG prêts à l'emploi, fond transparent, aucune police à charger. Détails, dimensions et catalogue : `docs/charte-graphique.html`.
 
 ## Structure
 ```
@@ -9,7 +9,7 @@ assets/
   profils/            8  Neutre, PvE Roaming, PvE DPS, PVP × repos / sélectionné            viewBox 3781 × 1024
   blocs-repliables/  14  7 blocs × replié / déplié (losange + / −)                          viewBox 7805 × 1024
   titres/             8  contexte (0. + ligne), cartes 1 à 5, score global — repos          viewBox 7505 × 1024
-  icones/            19  cercle + symbole seuls (barres latérales réduites, onglets)       viewBox 1024 × 1024
+  icones/            21  cercle + symbole seuls (barres réduites, onglets, export infographique)  viewBox 1024 × 1024
   symboles/           4  symboles des profils vectorisés, sans cercle
   marque/             1  emblème Forge Armory
 manifest.json         catalogue de tous les actifs (id, libellé, état, fichier, dimensions, ratio)
@@ -17,8 +17,15 @@ forgeAssets.ts        même catalogue typé pour le code de l'appli
 docs/charte-graphique.html
 ```
 
+## Logos « Armes » et « Armures » (export infographique)
+Trois logos, à afficher **au minimum** dans l'export infographique :
+- `icones.armes-armures` — épée plantée dans le bouclier (logo de la carte « 3. Armes et Armures »)
+- `icones.armes` — l'épée seule (grande, dressée), pour les armes
+- `icones.armures` — le bouclier seul (cadre vide + cristal bleuté au centre), pour les armures
+Hauteur minimale conseillée : 32 px (lisibles) ; à 24 px les détails fins se brouillent.
+
 ## Identifiants (`manifest.json`)
-`<famille>.<clé>[.<état>]`, par exemple `selecteur.bibliotheque.selectionne`, `profils.pvp.repos`, `blocs-repliables.mon-build.deplie`, `titres.3-armes-armures.repos`, `icones.connexion`.
+`<famille>.<clé>[.<état>]`, par exemple `selecteur.bibliotheque.selectionne`, `profils.pvp.repos`, `blocs-repliables.mon-build.deplie`, `titres.3-armes-armures.repos`, `icones.armes`.
 Chaque entrée donne : `label` (texte du titre, à réutiliser en `alt` / `aria-label`), `fichier`, `largeur`, `hauteur`, `ratio`, `hauteurMinPx`.
 
 ## Règles d'intégration

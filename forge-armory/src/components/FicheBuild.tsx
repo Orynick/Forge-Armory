@@ -9,6 +9,7 @@
 
 import { ReactNode, useEffect } from "react";
 import { ElementFiche, FicheBuild as DonneesFiche, PieceFiche } from "../lib/loadouts/fiche";
+import { FILTRE_STASE_VERS_FILOBSCUR } from "../data/teinteIconesDoctrine";   // ⚠️ AJOUT (12/10/2026, v0.4.1)
 import BarrePartage from "./BarrePartage";
 import Filigrane from "./Filigrane";
 import IconeMunition, { MUNITIONS } from "./icones/IconeMunition";
@@ -26,9 +27,9 @@ const TEXTE_SECONDAIRE = "#b7b3a8";
 const BORDURE = "#2a2e38";
 const OR_EXOTIQUE = "#d4af37";
 
-function Miniature({ src, taille = 24 }: { src?: string; taille?: number }) {
+function Miniature({ src, taille = 24, filtre }: { src?: string; taille?: number; filtre?: string }) {
   return src ? (
-    <img src={src} alt="" width={taille} height={taille} style={{ borderRadius: 3, flexShrink: 0 }} />
+    <img src={src} alt="" width={taille} height={taille} style={{ borderRadius: 3, flexShrink: 0, filter: filtre }} />
   ) : (
     <span style={{ width: taille, height: taille, borderRadius: 3, background: "#0d0f14", border: `1px solid ${BORDURE}`, flexShrink: 0 }} />
   );
@@ -235,7 +236,7 @@ export default function FicheBuild({ fiche, onExporter, onFermer }: Props) {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: "0.4rem" }}>
               {fiche.doctrine.map((d) => (
                 <div key={d.libelle} style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
-                  <Miniature src={d.valeur?.icone} />
+                  <Miniature src={d.valeur?.icone} filtre={d.valeur?.teinteFilobscur ? FILTRE_STASE_VERS_FILOBSCUR : undefined} />
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: "0.68rem", color: GRIS }}>{d.libelle}</div>
                     <div style={{ fontSize: "0.78rem", color: d.valeur ? undefined : GRIS }}>{d.valeur?.nom ?? "—"}</div>

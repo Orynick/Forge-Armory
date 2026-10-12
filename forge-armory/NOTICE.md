@@ -253,7 +253,7 @@ npm run electron:dev   (fenêtre 2)
 | Sélecteur de contexte (Neutre / Roaming / DPS / PvP) | ✅ Fonctionnel — bloc « 0. Contexte du build » + pondération des stats |
 | Filtre d'**élément de dégâts** (Cinétique, Solaire, Cryo-électrique, Abyssal, Stase, Filobscur) dans la recherche du Manifest, Mon Inventaire et le Coffre | ✅ Fonctionnel — porte sur les armes |
 | Bouton **« Aller à »** (recherche du Manifest → Mon Inventaire, filtré sur l'objet) | ✅ Fonctionnel |
-| Export infographique : logos de section, icônes de classe, d'élément et de contexte | ✅ Fonctionnel — logos Arme et Armure à venir |
+| Export infographique : logos de section, icônes de classe, d'élément et de contexte | ✅ Fonctionnel — logos de section : Doctrine, Armes, Armure, Artefact |
 | Onglet **Forge** (toutes les armes et armures, rolls de perks, mods) | 🔵 Onglet présent, contenu en préparation |
 
 ---

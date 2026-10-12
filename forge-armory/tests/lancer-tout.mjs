@@ -11,7 +11,8 @@ for (const f of fs.readdirSync("tests/logique").filter((x) => /\.test\.tsx?$/.te
 }
 for (const f of fs.readdirSync("tests/ui").filter((x) => x.endsWith(".py")).sort()) {
   const nom = f.replace(/\.py$/, "");
-  const b = lancer("node", ["tests/ui/build.mjs", nom]);
+  // FR : ⚠️ CHANGÉ (12/10/2026) - un test d'interface sans page à construire (pas de `entree-<nom>.tsx`, comme `teinte.py`) est lancé directement. EN: tests without a page to build run directly.
+  const b = fs.existsSync(`tests/ui/entree-${nom}.tsx`) ? lancer("node", ["tests/ui/build.mjs", nom]) : { status: 0 };
   if (b.status !== 0) { resultats.push({ nom: `interface · ${nom}`, ok: 0, total: 0, passe: false, note: "construction de la page en échec" }); continue; }
   const r = lancer("python3", [`tests/ui/${f}`]); const [ok, total] = resume(r.stdout + r.stderr);
   resultats.push({ nom: `interface · ${nom}`, ok, total, passe: r.status === 0 && ok === total });

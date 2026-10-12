@@ -13,7 +13,7 @@ passages retirés ou condensés lors du nettoyage du 06/10/2026 dans
 `documentation/todo/ARCHIVE-TODO-2026-10-06.md`. Conception du scoring :
 section « Le scoring » de `NOTES-CONCEPTION.md`. Tests en cours :
 `A-TESTER-<version>.pdf` (le numéro de version de l'appli est dans le nom ;
-version courante : 0.4.0).
+version courante : 0.4.1).
 
 ---
 
@@ -26,11 +26,11 @@ Le renommage « Forge Armory » est lui aussi validé (06/10/2026, section 12).
 
 À partir d'ici :
 
-1. **Valider la 0.4.0** (`A-TESTER-0.4.0.pdf`, 22 tests : onglet Forge et quatre boutons sur une ligne, filtre d'élément, « Aller à », logos de l'export, documentation, et les tests de la 0.3.19 toujours à faire). **À fournir par l'utilisateur** : les logos « Arme » et « Armure » (export infographique) ; le logo « Solo sans mourir » (« on y reviendra »). **À faire par l'utilisateur** : ajouter au `.gitignore` les lignes de `documentation/GITIGNORE-A-AJOUTER.txt` ; lancer le diagnostic des icônes en Stase puis en Filobscur (bug Filobscur) et copier les deux résultats.
+1. **Valider la 0.4.1** (`A-TESTER-0.4.1.pdf`, 10 tests : la recoloration des icônes du Filobscur, et les 4 tests restants de la 0.4.0 et de la 0.3.19 : trois contrôles de l'export infographique et les images du logiciel installé). La 0.4.0 a été validée à 18 tests sur 22 le 12/10/2026. **À fournir par l'utilisateur** : le logo « Solo sans mourir » (« on y reviendra »). Les logos « Arme » et « Armure » sont arrivés avec l'archive de visuels v3 (12/10/2026) et sont intégrés à l'export. Le diagnostic des icônes de Titan et d'Arcaniste n'est nécessaire que si leurs icônes Filobscur restent bleues.
 2. **Feuille de route issue du fichier « Retours et ajouts du 12/10 »** (dans cet ordre, sauf avis contraire) :
-   - **0.4.1 — bouton « Transférer vers »** (Mon Inventaire et Coffre → Chasseur, Titan, Arcaniste, Coffre). Faisable : `TransferItem` et `EquipItem` existent (`lib/bungie/equiper.ts`) et la permission d'écriture est déjà demandée. À cadrer : un transfert entre deux personnages passe par le Coffre (deux appels) ; un objet équipé ne peut pas être transféré sans équiper un remplaçant ; erreurs de place (inventaire plein) à expliquer ; confirmation avant d'agir. Ne se teste vraiment qu'en jeu.
-   - **0.4.2 et suivantes — contenu de l'onglet Forge** : (a) toutes les armes et armures du jeu avec leurs rolls de perks, sans les perks inutiles ; (b) armes et armures possédées, rolls possibles, perks actifs de l'arme et mod d'arme. **Reprend l'ancien chantier « Modification des perks et des mods » (section 2).**
-   - **Reste de la liste du 12/10** : logos « Arme » et « Armure » dans l'export (à fournir) ; bug du Filobscur (diagnostic livré, en attente des résultats).
+   - **0.4.2 — bouton « Transférer vers »** (Mon Inventaire et Coffre → Chasseur, Titan, Arcaniste, Coffre). Faisable : `TransferItem` et `EquipItem` existent (`lib/bungie/equiper.ts`) et la permission d'écriture est déjà demandée. À cadrer : un transfert entre deux personnages passe par le Coffre (deux appels) ; un objet équipé ne peut pas être transféré sans équiper un remplaçant ; erreurs de place (inventaire plein) à expliquer ; confirmation avant d'agir. Ne se teste vraiment qu'en jeu.
+   - **0.4.3 et suivantes — contenu de l'onglet Forge** : (a) toutes les armes et armures du jeu avec leurs rolls de perks, sans les perks inutiles ; (b) armes et armures possédées, rolls possibles, perks actifs de l'arme et mod d'arme. **Reprend l'ancien chantier « Modification des perks et des mods » (section 2).**
+   - **Reste de la liste du 12/10** : ~~logos « Arme » et « Armure » dans l'export~~ ✅ intégrés en 0.4.1 (archive de visuels v3) ; ~~bug du Filobscur~~ ✅ cause établie (les objets du Filobscur réutilisent les fichiers d'icône de la Stase dans les données de Bungie) et corrigé en 0.4.1 par recoloration, en test.
 3. **Sécurité, avant toute ouverture à des tiers** : Vite, React Router,
    puis la politique de sécurité de contenu (section 1).
 
