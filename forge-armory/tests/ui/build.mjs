@@ -23,6 +23,8 @@ const substitutions = { name: "substitutions-de-test", setup(b) {
   b.onResolve({ filter: /^(sql\.js(\/.*)?|fflate|idb)$/ }, (a) => ({ path: a.path, namespace: "factice" }));
   b.onLoad({ filter: /.*/, namespace: "factice" }, () => ({ loader: "js", contents: "const indisponible = () => { throw new Error('module indisponible dans les tests'); }; export default indisponible; export const unzipSync = indisponible, openDB = indisponible;" }));
   b.onResolve({ filter: /lib\/bungie\/inventaire$/ }, () => ({ path: fauxInventaire }));
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.2) - faux module d'authentification (jeton fixe, session expirée simulable) : remplace `lib/bungie/oauth`, quel que soit le chemin relatif par lequel il est importé. EN: fake auth module.
+  b.onResolve({ filter: /(^|\/)oauth$/ }, (a) => (path.resolve(a.resolveDir, a.path).endsWith(path.join("lib", "bungie", "oauth")) ? { path: path.join(racine, "tests/ui/faux/oauth.ts") } : undefined));
 } };
 await esbuild.build({
   plugins: [substitutions],

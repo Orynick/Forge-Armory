@@ -254,9 +254,21 @@ npm run electron:dev   (fenêtre 2)
 | Filtre d'**élément de dégâts** (Cinétique, Solaire, Cryo-électrique, Abyssal, Stase, Filobscur) dans la recherche du Manifest, Mon Inventaire et le Coffre | ✅ Fonctionnel — porte sur les armes |
 | Bouton **« Aller à »** (recherche du Manifest → Mon Inventaire, filtré sur l'objet) | ✅ Fonctionnel |
 | Export infographique : logos de section, icônes de classe, d'élément et de contexte | ✅ Fonctionnel — logos de section : Doctrine, Armes, Armure, Artefact |
+| Bouton **« Transférer vers »** (Mon Inventaire et Coffre → personnages et Coffre) | ✅ Fonctionnel — objet équipé non transférable, confirmation, un transfert à la fois |
 | Onglet **Forge** (toutes les armes et armures, rolls de perks, mods) | 🔵 Onglet présent, contenu en préparation |
 
 ---
+
+## Transférer un objet
+
+Dans **Mon Inventaire** et dans le **Coffre**, chaque objet a un bouton **Transférer vers** :
+
+- choisissez la destination (le Coffre ou l'un de vos personnages), puis **confirmez** ; un seul transfert à la fois ;
+- d'un personnage à un autre, l'objet **passe par le Coffre** (deux opérations) : l'appli le précise avant de confirmer ;
+- un objet **équipé** ne peut pas être transféré (le bouton est grisé) : équipez-en un autre à sa place en jeu, puis réessayez ;
+- une **armure** ne peut aller que chez un personnage de **sa classe** ou au Coffre ;
+- si la destination est pleine, Bungie refuse : l'appli l'explique et l'objet reste où il était (ou au Coffre si le transfert s'est arrêté à mi-chemin) ;
+- un bandeau en haut de « Mon Inventaire » dit ce qui s'est passé. En cas de doute, **Recharger mon inventaire** remet l'affichage d'accord avec le jeu.
 
 ## Comprendre le score
 

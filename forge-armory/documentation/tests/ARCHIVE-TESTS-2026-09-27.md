@@ -1877,3 +1877,52 @@ Résultat : l'utilisateur a envoyé les deux diagnostics (Chasseur, Stase et Fil
 ### Icône de « Classe et Doctrine » : billes agrandies
 
 - [x] Compare l'icône du bloc **« Classe et Doctrine »** (hexagone, étoile, six billes bleues) à celle de la première carte du Scoring, **« 1. Doctrine élémentaire »** : même taille de billes, même hexagone, même étoile. Replie le bloc « Classe et Doctrine » : la même icône, aux billes agrandies, reste affichée. **Dis-moi** si la taille des billes te convient.
+
+---
+
+Tests VALIDÉS par l'utilisateur : PDF « A-TESTER » de la version **0.4.1** coché et renvoyé le 12/10/2026 (**10 cases cochées sur 10**, vérifiées par la relecture automatique du PDF). Retirés de la liste, recopiés mot pour mot du texte de la liste TELLE QU'ELLE ÉTAIT, cases cochées. **Plus aucun test en attente.** Cinq sections entièrement validées.
+
+---
+
+## 🆕 Installation de la version 0.4.1 (12/10/2026)
+
+- [x] `npm.cmd run build` se termine **sans erreur**, puis `npm.cmd run electron:build` fabrique `Forge-Armory-Setup-0.4.1.exe` (dossier `installateur`) ; installé par-dessus, le pied de page indique « Forge Armory v0.4.1 » et **tes builds sont toujours là**.
+
+Résultat : validé.
+
+---
+
+## 🆕 Filobscur : icônes de saut et de compétence de classe recolorées
+
+- [x] Dans le bloc Doctrine, avec une sous-classe **Filobscur du Chasseur**, les icônes de **Saut** et de **Compétence de classe** ont maintenant un fond **vert** (comme dans le jeu). **Dis-moi si la teinte te convient** : plus verte, plus bleutée, plus claire ?
+- [x] Même vérification avec le **Filobscur du Titan** et celui de l'**Arcaniste**. Si leurs icônes étaient déjà vertes avant, elles ne doivent pas avoir changé (la correction ne touche que les icônes identiques à celles de la Stase) ; si elles sont encore bleues, envoie-moi le diagnostic de cette classe.
+- [x] **Rien d'autre n'a changé** : la mêlée, les grenades et la super du Filobscur gardent leur couleur ; la **Stase**, le Solaire, le Cryo-électrique et l'Abyssal restent exactement comme avant.
+- [x] (logiciel installé) Ouvre la **fiche** d'un build Filobscur (« 👁 Voir ») puis exporte-la en image : dans la doctrine, la compétence de classe et le saut sont verts aussi, et les autres lignes inchangées.
+
+Résultat : validé, les quatre cases cochées (Chasseur, Titan et Arcaniste, rien d'autre de changé, fiche et export du logiciel installé) **sans demande de réglage de la teinte** : la rotation de −70° est conservée. La recoloration reste une approximation faite par l'appli (les objets du Filobscur réutilisent les fichiers d'icône de la Stase dans les données de Bungie).
+
+---
+
+## 🆕 Archive de visuels v3 : logo « Armes et Armures » redessiné
+
+- [x] La carte **« 2. Armes et Armures »** du Scoring affiche le nouveau logo (épée plantée dans le bouclier), avec son chiffre 2 et son soulignage ; les quatre autres cartes sont inchangées.
+
+Résultat : validé.
+
+---
+
+## 🆕 Export infographique : logos et icônes
+
+- [x] (logiciel installé) Exporte une fiche (image ou PDF) : l'en-tête montre l'**icône de classe** (disque de couleur), l'**icône d'élément** (celle du jeu) et l'**icône de contexte**. Sur un build **Prismatique**, le symbole à deux tons ; sur un build **Neutre**, le mot « Neutre » apparaît maintenant avec son icône (décision de l'utilisateur : le contexte choisi est toujours affiché, Neutre compris).
+- [x] Les **quatre titres de section** ont leur logo, bien alignés : **DOCTRINE** (hexagone), **ARMES** (l'épée seule), **ARMURE** (le bouclier seul) et **ARTEFACT** (losange). Les logos Armes et Armure viennent de ta nouvelle archive de visuels (v3).
+- [x] L'image exportée n'a aucune icône cassée ni carré vide à la place d'un logo.
+
+Résultat : validé (logiciel installé) : icônes de classe, d'élément et de contexte (Neutre compris), quatre titres de section avec leur logo, aucune icône cassée.
+
+---
+
+## ⏳ Reste de la 0.3.19
+
+- [x] (logiciel installé) **Toutes les images s'affichent**, y compris les trois cartes renommées : aucune image cassée, aucun ancien numéro (« 2. Artefact », « 3. Armes et Armures », « 1. Élément et Doctrine ») nulle part.
+
+Résultat : validé. C'était le dernier test en attente de la 0.3.19.

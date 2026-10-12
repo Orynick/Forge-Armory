@@ -3,6 +3,7 @@ import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import SelecteurInventaire, { CibleInventaire } from "../../src/components/SelecteurInventaire";
 import { hashVersIdSqlite } from "../../src/lib/manifest/download";
+import { installerFauxBungie } from "./faux/bungie";
 
 // Bungie : defaultDamageType Kinetic=1, Thermal(Solaire)=3 ; itemType Armor=2, Weapon=3
 const DEFS: Record<string, unknown> = {
@@ -29,5 +30,6 @@ function Hote() {
     </div>
   );
 }
+installerFauxBungie();   // ⚠️ v0.4.2 : fausse API Bungie à état (profil et transferts)
 createRoot(document.getElementById("racine")!).render(<Hote />);
 (window as unknown as { __pret: boolean }).__pret = true;

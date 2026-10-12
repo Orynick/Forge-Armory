@@ -53,6 +53,9 @@ import IconeClasse from "./icones/IconeClasse";
 import IconeCoffre from "./icones/IconeCoffre";
 import IconeSlotArmure from "./icones/IconeSlotArmure";
 import MenuDerouantIcone from "./MenuDerouantIcone";
+import BoutonTransfert from "./BoutonTransfert";   // ⚠️ AJOUT (12/10/2026, v0.4.2) : « Transférer vers »
+import { deplacerObjet, Lieu } from "../lib/bungie/deplacer";
+import { SessionExpiree } from "../lib/bungie/oauth";
 import IconeElement from "./icones/IconeElement";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : filtre d'élément
 import { obtenirElementFiltre, obtenirIconeElementDoctrine, obtenirIconeCinetique, ELEMENTS_FILTRE, ElementFiltre } from "../lib/manifest/doctrine";
 import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
@@ -222,12 +225,17 @@ function LigneObjet({
   db,
   afficherStats = false,
   onAjouterObjet,
+  onTransferer,
+  transfertBloque = false,
 }: {
   piece: GearPiece;
   db: Database;
   /** FR : true pour l'armure du coffre - montre les stats plutôt que les perks (les perks sont faciles à changer, moins pertinentes à afficher ici). / EN: true for vault armor - shows stats rather than perks (perks are easy to change, less relevant to show here). */
   afficherStats?: boolean;
   onAjouterObjet: (p: GearPiece) => void;
+  /** FR : ⚠️ AJOUT (12/10/2026, v0.4.2) - « Transférer vers » (absent : pas de bouton) ; `transfertBloque` : un transfert est en cours (un seul à la fois). / EN: ⚠️ ADDED - "Transfer to" (absent: no button); `transfertBloque`: a transfer is running. */
+  onTransferer?: (p: GearPiece, cible: Lieu) => Promise<void>;
+  transfertBloque?: boolean;
 }) {
   // FR : ⚠️ AJOUT (03/08/2026) - panneau "Détails" dépliable, pour l'instant
   // limité aux armes (demande explicite de l'utilisateur) : montre le roll
@@ -442,6 +450,7 @@ function LigneObjet({
             <button style={{ fontSize: "0.7rem", padding: "0.1rem 0.4rem", flexShrink: 0 }} onClick={() => onAjouterObjet(piece)}>
               + Ajouter
             </button>
+            {onTransferer && <BoutonTransfert piece={piece} bloque={transfertBloque} onTransferer={onTransferer} />}   {/* ⚠️ AJOUT (12/10/2026, v0.4.2) */}
           </span>
         </div>
       </div>
@@ -646,6 +655,25 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   const [objets, setObjets] = useState<GearPiece[] | null>(null);
   // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - « Aller à » : à chaque demande, on ouvre le bloc s'il est replié puis on l'amène à l'écran. Petit délai pour que la page ait fini de se réorganiser (sections ouvertes) avant le défilement. / EN: open the block and scroll to it.
   const refBloc = useRef<HTMLDetailsElement>(null);
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.2) - « TRANSFÉRER VERS » : un seul transfert à la fois (`transfertEnCours` = identifiant d'instance de l'objet), et un bandeau qui dit ce qui s'est passé (la ligne change de liste quand l'objet bouge : elle ne peut pas porter le message). Après l'opération, la liste affichée est mise à jour
+  // d'après le lieu RÉEL rendu par `deplacerObjet` (succès, ou échec à la seconde étape : l'objet est alors au Coffre) ; sans lieu rendu (échec à la première étape), rien ne change à l'écran. Un objet équipé n'est jamais déplacé (règle de l'utilisateur). / EN: ⚠️ ADDED - "Transfer to": one at a time, a result banner, list updated from the REAL final location.
+  const [transfertEnCours, setTransfertEnCours] = useState<string | null>(null);
+  const [messageTransfert, setMessageTransfert] = useState<{ ok: boolean; texte: string } | null>(null);
+  async function transferer(piece: GearPiece, cible: Lieu): Promise<void> {
+    if (!membership || !piece.itemInstanceId || transfertEnCours) return;
+    const id = piece.itemInstanceId;
+    setTransfertEnCours(id);
+    setMessageTransfert(null);
+    try {
+      const r = await deplacerObjet(membership, piece, cible);
+      if (r.lieuFinal) setObjets((prec) => (prec ? prec.map((o) => (o.itemInstanceId === id ? { ...o, origine: r.lieuFinal, equipe: false } : o)) : prec));
+      setMessageTransfert({ ok: r.ok, texte: r.ok ? `✅ « ${piece.nom} » — ${r.message}` : `⚠️ « ${piece.nom} » — ${r.message}` });
+    } catch (e) {
+      setMessageTransfert({ ok: false, texte: e instanceof SessionExpiree ? "⚠️ Votre session Bungie a expiré : reconnectez-vous, puis réessayez. Rien n'a été déplacé." : `⚠️ « ${piece.nom} » — erreur inattendue : ${(e as Error).message}` });
+    } finally {
+      setTransfertEnCours(null);
+    }
+  }
   useEffect(() => {
     if (!cible) return;
     if (refBloc.current) refBloc.current.open = true;
@@ -947,6 +975,14 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
 
       {erreur && <p style={{ color: "#e08080" }}>⚠️ {erreur}</p>}
 
+      {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.2) - résultat du dernier transfert (réussite ou échec), avec un bouton pour le fermer. / EN: ⚠️ ADDED - last transfer result banner. */}
+      {messageTransfert && (
+        <p role="status" data-bandeau-transfert="" style={{ fontSize: "0.8rem", margin: "0 0 0.6rem", padding: "0.4rem 0.6rem", border: `1px solid ${messageTransfert.ok ? "#4a9e5c" : "#c08040"}`, borderRadius: 6, color: "#e8e6df" }}>
+          {messageTransfert.texte}{" "}
+          <button onClick={() => setMessageTransfert(null)} style={{ fontSize: "0.72rem", marginLeft: "0.3rem" }}>✕ Fermer</button>
+        </p>
+      )}
+
       {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - bandeau « Aller à » : dit sur quoi l'inventaire est filtré, combien d'exemplaires (personnages + coffre) existent, et permet de retirer le filtre. Sans inventaire chargé, on explique quoi faire. / EN: "Go to" banner. */}
       {cible && (
         <p role="status" data-bandeau-aller-a="" style={{ fontSize: "0.8rem", margin: "0 0 0.6rem", padding: "0.4rem 0.6rem", border: "1px solid #d4af37", borderRadius: 6, color: "#e8e6df" }}>
@@ -1112,7 +1148,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           ) : (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                               {g.items.map((p) => (
-                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} />
+                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} />
                               ))}
                             </ul>
                           )}
@@ -1131,7 +1167,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           ) : (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                               {g.items.map((p) => (
-                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} />
+                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} />
                               ))}
                             </ul>
                           )}
@@ -1286,7 +1322,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                       }}
                     >
                       {g.items.map((p) => (
-                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} />
+                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} />
                       ))}
                     </ul>
                   </details>
@@ -1330,7 +1366,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           }}
                         >
                           {g.items.map((p) => (
-                            <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} afficherStats onAjouterObjet={onAjouterObjet} />
+                            <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} afficherStats onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} />
                           ))}
                         </ul>
                       </div>

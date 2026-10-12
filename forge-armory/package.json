@@ -1,7 +1,7 @@
 {
   "name": "d2-build-analyzer",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Analyseur de builds Destiny 2 : score un build sur 5 piliers a partir de vos donnees Bungie.net.",
   "author": "Orynick/Orygamer",
   "type": "module",
