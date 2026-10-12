@@ -11,13 +11,13 @@ l'état complet de la TODO avant son tri du 30/09/2026 est conservé mot
 pour mot dans `documentation/todo/ARCHIVE-TODO-2026-09-30.md`, et les
 passages retirés ou condensés lors du nettoyage du 06/10/2026 dans
 `documentation/todo/ARCHIVE-TODO-2026-10-06.md`. Conception du scoring :
-section « Le scoring » du `README.md`. Tests en cours :
+section « Le scoring » de `NOTES-CONCEPTION.md`. Tests en cours :
 `A-TESTER-<version>.pdf` (le numéro de version de l'appli est dans le nom ;
-version courante : 0.3.19).
+version courante : 0.4.0).
 
 ---
 
-## 🧭 Prochaines étapes — mises à jour le 06/10/2026
+## 🧭 Prochaines étapes — mises à jour le 12/10/2026
 
 L'ordre de marche fixé par l'utilisateur le 30/09/2026 est **accompli**
 pour ses deux premières étapes : v0.2.9 validée ; Electron mis à niveau
@@ -26,8 +26,11 @@ Le renommage « Forge Armory » est lui aussi validé (06/10/2026, section 12).
 
 À partir d'ici :
 
-1. **Valider la 0.3.19** (8 tests, `A-TESTER-0.3.19.pdf` : nouvel ordre et nouveaux numéros des piliers du Scoring, titres recomposés, billes de l'icône « Classe et Doctrine » agrandies) ; la 0.3.17 a été validée à 10 tests sur 10 le 08/10/2026. **À fournir par l'utilisateur** : le logo « Solo sans mourir » (voir § 16 bis).
-2. **Modification des perks et des mods** des armes et armures (section 2) : prochain gros chantier de développement, en attente du feu vert de l'utilisateur.
+1. **Valider la 0.4.0** (`A-TESTER-0.4.0.pdf`, 22 tests : onglet Forge et quatre boutons sur une ligne, filtre d'élément, « Aller à », logos de l'export, documentation, et les tests de la 0.3.19 toujours à faire). **À fournir par l'utilisateur** : les logos « Arme » et « Armure » (export infographique) ; le logo « Solo sans mourir » (« on y reviendra »). **À faire par l'utilisateur** : ajouter au `.gitignore` les lignes de `documentation/GITIGNORE-A-AJOUTER.txt` ; lancer le diagnostic des icônes en Stase puis en Filobscur (bug Filobscur) et copier les deux résultats.
+2. **Feuille de route issue du fichier « Retours et ajouts du 12/10 »** (dans cet ordre, sauf avis contraire) :
+   - **0.4.1 — bouton « Transférer vers »** (Mon Inventaire et Coffre → Chasseur, Titan, Arcaniste, Coffre). Faisable : `TransferItem` et `EquipItem` existent (`lib/bungie/equiper.ts`) et la permission d'écriture est déjà demandée. À cadrer : un transfert entre deux personnages passe par le Coffre (deux appels) ; un objet équipé ne peut pas être transféré sans équiper un remplaçant ; erreurs de place (inventaire plein) à expliquer ; confirmation avant d'agir. Ne se teste vraiment qu'en jeu.
+   - **0.4.2 et suivantes — contenu de l'onglet Forge** : (a) toutes les armes et armures du jeu avec leurs rolls de perks, sans les perks inutiles ; (b) armes et armures possédées, rolls possibles, perks actifs de l'arme et mod d'arme. **Reprend l'ancien chantier « Modification des perks et des mods » (section 2).**
+   - **Reste de la liste du 12/10** : logos « Arme » et « Armure » dans l'export (à fournir) ; bug du Filobscur (diagnostic livré, en attente des résultats).
 3. **Sécurité, avant toute ouverture à des tiers** : Vite, React Router,
    puis la politique de sécurité de contenu (section 1).
 

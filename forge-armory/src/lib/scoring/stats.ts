@@ -77,7 +77,7 @@ export type ContexteBuild = "neutre" | "roaming" | "dps" | "pvp";
 
 /**
  * FR : poids de chaque statistique selon le contexte. Valeurs arrêtées avec
- * l'utilisateur et documentées dans le README (section « Le scoring »).
+ * l'utilisateur et documentées dans NOTES-CONCEPTION.md (section « Le scoring »).
  *
  * La stat « Arme » est volontairement basse partout SAUF en DPS : remarque de
  * l'utilisateur, elle est en pratique moins utile que la Santé dans la plupart
@@ -104,7 +104,7 @@ export const POIDS_STATS: Record<ContexteBuild, Record<StatKey, number>> = {
 
 /**
  * FR : total de statistiques d'un set PLEINEMENT optimisé, sur lequel l'échelle
- * est calibrée. Calcul détaillé dans le README, d'après la section « Armor 3.0 »
+ * est calibrée. Calcul détaillé dans NOTES-CONCEPTION.md, d'après la section « Armor 3.0 »
  * de knowledge-base/08_GAME_MECHANICS.md :
  *   30 (primaire) + 25 (secondaire) + 20 (tertiaire)
  *   + 18 (masterwork T5 & tuning) + 10 (stat mod majeur) = ~103 par pièce

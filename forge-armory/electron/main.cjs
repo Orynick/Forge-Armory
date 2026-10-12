@@ -84,6 +84,9 @@ function creerFenetrePrincipale() {
   fenetrePrincipale = new BrowserWindow({
     width: 1280,
     height: 860,
+    // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - largeur minimale : en dessous, les quatre boutons du sélecteur ne tiendraient plus sur une ligne (hauteur plancher de 41,6 px).
+    minWidth: 820,
+    minHeight: 560,
     backgroundColor: "#0d0f14",
     autoHideMenuBar: true,
     // FR : ⚠️ CHANGÉ (05/10/2026) - « Forge Armory » est le nom, « Destiny 2 Build Analyzer » le sous-titre. Le titre de la page (index.html) prend le relais au chargement.

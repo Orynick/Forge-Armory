@@ -1,0 +1,34 @@
+OK  selecteur/bouton-forge.svg : XML bien formé, cadre 4316 × 1024 (famille sélecteur 4316 × 1024)
+OK  selecteur/bouton-forge.svg : identifiants internes tous préfixés « fa-selecteur-bouton-forge- », uniques dans le fichier, et toutes les références (url(#…)) existent
+OK  selecteur/bouton-forge.svg : aucun script, aucune ressource externe, aucune police
+OK  selecteur/bouton-forge.svg : cristaux PRÉSENTS (en haut y 110→282 et en bas y 744→916)
+OK  selecteur/bouton-forge-selectionne.svg : XML bien formé, cadre 4316 × 1024 (famille sélecteur 4316 × 1024)
+OK  selecteur/bouton-forge-selectionne.svg : identifiants internes tous préfixés « fa-selecteur-bouton-forge-selectionne- », uniques dans le fichier, et toutes les références (url(#…)) existent
+OK  selecteur/bouton-forge-selectionne.svg : aucun script, aucune ressource externe, aucune police
+OK  selecteur/bouton-forge-selectionne.svg : cristaux PRÉSENTS (en haut y 110→282 et en bas y 744→916)
+OK  panneaux/titre-solo-sans-mourir.svg : XML bien formé, cadre 4725.4 × 1024 (nouvelle famille « panneaux » : cadre propre à son titre)
+OK  panneaux/titre-solo-sans-mourir.svg : identifiants internes tous préfixés « fa-panneaux-titre-solo-sans-mourir- », uniques dans le fichier, et toutes les références (url(#…)) existent
+OK  panneaux/titre-solo-sans-mourir.svg : aucun script, aucune ressource externe, aucune police
+OK  panneaux/titre-solo-sans-mourir.svg : cristaux ABSENTS (titres et icônes de titre sans cristaux)
+OK  icones/icone-forge.svg : XML bien formé, cadre 1024 × 1024 (icônes 1024 × 1024)
+OK  icones/icone-forge.svg : identifiants internes tous préfixés « fa-icones-icone-forge- », uniques dans le fichier, et toutes les références (url(#…)) existent
+OK  icones/icone-forge.svg : aucun script, aucune ressource externe, aucune police
+OK  icones/icone-forge.svg : cristaux PRÉSENTS (en haut y 110→282 et en bas y 744→916)
+OK  icones/icone-solo-sans-mourir.svg : XML bien formé, cadre 1024 × 1024 (icônes 1024 × 1024)
+OK  icones/icone-solo-sans-mourir.svg : identifiants internes tous préfixés « fa-icones-icone-solo-sans-mourir- », uniques dans le fichier, et toutes les références (url(#…)) existent
+OK  icones/icone-solo-sans-mourir.svg : aucun script, aucune ressource externe, aucune police
+OK  icones/icone-solo-sans-mourir.svg : cristaux ABSENTS (titres et icônes de titre sans cristaux)
+OK  identifiants uniques entre les 5 fichiers
+OK  aucune collision d'identifiant avec les 62 SVG déjà dans l'appli (732 identifiants)
+OK  Forge (mesuré dans le fichier, 712 points échantillonnés, courbes comprises) : le point du dessin le plus proche d'un cristal en est à 44 unités (marge visuelle ≥ 40 de la charte)
+OK  Forge (mesuré) : le symbole reste dans le cercle utile : point le plus éloigné à 217 du centre (≤ 385 hors de l'axe vertical, l'anneau intérieur étant à 425), soit 208 d'écart (≥ 40) ; étendue verticale y = 308 à 713.6
+OK  Solo (mesuré dans l'icône seule, même symbole que le titre, 13 points, points de contrôle des courbes compris, donc majorant) : l'écu va de y = 258 à 772 (±260) ; point le plus éloigné à 311 du centre (≤ 330 permis aux titres), soit 114 d'écart avec l'anneau (≥ 40)
+OK  Solo : « SOLO SANS MOURIR » = 14 lettres ; les deux « O » de SOLO sont SIMPLES et seul le DERNIER « O » (MOURIR) est orné (losange dans le jambage), comme l'exige la charte (§4)
+OK  Forge : « FORGE » = 5 lettres, son unique « O » est orné
+OK  titre-solo-sans-mourir.svg : l'ouverture du soulignage et l'étoile cyan sont CENTRÉES sur le soulignage (écarts 0.01 et 0.00 unités) ; le soulignage ne dépasse pas la boîte du texte de plus de 14 de chaque côté
+OK  bouton-forge.svg : l'ouverture du soulignage et l'étoile cyan sont CENTRÉES sur le soulignage (écarts 0.00 et 0.05 unités) ; le soulignage ne dépasse pas la boîte du texte de plus de 14 de chaque côté
+OK  bouton-forge-selectionne.svg : l'ouverture du soulignage et l'étoile cyan sont CENTRÉES sur le soulignage (écarts 0.00 et 0.05 unités) ; le soulignage ne dépasse pas la boîte du texte de plus de 14 de chaque côté
+OK  Forge (bouton) : la PLAQUE (fond, bordure, filet blanc, séparateur, lignes flottantes) est strictement identique à celle de « Load-outs »
+OK  Solo : biseau de 82, retraits de 15 et de 97, séparateur à x = 1133,5 et rails : les cotes de la plaque sont celles de la charte, seule la longueur change (plaque jusqu'à x = 4655,2)
+
+32/32 contrôles réussis

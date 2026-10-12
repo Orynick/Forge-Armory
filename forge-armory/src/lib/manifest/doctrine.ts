@@ -387,6 +387,38 @@ export function obtenirDiagnosticTextesDoctrine(groupes: GroupeSocket[]): string
   return blocs.join("\n\n");
 }
 
+/**
+ * FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - DIAGNOSTIC DES ICÔNES de doctrine (bug « fond bleu de la Stase sur les icônes de saut et de compétence de classe du Filobscur »). Pour la sous-classe choisie : (1) ses prises (sockets) avec leurs listes d'options (plug set réutilisable ou aléatoire, objet fixe, nombre
+ * d'options directes) : deux sous-classes qui partagent le même plug set pour le saut ou la compétence de classe partageront les mêmes objets et donc les mêmes icônes ; (2) pour chaque option de saut, compétence de classe, mêlée, grenade et super : nom, hash, catégorie de plug, type d'objet, chemin brut
+ * de l'icône, filigrane et nombre de séquences d'icône. À lancer pour la Stase ET le Filobscur puis comparer. Texte à copier à Claude. EN: ⚠️ ADDED - icon diagnostic for a subclass (sockets, plug sets and per-option icon data), to compare Stasis and Strand.
+ */
+export function obtenirDiagnosticIconesDoctrine(db: Database, subclassItemHash: number | undefined, element: string | null | undefined, groupes: GroupeSocket[]): string {
+  type Prise = { socketTypeHash?: number; singleInitialItemHash?: number; reusablePlugSetHash?: number; randomizedPlugSetHash?: number; reusablePlugItems?: unknown[] };
+  const defSub = subclassItemHash
+    ? obtenirDefinition<{ displayProperties?: { name?: string }; sockets?: { socketEntries?: Prise[] } }>(db, "DestinyInventoryItemDefinition", subclassItemHash)
+    : undefined;
+  const sortie: string[] = [
+    "DIAGNOSTIC DES ICÔNES DE DOCTRINE (à copier à Claude)",
+    `Sous-classe : ${defSub?.displayProperties?.name ?? "(inconnue)"} — hash ${subclassItemHash ?? "?"} — élément choisi dans l'outil : ${element ?? "?"}`,
+    "",
+    "--- Prises (sockets) de la sous-classe : index | type | plug set réutilisable | plug set aléatoire | objet fixe | options directes",
+  ];
+  (defSub?.sockets?.socketEntries ?? []).forEach((e, i) =>
+    sortie.push(`[${i}] type=${e.socketTypeHash ?? 0} | reusablePlugSet=${e.reusablePlugSetHash ?? 0} | randomizedPlugSet=${e.randomizedPlugSetHash ?? 0} | fixe=${e.singleInitialItemHash ?? 0} | directes=${e.reusablePlugItems?.length ?? 0}`)
+  );
+  const LIBELLES: [CategorieSocket, string][] = [["saut", "SAUT"], ["classe", "COMPÉTENCE DE CLASSE"], ["melee", "MÊLÉE"], ["grenade", "GRENADE"], ["super", "SUPER"]];
+  for (const [cat, libelle] of LIBELLES) {
+    const groupe = groupes.find((g) => g.categorie === cat);
+    if (!groupe || groupe.options.length === 0) continue;
+    sortie.push("", `## ${libelle} (${groupe.options.length} option${groupe.options.length > 1 ? "s" : ""})`);
+    for (const o of groupe.options) {
+      const d = obtenirDefinition<{ plug?: { plugCategoryIdentifier?: string }; itemTypeDisplayName?: string; iconWatermark?: string; displayProperties?: { icon?: string; iconSequences?: unknown[] } }>(db, "DestinyInventoryItemDefinition", o.hash);
+      sortie.push(`- ${o.nom} | hash ${o.hash} | plug=${d?.plug?.plugCategoryIdentifier ?? "?"} | type="${d?.itemTypeDisplayName ?? ""}" | icône=${d?.displayProperties?.icon ?? "?"} | filigrane=${d?.iconWatermark ?? "-"} | séquences=${d?.displayProperties?.iconSequences?.length ?? 0}`);
+    }
+  }
+  return sortie.join("\n");
+}
+
 export interface SousClassePossedee {
   itemHash: number;
   itemInstanceId?: string;
@@ -2862,6 +2894,22 @@ export function obtenirElementArme(db: Database, itemHash: number): DamageElemen
   const resultat: DamageElement | null = ENUM_VERS_ELEMENT[def?.defaultDamageType ?? 0] ?? null;
   cache.set(itemHash, resultat);
   return resultat;
+}
+
+/**
+ * FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - ÉLÉMENT DE DÉGÂTS d'un objet pour le FILTRE des recherches (Manifest et Inventaire ; demande de l'utilisateur) : les six types de dégâts d'une arme, y compris le CINÉTIQUE.
+ * S'appuie sur `obtenirElementArme` (même table éprouvée, aucun décalage possible) ; le cinétique, qui n'est pas dans `DamageElement` (voir plus bas), n'est reconnu que pour une ARME (`itemType` 3, `defaultDamageType` 1) : un objet sans élément
+ * (armure, quête, ornement...) renvoie `null` et n'apparaît donc sous aucun élément. Le type de dégâts spécial « Raid » (enum 5) n'est pas l'un des six : `null` aussi.
+ * EN: ⚠️ ADDED - damage element of an item for the search FILTER, Kinetic included (weapons only); items without an element return null.
+ */
+export type ElementFiltre = "cinetique" | "solaire" | "arc" | "abyssal" | "stase" | "filobscur";
+/** FR : ordre d'affichage du filtre. / EN: filter display order. */
+export const ELEMENTS_FILTRE: readonly ElementFiltre[] = ["cinetique", "solaire", "arc", "abyssal", "stase", "filobscur"];
+export function obtenirElementFiltre(db: Database, itemHash: number): ElementFiltre | null {
+  const element = obtenirElementArme(db, itemHash);
+  if (element && element !== "prismatique") return element;
+  const def = obtenirDefinition<{ defaultDamageType?: number; itemType?: number }>(db, "DestinyInventoryItemDefinition", itemHash);
+  return def?.itemType === 3 && def.defaultDamageType === 1 ? "cinetique" : null;
 }
 
 // FR : ⚠️ AJOUT (24/08/2026) - icône officielle du CINÉTIQUE (enum 1).

@@ -54,7 +54,7 @@ export const ORDRE_PILIERS: ClePilier[] = [
  * Doctrine élémentaire (1), Armes et Armures (2), Artefact (3), Effets du Build (4), Statistiques (5) ; le pilier 1 s'appelle « Doctrine élémentaire » (avant : « Élément et Doctrine »). Les identifiants internes (`ClePilier`) et les
  * pondérations ne changent pas ; les LOGOS de chaque carte restent ceux de chaque pilier, seuls le chiffre et la position changent (titres illustrés recomposés : `scripts/retoucher-visuels.mjs`, étape 4).
  *
- * ⚠️ NE PAS CONFONDRE avec l'ANCIENNE numérotation « Pilier N » encore employée dans les COMMENTAIRES du code, le README, la base de connaissances et la TODO (écrite avant le 06/09/2026 et jamais renumérotée) :
+ * ⚠️ NE PAS CONFONDRE avec l'ANCIENNE numérotation « Pilier N » encore employée dans les COMMENTAIRES du code, NOTES-CONCEPTION.md (ex-README), la base de connaissances et la TODO (écrite avant le 06/09/2026 et jamais renumérotée) :
  *     ancien Pilier 1 = Élément et Doctrine (`element_doctrine`) · ancien Pilier 2 = Verbes d'Élément (`verbes_element`, aujourd'hui « 4. Effets du Build ») · ancien Pilier 3 = Perks d'Artefact (`perks_artefact`)
  *     ancien Pilier 4 = Loot et cohérence (`loot_coherence`) · ancien Pilier 5 = Statistiques (`stats_2_0`).
  * Ces documents n'ont PAS été renumérotés (ils parlent de l'ancien numéro, qui reste exact pour eux) ; en cas de doute, se fier à la clé interne, pas au numéro.

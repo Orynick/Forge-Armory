@@ -1,4 +1,4 @@
-// FR : ⚠️ CHANGÉ (08/10/2026, v0.3.18) - le complément compte maintenant CINQ visuels : les deux titres fixes de Connexion et Manifest, et les TROIS cartes du Scoring renumérotées (« 1. Doctrine élémentaire », « 2. Armes et Armures », « 3. Artefact »),
+// FR : ⚠️ CHANGÉ (08/10/2026, v0.3.18) - le complément compte maintenant CINQ visuels (puis TROIS de plus en v0.4.0 pour l'onglet Forge, voir plus bas) : les deux titres fixes de Connexion et Manifest, et les TROIS cartes du Scoring renumérotées (« 1. Doctrine élémentaire », « 2. Armes et Armures », « 3. Artefact »),
 // recomposées par `scripts/retoucher-visuels.mjs` ; les trois entrées correspondantes du catalogue généré (`1-element-doctrine`, `2-artefact`, `3-armes-armures`) sont REMPLACÉES : leurs fichiers sont supprimés de `public/assets/` (ils restent dans l'archive d'origine).
 // FR : ⚠️ AJOUT (07/10/2026, v0.3.17) - COMPLÉMENT au catalogue généré `forgeAssets.ts` (qu'on ne modifie JAMAIS à la main : il est régénéré par l'auteur des visuels) : les deux titres FIXES, sans losange + / −,
 // de « Connexion à Bungie » et « Recherche dans le Manifest ». Ces deux blocs ne sont pas repliables (retour de l'utilisateur du 07/10/2026) alors que l'archive actuelle ne leur donne que la version à deux états ;
@@ -14,6 +14,10 @@ export const FORGE_ASSETS_COMPLEMENT: readonly ForgeAsset[] = [
   { id: "titres.1-doctrine-elementaire.repos", famille: "titres", label: "1. Doctrine élémentaire", etat: "repos", fichier: "assets/titres/titre-1-doctrine-elementaire.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
   { id: "titres.2-armes-armures.repos", famille: "titres", label: "2. Armes et Armures", etat: "repos", fichier: "assets/titres/titre-2-armes-armures.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
   { id: "titres.3-artefact.repos", famille: "titres", label: "3. Artefact", etat: "repos", fichier: "assets/titres/titre-3-artefact.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - onglet FORGE (logo VALIDÉ par l'utilisateur) : deux états du bouton du sélecteur (famille « selecteur », cadre 4316 × 1024, comme les trois autres) et l'icône seule. Sources : `ressources-installateur/forge-armory/forge-0.4.0/`.
+  { id: "selecteur.forge.repos", famille: "selecteur", label: "Forge", etat: "repos", fichier: "assets/selecteur/bouton-forge.svg", largeur: 4316, hauteur: 1024, ratio: 4.2148, hauteurMinPx: 40 },
+  { id: "selecteur.forge.selectionne", famille: "selecteur", label: "Forge", etat: "selectionne", fichier: "assets/selecteur/bouton-forge-selectionne.svg", largeur: 4316, hauteur: 1024, ratio: 4.2148, hauteurMinPx: 40 },
+  { id: "icones.forge", famille: "icones", label: "Forge", etat: null, fichier: "assets/icones/icone-forge.svg", largeur: 1024, hauteur: 1024, ratio: 1, hauteurMinPx: 24 },
 ];
 
 /**

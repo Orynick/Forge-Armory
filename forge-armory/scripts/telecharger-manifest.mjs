@@ -62,7 +62,7 @@ function lireCleApi() {
   }
   throw new Error(
     "VITE_BUNGIE_API_KEY est vide ou absente de .env.local.\n" +
-      "  → Renseignez votre clé API Bungie dans ce fichier (voir README)."
+      "  → Renseignez votre clé API Bungie dans ce fichier (voir NOTICE.md)."
   );
 }
 

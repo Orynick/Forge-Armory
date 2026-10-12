@@ -22,7 +22,8 @@ import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 // section view, to "know what you're selecting before it's in Mon build".
 
 import TitreRepliable from "./TitreRepliable";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { defilerVers } from "../lib/defilerVers";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : « Aller à »
 import { surlignerVerbesConnus, IconeElementArme, IconeMunitionArme } from "./RenduTextePerk";
 import { Database } from "sql.js";
 import { DestinyMembership } from "../lib/bungie/api";
@@ -52,6 +53,9 @@ import IconeClasse from "./icones/IconeClasse";
 import IconeCoffre from "./icones/IconeCoffre";
 import IconeSlotArmure from "./icones/IconeSlotArmure";
 import MenuDerouantIcone from "./MenuDerouantIcone";
+import IconeElement from "./icones/IconeElement";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : filtre d'élément
+import { obtenirElementFiltre, obtenirIconeElementDoctrine, obtenirIconeCinetique, ELEMENTS_FILTRE, ElementFiltre } from "../lib/manifest/doctrine";
+import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
 import IconeTypeArme from "./icones/IconeTypeArme";
 import { obtenirSecoursTypeArme } from "../lib/manifest/typeArmeSecours";
 
@@ -67,12 +71,25 @@ const LIBELLES_PERSONNAGE: Record<"chasseur" | "titan" | "arcaniste", string> = 
 // EN: ⚠️ REMOVED (2026-08-04) - replaced by the real official element
 // icon from the Manifest (elementArmeIcone), user request.
 
+/**
+ * FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - objet visé par le bouton « Aller à » de la recherche dans le Manifest : l'inventaire se filtre sur ses exemplaires (même `itemHash`, personnages et coffre), s'ouvre et s'affiche à l'écran. `demande` change à CHAQUE clic
+ * (même objet) pour relancer l'ouverture et le défilement. / EN: ⚠️ ADDED - target of the "Go to" button; `demande` changes on every click.
+ */
+export interface CibleInventaire {
+  hash: number;
+  nom: string;
+  demande: number;
+}
+
 interface Props {
   membership: DestinyMembership | null;
   db: Database | null;
   onAjouterObjet: (piece: GearPiece) => void;
   /** FR : remonte la liste des objets possédés au parent (utilisée par le panneau Loadouts pour repérer les pièces démantelées). Optionnel : le composant reste utilisable sans. / EN: lifts the owned items list to the parent (used by the Loadouts panel to spot dismantled pieces). Optional: the component stays usable without it. */
   onObjetsCharges?: (objets: GearPiece[] | null) => void;
+  /** FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - voir `CibleInventaire`. `onEffacerCible` retire le filtre (bouton du bandeau, ou « Réinitialiser les filtres »). / EN: see CibleInventaire. */
+  cible?: CibleInventaire | null;
+  onEffacerCible?: () => void;
 }
 
 /** FR : construit le texte affiché au survol (perks + stats) - tooltip natif, simple et fiable. / EN: builds the hover text (perks + stats) - native tooltip, simple and reliable. */
@@ -625,8 +642,16 @@ function trierEtGrouperAvecVides(pieces: GearPiece[]): Array<{ slot: SlotArme | 
   return ORDRE_SLOTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) }));
 }
 
-export default function SelecteurInventaire({ membership, db, onAjouterObjet, onObjetsCharges }: Props) {
+export default function SelecteurInventaire({ membership, db, onAjouterObjet, onObjetsCharges, cible, onEffacerCible }: Props) {
   const [objets, setObjets] = useState<GearPiece[] | null>(null);
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - « Aller à » : à chaque demande, on ouvre le bloc s'il est replié puis on l'amène à l'écran. Petit délai pour que la page ait fini de se réorganiser (sections ouvertes) avant le défilement. / EN: open the block and scroll to it.
+  const refBloc = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (!cible) return;
+    if (refBloc.current) refBloc.current.open = true;
+    const minuteur = setTimeout(() => defilerVers(refBloc.current), 60);
+    return () => clearTimeout(minuteur);
+  }, [cible?.demande]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // FR : remonte la liste au parent à chaque changement. Effet séparé
   // plutôt qu'un appel dans le handler de chargement : on couvre ainsi
@@ -663,6 +688,8 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   const [filtreTypeArme, setFiltreTypeArme] = useState("tous");
   const [filtreSlotArmure, setFiltreSlotArmure] = useState<"tous" | SlotArmure>("tous");
   const [filtreChampionCoffre, setFiltreChampionCoffre] = useState<"tous" | TypeChampion>("tous");
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - filtres sur l'ÉLÉMENT DE DÉGÂTS (Coffre et Mon Inventaire), demande de l'utilisateur : Cinétique, Solaire, Cryo-électrique, Abyssal, Stase, Filobscur. Ils portent sur les armes : une armure n'a pas d'élément et n'apparaît sous aucun. / EN: ⚠️ ADDED - damage element filters (Vault and Inventory), weapons only.
+  const [filtreElementCoffre, setFiltreElementCoffre] = useState<"tous" | ElementFiltre>("tous");
   // FR : ⚠️ AJOUT (04/08/2026) - filtre "doublons", demande de
   // l'utilisateur. Un doublon = plusieurs exemplaires du MÊME objet
   // (même itemHash) dans l'ensemble considéré. Utile pour faire le ménage
@@ -675,6 +702,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   const [filtreTypeArmeInv, setFiltreTypeArmeInv] = useState("tous");
   const [filtreSlotArmureInv, setFiltreSlotArmureInv] = useState<"tous" | SlotArmure>("tous");
   const [filtreChampionInv, setFiltreChampionInv] = useState<"tous" | TypeChampion>("tous");
+  const [filtreElementInv, setFiltreElementInv] = useState<"tous" | ElementFiltre>("tous");
 
   async function charger() {
     if (!membership || !db) return;
@@ -802,7 +830,26 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objets]);
 
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - options du menu « élément de dégâts » (partagées par le Coffre et Mon Inventaire) : icône officielle de Bungie quand le Manifest est chargé, sinon le dessin de l'appli ; le Cinétique n'a pas de dessin de secours.
+  // EN: ⚠️ ADDED - options of the damage element menu, official icon when the Manifest is loaded.
+  function optionsElement() {
+    return [
+      { valeur: "tous", libelle: "Tous les éléments" },
+      ...ELEMENTS_FILTRE.map((el) => {
+        let icone;
+        if (el === "cinetique") {
+          const url = db ? obtenirIconeCinetique(db) : undefined;
+          icone = url ? <img src={url} alt="" width={16} height={16} style={{ borderRadius: 3, flexShrink: 0 }} /> : undefined;
+        } else {
+          icone = <IconeElement element={el} taille={16} urlOfficielle={db ? obtenirIconeElementDoctrine(db, el) : undefined} />;
+        }
+        return { valeur: el, libelle: el === "cinetique" ? "Cinétique" : LIBELLES_ELEMENT_FR[el], icone };
+      }),
+    ];
+  }
+
   function correspondAuxFiltres(piece: GearPiece): boolean {
+    if (cible && piece.itemHash !== cible.hash) return false;   // ⚠️ AJOUT (12/10/2026, v0.4.0) : « Aller à »
     if (doublonsSeulementCoffre && !hashesEnDoublonCoffre.has(piece.itemHash)) return false;
     if (filtreRarete !== "toutes" && piece.rarete !== filtreRarete) return false;
     if (filtreTypeArme !== "tous" && piece.typeArme !== filtreTypeArme) return false;
@@ -812,6 +859,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
       if (!db || !["cinetique", "energie", "lourde"].includes(piece.slot)) return false;
       if (obtenirAntiChampion(db, piece.itemHash) !== filtreChampionCoffre) return false;
     }
+    if (filtreElementCoffre !== "tous" && (!db || obtenirElementFiltre(db, piece.itemHash) !== filtreElementCoffre)) return false;   // ⚠️ AJOUT (12/10/2026, v0.4.0)
     if (rechercheCoffre.trim().length >= 2) {
       const cle = piece.itemInstanceId ?? `${piece.itemHash}`;
       // FR : ⚠️ CORRIGÉ (04/08/2026) - `toLowerCase()` gère la casse mais PAS
@@ -832,6 +880,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   // above, but for "My Inventory" (explicit user request: same filters
   // as the Vault, limited to the inventory).
   function correspondAuxFiltresInventaire(piece: GearPiece): boolean {
+    if (cible && piece.itemHash !== cible.hash) return false;   // ⚠️ AJOUT (12/10/2026, v0.4.0) : « Aller à »
     if (doublonsSeulementInv && !hashesEnDoublonInv.has(piece.itemHash)) return false;
     if (filtreRareteInv !== "toutes" && piece.rarete !== filtreRareteInv) return false;
     if (filtreTypeArmeInv !== "tous" && piece.typeArme !== filtreTypeArmeInv) return false;
@@ -840,6 +889,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
       if (!["cinetique", "energie", "lourde"].includes(piece.slot)) return false;
       if (!db || obtenirAntiChampion(db, piece.itemHash) !== filtreChampionInv) return false;
     }
+    if (filtreElementInv !== "tous" && (!db || obtenirElementFiltre(db, piece.itemHash) !== filtreElementInv)) return false;   // ⚠️ AJOUT (12/10/2026, v0.4.0)
     if (rechercheInventaire.trim().length >= 2) {
       const cle = piece.itemInstanceId ?? `${piece.itemHash}`;
       const texte = normaliser(texteRechercheParPieceInventaire.get(cle) ?? piece.nom ?? "");
@@ -852,7 +902,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   const typesArmeDisponiblesInv = Array.from(new Set(inventaireBrut.map((o) => o.typeArme).filter(Boolean))).sort() as string[];
 
   return (
-    <details open className="pilier-carte bloc-repliable">
+    <details ref={refBloc} open className="pilier-carte bloc-repliable">
       {/* FR : ⚠️ CHANGÉ (27/09/2026, v0.2.3) - bloc repliable, comme le Coffre
       (demande de l'utilisateur). Ouvert par défaut : rien ne change au
       lancement, on replie ce qu'on veut. Style dans index.css (.bloc-repliable).
@@ -896,6 +946,22 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
       )}
 
       {erreur && <p style={{ color: "#e08080" }}>⚠️ {erreur}</p>}
+
+      {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - bandeau « Aller à » : dit sur quoi l'inventaire est filtré, combien d'exemplaires (personnages + coffre) existent, et permet de retirer le filtre. Sans inventaire chargé, on explique quoi faire. / EN: "Go to" banner. */}
+      {cible && (
+        <p role="status" data-bandeau-aller-a="" style={{ fontSize: "0.8rem", margin: "0 0 0.6rem", padding: "0.4rem 0.6rem", border: "1px solid #d4af37", borderRadius: 6, color: "#e8e6df" }}>
+          🎯 Filtré sur <strong>{cible.nom}</strong> —{" "}
+          {!objets
+            ? "chargez d'abord votre inventaire pour voir vos exemplaires."
+            : (() => {
+                const n = objets.filter((o) => o.itemHash === cible.hash).length;
+                return n === 0 ? "vous n'en possédez aucun exemplaire (personnages et coffre)." : `${n} exemplaire${n > 1 ? "s" : ""} (personnages et coffre).`;
+              })()}{" "}
+          <button onClick={() => onEffacerCible?.()} style={{ fontSize: "0.72rem", marginLeft: "0.3rem" }}>
+            ✕ Retirer ce filtre
+          </button>
+        </p>
+      )}
 
       {statsNonResolues.length > 0 && (
         <p style={{ fontSize: "0.7rem", color: "#5a5f6b" }}>
@@ -978,6 +1044,8 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                 { valeur: "bloqueur", libelle: "Anti-Bloqueur", icone: <IconeAntiChampion type="bloqueur" taille={16} /> },
               ]}
             />
+            {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - filtre sur l'élément de dégâts, demande de l'utilisateur. */}
+            <MenuDerouantIcone valeur={filtreElementInv} onChanger={(v) => setFiltreElementInv(v as "tous" | ElementFiltre)} largeur="170px" options={optionsElement()} />
           </div>
           <span style={{ display: "inline-flex", gap: "0.4rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
             <button
@@ -987,6 +1055,8 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                 setFiltreTypeArmeInv("tous");
                 setFiltreSlotArmureInv("tous");
                 setFiltreChampionInv("tous");
+                setFiltreElementInv("tous");
+                onEffacerCible?.();   // ⚠️ v0.4.0 : retire aussi le filtre « Aller à »
                 setDoublonsSeulementInv(false);
               }}
               style={{ fontSize: "0.75rem" }}
@@ -1021,7 +1091,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
             {(["chasseur", "titan", "arcaniste"] as const).map((classe) => {
               const { equipe, inventaire } = parPersonnage(classe);
               return (
-                <details key={classe} style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>
+                <details key={classe} open={cible && (equipe.some((g) => g.items.length > 0) || inventaire.some((g) => g.items.length > 0)) ? true : undefined} style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>   {/* ⚠️ v0.4.0 : « Aller à » ouvre les personnages qui possèdent l'objet */}
                   <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                       <IconeClasse classe={classe} taille={18} />
@@ -1074,7 +1144,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
             })}
           </div>
 
-          <details style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>
+          <details open={cible && coffre.some((g) => g.items.length > 0) ? true : undefined} style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>   {/* ⚠️ v0.4.0 : « Aller à » ouvre le coffre s'il contient l'objet */}
             <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}>
               <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                 <IconeCoffre taille={16} />
@@ -1143,6 +1213,8 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                   { valeur: "bloqueur", libelle: "Anti-Bloqueur", icone: <IconeAntiChampion type="bloqueur" taille={16} /> },
                 ]}
               />
+              {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - filtre sur l'élément de dégâts, demande de l'utilisateur. */}
+              <MenuDerouantIcone valeur={filtreElementCoffre} onChanger={(v) => setFiltreElementCoffre(v as "tous" | ElementFiltre)} largeur="170px" options={optionsElement()} />
             </div>
 
             {/* FR : ⚠️ AJOUT (04/08/2026) - bouton de réinitialisation de
@@ -1160,6 +1232,8 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                   setFiltreTypeArme("tous");
                   setFiltreSlotArmure("tous");
                   setFiltreChampionCoffre("tous");
+                  setFiltreElementCoffre("tous");
+                  onEffacerCible?.();   // ⚠️ v0.4.0 : retire aussi le filtre « Aller à »
                   setDoublonsSeulementCoffre(false);
                 }}
                 style={{ fontSize: "0.75rem" }}

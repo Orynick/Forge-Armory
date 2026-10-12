@@ -8,15 +8,16 @@
 
 import type { CSSProperties } from "react";
 
-export type VueApp = "analyseur" | "loadouts" | "bibliotheque";
+export type VueApp = "analyseur" | "loadouts" | "forge" | "bibliotheque";   // ⚠️ v0.4.0 : + « forge »
 
 // FR : ⚠️ CHANGÉ (07/10/2026, v0.3.16) - les fichiers viennent du catalogue de l'archive « forge-armory-app-assets » (`urlVisuel`, identifiants `selecteur.<vue>.repos|selectionne`) au lieu de chemins écrits ici. / EN: ⚠️ CHANGED - files now come from the supplied catalogue.
 import { urlVisuel } from "../lib/visuelsForge";
 
-/** FR : l'ordre est celui demandé : Build Analyzer, Load-outs, Bibliothèque. / EN: the requested order. */
+/** FR : l'ordre est celui demandé : Build Analyzer, Load-outs, Forge, Bibliothèque (Forge ajoutée en v0.4.0). / EN: the requested order. */
 const VUES: { valeur: VueApp; libelle: string; fichier: string }[] = [
   { valeur: "analyseur", libelle: "Build Analyzer", fichier: "build-analyzer" },
   { valeur: "loadouts", libelle: "Load-outs", fichier: "loadouts" },
+  { valeur: "forge", libelle: "Forge", fichier: "forge" },   // ⚠️ AJOUT (12/10/2026, v0.4.0) : nouvel onglet, entre Load-outs et Bibliothèque (demande de l'utilisateur)
   { valeur: "bibliotheque", libelle: "Bibliothèque", fichier: "bibliotheque" },
 ];
 

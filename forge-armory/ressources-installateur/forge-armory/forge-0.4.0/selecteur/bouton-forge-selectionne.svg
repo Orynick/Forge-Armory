@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4316 1024" role="img" aria-labelledby="fa-selecteur-bouton-forge-selectionne-title fa-selecteur-bouton-forge-selectionne-desc">
+  <title id="fa-selecteur-bouton-forge-selectionne-title">Forge Armory — bouton Forge (sélectionné)</title>
+  <desc id="fa-selecteur-bouton-forge-selectionne-desc">Lame cyan dressée dans un anneau d'argent au-dessus d'une enclume, dans un cercle, cristaux cyan en haut et en bas ; plaque avec le titre FORGE, soulignage et étoile cyan.</desc>
+  <defs>
+    <linearGradient id="fa-selecteur-bouton-forge-selectionne-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-forge-selectionne-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#f0fdff"/>
+      <stop offset="1" stop-color="#c9f6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-forge-selectionne-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-forge-selectionne-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-selecteur-bouton-forge-selectionne-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-selecteur-bouton-forge-selectionne-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    
+    <linearGradient id="fa-selecteur-bouton-forge-selectionne-plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131923"/><stop offset="1" stop-color="#080b11"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-forge-selectionne-fadeH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.12" stop-color="#e8ebef" stop-opacity="0.85"/>
+      <stop offset="0.88" stop-color="#e8ebef" stop-opacity="0.85"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-forge-selectionne-fadeV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.25" stop-color="#e8ebef" stop-opacity="0.7"/>
+      <stop offset="0.75" stop-color="#e8ebef" stop-opacity="0.7"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="fa-selecteur-bouton-forge-selectionne-glowStar" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  <filter id="fa-selecteur-bouton-forge-selectionne-haloLogo" filterUnits="userSpaceOnUse" x="0" y="0" width="4316" height="1024" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b0"/><feFlood flood-color="#3fdcff" flood-opacity="0.9"/><feComposite in2="b0" operator="in" result="h0"/><feGaussianBlur in="SourceAlpha" stdDeviation="12" result="b1"/><feFlood flood-color="#3fdcff" flood-opacity="0.85"/><feComposite in2="b1" operator="in" result="h1"/><feGaussianBlur in="SourceAlpha" stdDeviation="17" result="b2"/><feFlood flood-color="#3fdcff" flood-opacity="0.7"/><feComposite in2="b2" operator="in" result="h2"/><feMerge><feMergeNode in="h2"/><feMergeNode in="h1"/><feMergeNode in="h0"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="fa-selecteur-bouton-forge-selectionne-haloTexte" filterUnits="userSpaceOnUse" x="0" y="0" width="4316" height="1024" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b0"/><feFlood flood-color="#3fdcff" flood-opacity="1.0"/><feComposite in2="b0" operator="in" result="h0"/><feGaussianBlur in="SourceAlpha" stdDeviation="10" result="b1"/><feFlood flood-color="#3fdcff" flood-opacity="0.95"/><feComposite in2="b1" operator="in" result="h1"/><feGaussianBlur in="SourceAlpha" stdDeviation="20" result="b2"/><feFlood flood-color="#3fdcff" flood-opacity="0.85"/><feComposite in2="b2" operator="in" result="h2"/><feMerge><feMergeNode in="h2"/><feMergeNode in="h1"/><feMergeNode in="h0"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+<g filter="url(#fa-selecteur-bouton-forge-selectionne-haloLogo)">
+  <g shape-rendering="geometricPrecision">
+    <rect x="1010" y="220" width="3134" height="4" fill="url(#fa-selecteur-bouton-forge-selectionne-fadeH)"/><rect x="1010" y="800" width="3134" height="4" fill="url(#fa-selecteur-bouton-forge-selectionne-fadeH)"/>
+    <path d="M 874.2 250.0 L 4163.7 250.0 L 4245.7 332.0 L 4245.7 692.0 L 4163.7 774.0 L 874.2 774.0 L 865.5 774.0 A 440 440 0 0 0 865.5 250.0 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-plateFill)"/>
+    <path d="M 884.6 265.0 L 4148.7 265.0 L 4230.7 347.0 L 4230.7 677.0 L 4148.7 759.0 L 884.6 759.0" fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="2.5" stroke-linejoin="miter"/>
+    <path d="M 874.2 250.0 L 4163.7 250.0 L 4245.7 332.0 L 4245.7 692.0 L 4163.7 774.0 L 874.2 774.0" fill="none" stroke="url(#fa-selecteur-bouton-forge-selectionne-silver)" stroke-width="11" stroke-linejoin="miter" stroke-linecap="butt"/>
+    <rect x="1133.5" y="433.4" width="3" height="157.2" fill="url(#fa-selecteur-bouton-forge-selectionne-fadeV)"/>
+  </g>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-selecteur-bouton-forge-selectionne-silver)" stroke-width="22"/>
+    <path d="M 459.2 449.6 C 410.0 447.2 338.0 452.0 305.6 495.2 C 294.8 509.6 297.2 524.0 310.4 536.0 C 344.0 561.2 398.0 568.4 437.6 567.2 L 425.6 554.0 C 389.0 551.6 350.0 542.0 339.2 522.8 C 332.0 509.6 341.0 495.2 362.0 483.2 C 392.0 467.6 428.0 462.8 459.2 461.6 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-silver)"/><path d="M 564.8 449.6 C 614.0 447.2 686.0 452.0 718.4 495.2 C 729.2 509.6 726.8 524.0 713.6 536.0 C 680.0 561.2 626.0 568.4 586.4 567.2 L 598.4 554.0 C 635.0 551.6 674.0 542.0 684.8 522.8 C 692.0 509.6 683.0 495.2 662.0 483.2 C 632.0 467.6 596.0 462.8 564.8 461.6 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-silver)"/><path d="M 443.0 308.0 L 448.4 452.0 L 437.6 452.0 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-silver)"/><path d="M 581.0 308.0 L 575.6 452.0 L 586.4 452.0 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-silver)"/><path d="M 442.4 599.6 L 474.8 596.0 L 510.2 629.6 L 545.6 596.0 L 578.0 599.6 L 537.2 641.6 L 532.4 672.8 L 510.2 696.8 L 488.0 672.8 L 483.2 641.6 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-silver)"/><path d="M 328.4 605.6 L 453.2 624.8 C 460.4 656.0 467.6 686.0 471.2 713.6 L 455.6 713.6 C 423.2 662.0 377.6 626.0 328.4 605.6 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-silver)"/><path d="M 695.6 605.6 L 570.8 624.8 C 563.6 656.0 556.4 686.0 552.8 713.6 L 568.4 713.6 C 600.8 662.0 646.4 626.0 695.6 605.6 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-silver)"/>
+    <g filter="url(#fa-selecteur-bouton-forge-selectionne-glowSoft)"><path d="M 510.2 326.0 L 537.2 356.0 L 537.2 584.0 L 510.2 612.8 L 483.2 584.0 L 483.2 356.0 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-cyanL)"/></g>
+    <path d="M 510.2 334.4 L 510.2 605.6 L 486.8 581.6 L 486.8 362.0 Z" fill="#e8fdff" opacity="0.88"/>
+    <g filter="url(#fa-selecteur-bouton-forge-selectionne-glow)">
+      <path d="M 512 110 L 512 282 L 491 189.12 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-cyanL)"/>
+      <path d="M 512 110 L 533 189.12 L 512 282 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-cyanR)"/>
+      <path d="M 512 122 L 514.2 189.12 L 512 270 L 509.8 189.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 175.12 L 515 186.12 L 526 189.12 L 515 192.12 L 512 203.12 L 509 192.12 L 498 189.12 L 509 186.12 Z" fill="#ffffff"/>
+    </g>
+    
+    <g filter="url(#fa-selecteur-bouton-forge-selectionne-glow)">
+      <path d="M 512 744 L 512 916 L 491 823.12 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-cyanL)"/>
+      <path d="M 512 744 L 533 823.12 L 512 916 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-cyanR)"/>
+      <path d="M 512 756 L 514.2 823.12 L 512 904 L 509.8 823.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 809.12 L 515 820.12 L 526 823.12 L 515 826.12 L 512 837.12 L 509 826.12 L 498 823.12 L 509 820.12 Z" fill="#ffffff"/>
+    </g>
+  </g></g>
+  <g filter="url(#fa-selecteur-bouton-forge-selectionne-haloTexte)"><g><path d="M2279.9727 395.6914H2291.0838L2289.8493 350.2593H2156.0221V357.9136L2180.7135 359.8889C2181.2073 384.5802 2181.2073 409.2716 2181.2073 434.2099V447.2963C2181.2073 471.9877 2181.2073 496.9259 2180.7135 521.1235L2156.0221 523.3457V531H2235.0345V523.3457L2207.1332 520.8765C2206.8863 496.4321 2206.8863 471.7407 2206.8863 443.3457H2249.1085L2252.3184 469.7654H2261.7011V409.2716H2252.3184L2248.8616 434.9506H2206.8863C2206.8863 408.284 2206.8863 383.3457 2207.1332 359.1481H2272.3184ZM2440.5269 535.1975C2484.9713 535.1975 2522.5022 500.3827 2522.5022 440.6296C2522.5022 380.3827 2484.9713 346.0617 2440.5269 346.0617C2396.3294 346.0617 2358.5516 381.1235 2358.5516 440.6296C2358.5516 501.1235 2396.3294 535.1975 2440.5269 535.1975ZM2440.5269 526.5556C2404.4775 526.5556 2385.7121 488.037 2385.7121 440.6296C2385.7121 393.4691 2404.4775 354.9506 2440.5269 354.9506C2476.8232 354.9506 2495.0948 393.4691 2495.0948 440.6296C2495.0948 488.037 2476.8232 526.5556 2440.5269 526.5556ZM2440.5259 410.4L2453.3759 441L2440.5259 471.6L2427.6759 441ZM2593.4299 357.9136L2618.1212 359.8889C2618.6151 384.5802 2618.6151 409.2716 2618.6151 434.2099V447.2963C2618.6151 471.9877 2618.6151 496.9259 2618.1212 521.1235L2593.4299 523.3457V531H2669.7262V523.3457L2644.541 521.1235C2643.8002 496.9259 2643.8002 472.4815 2643.8002 446.3086H2661.3311C2682.8126 446.3086 2689.2323 454.2099 2694.4175 474.7037L2705.7756 515.1975C2708.4916 528.5309 2716.3928 533.716 2733.9237 533.716C2743.5533 533.716 2750.22 532.4815 2756.6398 531V523.3457L2733.183 521.8642L2720.3435 476.9259C2715.4052 456.679 2707.9978 446.3086 2686.5163 442.6049C2719.3558 437.1728 2734.4175 418.6543 2734.4175 396.679C2734.4175 367.0494 2711.7015 350.2593 2671.4546 350.2593H2593.4299ZM2644.541 358.9012H2666.7632C2695.899 358.9012 2709.9731 372.9753 2709.9731 396.9259C2709.9731 419.8889 2694.9114 438.1605 2667.257 438.1605H2643.8002C2643.8002 408.284 2643.8002 383.3457 2644.541 358.9012ZM2914.4809 451.7407L2942.876 454.2099C2943.3698 471.4938 2943.6167 488.5309 2943.6167 506.0617V520.6296C2933.7402 524.5802 2924.1105 526.3086 2912.9994 526.3086C2873.2463 526.3086 2845.8389 493.716 2845.8389 440.6296C2845.8389 385.8148 2874.4809 354.9506 2914.234 354.9506C2926.0858 354.9506 2935.2216 357.1728 2944.3574 362.1111L2952.7525 400.8765H2964.8513L2964.6044 360.1358C2949.2957 351.2469 2933.2463 346.0617 2911.271 346.0617C2856.2093 346.0617 2818.4315 383.5926 2818.4315 440.3827C2818.4315 497.6667 2855.2216 535.1975 2910.2834 535.1975C2932.2587 535.1975 2949.0488 530.2593 2968.0612 519.1481V506.5556C2968.0612 486.8025 2968.3081 469.7654 2968.555 453.716L2986.0858 451.7407V444.0864H2914.4809ZM3169.8517 395.6914H3181.2098L3179.7283 350.2593H3046.8888V357.9136L3071.5801 359.8889C3072.074 384.5802 3072.074 409.2716 3072.074 434.2099V447.2963C3072.074 471.9877 3072.074 496.9259 3071.5801 521.1235L3046.8888 523.3457V531H3184.4196L3185.6542 484.8272H3174.5431L3166.6419 522.358H3097.9999C3097.753 497.4198 3097.753 472.2346 3097.753 443.3457H3139.4814L3142.6912 468.5309H3152.074V409.2716H3142.6912L3139.4814 434.9506H3097.753C3097.753 408.284 3097.753 383.3457 3097.9999 359.1481H3162.1974Z" fill="url(#fa-selecteur-bouton-forge-selectionne-silverText)"/>
+    <path d="M 2143.4 630.0 L 2190.9 626.0 L 2615.9 626.0 L 2615.9 634.0 L 2190.9 634.0 Z M 3196.3 630.0 L 3148.8 626.0 L 2723.9 626.0 L 2723.9 634.0 L 3148.8 634.0 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-silver)" opacity="0.9"/>
+    <g filter="url(#fa-selecteur-bouton-forge-selectionne-glowStar)"><path d="M 2669.8 586.8 L 2679.7 620.1 L 2704.4 630.0 L 2679.7 639.9 L 2669.8 673.2 L 2659.9 639.9 L 2635.3 630.0 L 2659.9 620.1 Z" fill="url(#fa-selecteur-bouton-forge-selectionne-cyanL)"/><path d="M 2669.8 610.6 L 2674.8 630.0 L 2669.8 649.4 L 2664.9 630.0 Z" fill="#ffffff"/></g></g></g>
+</svg>

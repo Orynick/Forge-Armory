@@ -38,7 +38,7 @@ export default function App() {
         <ol>
           <li>
             Suivez la section <strong>« Créer votre propre application Bungie »</strong> du fichier{" "}
-            <code>README.md</code> (étapes A à D, une dizaine de minutes).
+            <code>NOTICE.md</code> (étapes A à D, une dizaine de minutes).
           </li>
           <li>
             Vérifiez que le fichier s'appelle exactement <code>.env.local</code> — et pas{" "}

@@ -40,6 +40,7 @@ import {
   obtenirBonusStatsDoctrine,
   obtenirIconePerkDoctrine,
   obtenirNomPerkDoctrine,
+  obtenirIconeElementDoctrine,
 } from "../manifest/doctrine";
 
 export interface ElementFiche {
@@ -125,6 +126,11 @@ export interface FicheBuild {
   description?: string;
   classe?: string;
   element?: string;
+  /** FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - CLÉS de la classe et de l'élément (les deux champs ci-dessus sont des libellés), pour choisir leur ICÔNE dans l'export infographique ; absentes sur une fiche ancienne : l'export affiche alors le texte seul, comme avant. / EN: ⚠️ ADDED - class and element KEYS, to pick their icons in the export. */
+  classeCle?: "titan" | "chasseur" | "arcaniste";
+  elementCle?: Exclude<DamageElement, null>;
+  /** FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - adresse de l'icône OFFICIELLE de l'élément (Manifest, www.bungie.net), absente sans Manifest ou en Prismatique : l'export utilise alors un dessin. / EN: official element icon URL, when known. */
+  elementIcone?: string;
   contexte: string;
   /** FR : ⚠️ AJOUT (v0.2.5) - clé du contexte, pour savoir s'il est « neutre » (masqué dans l'en-tête de l'export). / EN: context key. */
   contexteCle: "neutre" | "roaming" | "dps" | "pvp";
@@ -342,6 +348,9 @@ export function construireFiche(loadout: Loadout, db: Database | null): FicheBui
     description: loadout.description,
     classe: classe ? LIBELLES_CLASSE[classe] : undefined,
     element: element ? LIBELLES_ELEMENT_FR[element] ?? element : undefined,
+    classeCle: classe ?? undefined,
+    elementCle: element ?? undefined,
+    elementIcone: element && db ? obtenirIconeElementDoctrine(db, element) : undefined,
     contexte: LIBELLES_CONTEXTE[b.contexte ?? "neutre"],
     contexteCle: b.contexte ?? "neutre",
     enregistreLe: formaterDate(loadout.enregistreLe),

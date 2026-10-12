@@ -28,6 +28,7 @@ import {
   obtenirCapaciteFragmentsAspect,
   trouverIndexSocketPourPlug,
   obtenirDiagnosticTextesDoctrine,
+  obtenirDiagnosticIconesDoctrine,   // ⚠️ AJOUT (12/10/2026, v0.4.0) : bug des icônes du Filobscur
 } from "../lib/manifest/doctrine";
 import { DestinyMembership } from "../lib/bungie/api";
 import IconeEmplacementFragment from "./icones/IconeEmplacementFragment";
@@ -100,6 +101,7 @@ export default function GrilleDoctrine({ membership, db, classeActuelle, subclas
   // request to audit base-kit ability text without screenshots. Same
   // pattern as `diagFragments` right above.
   const [diagTextesDoctrine, setDiagTextesDoctrine] = useState<string | null>(null);
+  const [diagIconesDoctrine, setDiagIconesDoctrine] = useState<string | null>(null);   // ⚠️ AJOUT (12/10/2026, v0.4.0)
   // FR : ⚠️ AJOUT (04/08/2026) - diagnostic d'insertion de plug, pour
   // savoir si l'appli peut équiper une DOCTRINE complète en jeu.
   const [diagPlug, setDiagPlug] = useState<string | null>(null);
@@ -322,7 +324,7 @@ export default function GrilleDoctrine({ membership, db, classeActuelle, subclas
       SelecteurPersonnage.tsx, following the user's request to merge the
       two blocks into one. */}
       <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: "0 0 0.5rem" }}>
-        La classe ne modifie aucun score (voir README) — elle sert uniquement à filtrer les
+        La classe ne modifie aucun score (voir NOTICE.md) — elle sert uniquement à filtrer les
         aspects/fragments/super proposés ci-dessous.
       </p>
       {!classeActuelle && (
@@ -625,6 +627,25 @@ export default function GrilleDoctrine({ membership, db, classeActuelle, subclas
               >
                 {diagTextesDoctrine}
               </pre>
+            </details>
+          )}
+
+          {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - diagnostic des icônes de doctrine (bug « fond bleu de la Stase sur le Filobscur »), `npm run dev` seulement. À lancer en Stase PUIS en Filobscur et à copier à Claude. / EN: ⚠️ ADDED - doctrine icon diagnostic (dev mode only). */}
+          {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.diagnosticIconesDoctrine && sousClasseActuelle && db && groupes.length > 0 && (
+            <div style={{ marginBottom: "0.75rem" }}>
+              <button onClick={() => setDiagIconesDoctrine(obtenirDiagnosticIconesDoctrine(db, subclass.subclassItemHash, subclass.element, groupes))} style={{ fontSize: "0.75rem" }}>
+                🔍 Copier le diagnostic des icônes de cette doctrine ({LIBELLES_ELEMENT[subclass.element!]})
+              </button>
+            </div>
+          )}
+
+          {diagIconesDoctrine && (
+            <details open style={{ fontSize: "0.75rem", color: "#b7b3a8", marginBottom: "0.75rem" }}>
+              <summary style={{ cursor: "pointer" }}>
+                <span>🔍 Icônes de doctrine — {LIBELLES_ELEMENT[subclass.element!]} (à copier à Claude)</span>
+                <button onClick={() => setDiagIconesDoctrine(null)} style={{ marginLeft: "0.5rem", fontSize: "0.65rem" }}>fermer</button>
+              </summary>
+              <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.68rem", background: "#0d0f14", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem", maxHeight: "400px", overflowY: "auto" }}>{diagIconesDoctrine}</pre>
             </details>
           )}
 

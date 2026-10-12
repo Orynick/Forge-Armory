@@ -25,6 +25,8 @@ import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 
 import TitreCategorie from "./TitreCategorie";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { obtenirElementFiltre, ELEMENTS_FILTRE, ElementFiltre } from "../lib/manifest/doctrine";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : filtre d'élément
+import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
 import { Database } from "sql.js";
 import { assurerManifestAJour, manifestsEnCacheAJour, telechargerManifestsEnFichiers } from "../lib/manifest/download";
 import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance, chercherTriomphesFlawless, TriompheTrouve } from "../lib/manifest/search";
@@ -65,9 +67,11 @@ const DELAI_DEBOUNCE_MS = 350;
 interface Props {
   onManifestCharge?: (dbFr: Database) => void;
   onAjouterObjet?: (piece: GearPiece) => void;
+  /** FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - bouton « Aller à » : fait glisser la page sur « Mon Inventaire » et le filtre sur cet objet (demande de l'utilisateur). Facultatif : sans lui, le bouton n'est pas affiché. / EN: ⚠️ ADDED - "Go to" button. */
+  onAllerA?: (hash: number, nom: string) => void;
 }
 
-export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: Props) {
+export default function RechercheManifest({ onManifestCharge, onAjouterObjet, onAllerA }: Props) {
   const [dbFr, setDbFr] = useState<Database | null>(null);
   const [dbEn, setDbEn] = useState<Database | null>(null);
   const [etapeChargement, setEtapeChargement] = useState<string | null>(null);
@@ -104,17 +108,23 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
     }
   }
   const [filtreChampion, setFiltreChampion] = useState<"tous" | TypeChampion>("tous");
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - filtre sur l'ÉLÉMENT DE DÉGÂTS (Cinétique, Solaire, Cryo-électrique, Abyssal, Stase, Filobscur), demande de l'utilisateur. Comme l'anti-champion : côté client, après la recherche. Il porte sur les armes (et les sous-classes) : un objet sans élément n'apparaît sous aucun élément. / EN: ⚠️ ADDED - damage element filter, client-side like the champion filter.
+  const [filtreElement, setFiltreElement] = useState<"tous" | ElementFiltre>("tous");
 
   // FR : ⚠️ AJOUT (04/08/2026) - filtrage côté client par anti-champion,
   // recalculé seulement quand les résultats ou le filtre changent (pas à
   // chaque rendu), le type de champion n'étant pas indexé.
   const resultatsAffiches = useMemo(() => {
-    if (filtreChampion === "tous" || !dbFr) return resultats;
+    if (!dbFr || (filtreChampion === "tous" && filtreElement === "tous")) return resultats;
     return resultats.filter((r) => {
-      if (!r.slot || !["cinetique", "energie", "lourde"].includes(r.slot)) return false;
-      return obtenirAntiChampion(dbFr, r.hash) === filtreChampion;
+      if (filtreChampion !== "tous") {
+        if (!r.slot || !["cinetique", "energie", "lourde"].includes(r.slot)) return false;
+        if (obtenirAntiChampion(dbFr, r.hash) !== filtreChampion) return false;
+      }
+      if (filtreElement !== "tous" && obtenirElementFiltre(dbFr, r.hash) !== filtreElement) return false;
+      return true;
     });
-  }, [resultats, filtreChampion, dbFr]);
+  }, [resultats, filtreChampion, filtreElement, dbFr]);
   const [rechercheEnCours, setRechercheEnCours] = useState(false);
   const [erreurRecherche, setErreurRecherche] = useState<string | null>(null);
   // FR : ⚠️ AJOUT (24/08/2026) - diagnostic (mode dev) pour localiser
@@ -426,6 +436,18 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
               <option value="surcharge">Anti-Surchargé</option>
               <option value="bloqueur">Anti-Bloqueur</option>
             </select>
+            {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - filtre sur l'élément de dégâts, demande de l'utilisateur. / EN: damage element filter. */}
+            <select
+              value={filtreElement}
+              onChange={(e) => setFiltreElement(e.target.value as "tous" | ElementFiltre)}
+              aria-label="Élément de dégâts"
+              style={{ fontSize: "0.85rem", background: "#0d0f14", color: "#e8e6df", border: "1px solid #3a3f4b", borderRadius: 6, padding: "0.3rem 0.4rem" }}
+            >
+              <option value="tous">Tous les éléments</option>
+              {ELEMENTS_FILTRE.map((el) => (
+                <option key={el} value={el}>{el === "cinetique" ? "Cinétique" : LIBELLES_ELEMENT_FR[el]}</option>
+              ))}
+            </select>
           </div>
 
           {motCle.length > 0 && motCle.trim().length < 2 && (
@@ -549,6 +571,16 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
                         }
                       >
                         + Ajouter au build
+                      </button>
+                    )}
+                    {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - « Aller à » : sur les armes et armures (celles qui ont aussi « + Ajouter au build »). / EN: ⚠️ ADDED - "Go to", on weapons and armor. */}
+                    {r.slot && onAllerA && (
+                      <button
+                        style={{ marginLeft: "0.4rem", fontSize: "0.75rem", padding: "0.15rem 0.5rem" }}
+                        title="Afficher cet objet dans Mon Inventaire (vos exemplaires)"
+                        onClick={() => onAllerA(r.hash, r.nom)}
+                      >
+                        Aller à
                       </button>
                     )}
                     {r.description && (

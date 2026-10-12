@@ -26,7 +26,7 @@ import {
 } from "../lib/bungie/api";
 import { exporterVersDim } from "../lib/dim/export";
 import RechercheManifest from "../components/RechercheManifest";
-import SelecteurInventaire from "../components/SelecteurInventaire";
+import SelecteurInventaire, { CibleInventaire } from "../components/SelecteurInventaire";
 import ResumeBuild from "../components/ResumeBuild";
 import GrilleDoctrine from "../components/GrilleDoctrine";
 // FR : ⚠️ AJOUT (31/08/2026) - diagnostic du Pilier 2 (voir verbes.ts).
@@ -42,6 +42,7 @@ import ControleAntiChampionExotiques from "../components/ControleAntiChampionExo
 import ControleIconesPerksArtefact from "../components/ControleIconesPerksArtefact";
 import { useModeDiagnostic } from "../lib/modeDiagnostic";
 import SelecteurVues, { VueApp } from "../components/SelecteurVues";
+import PageForge from "../components/PageForge";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : onglet Forge
 import { defilerVers } from "../lib/defilerVers";
 import TitreCategorie from "../components/TitreCategorie";
 import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic";
@@ -167,6 +168,8 @@ export default function DashboardPage() {
   // default on every launch (not remembered, user's choice).
   // FR : ⚠️ CHANGÉ (06/10/2026, v0.3.5) - troisième vue « Load-outs » (entre Build Analyzer et Bibliothèque, demande du 05/10/2026). / EN: ⚠️ CHANGED - third view "Load-outs".
   const [vue, setVue] = useState<VueApp>("analyseur");
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - objet visé par « Aller à » (recherche dans le Manifest → Mon Inventaire). / EN: ⚠️ ADDED - target of the "Go to" button.
+  const [cibleInventaire, setCibleInventaire] = useState<CibleInventaire | null>(null);
   // FR : ⚠️ AJOUT (07/10/2026, v0.3.7) - après « Charger » dans l'onglet « Load-outs », la page revient au Build Analyzer ET amène le bloc « Mon Build » à l'écran : sans cela, l'utilisateur se retrouvait en haut d'une longue
   // page, loin du build chargé, et croyait à un bug. Le compteur déclenche l'effet ci-dessous à chaque chargement (même si c'est le même build deux fois de suite).
   // EN: ⚠️ ADDED - after "Charger" in the Load-outs tab, the page returns to the Build Analyzer AND brings the "Mon Build" block into view.
@@ -485,6 +488,7 @@ export default function DashboardPage() {
       {/* FR : ⚠️ CHANGÉ (06/10/2026, v0.3.5) - NOUVEAUX BOUTONS (fournis par l'utilisateur) et troisième vue « Load-outs » : voir components/SelecteurVues.tsx. / EN: ⚠️ CHANGED - NEW BUTTONS and a third view. */}
       <SelecteurVues vue={vue} onChanger={setVue} />
 
+      {vue === "forge" && <PageForge db={db} />}
       {vue === "bibliotheque" && <Bibliotheque db={db} />}
 
       {/* FR : ⚠️ AJOUT (06/10/2026, v0.3.5) - vue « Load-outs » : le MÊME panneau que le tiroir, en pleine page (mode « page »). Le tiroir, lui, est masqué avec la vue Build Analyzer (qui reste montée) : les deux se tiennent
@@ -517,13 +521,15 @@ export default function DashboardPage() {
       inventory, the Doctrine grid, the current search... and the Manifest,
       loaded by the search block below and needed by the Library. */}
       <div style={{ display: vue === "analyseur" ? "block" : "none" }}>
-      <RechercheManifest onManifestCharge={setDb} onAjouterObjet={ajouterObjetAuBuild} />
+      <RechercheManifest onManifestCharge={setDb} onAjouterObjet={ajouterObjetAuBuild} onAllerA={(hash, nom) => setCibleInventaire({ hash, nom, demande: Date.now() })} />
 
       <SelecteurInventaire
         membership={memberships[0] ?? null}
         db={db}
         onAjouterObjet={ajouterObjetAuBuild}
         onObjetsCharges={setObjetsPossedes}
+        cible={cibleInventaire}
+        onEffacerCible={() => setCibleInventaire(null)}
       />
 
       {/* FR : ⚠️ AJOUT (01/10/2026) - contrôle de l'anti-champion des armes exotiques (dev). / EN: exotic anti-champion check (dev). */}

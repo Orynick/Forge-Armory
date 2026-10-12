@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="fa-icones-icone-solo-sans-mourir-title fa-icones-icone-solo-sans-mourir-desc">
+  <title id="fa-icones-icone-solo-sans-mourir-title">Forge Armory — icône Solo sans mourir</title>
+  <desc id="fa-icones-icone-solo-sans-mourir-desc">Titre de panneau : écu à herse en argent, une fenêtre allumée en cyan, dans un cercle ; plaque compacte avec le titre SOLO SANS MOURIR, soulignage et étoile cyan.</desc>
+  <defs>
+    <linearGradient id="fa-icones-icone-solo-sans-mourir-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-solo-sans-mourir-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-solo-sans-mourir-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-solo-sans-mourir-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-solo-sans-mourir-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-icones-icone-solo-sans-mourir-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    
+    <linearGradient id="fa-icones-icone-solo-sans-mourir-plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131923"/><stop offset="1" stop-color="#080b11"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-solo-sans-mourir-fadeH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.12" stop-color="#e8ebef" stop-opacity="0.85"/>
+      <stop offset="0.88" stop-color="#e8ebef" stop-opacity="0.85"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-solo-sans-mourir-fadeV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.25" stop-color="#e8ebef" stop-opacity="0.7"/>
+      <stop offset="0.75" stop-color="#e8ebef" stop-opacity="0.7"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-solo-sans-mourir-glowStar" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-icones-icone-solo-sans-mourir-silver)" stroke-width="22"/>
+    <mask id="fa-icones-icone-solo-sans-mourir-mSolo" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#ffffff"/><rect x="407" y="377" width="54" height="54" rx="5" fill="#000000"/><rect x="485" y="377" width="54" height="54" rx="5" fill="#000000"/><rect x="563" y="377" width="54" height="54" rx="5" fill="#000000"/><rect x="407" y="455" width="54" height="54" rx="5" fill="#000000"/><rect x="485" y="455" width="54" height="54" rx="5" fill="#000000"/><rect x="563" y="455" width="54" height="54" rx="5" fill="#000000"/><rect x="407" y="533" width="54" height="54" rx="5" fill="#000000"/><rect x="485" y="533" width="54" height="54" rx="5" fill="#000000"/><rect x="563" y="533" width="54" height="54" rx="5" fill="#000000"/><rect x="432" y="282" width="28" height="28" fill="#000000"/><rect x="498" y="282" width="28" height="28" fill="#000000"/><rect x="564" y="282" width="28" height="28" fill="#000000"/><rect x="428" y="606" width="12" height="190" fill="#000000"/><rect x="506" y="606" width="12" height="190" fill="#000000"/><rect x="584" y="606" width="12" height="190" fill="#000000"/></mask>
+    <path d="M 332 258 L 692 258 L 692 508 C 692 626 618 716 512 772 C 406 716 332 626 332 508 Z" fill="url(#fa-icones-icone-solo-sans-mourir-silver)" mask="url(#fa-icones-icone-solo-sans-mourir-mSolo)"/>
+    <g filter="url(#fa-icones-icone-solo-sans-mourir-glowSoft)"><rect x="485" y="455" width="54" height="54" rx="5" fill="url(#fa-icones-icone-solo-sans-mourir-cyanL)"/></g>
+  </g>
+</svg>

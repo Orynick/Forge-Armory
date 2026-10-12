@@ -86,6 +86,13 @@ export const DIAGNOSTICS_ACTIFS = {
    */
   diagnosticTextesDoctrine: true,
 
+  /**
+   * FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - 🔍 « Copier le diagnostic des icônes de doctrine » (GrilleDoctrine, `npm run dev` seulement) : bug signalé le 12/10/2026, « en Filobscur, les icônes de saut et de compétence de classe ont un fond bleu (Stase) au lieu de vert ». Les icônes viennent
+   * telles quelles du Manifest (aucune fusion par nom entre éléments dans le code) : ce diagnostic donne, pour la sous-classe choisie, les prises (sockets) de la sous-classe avec leurs listes d'options (partagées ou non) et, pour chaque option, son objet, son icône brute et sa catégorie, afin de comparer la
+   * Stase et le Filobscur. À lancer pour LES DEUX et à copier. Reste actif jusqu'à la résolution du bug. EN: ⚠️ ADDED - dumps the sockets/plug sets and each option's icon data for the chosen subclass, to compare Stasis and Strand.
+   */
+  diagnosticIconesDoctrine: true,
+
   /** FR : ✅ RÉSOLU (06/09/2026) - dump complet du pipeline du Pilier 2
    * (hashes du build -> lecture directe vs obtenirDescriptionComplete ->
    * textes transmis -> verbes détectés -> chaînes). Ajouté le 31/08 parce

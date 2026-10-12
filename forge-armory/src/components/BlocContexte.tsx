@@ -229,7 +229,7 @@ export default function BlocContexte({ contexte, onChanger, ponderations, onPond
       {erreur && <p style={{ fontSize: "0.72rem", color: "#f7768e", margin: "0.4rem 0 0" }}>⚠️ {erreur}</p>}
 
       <p style={{ fontSize: "0.7rem", color: "#7d7a70", margin: "0.6rem 0 0" }}>
-        Détail des choix de pondération : voir la section « Le scoring » du README.
+        Détail des choix de pondération : voir la section « Comprendre le score » de NOTICE.md.
       </p>
     </div>
   );

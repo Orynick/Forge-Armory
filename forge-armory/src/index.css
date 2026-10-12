@@ -9,8 +9,10 @@ body {
   color: #e8e6df;
 }
 
+/* FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - largeur maximale 960 → 1032 px : QUATRE boutons de 56 px de haut (236 px de large chacun) + trois espaces de 12 px demandent 980 px, alors que 960 px n'en offraient que 912 : ils passaient sur DEUX lignes à toutes les largeurs, même à 1920 px. Demande de l'utilisateur : les 4 boutons sur la même ligne.
+   EN: ⚠️ CHANGED - max width 960 → 1032 px so that FOUR 56 px selector buttons fit on one line. */
 .app-shell {
-  max-width: 960px;
+  max-width: 1032px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
 }
@@ -230,9 +232,13 @@ summary > span {
    ============================================================================================================================ */
 .selecteur-vues {
   display: flex;
-  flex-wrap: wrap;
+  /* FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - jamais de retour à la ligne (4 boutons, une seule ligne) ; en dessous de 810 px de fenêtre (le logiciel installé n'y descend pas : largeur minimale 820 px) le retour à la ligne est rétabli plus bas, plutôt qu'un défilement horizontal. EN: never wrap; wrapping restored below 810 px. */
+  flex-wrap: nowrap;
   gap: 0.5rem 0.75rem;
   margin-bottom: 0.75rem;
+}
+@media (max-width: 810px) {
+  .selecteur-vues { flex-wrap: wrap; }
 }
 /* Les trois boutons ont la MÊME hauteur ; la largeur suit (rapport 4316 / 1024 du cadre commun des SVG). */
 .bouton-vue,
@@ -310,4 +316,6 @@ summary:has(.titre-repliable) .bloc-repliable-ligne { width: 100%; }
 
 /* ⚠️ AJOUT (07/10/2026, v0.3.17) - UNE SEULE hauteur pour tous les « logo + titre » (boutons du sélecteur de vues, titres de blocs, boutons de profil à l'échelle 1) : 3,5 rem (56 px) sur écran large,
    jamais sous 2,6 rem (41,6 px) sur écran étroit. Un seul réglage : changer cette variable change tout. */
-:root { --hauteur-logo-titre: clamp(2.6rem, 7vw, 3.5rem); }
+/* FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - la hauteur commune des logos DÉPEND maintenant de la largeur disponible pour que les quatre boutons du sélecteur tiennent toujours sur une ligne : (largeur de la page − marges − trois espaces) / 4 × 1024 / 4316, bornée entre 2,6 rem et 3,5 rem. La page fait au plus 1032 px ; la marge de 1,1 rem tient compte d'une barre de défilement classique (100vw l'inclut). Résultat mesuré : 56 px dès ~1040 px de fenêtre, puis 53 px (1000), 51 (960), 47 (900), 43 (820). Les titres des blocs et les boutons de profil suivent la MÊME variable, donc la même taille.
+   EN: ⚠️ CHANGED - the shared logo height now depends on the available width so the four selector buttons always fit on one line. */
+:root { --hauteur-logo-titre: clamp(2.6rem, calc((min(1032px, 100vw - 1.1rem) - 3rem - 2.25rem) / 4 * 1024 / 4316), 3.5rem); }

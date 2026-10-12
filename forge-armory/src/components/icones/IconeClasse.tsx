@@ -21,19 +21,21 @@
 
 import { SubclassConfig } from "../../types/build";
 
+// FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - COULEURS, CHEMINS_SVG et LIBELLES sont EXPORTÉS : l'export infographique (`lib/loadouts/iconesExport.ts`) dessine la même icône de classe, avec les mêmes tracés (source unique, aucune copie). / EN: now exported, shared with the export page.
+
 interface Props {
   classe: Exclude<SubclassConfig["classe"], null>;
   /** FR : diamètre du disque coloré (le symbole est dimensionné automatiquement à ~68% de cette taille). / EN: diameter of the colored disc (the symbol is automatically sized to ~68% of this). */
   taille?: number;
 }
 
-const COULEURS: Record<Exclude<SubclassConfig["classe"], null>, string> = {
+export const COULEURS: Record<Exclude<SubclassConfig["classe"], null>, string> = {
   chasseur: "#3fa9e0",
   titan: "#d5453a",
   arcaniste: "#e0c93f",
 };
 
-const CHEMINS_SVG: Record<Exclude<SubclassConfig["classe"], null>, string> = {
+export const CHEMINS_SVG: Record<Exclude<SubclassConfig["classe"], null>, string> = {
   chasseur:
     "m9.055 10.446 6.945-.023-6.948 10.451 6.948-.024-7.412 11.15h-7.045l7.036-10.428h-7.036l7.032-10.422h-7.032l7.507-11.126 6.95-.024zm13.89 0-6.945-10.446 6.95.024 7.507 11.126h-7.032l7.032 10.422h-7.036l7.036 10.428h-7.045l-7.412-11.15 6.948.024-6.948-10.451z",
   titan:
@@ -42,7 +44,7 @@ const CHEMINS_SVG: Record<Exclude<SubclassConfig["classe"], null>, string> = {
     "m5.442 23.986 7.255-11.65-2.71-4.322-9.987 15.972zm5.986 0 4.28-6.849-2.717-4.333-6.992 11.182zm7.83-11.611 7.316 11.611h5.426l-10.015-15.972zm-7.26 11.611h8.004l-4.008-6.392zm6.991-11.182-2.703 4.324 4.302 6.858h5.413zm-5.707-.459 2.71-4.331 2.71 4.331-2.703 4.326z",
 };
 
-const LIBELLES: Record<Exclude<SubclassConfig["classe"], null>, string> = {
+export const LIBELLES: Record<Exclude<SubclassConfig["classe"], null>, string> = {
   chasseur: "Chasseur",
   titan: "Titan",
   arcaniste: "Arcaniste",
