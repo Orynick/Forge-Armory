@@ -24,9 +24,11 @@ const { db } = creerFausseDb(defs);
 if (params.has("inventaire")) {
   const base = { stats: {}, isExotic: false, rarete: "Légendaire", icone: "https://www.bungie.net/icons/x.png" };
   (window as unknown as { __piecesForge: unknown[] }).__piecesForge = [
-    { ...base, itemHash: 5010, itemInstanceId: "w1", nom: "Fusil à paliers", slot: "energie", typeArme: "Fusil à impulsion", origine: "titan", equipe: true, perkHashes: [6901, 6912, 6921, 6931], perksParColonne: [{ socketIndex: 1, hash: 6901 }, { socketIndex: 2, hash: 6912 }, { socketIndex: 3, hash: 6921 }, { socketIndex: 4, hash: 6931 }] },
+    { ...base, itemHash: 5010, itemInstanceId: "w1", nom: "Fusil à paliers", slot: "energie", typeArme: "Fusil à impulsion", origine: "titan", equipe: true, perkHashes: [6901, 6912, 6921, 6931], perksParColonne: [{ socketIndex: 1, hash: 6901 }, { socketIndex: 2, hash: 6912 }, { socketIndex: 3, hash: 6921 }, { socketIndex: 4, hash: 6931 }],
+      // FR : ⚠️ v0.4.7 - perks DISPONIBLES sur cet exemplaire (composant 310) : canons : seulement le réel ; chargeurs : le réel (amélioré) et « Chargeur abandonné » ; traits : seulement le réel ; mods : la crosse et « Stabilité améliorée ». / EN: perks available on this instance.
+      plugsDisponiblesParColonne: { 1: [6901], 2: [6912, 6913], 3: [6921], 4: [6931, 6933] } },
     { ...base, itemHash: 5001, itemInstanceId: "w2", nom: "Fusil d'essai", slot: "energie", typeArme: "Fusil à impulsion", origine: "coffre", perkHashes: [] },
-    { ...base, itemHash: 5002, itemInstanceId: "w3", nom: "Lance-roquettes d'essai", slot: "lourde", typeArme: "Lance-roquettes", origine: "chasseur", isExotic: true, equipe: false, perkHashes: [] },
+    { ...base, itemHash: 5002, itemInstanceId: "w3", nom: "Lance-roquettes d'essai", slot: "lourde", typeArme: "Lance-roquettes", origine: "chasseur", isExotic: true, equipe: false, perkHashes: [], plugsDisponiblesParColonne: {} },   // ⚠️ v0.4.7 : `{}` = lu, aucune alternative sur cet exemplaire (w2 n'a PAS le champ : non lu)
     { ...base, itemHash: 5005, itemInstanceId: "c1", nom: "Casque d'essai", slot: "casque", origine: "arcaniste", classeRequise: "arcaniste", perkHashes: [] },
   ];
 }

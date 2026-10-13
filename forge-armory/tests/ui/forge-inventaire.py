@@ -43,10 +43,19 @@ with sync_playwright() as p:
     carte(pg, "w1").click(); pg.wait_for_selector("[role=dialog]"); pg.wait_for_timeout(200)
     ok("fenêtre de l'arme : le ROLL RÉEL est marqué ✓ (Canon X, Chargeur X dont la version AMÉLIORÉE est celle de l'arme, Trait P, Crosse de contrepoids) et lui seul ; aucune simulation au départ", [etat(pg, h)["reel"] for h in (6901, 6911, 6921, 6931)] == ["1", "1", "1", "1"] and etat(pg, 6903)["reel"] == "" and etat(pg, 6923)["reel"] == "" and pg.locator("[role=dialog] [data-nb-simulees]").get_attribute("data-nb-simulees") == "0", [etat(pg, h) for h in (6901, 6911, 6921, 6931, 6903)])
     ok("colonnes SÉLECTIONNABLES : les colonnes qui proposent plusieurs perks (canons, chargeurs, traits, mods) ont des puces-boutons ; la colonne de l'armature, qui n'en propose qu'un, n'en a PAS (simples étiquettes)", etat(pg, 6901)["tag"] == "BUTTON" and etat(pg, 6911)["tag"] == "BUTTON" and etat(pg, 6931)["tag"] == "BUTTON" and pg.evaluate("[...document.querySelectorAll('[role=dialog] [data-colonne=\"0\"] [data-perk]')].every(e => e.tagName === 'SPAN')"))
+    # ---------- 3 bis. les QUATRE NIVEAUX (v0.4.7, demande de l'utilisateur) ----------
+    niveau = lambda h: pg.locator(f'[role=dialog] [data-perk="{h}"]').get_attribute("data-niveau")
+    style = lambda h: pg.evaluate("h => { const e = document.querySelector('[role=dialog] [data-perk=\"'+h+'\"]'); const s = getComputedStyle(e); return { bord: s.borderTopColor, style: s.borderTopStyle, texte: s.color }; }", h)
+    ok("QUATRE NIVEAUX : le roll réel est « reel » ; un perk disponible sur l'exemplaire mais non sélectionné en jeu est « disponible » (Chargeur abandonné, Stabilité améliorée) ; un perk seulement possible sur le modèle est « possible » (Canon Y, Trait Q)", [niveau(h) for h in (6901, 6911, 6921, 6931)] == ["reel"] * 4 and niveau(6913) == "disponible" and niveau(6933) == "disponible" and niveau(6903) == "possible" and niveau(6923) == "possible", [niveau(h) for h in (6901, 6911, 6921, 6931, 6913, 6933, 6903, 6923)])
+    ok("COULEURS : le roll réel a le contour BLEU, le perk disponible le contour GRIS CLAIR (plein), le perk seulement possible un contour discret et son NOM GRISÉ", style(6901)["bord"] == "rgb(122, 162, 247)" and style(6913)["bord"] == "rgb(185, 188, 198)" and style(6913)["style"] == "solid" and style(6903)["texte"] == "rgb(107, 104, 96)" and style(6913)["texte"] != style(6903)["texte"], [style(6901), style(6913), style(6903)])
+    leg = pg.locator("[role=dialog] [data-legende-niveaux]").inner_text()
+    ok("LÉGENDE : la fenêtre explique les quatre niveaux (roll réel ✓, disponible sur votre exemplaire, nom grisé = possible sur ce modèle, simulé)", "roll réel" in leg and "disponible sur votre exemplaire" in leg and "nom grisé" in leg and "simulé" in leg and "non lue" not in leg, leg)
+    ok("ACCESSIBILITÉ : les niveaux sont aussi dits aux lecteurs d'écran (texte caché « disponible sur votre exemplaire… », « possible sur ce modèle… »)", "disponible sur votre exemplaire, non sélectionné en jeu" in puce(pg, 6913).inner_text() and "possible sur ce modèle d'arme mais pas disponible sur votre exemplaire" in puce(pg, 6903).inner_text())
     # ---------- 4. simuler ----------
     puce(pg, 6903).click(); pg.wait_for_timeout(100)
     s = etat(pg, 6903)
     ok("SIMULER « Canon Y » : la puce devient la perk simulée (aria-pressed), le roll réel (Canon X) reste marqué mais mis de côté, et le perk à COMPTER est la version AMÉLIORÉE de Canon Y (6904) puisque l'arme est améliorée", s["pressed"] == "true" and s["simule"] == "1" and s["eff"] == "6904" and etat(pg, 6901)["reel"] == "1" and etat(pg, 6901)["simule"] == "" and etat(pg, 6901)["pressed"] == "false", [s, etat(pg, 6901)])
+    ok("un perk seulement POSSIBLE (Canon Y) devient « simule » une fois choisi (doré) ; le roll réel (Canon X) reste « reel » (marqué, en pointillé car mis de côté)", niveau(6903) == "simule" and niveau(6901) == "reel" and style(6903)["bord"] == "rgb(232, 197, 71)" and style(6901)["style"] == "dashed", [niveau(6903), niveau(6901), style(6903), style(6901)])
     ok("l'écran DIT que la version améliorée est comptée : la puce simulée « Canon Y » porte « simulé (▲ comptée) »", "simulé (▲ comptée)" in puce(pg, 6903).inner_text(), puce(pg, 6903).inner_text())
     puce(pg, 6913).click(); pg.wait_for_timeout(100)
     ok("« Chargeur abandonné » (paire reconnue par la position) : choisi 6913, à compter 6914 (sa version améliorée) ; UNE seule perk simulée par colonne (Chargeur X n'est plus simulé)", etat(pg, 6913)["simule"] == "1" and etat(pg, 6913)["eff"] == "6914" and etat(pg, 6911)["simule"] == "")
@@ -70,6 +79,7 @@ with sync_playwright() as p:
     ok("cliquer DE NOUVEAU la perk simulée la retire aussi (bascule)", etat(pg, 6913)["simule"] == "" and pg.locator("[role=dialog] [data-nb-simulees]").get_attribute("data-nb-simulees") == "2")
     pg.get_by_role("button", name="↺ Revenir au roll réel").click(); pg.wait_for_timeout(100)
     ok("« ↺ Revenir au roll réel » efface toute la simulation de l'arme ; le bouton est alors grisé ; le stockage ne garde plus l'arme", pg.locator("[role=dialog] [data-nb-simulees]").get_attribute("data-nb-simulees") == "0" and pg.get_by_role("button", name="↺ Revenir au roll réel").is_disabled() and "w1" not in json.loads(stock(pg))["armes"])
+    ok("après le retour au roll réel, Canon Y redevient « possible » (nom grisé) et le roll réel « reel » en contour plein", niveau(6903) == "possible" and niveau(6901) == "reel" and style(6901)["style"] == "solid", [niveau(6903), style(6901)])
     # ---------- 7. arme sans roll réel connu ----------
     pg.get_by_role("button", name="Fermer").click(); carte(pg, "w2").click(); pg.wait_for_selector("[role=dialog]"); pg.wait_for_timeout(200)
     premiere = pg.evaluate("(() => { const e = [...document.querySelectorAll('[role=dialog] [data-colonne] button[data-perk]')][0]; return e ? e.dataset.perk : null; })()")
@@ -77,6 +87,13 @@ with sync_playwright() as p:
     pg.locator(f'[role=dialog] [data-perk="{premiere}"]').click(); pg.wait_for_timeout(100)
     e = etat(pg, premiere)
     ok("…et le choix est enregistré avec effectif = choisi (aucune version améliorée dans cette arme)", e["simule"] == "1" and e["eff"] == str(premiere), e)
+    # ---------- 7 bis. disponibilités non lues, ou aucune alternative (v0.4.7) ----------
+    niveaux_w2 = pg.evaluate("[...document.querySelectorAll('[role=dialog] [data-colonne] [data-perk]')].map(e => e.dataset.niveau)")
+    leg2 = pg.locator("[role=dialog] [data-legende-niveaux]").inner_text()
+    ok("DISPONIBILITÉ NON LUE (Fusil d'essai : pas de donnée du composant 310) : la légende le dit (« non lue »), aucun perk n'est grisé ni dit « possible » (niveau « inconnu » partout, sauf le simulé)", "non lue" in leg2 and "nom grisé" not in leg2 and all(n in ("inconnu", "simule", "") for n in niveaux_w2) and "possible" not in niveaux_w2, [leg2, set(niveaux_w2)])
+    pg.get_by_role("button", name="Fermer").click(); carte(pg, "w3").click(); pg.wait_for_selector("[role=dialog]"); pg.wait_for_timeout(200)
+    niveaux_w3 = pg.evaluate("[...document.querySelectorAll('[role=dialog] [data-colonne] [data-perk]')].map(e => e.dataset.niveau)")
+    ok("AUCUNE ALTERNATIVE LUE (Lance-roquettes : table vide) : les perks non équipés sont tous « possible » (grisés), aucun n'est « disponible », et la légende ne dit pas « non lue »", len(niveaux_w3) > 0 and set(niveaux_w3) == {"possible"} and "non lue" not in pg.locator("[role=dialog] [data-legende-niveaux]").inner_text(), niveaux_w3)   # (la fenêtre reste ouverte : la section suivante la ferme)
     # ---------- 8. colonnes masquées ----------
     pg.get_by_role("button", name="Fermer").click(); carte(pg, "w1").click(); pg.wait_for_selector("[role=dialog]")
     pg.get_by_label("Afficher les perks inutiles").check(); pg.wait_for_timeout(150)

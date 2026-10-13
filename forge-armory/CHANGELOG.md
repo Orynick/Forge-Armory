@@ -4,6 +4,22 @@ Historique daté de toutes les corrections, fonctionnalités et décisions du pr
 Le plus récent en premier. Pour les fonctionnalités actuelles, voir `NOTICE.md` (l'état d'avancement détaillé est dans `NOTES-CONCEPTION.md`) ;
 pour ce qui reste à faire, voir `TODO.md`.
 
+## 13/10/2026 — v0.4.7 : Inventaire de la Forge, quatre niveaux de perks (disponibles sur l'exemplaire)
+
+**Numéro de version** : 0.4.7 (installateur `Forge-Armory-Setup-0.4.7.exe`, liste `A-TESTER-0.4.7.pdf`).
+
+**Retour de l'utilisateur sur la 0.4.6** : « Ok, toute la check-list est validée. » (le PDF n'a pas été renvoyé : validation déclarée, notée comme telle dans l'archive ; **109 sections validées**). « J'ai tous les rolls possibles et le roll réel comme prévu. Par contre rien ne m'indique les perks disponibles sur l'arme mais que je n'ai pas sélectionnés. » Il demande **quatre niveaux** : (1) roll réel, avec la petite coche ✔ ; (2) perks disponibles sur l'arme mais non sélectionnés en jeu : **contour gris clair** ; (3) perks possibles sur l'arme : **nom grisé** ; (4) perk choisi pour la simulation. « Le reste me semble très très bien ! »
+
+**Fait**
+- **Nouvelle lecture chez Bungie (lecture seule)** : l'inventaire demande aussi le **composant 310** (« plugs réutilisables ») : pour chaque exemplaire et chaque prise, les perks que CET exemplaire peut porter. Lu avec tolérance par `lib/bungie/plugsDisponibles.ts` : donnée absente ou mal formée = « non lue » (jamais « aucune alternative ») ; exemplaire sans alternative = table vide. Stocké dans `GearPiece.plugsDisponiblesParColonne` pour les **armes possédées seulement** (les builds enregistrés ne grossissent pas pour l'armure).
+- **Les quatre niveaux** (`niveauDePerk`, fonction pure) : `reel` (coche ✓, contour bleu), `disponible` (contour gris clair, plein), `possible` (nom grisé), `simule` (doré) ; priorité : simulé, réel, disponible, possible ; pour une paire base + amélioré, « disponible » vaut si l'UNE des deux versions l'est ; si la disponibilité n'a pas été lue : niveau `inconnu` : rien n'est grisé et la légende dit « non lue (rechargez votre inventaire) ». Affichage dans le composant partagé `ColonnesPerks` (Inventaire seulement : la Collection est inchangée) ; texte caché pour les lecteurs d'écran.
+- **Légende** en haut de la fenêtre d'une arme, et **diagnostic** réservé au mode développement (« 🔍 Diagnostic des perks disponibles de cet exemplaire », `lib/forge/diagnosticPlugs.ts`) pour contrôler sur le compte de l'utilisateur ce que Bungie renvoie.
+- **Notice** : section de l'Inventaire mise à jour.
+
+**Vérifié** : `plugs-disponibles` (15 : extraction de toutes les formes de données, quatre niveaux dans tous les cas, dont les paires, la donnée non lue, la table vide et un perk à la fois réel et simulé, diagnostic) ; `forge-inventaire` passe de 25 à 33 contrôles (niveaux affichés, **couleurs réellement calculées par le navigateur**, légende, accessibilité, cas « non lue » et « aucune alternative », retour au niveau « possible » après avoir simulé) ; batterie : 24 séries, 395 contrôles ; **huit casses volontaires toutes détectées** (donnée non lue affichée comme « possible », en logique et en interface ; version améliorée d'une paire ignorée ; priorité réel/simulé inversée, **non détectée au premier essai** : je l'ai épinglée par un cas réaliste ; contour gris clair supprimé ; nom non grisé ; donnée absente lue comme « aucune alternative »).
+**Défauts de MON travail, rattrapés en route** : le contrôle du lance-roquettes ne regardait que les boutons alors que cette arme d'essai n'a que des colonnes d'un seul perk ; une fenêtre refermée une fois de trop dans mon scénario ; une casse (priorité réel/simulé) qui ne détectait rien tant que mon test ne couvrait pas le cas « à la fois réel et simulé ».
+**NON vérifié (à contrôler sur le compte de l'utilisateur)** : la **forme réelle du composant 310** : je me suis appuyé sur la documentation de l'API (`itemComponents.reusablePlugs.data[instance].plugs[prise] = [{ plugItemHash, … }]`), jamais vue sur ses données ; le diagnostic du mode développement sert à la contrôler. On ne sait pas non plus si, pour les armes à rolls aléatoires, les colonnes de traits ont des alternatives : cela se verra dans le diagnostic. Le typage strict (`npm run build`).
+
 ## 13/10/2026 — v0.4.6 : Forge, vue Inventaire (armes possédées, roll réel, simulation locale)
 
 **Numéro de version** : 0.4.6 (installateur `Forge-Armory-Setup-0.4.6.exe`, liste `A-TESTER-0.4.6.pdf`).

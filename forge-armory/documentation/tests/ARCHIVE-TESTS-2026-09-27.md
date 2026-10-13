@@ -2041,3 +2041,37 @@ Résultat : validé, les trois cases cochées. **Aucun retour écrit** aux trois
 - [x] (facultatif, logiciel installé) **Onglet mémorisé** : si tu avais laissé l'appli sur l'ancien onglet « Bibliothèque » avant la mise à jour, elle s'ouvre bien sur « Legendarium », sans erreur.
 
 Résultat : validé, y compris le test facultatif de l'onglet mémorisé. Aucune remarque écrite sur le dessin du bouton.
+
+---
+
+Tests VALIDÉS par l'utilisateur : liste « A-TESTER » de la version **0.4.6**, validée le 13/10/2026 par ce message de l'utilisateur : « Ok, toute la check-list est validée. » ⚠️ **Le PDF n'a pas été renvoyé** : les cases n'ont donc pas été relues automatiquement, la validation est celle déclarée dans la conversation (les 9 cases sont ici recopiées cochées). Texte de la liste TEL QU'IL ÉTAIT. **Plus aucun test en attente.** Trois sections entièrement validées.
+
+---
+
+## 🆕 Installation de la version 0.4.6 (13/10/2026)
+
+- [x] `npm.cmd run build` se termine **sans erreur**, puis `npm.cmd run electron:build` fabrique `Forge-Armory-Setup-0.4.6.exe` (dossier `installateur`) ; installé par-dessus, le pied de page indique « Forge Armory v0.4.6 » et **tes builds sont toujours là**.
+
+Résultat : validé.
+
+---
+
+## ⏳ Reste de la 0.4.5 : page Forge sans titre
+
+- [x] **Titre retiré** : en ouvrant l'onglet **Forge**, la page n'affiche plus le titre « Forge » ni son petit logo ; le texte gris à droite (« armes : consultation et simulation locale · armures : à venir ») reste, et les deux boutons **Collection** et **Inventaire** sont juste en dessous.
+
+Résultat : validé (page Forge sans titre, test repris de la 0.4.5).
+
+---
+
+## 🆕 Forge : Inventaire de tes armes (simulation locale)
+
+- [x] **Chargement** : « Charger mon inventaire » liste tes **armes** (pas les armures) avec l'endroit où elles sont (Titan, Chasseur, Arcaniste, Coffre ; « équipée » le cas échéant) et leurs quatre icônes. Le nombre d'armes te paraît juste (compare à Mon Inventaire). Les filtres (recherche, endroit) fonctionnent. **Note le temps de chargement** et envoie-le-moi.
+- [x] **Roll réel** : ouvre une arme que tu connais bien : les perks marquées **✓** sont **exactement** ton roll en jeu, colonne par colonne, et ce sont les mêmes que dans « Détails » de la même arme (Mon Inventaire).
+- [x] **Arme améliorée** : ouvre une de tes armes à perks améliorés (par exemple une Confiance à paliers) : le ✓ est bien sur le perk que tu as réellement, qu'il soit en version de base ou améliorée (le perk garde son ▲). **Dis-moi si un ✓ est au mauvais endroit.**
+- [x] **Simuler** : clique une autre perk dans une colonne : elle devient **dorée** (« simulé ») et il n'y en a **qu'une par colonne** ; ton roll réel reste visible avec son ✓. Fais de même avec un **mod** (un seul à la fois). Sur une arme améliorée, la mention « (▲ comptée) » apparaît. Cliquer le roll réel, ou la perk simulée une seconde fois, **revient** au roll réel de la colonne ; « ↺ Revenir au roll réel » efface tout. **Dis-moi si l'affichage (✓, doré, « simulé ») est clair.**
+- [x] **Conservation** : ferme la fenêtre, passe sur « Collection » puis reviens à « Inventaire » : la simulation est toujours là (badge « Simulation » sur la carte). **Ferme complètement l'appli, relance-la**, recharge ton inventaire : la simulation est toujours là. « ✕ Effacer toutes les simulations » les efface.
+- [x] **Rien ne bouge en jeu** : après avoir simulé plusieurs perks, regarde l'arme en jeu : elle n'a pas changé.
+- [x] (facultatif) **Deux exemplaires** de la même arme : leurs simulations sont indépendantes.
+
+Résultat : validé. **Retour de l'utilisateur** : « j'ai tous les rolls possibles et le roll réel comme prévu » ; il manque l'indication des perks **disponibles sur l'exemplaire** mais non sélectionnés en jeu. Il demande **quatre niveaux** : (1) roll réel, avec la petite coche ✔ ; (2) perk disponible sur l'arme mais non sélectionnée en jeu : **contour gris clair** ; (3) perk possible sur le modèle de l'arme : **nom grisé** ; (4) perk choisie pour la simulation. « Le reste me semble très très bien ! »

@@ -13,6 +13,7 @@ import { ordonnerColonnesPourAffichage } from "../lib/manifest/colonnesArme";
 import { apparierPerksAmeliores, typeEstAmeliore, OptionJumelee } from "../lib/manifest/perksAmeliores";
 import { normaliser } from "../lib/manifest/search";
 import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees, armesSimulees, lireSimulations, ecrireSimulations, stockageNavigateur, estLeRollReel, armeEstAmelioree, choixEffectif, SIMULATIONS_VIDES, Simulations } from "../lib/forge/simulation";
+import { obtenirDiagnosticPlugsExemplaire } from "../lib/forge/diagnosticPlugs";   // ⚠️ AJOUT (13/10/2026, v0.4.7) : diagnostic (npm run dev)
 import ColonnesPerks, { ColonneAffichee } from "./ColonnesPerks";
 import IconesArme from "./IconesArme";
 
@@ -39,6 +40,7 @@ export default function InventaireArmes({ db, membership }: Props) {
   const [affichees, setAffichees] = useState(TAILLE_PAGE);
   const [ouverte, setOuverte] = useState<GearPiece | null>(null);
   const [voirInutiles, setVoirInutiles] = useState(false);
+  const [diagnostic, setDiagnostic] = useState<string | null>(null);   // ⚠️ v0.4.7 : texte du diagnostic des perks disponibles (npm run dev seulement)
   const stockage = useMemo(() => stockageNavigateur(), []);
   const [simulations, setSimulations] = useState<Simulations>(() => lireSimulations(stockage));
   const appliquer = (nouvelles: Simulations) => { setSimulations(nouvelles); ecrireSimulations(stockage, nouvelles); };
@@ -133,19 +135,38 @@ export default function InventaireArmes({ db, membership }: Props) {
           <div role="dialog" aria-modal="true" aria-label={`Simulation des perks de ${ouverte.nom}`} onClick={(e) => e.stopPropagation()} style={{ background: "#12151c", border: `1px solid ${couleurRarete(ouverte)}`, borderRadius: 10, padding: "1rem", width: "min(44rem, 94vw)", maxHeight: "86vh", overflow: "auto", color: "#e8e6df" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
               <strong style={{ fontSize: "1rem" }}>{ouverte.nom}</strong>
-              <button onClick={() => setOuverte(null)} aria-label="Fermer">✕</button>
+              <button onClick={() => { setOuverte(null); setDiagnostic(null); }} aria-label="Fermer">✕</button>
             </div>
             <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0.2rem 0 0.4rem" }}>{[ouverte.typeArme, ouverte.rarete, LIEUX[ouverte.origine ?? ""], ouverte.equipe ? "équipée" : ""].filter(Boolean).join(" · ")} — simulation locale : rien n'est modifié dans le jeu</p>
-            <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0 0 0.6rem" }}>✓ = votre roll réel. Cliquez une perk pour la simuler (une seule par colonne) ; cliquez le roll réel, ou de nouveau la perk simulée, pour revenir au roll réel de la colonne.</p>
-            <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
+            <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0 0 0.4rem" }}>Cliquez une perk pour la simuler (une seule par colonne) ; cliquez le roll réel, ou de nouveau la perk simulée, pour revenir au roll réel de la colonne.</p>
+            {/* FR : ⚠️ AJOUT (13/10/2026, v0.4.7), demande de l'utilisateur : la LÉGENDE des quatre niveaux de perks. Si la disponibilité sur l'exemplaire n'a pas été lue (inventaire chargé avant la mise à jour, ou donnée absente), on le dit au lieu de griser à tort. / EN: legend of the four perk levels. */}
+            <div data-legende-niveaux="" style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem 0.9rem", alignItems: "center", fontSize: "0.72rem", color: "#9a968a", margin: "0 0 0.6rem" }}>
+              <span><span style={{ color: "#7aa2f7" }}>✓</span> roll réel (équipé en jeu)</span>
+              {ouverte.plugsDisponiblesParColonne !== undefined ? (
+                <>
+                  <span><span style={{ display: "inline-block", width: "1.6rem", height: "0.8rem", verticalAlign: "middle", border: "1px solid #b9bcc6", borderRadius: 999 }} /> disponible sur votre exemplaire, non sélectionné</span>
+                  <span style={{ color: "#6b6860" }}>nom grisé : possible sur ce modèle, pas sur votre exemplaire</span>
+                </>
+              ) : (
+                <span style={{ color: "#e0c080" }}>disponibilité sur votre exemplaire : non lue (rechargez votre inventaire)</span>
+              )}
+              <span><span style={{ display: "inline-block", width: "1.6rem", height: "0.8rem", verticalAlign: "middle", border: "1px solid #e8c547", background: "#2a2412", borderRadius: 999 }} /> simulé</span>
+            </div>            <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
               <label style={{ fontSize: "0.8rem", display: "inline-flex", gap: "0.4rem", alignItems: "center" }}>
                 <input type="checkbox" checked={voirInutiles} onChange={(e) => setVoirInutiles(e.target.checked)} /> Afficher les perks inutiles
               </label>
               <span data-nb-simulees={instance ? nbColonnesSimulees(simulations, instance) : 0} style={{ fontSize: "0.78rem", color: "#e8c547" }}>{instance && nbColonnesSimulees(simulations, instance) > 0 ? `${nbColonnesSimulees(simulations, instance)} colonne${nbColonnesSimulees(simulations, instance) > 1 ? "s" : ""} simulée${nbColonnesSimulees(simulations, instance) > 1 ? "s" : ""}` : "aucune simulation"}</span>
               <button disabled={!instance || nbColonnesSimulees(simulations, instance) === 0} onClick={() => instance && appliquer(reinitialiserArme(simulations, instance))} style={{ fontSize: "0.78rem" }}>↺ Revenir au roll réel</button>
             </div>
+            {/* FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - `npm run dev` seulement : décrit, prise par prise, le perk équipé et les perks DISPONIBLES lus chez Bungie pour cet exemplaire, pour contrôler cette donnée sur le compte de l'utilisateur (voir `diagnosticPlugs.ts`). / EN: dev-only diagnostic button. */}
+            {import.meta.env.DEV && (
+              <div style={{ marginBottom: "0.6rem" }}>
+                <button onClick={() => setDiagnostic(obtenirDiagnosticPlugsExemplaire(db, ouverte))} style={{ fontSize: "0.72rem" }}>🔍 Diagnostic des perks disponibles de cet exemplaire (à copier à Claude)</button>
+                {diagnostic && <textarea readOnly value={diagnostic} onFocus={(e) => e.currentTarget.select()} rows={9} style={{ display: "block", width: "100%", marginTop: "0.4rem", fontSize: "0.7rem", background: "#0d0f14", color: "#b7b3a8", border: "1px solid #3a3f4b" }} />}
+              </div>
+            )}
             {colonnesAffichees.length === 0 && <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucune option trouvée pour cette arme.</p>}
-            <ColonnesPerks colonnes={colonnesAffichees} simules={simulesOuverte} onChoisir={choisirPerk} />
+            <ColonnesPerks colonnes={colonnesAffichees} simules={simulesOuverte} disponibles={ouverte.plugsDisponiblesParColonne} onChoisir={choisirPerk} />
           </div>
         </div>
       )}

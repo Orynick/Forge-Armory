@@ -96,6 +96,11 @@ export interface GearPiece {
   equipe?: boolean;
   /** FR : mêmes perks que perkHashes, mais groupés par colonne de socket (index) pour un affichage façon jeu dans "Mon build". / EN: same perks as perkHashes, but grouped by socket column (index) for an in-game-style display in "Mon build". */
   perksParColonne?: Array<{ socketIndex: number; hash: DefinitionHash }>;
+  /**
+   * FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - perks DISPONIBLES sur CET exemplaire, par index de prise (composant 310 de Bungie : ce que l'exemplaire peut porter dans chaque prise, par exemple les canons ou chargeurs entre lesquels on bascule en jeu). Armes possédées seulement. `undefined` = donnée non lue (on ne sait pas), `{}` = aucune alternative. Sert à la vue Inventaire de la Forge (quatre niveaux de perks).
+   * EN: ⚠️ ADDED - perks available on THIS instance per socket index (weapons only); undefined = not read.
+   */
+  plugsDisponiblesParColonne?: Record<number, DefinitionHash[]>;
   /** FR : nom officiel de l'élément de l'arme (Cinétique/Solaire/Arc/Abyssal/Stase/Filobscur), résolu via le Manifest - absent pour l'armure. / EN: weapon's official element name (Kinetic/Solar/Arc/Void/Stasis/Strand), resolved via the Manifest - absent for armor. */
   elementArme?: string;
   /** FR : URL de l'icône officielle de l'élément (résolue via le Manifest), pour affichage visuel au lieu du texte. / EN: URL of the element's official icon (resolved via the Manifest), for visual display instead of text. */

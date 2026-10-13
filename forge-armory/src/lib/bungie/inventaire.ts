@@ -16,6 +16,7 @@
 // perks grouped by socket column - needed for the 4-column display
 // (Hunter/Titan/Warlock/Vault) requested by the user.
 
+import { extrairePlugsDisponibles } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7)
 import { Database } from "sql.js";
 import { obtenirDefinition } from "../manifest/download";
 import { normaliser, urlIcone } from "../manifest/search";
@@ -58,7 +59,8 @@ interface ItemBrut {
 
 async function recupererProfilPourInventaire(membership: DestinyMembership) {
   const accessToken = await obtenirAccessTokenValide();
-  const composants = [102, 200, 201, 205, 300, 302, 305].join(",");
+  // FR : ⚠️ CHANGÉ (13/10/2026, v0.4.7) - + 310 (plugs réutilisables : les perks que chaque exemplaire peut porter dans chaque prise), pour distinguer dans la Forge les perks DISPONIBLES sur l'exemplaire de ceux qui sont seulement possibles sur le modèle. Lecture seule. / EN: + component 310 (reusable plugs).
+  const composants = [102, 200, 201, 205, 300, 302, 305, 310].join(",");
   const reponse = await fetch(
     `${BUNGIE_API_ROOT}/Destiny2/${membership.membershipType}/Profile/${membership.membershipId}/?components=${composants}`,
     { headers: { "X-API-Key": bungieConfig.apiKey, Authorization: `Bearer ${accessToken}` } }
@@ -185,6 +187,8 @@ export async function listerObjetsPossedes(
   // pour les stats d'armure - voir plus bas (sockets + investmentStats).
   const socketsParInstance: Record<string, { sockets: Array<{ plugHash?: number; isEnabled: boolean }> }> =
     profil.itemComponents?.sockets?.data ?? {};
+  // FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - composant 310 : perks disponibles par exemplaire et par prise (lu avec tolérance : voir `plugsDisponibles.ts`). / EN: component 310 data.
+  const plugsReutilisablesParInstance: Record<string, unknown> = profil.itemComponents?.reusablePlugs?.data ?? {};
 
   const cacheNomsStat = new Map<number, StatKey | undefined>();
   // FR : ⚠️ AJOUT (02/08/2026) - diagnostic pour le bug "stats pas mises à
@@ -386,6 +390,8 @@ export async function listerObjetsPossedes(
       stats,
       perkHashes,
       perksParColonne,
+      // FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - perks DISPONIBLES sur cet exemplaire, par prise (armes seulement : les builds enregistrés ne grossissent pas pour l'armure). `undefined` = donnée non lue. / EN: perks available on this instance (weapons only).
+      ...(!estArmure && item.itemInstanceId ? { plugsDisponiblesParColonne: extrairePlugsDisponibles(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),
       isExotic: def.inventory?.tierTypeHash === TIER_TYPE_HASH_EXOTIQUE,
       classeRequise,
       elementArme,

@@ -86,3 +86,21 @@ export const armeEstAmelioree = (colonnes: ItemLu[][]): boolean => colonnes.some
 
 /** FR : le perk à COMPTER dans le build pour ce choix : la version améliorée si l'arme est améliorée ET que ce perk en a une, sinon le perk lui-même. / EN: the hash to count in the build for this choice. */
 export const choixEffectif = (item: ItemLu, armeAmelioree: boolean): number => (armeAmelioree && item.ameliore ? item.ameliore.hash : item.option.hash);
+
+/**
+ * FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - LES QUATRE NIVEAUX d'un perk dans la vue Inventaire de la Forge (demande de l'utilisateur du 13/10/2026) :
+ *   `reel`       : fait partie du roll réel équipé en jeu (petite coche ✓) ;
+ *   `simule`     : choisi pour la simulation (doré) ;
+ *   `disponible` : DISPONIBLE sur cet exemplaire (il peut le porter dans cette prise : on pourrait l'équiper en jeu) mais non sélectionné en jeu : contour gris clair ;
+ *   `possible`   : possible sur le MODÈLE de l'arme (pool du Manifest) mais pas disponible sur cet exemplaire : nom grisé ;
+ *   `inconnu`    : la disponibilité sur l'exemplaire n'a pas été lue (`disponibles` absent) : on n'affirme rien, aucun grisé.
+ * Priorité : simulé, puis réel, puis disponible, puis possible. Pour une paire (base + version améliorée), « disponible » vaut si l'UNE des deux versions l'est. EN: ⚠️ ADDED - the four perk levels in the Forge Inventory view.
+ */
+export type NiveauPerk = "reel" | "simule" | "disponible" | "possible" | "inconnu";
+export function niveauDePerk(item: ItemLu, socketIndex: number, disponibles: Record<number, number[]> | undefined, choixSimule?: ChoixColonne): NiveauPerk {
+  if (choixSimule && choixSimule.choisi === item.option.hash) return "simule";
+  if (estLeRollReel(item)) return "reel";
+  if (!disponibles) return "inconnu";
+  const liste = disponibles[socketIndex] ?? [];
+  return liste.includes(item.option.hash) || (item.ameliore ? liste.includes(item.ameliore.hash) : false) ? "disponible" : "possible";
+}

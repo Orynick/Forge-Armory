@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import type { ColonneOptionsArme, OptionSocket } from "../lib/manifest/doctrine";
 import type { OptionJumelee } from "../lib/manifest/perksAmeliores";
 import { libelleColonne } from "../lib/manifest/colonnesArme";
-import type { SimulationArme } from "../lib/forge/simulation";
+import { niveauDePerk, NiveauPerk, SimulationArme } from "../lib/forge/simulation";
 
 export interface ColonneAffichee { col: ColonneOptionsArme; items: OptionJumelee<OptionSocket>[] }
 const MASQUE_VISUEL: CSSProperties = { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" };
@@ -14,11 +14,13 @@ interface Props {
   colonnes: ColonneAffichee[];
   /** FR : (Inventaire) les choix simulés de l'arme, par index de prise. / EN: (Inventory) the simulated choices. */
   simules?: SimulationArme;
+  /** FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - (Inventaire) les perks DISPONIBLES sur l'exemplaire, par index de prise ; absent = non lu : aucun niveau « possible » n'est alors affiché. / EN: perks available on the instance, by socket index. */
+  disponibles?: Record<number, number[]>;
   /** FR : présent seulement dans l'Inventaire : rend les puces sélectionnables. / EN: only in Inventory: makes chips selectable. */
   onChoisir?: (socketIndex: number, item: OptionJumelee<OptionSocket>) => void;
 }
 
-export default function ColonnesPerks({ colonnes, simules, onChoisir }: Props) {
+export default function ColonnesPerks({ colonnes, simules, disponibles, onChoisir }: Props) {
   const nbAmeliores = colonnes.reduce((n, c) => n + c.items.filter((i) => i.ameliore).length, 0);
   return (
     <>
@@ -37,13 +39,16 @@ export default function ColonnesPerks({ colonnes, simules, onChoisir }: Props) {
                 const reel = !!(opt.equipeEnJeu || ameliore?.equipeEnJeu);
                 const simule = !!choixSimule && choixSimule.choisi === opt.hash;
                 const reelRemplace = reel && !!choixSimule && !simule;   // le roll réel, mis de côté par un choix simulé dans cette colonne
+                // FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - le niveau du perk (réel, simulé, disponible sur l'exemplaire, possible sur le modèle) : seulement dans l'Inventaire. / EN: the perk level, Inventory only.
+                const niveau: NiveauPerk | "" = onChoisir && !col.masquee ? niveauDePerk(item, col.socketIndex, disponibles, choixSimule) : "";
                 const attributs = {
                   "data-perk": opt.hash, "data-ameliore": ameliore ? ameliore.hash : "", "data-incertain": incertain ? "1" : "",
-                  "data-reel": reel ? "1" : "", "data-simule": simule ? "1" : "", "data-effectif": simule ? choixSimule!.effectif : "",
+                  "data-reel": reel ? "1" : "", "data-simule": simule ? "1" : "", "data-niveau": niveau, "data-effectif": simule ? choixSimule!.effectif : "",
                   title: ameliore ? `${opt.description ?? ""}\n\nVersion améliorée${incertain ? " (probable : le Manifest ne la nomme pas « améliorée », elle est reconnue par sa position)" : ""} :\n${ameliore.description ?? ""}` : opt.description,
                   style: {
-                    fontSize: "0.75rem", padding: "0.15rem 0.5rem", borderRadius: 999, color: simule ? "#f3e7b0" : "#c9c5b8", display: "inline-flex", alignItems: "center", gap: "0.3rem",
-                    border: simule ? "1px solid #e8c547" : reel && onChoisir ? `1px ${reelRemplace ? "dashed" : "solid"} #7aa2f7` : `1px ${col.masquee ? "dashed" : "solid"} #2a2e38`,
+                    fontSize: "0.75rem", padding: "0.15rem 0.5rem", borderRadius: 999, color: simule ? "#f3e7b0" : niveau === "possible" ? "#6b6860" : "#c9c5b8", display: "inline-flex", alignItems: "center", gap: "0.3rem",
+                    // FR : contour : doré (simulé), bleu (roll réel), GRIS CLAIR (disponible sur l'exemplaire), sinon discret ; nom GRISÉ pour « possible sur le modèle ». / EN: border and text colour per level.
+                    border: simule ? "1px solid #e8c547" : reel && onChoisir ? `1px ${reelRemplace ? "dashed" : "solid"} #7aa2f7` : niveau === "disponible" ? "1px solid #b9bcc6" : `1px ${col.masquee ? "dashed" : "solid"} #2a2e38`,
                     background: simule ? "#2a2412" : reel && onChoisir && !reelRemplace ? "#1a2436" : "transparent",
                     cursor: selectionnable ? "pointer" : "default",
                   } as CSSProperties,
@@ -51,7 +56,7 @@ export default function ColonnesPerks({ colonnes, simules, onChoisir }: Props) {
                 const contenu = (
                   <>
                     {reel && onChoisir && <span aria-hidden="true" style={{ color: "#7aa2f7" }}>✓</span>}
-                    {opt.icone && <img src={opt.icone} alt="" width={16} height={16} />}
+                    {opt.icone && <img src={opt.icone} alt="" width={16} height={16} style={niveau === "possible" ? { opacity: 0.55 } : undefined} />}
                     {opt.nom}
                     {ameliore && (
                       <span data-amelioration="" style={{ display: "inline-flex", alignItems: "center", gap: "0.15rem", color: "#e8c547", borderLeft: "1px solid #3a3f4b", paddingLeft: "0.3rem" }}>
@@ -61,6 +66,8 @@ export default function ColonnesPerks({ colonnes, simules, onChoisir }: Props) {
                       </span>
                     )}
                     {onChoisir && reel && <span style={MASQUE_VISUEL}>, roll réel{reelRemplace ? " (remplacé par votre simulation)" : ""}</span>}
+                    {niveau === "disponible" && <span style={MASQUE_VISUEL}>, disponible sur votre exemplaire, non sélectionné en jeu</span>}
+                    {niveau === "possible" && <span style={MASQUE_VISUEL}>, possible sur ce modèle d'arme mais pas disponible sur votre exemplaire</span>}
                     {simule && <span data-etiquette-simule="" style={{ fontSize: "0.65rem", color: "#e8c547" }}>simulé{choixSimule!.effectif !== choixSimule!.choisi ? " (▲ comptée)" : ""}</span>}   {/* FR : « ▲ comptée » = pour le build, c'est la VERSION AMÉLIORÉE de ce perk qui sera comptée (l'arme est une arme améliorée). */}
                   </>
                 );
