@@ -5,19 +5,31 @@ import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeR
 
 const params = new URLSearchParams(location.search);
 const defs = manifestArmesDeTest();
-if (params.has("paliers")) ajouterArmeRevisionAPaliers(defs);   // ⚠️ AJOUT (13/10/2026, v0.4.4) : arme à perks améliorés (structure réelle)
+if (params.has("paliers") || params.has("inventaire")) ajouterArmeRevisionAPaliers(defs);   // ⚠️ v0.4.6 : `?inventaire` a besoin de l'arme 5010 (ses armes possédées y renvoient)   // ⚠️ AJOUT (13/10/2026, v0.4.4) : arme à perks améliorés (structure réelle)
 if (params.has("modPrecoce")) ajouterArmeModPrecoce(defs);   // arme dont les mods sont AVANT des colonnes de perks
 if (params.has("beaucoup")) {
   const modele = (defs[T_OBJET] as Record<number, Record<string, unknown>>)[5003];
   for (let i = 0; i < 130; i++) (defs[T_OBJET] as Record<number, unknown>)[7000 + i] = { ...modele, displayProperties: { name: `Arme numéro ${String(i).padStart(3, "0")}`, icon: "/icons/x.png", description: "" }, collectibleHash: 8000 + i };
 }
 const { db } = creerFausseDb(defs);
-(window as unknown as { fetch: unknown }).fetch = async (url: string) => {
+(window as unknown as { __reseau: { url: string; methode: string }[] }).__reseau = [];   // ⚠️ v0.4.6 : journal des appels réseau (la Forge ne doit jamais écrire chez Bungie)
+(window as unknown as { fetch: unknown }).fetch = async (url: string, init?: { method?: string }) => {
+  (window as unknown as { __reseau: { url: string; methode: string }[] }).__reseau.push({ url: String(url), methode: init?.method ?? "GET" });
   const reponse = (corps: unknown, status = 200) => ({ ok: status === 200, status, json: async () => corps, text: async () => JSON.stringify(corps) });
   if (!String(url).includes("components=800")) return reponse({ ErrorCode: 1, Response: {} });
   if (params.get("collections") === "erreur") return reponse({ ErrorCode: 5, ErrorStatus: "SystemDisabled" }, 503);
   return reponse({ ErrorCode: 1, Response: { profileCollectibles: { data: { collectibles: { "9001": { state: 0 }, "9002": { state: 1 } } } }, characterCollectibles: { data: {} } } });
 };
+// FR : ⚠️ AJOUT (13/10/2026, v0.4.6) - `?inventaire` : de fausses ARMES POSSÉDÉES qui correspondent au faux Manifest : « Fusil à paliers » (5010, roll réel : Canon X, Chargeur X AMÉLIORÉ, Trait P, Crosse de contrepoids : une arme « améliorée »), « Fusil d'essai » (5001, sans roll réel connu), un lance-roquettes au Coffre et une ARMURE (écartée de la liste). / EN: ⚠️ ADDED - fake owned weapons matching the fake Manifest.
+if (params.has("inventaire")) {
+  const base = { stats: {}, isExotic: false, rarete: "Légendaire", icone: "https://www.bungie.net/icons/x.png" };
+  (window as unknown as { __piecesForge: unknown[] }).__piecesForge = [
+    { ...base, itemHash: 5010, itemInstanceId: "w1", nom: "Fusil à paliers", slot: "energie", typeArme: "Fusil à impulsion", origine: "titan", equipe: true, perkHashes: [6901, 6912, 6921, 6931], perksParColonne: [{ socketIndex: 1, hash: 6901 }, { socketIndex: 2, hash: 6912 }, { socketIndex: 3, hash: 6921 }, { socketIndex: 4, hash: 6931 }] },
+    { ...base, itemHash: 5001, itemInstanceId: "w2", nom: "Fusil d'essai", slot: "energie", typeArme: "Fusil à impulsion", origine: "coffre", perkHashes: [] },
+    { ...base, itemHash: 5002, itemInstanceId: "w3", nom: "Lance-roquettes d'essai", slot: "lourde", typeArme: "Lance-roquettes", origine: "chasseur", isExotic: true, equipe: false, perkHashes: [] },
+    { ...base, itemHash: 5005, itemInstanceId: "c1", nom: "Casque d'essai", slot: "casque", origine: "arcaniste", classeRequise: "arcaniste", perkHashes: [] },
+  ];
+}
 const membership = params.has("sansCompte") ? null : { membershipId: "1", membershipType: 3, displayName: "Test#1234" };
 createRoot(document.getElementById("racine")!).render(
   <div className="app-shell"><PageForge db={params.has("sansManifest") ? null : db} membership={membership} /></div>

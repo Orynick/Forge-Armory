@@ -1992,3 +1992,52 @@ Résultat : validé, les dix cases cochées (lecture des armes, cartes, grisé d
 - [x] (facultatif) **Hors ligne** : coupe ta connexion Internet puis relance l'appli : aucun téléchargement n'est tenté, pas d'erreur bruyante, et le bouton « Charger le Manifest » reste disponible.
 
 Résultat : validé, les trois cases cochées (simulation, démarrage normal, hors ligne). **Temps mesuré par l'utilisateur : 15 secondes entre Ctrl+F5 et la fin de la mise à jour automatique** (deux langues, simulation du mode développement).
+
+---
+
+Tests VALIDÉS par l'utilisateur : PDF « A-TESTER » de la version **0.4.4** coché et renvoyé le 13/10/2026 (**10 cases cochées sur 10**, vérifiées par la relecture automatique du PDF). Retirés de la liste, recopiés mot pour mot du texte de la liste TELLE QU'ELLE ÉTAIT, cases cochées. **Plus aucun test en attente.** Cinq sections entièrement validées.
+
+---
+
+## 🆕 Installation de la version 0.4.4 (13/10/2026)
+
+- [x] `npm.cmd run build` se termine **sans erreur**, puis `npm.cmd run electron:build` fabrique `Forge-Armory-Setup-0.4.4.exe` (dossier `installateur`) ; installé par-dessus, le pied de page indique « Forge Armory v0.4.4 » et **tes builds sont toujours là**.
+
+Résultat : validé. Le build de l'utilisateur sans erreur valide aussi le typage strict de la 0.4.4.
+
+---
+
+## 🆕 Forge : cartes d'armes à icônes
+
+- [x] **Quatre icônes** : sur chaque carte d'arme, tu vois dans cet ordre l'icône de **type d'arme**, l'icône d'**élément de dégâts**, l'icône de **munitions** et l'icône **antichampion** (absente si l'arme n'en a pas). Vérifie sur une exotique, une légendaire, une arme lourde et une Stase ou Filobscur : ce sont **les mêmes icônes que dans l'en-tête de « Détails »** de la même arme, et l'**armature** reste écrite sous les icônes. Les mots « type · emplacement · élément » ne sont plus affichés. (Facultatif : envoie-moi les trois nombres du menu « Source » et le temps d'attente de la liste.)
+- [x] **Grisé sans mention** : une arme que tu n'as jamais obtenue est **grisée**, sans le texte « Jamais obtenue » ; une arme obtenue reste en couleurs.
+
+Résultat : validé (quatre icônes dans l'ordre, armature conservée, grisé sans mention). Les trois nombres du menu « Source » et le temps d'attente, facultatifs, ne sont pas parvenus.
+
+---
+
+## 🆕 Forge : boutons stylisés « Collection » et « Inventaire »
+
+- [x] **Apparence** : les deux boutons ont la même hauteur, le bouton choisi est allumé (lueur cyan) et l'autre au repos ; un clic bascule de l'un à l'autre sans que rien ne bouge ; au survol, le bouton au repos s'éclaircit. **Dis-moi si le dessin du bouton « Inventaire » te convient** (coffre, lettres, taille).
+- [x] **Clavier** : avec la touche **Tab**, un contour cyan entoure le bouton ; **Entrée** (ou Espace) le sélectionne.
+
+Résultat : validé (apparence, clavier). **Aucune remarque écrite** sur le dessin du bouton « Inventaire » (fabriqué, option 2) : case cochée sans demande de retouche.
+
+---
+
+## 🆕 Forge : perks améliorés (vue Collection)
+
+- [x] **Confiance, révision à paliers** (hash 810474118, celle avec les perks améliorés) : clique la carte ; dans les canons, chargeurs, attributs, la particularité d'origine et les mods, chaque perk porte un ▲ et **aucun perk amélioré n'apparaît séparément**. La légende annonce 54 perks. **Dis-moi si une paire te paraît fausse** (un perk amélioré qui devrait être sous un autre perk, ou l'inverse).
+- [x] **Confiance, autre révision** (hash 4077196130) **et Défense dorée** : aucune légende, aucun ▲, une option par colonne, comme avant. **Dis-moi si, dans le jeu, ces deux armes ont bien un roll fixe** (une seule option par colonne) ou si la Collection du jeu y montre plusieurs perks.
+- [x] **« Chargeur abandonné »** (révision à paliers, colonne 3) : son ▲ est suivi d'une mention « probable » dans l'infobulle, car le Manifest ne nomme pas sa version « améliorée » : seule sa **position** la désigne. **Dis-moi si ce perk existe bien en version améliorée dans le jeu.**
+
+Résultat : validé, les trois cases cochées. **Aucun retour écrit** aux trois questions posées (une paire de perks fausse ? ; Confiance révision B et Défense dorée : roll fixe dans le jeu ? ; « Chargeur abandonné » existe-t-il en version améliorée ?) : elles restent OUVERTES dans la TODO.
+
+---
+
+## 🆕 Bouton « Legendarium » (ancienne « Bibliothèque »)
+
+- [x] **Nom et dessin** : le quatrième bouton du sélecteur (après Forge) affiche **Legendarium** ; il s'allume quand on le sélectionne ; la page qu'il ouvre s'intitule « Legendarium » (le mot « Bibliothèque » n'apparaît plus nulle part à l'écran). **Dis-moi si le dessin te convient.**
+- [x] (facultatif, logiciel installé) **Onglet mémorisé** : si tu avais laissé l'appli sur l'ancien onglet « Bibliothèque » avant la mise à jour, elle s'ouvre bien sur « Legendarium », sans erreur.
+
+Résultat : validé, y compris le test facultatif de l'onglet mémorisé. Aucune remarque écrite sur le dessin du bouton.

@@ -8,11 +8,12 @@ import type { DestinyMembership } from "../lib/bungie/api";
 import { construireCatalogueArmes, filtrerArmes, valeursDistinctes, FILTRES_ARMES_PAR_DEFAUT, ArmeCatalogue, FiltresArmes } from "../lib/manifest/catalogueArmes";
 import { lireCollections, classerObtention, ObtenusParCollectible } from "../lib/bungie/collections";
 import { obtenirOptionsToutesColonnes, ELEMENTS_FILTRE } from "../lib/manifest/doctrine";
-import { ordonnerColonnesPourAffichage, libelleColonne } from "../lib/manifest/colonnesArme";
+import { ordonnerColonnesPourAffichage } from "../lib/manifest/colonnesArme";
 import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
 import { SessionExpiree } from "../lib/bungie/oauth";
 import { obtenirDiagnosticPerksArme } from "../lib/manifest/diagnosticPerksArme";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : diagnostic (npm run dev)
-import IconesArme from "./IconesArme";   // ⚠️ AJOUT (13/10/2026, v0.4.4) : les quatre icônes de la carte
+import IconesArme from "./IconesArme";
+import ColonnesPerks from "./ColonnesPerks";   // ⚠️ AJOUT (13/10/2026, v0.4.4) : les quatre icônes de la carte
 import { apparierPerksAmeliores, typeEstAmeliore, OptionJumelee } from "../lib/manifest/perksAmeliores";   // ⚠️ AJOUT (13/10/2026, v0.4.4) : perks améliorés
 
 const TAILLE_PAGE = 60;
@@ -66,7 +67,6 @@ export default function CollectionArmes({ db, membership }: Props) {
   const colonnes = useMemo(() => (db && ouverte ? ordonnerColonnesPourAffichage(obtenirOptionsToutesColonnes(db, ouverte.hash, [], { inclureMasquees: voirInutiles })) : []), [db, ouverte, voirInutiles]);
   // FR : ⚠️ AJOUT (13/10/2026, v0.4.4) - chaque perk avec sa VERSION AMÉLIORÉE incluse (spécification du 12/10/2026 : « les perks possibles s'affichent avec leur version améliorée incluse »). Appariement fait par `lib/manifest/perksAmeliores.ts` d'après les diagnostics de l'utilisateur ; les colonnes masquées (cosmétiques, ornements) ne sont jamais appariées. / EN: ⚠️ ADDED - each perk with its enhanced twin.
   const colonnesAffichees = useMemo(() => colonnes.map((col) => ({ col, items: (!db || col.masquee ? col.options.map((option): OptionJumelee<typeof option> => ({ option })) : apparierPerksAmeliores(col.options, (o) => typeEstAmeliore(db, o.hash))) })), [colonnes, db]);
-  const nbAmeliores = colonnesAffichees.reduce((n, c) => n + c.items.filter((i) => i.ameliore).length, 0);
 
   if (!db) return <p style={{ fontSize: "0.9rem", color: "#e0c080" }}>⚠️ Manifest pas encore chargé. Chargez-le depuis Build Analyzer, dans le bloc « Recherche dans le Manifest ».</p>;
   if (erreur) return <p style={{ fontSize: "0.9rem", color: "#e08080" }}>⚠️ Impossible de lire les armes dans le Manifest : {erreur}</p>;
@@ -138,31 +138,8 @@ export default function CollectionArmes({ db, membership }: Props) {
               </div>
             )}
             {colonnes.length === 0 && <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucune option trouvée pour cette arme.</p>}
-            {nbAmeliores > 0 && (
-              <p data-legende-amelioration="" style={{ fontSize: "0.72rem", color: "#e8c547", margin: "0 0 0.6rem" }}>▲ = ce perk existe aussi en version améliorée ({nbAmeliores}). Survolez un perk pour lire les deux versions.</p>
-            )}
-            {colonnesAffichees.map(({ col, items }) => (
-              <div key={col.socketIndex} data-colonne={col.socketIndex} data-masquee={col.masquee ?? ""} style={{ marginBottom: "0.6rem", opacity: col.masquee ? 0.65 : 1 }}>
-                <strong style={{ fontSize: "0.75rem", color: "#7d7a70" }}>{libelleColonne(col)}{col.masquee ? ` — inutile (${col.masquee === "ornement" ? "ornement" : "cosmétique"})` : ""}</strong>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.25rem" }}>
-                  {items.map(({ option: opt, ameliore, incertain }) => (
-                    <span key={opt.hash} data-perk={opt.hash} data-ameliore={ameliore ? ameliore.hash : ""} data-incertain={incertain ? "1" : ""}
-                      title={ameliore ? `${opt.description ?? ""}\n\nVersion améliorée${incertain ? " (probable : le Manifest ne la nomme pas « améliorée », elle est reconnue par sa position)" : ""} :\n${ameliore.description ?? ""}` : opt.description}
-                      style={{ fontSize: "0.75rem", padding: "0.15rem 0.5rem", borderRadius: 999, border: `1px ${col.masquee ? "dashed" : "solid"} #2a2e38`, color: "#c9c5b8", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-                      {opt.icone && <img src={opt.icone} alt="" width={16} height={16} />}
-                      {opt.nom}
-                      {ameliore && (
-                        <span data-amelioration="" style={{ display: "inline-flex", alignItems: "center", gap: "0.15rem", color: "#e8c547", borderLeft: "1px solid #3a3f4b", paddingLeft: "0.3rem" }}>
-                          {ameliore.icone && <img src={ameliore.icone} alt="" width={16} height={16} />}
-                          <span aria-hidden="true">▲</span>
-                          <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>version améliorée{incertain ? " probable" : ""}</span>
-                        </span>
-                      )}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
+            {/* FR : ⚠️ CHANGÉ (13/10/2026, v0.4.6) - la légende et les colonnes sont maintenant dessinées par le composant PARTAGÉ `ColonnesPerks` (même code que l'Inventaire de la Forge), sans changement d'affichage en consultation. / EN: ⚠️ CHANGED - columns now drawn by the shared component. */}
+            <ColonnesPerks colonnes={colonnesAffichees} />
           </div>
         </div>
       )}

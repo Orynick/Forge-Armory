@@ -8,4 +8,5 @@ export const PIECES = [
   { ...base, itemHash: 333, itemInstanceId: "c1", nom: "Casque C", slot: "casque", origine: "arcaniste", classeRequise: "arcaniste", equipe: false },
   { ...base, itemHash: 444, itemInstanceId: "d1", nom: "Arme D", slot: "lourde", typeArme: "Lance-roquettes", origine: "coffre" },   // ⚠️ une AUTRE arme dans le Coffre (cinétique), pour que filtrer le Coffre change quelque chose de visible
 ];
-export async function listerObjetsPossedes() { return { pieces: PIECES, statsNonResolues: [], diagnosticStats: null }; }
+// FR : ⚠️ CHANGÉ (13/10/2026, v0.4.6) - une page de test peut définir `window.__piecesForge` pour fournir SES armes possédées (vue Inventaire de la Forge) ; sinon ce sont les cinq pièces ci-dessus. / EN: ⚠️ CHANGED - a test page can supply its own pieces.
+export async function listerObjetsPossedes() { const autres = (window as unknown as { __piecesForge?: unknown[] }).__piecesForge; return { pieces: autres ?? PIECES, statsNonResolues: [], diagnosticStats: null }; }

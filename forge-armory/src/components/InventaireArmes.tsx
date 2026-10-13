@@ -1,0 +1,154 @@
+// FR : ⚠️ AJOUT (13/10/2026, v0.4.6) - vue « INVENTAIRE » de la Forge (spécification du 12/10/2026, §4) : tes ARMES POSSÉDÉES (personnages et Coffre, lues par la même fonction que « Mon Inventaire »), avec pour chacune son ROLL RÉEL (marqué ✓) et la possibilité de SIMULER un autre roll : une perk par colonne et un mod, parmi les options possibles de CETTE colonne (jamais deux perks dans une colonne).
+// PHASE 1 de la spécification : AUCUNE écriture vers Bungie, jamais. La simulation est enregistrée localement (`lib/forge/simulation.ts`, par exemplaire et par index de prise) et rechargée au démarrage ; elle n'est pas encore branchée au scoring (étape suivante). Le chargement de l'inventaire est déclenché par un bouton, comme dans « Mon Inventaire » (il interroge Bungie).
+// Les colonnes sont celles de la popup « Détails » (même fonction, même ordre, mod en bas), dessinées par le composant partagé `ColonnesPerks`. Version d'un perk simulé : sa version AMÉLIORÉE si l'arme en a déjà une dans son roll réel (voir `armeEstAmelioree`). EN: ⚠️ ADDED - Forge "Inventory" view: owned weapons with their real roll and a local what-if simulation; nothing is ever written to Bungie.
+import { useMemo, useState } from "react";
+import type { Database } from "sql.js";
+import type { DestinyMembership } from "../lib/bungie/api";
+import type { GearPiece } from "../types/build";
+import { listerObjetsPossedes } from "../lib/bungie/inventaire";
+import { SessionExpiree } from "../lib/bungie/oauth";
+import { obtenirOptionsToutesColonnes } from "../lib/manifest/doctrine";
+import type { OptionSocket } from "../lib/manifest/doctrine";
+import { ordonnerColonnesPourAffichage } from "../lib/manifest/colonnesArme";
+import { apparierPerksAmeliores, typeEstAmeliore, OptionJumelee } from "../lib/manifest/perksAmeliores";
+import { normaliser } from "../lib/manifest/search";
+import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees, armesSimulees, lireSimulations, ecrireSimulations, stockageNavigateur, estLeRollReel, armeEstAmelioree, choixEffectif, SIMULATIONS_VIDES, Simulations } from "../lib/forge/simulation";
+import ColonnesPerks, { ColonneAffichee } from "./ColonnesPerks";
+import IconesArme from "./IconesArme";
+
+const TAILLE_PAGE = 60;
+const SLOTS_ARME = ["cinetique", "energie", "lourde"];
+const LIBELLES_SLOT: Record<string, string> = { cinetique: "Cinétique", energie: "Énergétique", lourde: "Lourde" };
+const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste", coffre: "Coffre" };
+const styleChamp = { fontSize: "0.85rem", background: "#0d0f14", color: "#e8e6df", border: "1px solid #3a3f4b", borderRadius: 6, padding: "0.3rem 0.4rem" } as const;
+const estArme = (p: GearPiece) => SLOTS_ARME.includes(p.slot as string);
+const couleurRarete = (p: GearPiece) => (p.isExotic ? "#ceae33" : p.rarete === "Légendaire" ? "#7a4fa3" : "#4a4f5c");
+
+interface Props {
+  db: Database | null;
+  membership: DestinyMembership | null;
+}
+
+export default function InventaireArmes({ db, membership }: Props) {
+  const [pieces, setPieces] = useState<GearPiece[] | null>(null);
+  const [enCours, setEnCours] = useState(false);
+  const [erreur, setErreur] = useState<string | null>(null);
+  const [recherche, setRecherche] = useState("");
+  const [lieu, setLieu] = useState("tous");
+  const [seulementSimulees, setSeulementSimulees] = useState(false);
+  const [affichees, setAffichees] = useState(TAILLE_PAGE);
+  const [ouverte, setOuverte] = useState<GearPiece | null>(null);
+  const [voirInutiles, setVoirInutiles] = useState(false);
+  const stockage = useMemo(() => stockageNavigateur(), []);
+  const [simulations, setSimulations] = useState<Simulations>(() => lireSimulations(stockage));
+  const appliquer = (nouvelles: Simulations) => { setSimulations(nouvelles); ecrireSimulations(stockage, nouvelles); };
+
+  async function charger() {
+    if (!membership || !db) return;
+    setEnCours(true); setErreur(null);
+    try {
+      const r = await listerObjetsPossedes(membership, db);
+      setPieces(r.pieces.filter(estArme)); setAffichees(TAILLE_PAGE);
+    } catch (e) {
+      setErreur(e instanceof SessionExpiree ? "Votre session Bungie a expiré : reconnectez-vous, puis réessayez." : (e as Error).message);
+    } finally {
+      setEnCours(false);
+    }
+  }
+
+  const nbSim = (p: GearPiece) => (p.itemInstanceId ? nbColonnesSimulees(simulations, p.itemInstanceId) : 0);
+  const liste = useMemo(() => {
+    if (!pieces) return [];
+    const q = normaliser(recherche);
+    return pieces
+      .filter((p) => (lieu === "tous" || p.origine === lieu) && (!q || normaliser(`${p.nom ?? ""} ${p.typeArme ?? ""}`).includes(q)) && (!seulementSimulees || (!!p.itemInstanceId && !!simulations.armes[p.itemInstanceId])))
+      .sort((a, b) => (a.nom ?? "").localeCompare(b.nom ?? "", "fr"));
+  }, [pieces, recherche, lieu, seulementSimulees, simulations]);
+
+  // FR : les colonnes de l'arme ouverte : mêmes fonctions que la popup « Détails » et que la Collection ; le roll réel (`perkHashes`) marque les options équipées. / EN: columns of the opened weapon, same functions as Details and Collection.
+  const colonnesAffichees = useMemo((): ColonneAffichee[] => {
+    if (!db || !ouverte) return [];
+    const colonnes = ordonnerColonnesPourAffichage(obtenirOptionsToutesColonnes(db, ouverte.itemHash, ouverte.perkHashes, { inclureMasquees: voirInutiles }));
+    return colonnes.map((col) => ({ col, items: col.masquee ? col.options.map((option): OptionJumelee<OptionSocket> => ({ option })) : apparierPerksAmeliores(col.options, (o) => typeEstAmeliore(db, o.hash)) }));
+  }, [db, ouverte, voirInutiles]);
+  const armeAmelioree = armeEstAmelioree(colonnesAffichees.filter((c) => !c.col.masquee).map((c) => c.items));
+  const instance = ouverte?.itemInstanceId;
+  const simulesOuverte = instance ? simulations.armes[instance] : undefined;
+
+  function choisirPerk(socketIndex: number, item: OptionJumelee<OptionSocket>) {
+    if (!instance) return;
+    // FR : cliquer le roll réel, ou de nouveau le perk déjà simulé, REVIENT au roll réel de cette colonne.
+    if (estLeRollReel(item) || simulesOuverte?.[socketIndex]?.choisi === item.option.hash) appliquer(retirerColonne(simulations, instance, socketIndex));
+    else appliquer(choisir(simulations, instance, socketIndex, { choisi: item.option.hash, effectif: choixEffectif(item, armeAmelioree) }));
+  }
+
+  if (!membership) return <p style={{ margin: 0, fontSize: "0.85rem", color: "#e0c080" }}>⚠️ Vous n'êtes pas connecté à Bungie : connectez-vous (bloc « Connexion à Bungie ») pour voir vos armes.</p>;
+  if (!db) return <p style={{ margin: 0, fontSize: "0.85rem", color: "#e0c080" }}>⚠️ Manifest pas encore chargé. Chargez-le depuis Build Analyzer, dans le bloc « Recherche dans le Manifest ».</p>;
+  const nbArmesSimulees = armesSimulees(simulations).length;
+
+  return (
+    <div>
+      <p style={{ margin: "0 0 0.5rem", fontSize: "0.85rem", maxWidth: "70ch" }}>
+        Vos armes (personnages et Coffre). Ouvrez une arme pour <strong>simuler</strong> un autre roll : une perk par colonne et un mod. <strong>Rien n'est modifié dans le jeu</strong> : la simulation reste dans l'appli, sur cet ordinateur.
+      </p>
+      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
+        <button onClick={charger} disabled={enCours}>{enCours ? "Chargement…" : pieces ? "↻ Recharger mon inventaire" : "Charger mon inventaire"}</button>
+        {nbArmesSimulees > 0 && <button onClick={() => appliquer(SIMULATIONS_VIDES())} data-effacer-simulations="" style={{ fontSize: "0.8rem" }}>✕ Effacer toutes les simulations ({nbArmesSimulees})</button>}
+      </div>
+      {erreur && <p role="alert" style={{ fontSize: "0.8rem", color: "#e0a080", margin: "0 0 0.5rem" }}>⚠️ {erreur}</p>}
+      {pieces && (
+        <>
+          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+            <input aria-label="Rechercher une arme possédée" placeholder="Rechercher par nom ou type…" value={recherche} onChange={(e) => { setRecherche(e.target.value); setAffichees(TAILLE_PAGE); }} style={{ ...styleChamp, minWidth: "16rem", flex: "1 1 16rem" }} />
+            <select aria-label="Où se trouve l'arme" value={lieu} onChange={(e) => { setLieu(e.target.value); setAffichees(TAILLE_PAGE); }} style={styleChamp}>
+              <option value="tous">Partout</option>
+              {Object.entries(LIEUX).map(([cle, nom]) => <option key={cle} value={cle}>{nom}</option>)}
+            </select>
+            <label style={{ fontSize: "0.8rem", display: "inline-flex", gap: "0.35rem", alignItems: "center" }}>
+              <input type="checkbox" checked={seulementSimulees} onChange={(e) => { setSeulementSimulees(e.target.checked); setAffichees(TAILLE_PAGE); }} /> Seulement les armes simulées
+            </label>
+          </div>
+          <p data-nb-armes-possedees={liste.length} style={{ fontSize: "0.8rem", color: "#9a968a", margin: "0 0 0.5rem" }}>{liste.length} arme{liste.length > 1 ? "s" : ""}{liste.length === 0 ? " : aucune ne correspond." : ""}</p>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(17rem, 1fr))", gap: "0.5rem" }}>
+            {liste.slice(0, affichees).map((p) => (
+              <li key={p.itemInstanceId ?? `${p.itemHash}-${p.origine}`}>
+                <button onClick={() => setOuverte(p)} data-arme-possedee={p.itemInstanceId ?? ""} data-lieu={p.origine ?? ""} data-simulee={nbSim(p) > 0 ? "1" : ""}
+                  style={{ width: "100%", textAlign: "left", display: "flex", gap: "0.5rem", alignItems: "flex-start", padding: "0.4rem", background: "#12151c", color: "#e8e6df", border: `1px solid ${couleurRarete(p)}`, borderRadius: 8, cursor: "pointer" }}>
+                  {p.icone ? <img src={p.icone} alt="" width={44} height={44} style={{ borderRadius: 4, flexShrink: 0 }} /> : <span style={{ width: 44, height: 44, flexShrink: 0 }} />}
+                  <span style={{ minWidth: 0 }}>
+                    <strong style={{ fontSize: "0.85rem", display: "block" }}>{p.nom ?? `Arme ${p.itemHash}`}</strong>   {/* bloc : les icônes passent sous le nom, comme sur les cartes de la Collection */}
+                    <IconesArme db={db} itemHash={p.itemHash} type={p.typeArme} slot={p.slot as string} texteAccessible={[p.typeArme, LIBELLES_SLOT[p.slot as string], p.elementArme].filter(Boolean).join(", ")} />
+                    <span data-lieu-texte="" style={{ display: "block", fontSize: "0.72rem", color: "#9a968a" }}>{LIEUX[p.origine ?? ""] ?? "Lieu inconnu"}{p.equipe ? " · équipée" : ""}</span>
+                    {nbSim(p) > 0 && <span data-badge-simulation="" style={{ fontSize: "0.7rem", color: "#e8c547" }}>Simulation ({nbSim(p)} colonne{nbSim(p) > 1 ? "s" : ""})</span>}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {liste.length > affichees && <button onClick={() => setAffichees((n) => n + TAILLE_PAGE)} style={{ marginTop: "0.6rem", fontSize: "0.85rem" }}>Afficher plus ({liste.length - affichees} restantes)</button>}
+        </>
+      )}
+      {ouverte && (
+        <div onClick={() => setOuverte(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+          <div role="dialog" aria-modal="true" aria-label={`Simulation des perks de ${ouverte.nom}`} onClick={(e) => e.stopPropagation()} style={{ background: "#12151c", border: `1px solid ${couleurRarete(ouverte)}`, borderRadius: 10, padding: "1rem", width: "min(44rem, 94vw)", maxHeight: "86vh", overflow: "auto", color: "#e8e6df" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
+              <strong style={{ fontSize: "1rem" }}>{ouverte.nom}</strong>
+              <button onClick={() => setOuverte(null)} aria-label="Fermer">✕</button>
+            </div>
+            <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0.2rem 0 0.4rem" }}>{[ouverte.typeArme, ouverte.rarete, LIEUX[ouverte.origine ?? ""], ouverte.equipe ? "équipée" : ""].filter(Boolean).join(" · ")} — simulation locale : rien n'est modifié dans le jeu</p>
+            <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0 0 0.6rem" }}>✓ = votre roll réel. Cliquez une perk pour la simuler (une seule par colonne) ; cliquez le roll réel, ou de nouveau la perk simulée, pour revenir au roll réel de la colonne.</p>
+            <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
+              <label style={{ fontSize: "0.8rem", display: "inline-flex", gap: "0.4rem", alignItems: "center" }}>
+                <input type="checkbox" checked={voirInutiles} onChange={(e) => setVoirInutiles(e.target.checked)} /> Afficher les perks inutiles
+              </label>
+              <span data-nb-simulees={instance ? nbColonnesSimulees(simulations, instance) : 0} style={{ fontSize: "0.78rem", color: "#e8c547" }}>{instance && nbColonnesSimulees(simulations, instance) > 0 ? `${nbColonnesSimulees(simulations, instance)} colonne${nbColonnesSimulees(simulations, instance) > 1 ? "s" : ""} simulée${nbColonnesSimulees(simulations, instance) > 1 ? "s" : ""}` : "aucune simulation"}</span>
+              <button disabled={!instance || nbColonnesSimulees(simulations, instance) === 0} onClick={() => instance && appliquer(reinitialiserArme(simulations, instance))} style={{ fontSize: "0.78rem" }}>↺ Revenir au roll réel</button>
+            </div>
+            {colonnesAffichees.length === 0 && <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucune option trouvée pour cette arme.</p>}
+            <ColonnesPerks colonnes={colonnesAffichees} simules={simulesOuverte} onChoisir={choisirPerk} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -105,7 +105,7 @@ with sync_playwright() as p:
     # ---------- 6. onglets : l'état est conservé ----------
     pg.get_by_label("Rechercher une arme").fill("fusil"); pg.wait_for_timeout(100)
     pg.get_by_role("tab", name="Inventaire").click(); pg.wait_for_timeout(100)
-    ok("l'onglet « Inventaire » annonce la prochaine version et cache la Collection", "prochaine version" in pg.get_by_role("tabpanel", name="Inventaire").inner_text() and not pg.get_by_role("tabpanel", name="Collection").is_visible())
+    ok("⚠️ v0.4.6 (remplace « annonce la prochaine version ») : l'onglet « Inventaire » affiche sa vue (bouton « Charger mon inventaire », mention que rien n'est modifié dans le jeu) et cache la Collection", "Charger mon inventaire" in pg.get_by_role("tabpanel", name="Inventaire").inner_text() and "Rien n'est modifié dans le jeu" in pg.get_by_role("tabpanel", name="Inventaire").inner_text() and not pg.get_by_role("tabpanel", name="Collection").is_visible())
     pg.get_by_role("tab", name="Collection").click(); pg.wait_for_timeout(100)
     ok("de retour sur « Collection », la recherche est CONSERVÉE (aucune perte d'état en changeant de vue)", pg.get_by_label("Rechercher une arme").input_value() == "fusil" and noms(pg) == ["Fusil d'essai"], [pg.get_by_label("Rechercher une arme").input_value(), noms(pg)])
     pg.close()

@@ -256,7 +256,7 @@ npm run electron:dev   (fenêtre 2)
 | Export infographique : logos de section, icônes de classe, d'élément et de contexte | ✅ Fonctionnel — logos de section : Doctrine, Armes, Armure, Artefact |
 | Bouton **« Transférer vers »** (Mon Inventaire et Coffre → personnages et Coffre) | ✅ Fonctionnel — objet équipé non transférable, confirmation, un transfert à la fois |
 | Onglet **Forge**, vue **Collection** (toutes les armes du jeu, leurs perks possibles, grisées si jamais obtenues) | ✅ Fonctionnel — consultation seule ; armures à venir |
-| Onglet **Forge**, vue **Inventaire** (choisir les perks actifs et le mod de vos armes) | 🔵 À venir (prochaine version) |
+| Onglet **Forge**, vue **Inventaire** (vos armes possédées : roll réel et simulation des perks et du mod) | ✅ Fonctionnel — simulation locale, rien n'est modifié dans le jeu ; lien avec le score à venir |
 
 ---
 
@@ -279,7 +279,17 @@ Chargez d'abord le Manifest (bloc « Recherche dans le Manifest » de Build Anal
 - **Filtres** : type d'arme, emplacement, rareté, élément, archétype, obtention, et recherche par nom (sans accents ni majuscules). « ✕ Réinitialiser les filtres » remet tout. Le menu **Source** propose par défaut les **Collections du jeu** ; « Hors Collections » montre les autres définitions d'armes (techniques, anciennes ou variantes), dont l'état « obtenue ou non » ne peut pas être connu : elles ne sont jamais grisées.
 - **Cliquez une arme** : une fenêtre montre toutes ses colonnes de perks possibles, avec les **mêmes règles que le bouton « Détails »** de Mon Inventaire, du Coffre et de Mon Build (les mods en bas, sous « Mods utilisables »). Consultation seule : rien n'est modifié.
 - **« Afficher les perks inutiles »** (désactivé par défaut) réaffiche les colonnes cosmétiques normalement masquées (souvenir, compte-frags, palier, ornement), marquées « inutile ».
-- La vue **Inventaire** (choisir les perks actifs et le mod de vos armes) arrive à la prochaine version.
+- La vue **Inventaire** (vos armes possédées, simulation des perks et du mod) est décrite juste en dessous.
+
+## La Forge : Inventaire de vos armes
+
+Dans l'onglet **Forge**, la vue **Inventaire** montre **vos** armes (personnages et Coffre). Il faut être connecté à Bungie et avoir chargé le Manifest.
+
+- **Charger mon inventaire** : un bouton (le chargement interroge Bungie). Les armures ne sont pas listées. Filtres : recherche par nom ou type, endroit où se trouve l'arme (Titan, Chasseur, Arcaniste, Coffre), « seulement les armes simulées ».
+- **Cliquez une arme** : la fenêtre montre ses colonnes de perks, comme dans la Collection, avec **votre roll réel marqué d'un ✓** (colonne par colonne).
+- **Simuler un autre roll** : cliquez une perk pour la simuler. Il n'y en a qu'**une par colonne** et un seul mod ; la perk simulée est dorée (« simulé »). Cliquez le roll réel, ou de nouveau la perk simulée, pour revenir au roll réel de la colonne ; « ↺ Revenir au roll réel » efface toute la simulation de l'arme.
+- **Versions améliorées** : si votre arme est une arme améliorée (au moins un de ses perks réels est une version améliorée), la perk simulée est comptée **dans sa version améliorée** (« ▲ comptée »).
+- **Rien n'est modifié dans le jeu.** La simulation est enregistrée **sur cet ordinateur** et rechargée au démarrage ; elle n'est pas encore prise en compte dans le score (étape suivante). « ✕ Effacer toutes les simulations » les efface toutes.
 
 ## Comprendre le score
 
