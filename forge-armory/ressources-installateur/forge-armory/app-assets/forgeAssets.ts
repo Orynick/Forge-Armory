@@ -26,22 +26,22 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteurMinPx": 40
  },
  {
-  "id": "selecteur.bibliotheque.repos",
+  "id": "selecteur.legendarium.repos",
   "famille": "selecteur",
-  "label": "Bibliothèque",
+  "label": "Legendarium",
   "etat": "repos",
-  "fichier": "assets/selecteur/bouton-bibliotheque.svg",
+  "fichier": "assets/selecteur/bouton-legendarium.svg",
   "largeur": 4316,
   "hauteur": 1024,
   "ratio": 4.2148,
   "hauteurMinPx": 40
  },
  {
-  "id": "selecteur.bibliotheque.selectionne",
+  "id": "selecteur.legendarium.selectionne",
   "famille": "selecteur",
-  "label": "Bibliothèque",
+  "label": "Legendarium",
   "etat": "selectionne",
-  "fichier": "assets/selecteur/bouton-bibliotheque-selectionne.svg",
+  "fichier": "assets/selecteur/bouton-legendarium-selectionne.svg",
   "largeur": 4316,
   "hauteur": 1024,
   "ratio": 4.2148,
@@ -68,6 +68,39 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteur": 1024,
   "ratio": 4.2148,
   "hauteurMinPx": 40
+ },
+ {
+  "id": "selecteur.collection.repos",
+  "famille": "selecteur",
+  "label": "Collection",
+  "etat": "repos",
+  "fichier": "assets/selecteur/bouton-collection.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40
+ },
+ {
+  "id": "selecteur.collection.selectionne",
+  "famille": "selecteur",
+  "label": "Collection",
+  "etat": "selectionne",
+  "fichier": "assets/selecteur/bouton-collection-selectionne.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40
+ },
+ {
+  "id": "icones.collection",
+  "famille": "icones",
+  "label": "Collection",
+  "etat": null,
+  "fichier": "assets/icones/icone-collection.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24
  },
  {
   "id": "profils.neutre.repos",
@@ -408,11 +441,11 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteurMinPx": 40
  },
  {
-  "id": "icones.bibliotheque",
+  "id": "icones.legendarium",
   "famille": "icones",
-  "label": "Bibliothèque",
+  "label": "Legendarium",
   "etat": null,
-  "fichier": "assets/icones/icone-bibliotheque.svg",
+  "fichier": "assets/icones/icone-legendarium.svg",
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,

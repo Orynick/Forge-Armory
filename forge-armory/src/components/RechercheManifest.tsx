@@ -28,7 +28,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { obtenirElementFiltre, ELEMENTS_FILTRE, ElementFiltre } from "../lib/manifest/doctrine";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : filtre d'élément
 import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
 import { Database } from "sql.js";
-import { assurerManifestAJour, manifestsEnCacheAJour, telechargerManifestsEnFichiers } from "../lib/manifest/download";
+import { assurerManifestAJour, etatCachesManifests, simulerManifestPerime, telechargerManifestsEnFichiers } from "../lib/manifest/download";
+import { demarrerManifests, LangueManifest } from "../lib/manifest/demarrage";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : mise à jour automatique d'un Manifest PÉRIMÉ
 import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance, chercherTriomphesFlawless, TriompheTrouve } from "../lib/manifest/search";
 import { construireIndexInversePerks, obtenirIndexInversePerksEnCache, ObjetParent } from "../lib/manifest/perkSource";
 import { obtenirSource, obtenirAntiChampion, obtenirTypeMunition, obtenirCategoriesObjet, raccourcirNom } from "../lib/manifest/doctrine";
@@ -76,6 +77,8 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
   const [dbEn, setDbEn] = useState<Database | null>(null);
   const [etapeChargement, setEtapeChargement] = useState<string | null>(null);
   const [erreurChargement, setErreurChargement] = useState<string | null>(null);
+  // FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - message de la mise à jour AUTOMATIQUE d'un Manifest périmé (annonce, réussite ou échec). / EN: ⚠️ ADDED - message of the automatic refresh of an outdated Manifest.
+  const [messageMiseAJourAuto, setMessageMiseAJourAuto] = useState<string | null>(null);
 
   const [motCle, setMotCle] = useState("");
   const [mode, setMode] = useState<ModeRecherche>("plein_texte");
@@ -138,7 +141,9 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
 
   const minuteurDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  async function chargerManifests() {
+  // FR : ⚠️ CHANGÉ (13/10/2026, v0.4.3) - le chargement prend maintenant la liste des langues à charger (le FRANÇAIS est toujours chargé : c'est la langue de l'appli) et dit s'il a RÉUSSI ; `chargerManifests` (sans paramètre, utilisé par le bouton) garde son rôle : français puis anglais. Raison : la mise à jour automatique d'un Manifest périmé ne doit retélécharger que les langues réellement présentes en cache, jamais une langue que l'utilisateur n'a pas encore téléchargée.
+  // EN: ⚠️ CHANGED - loading takes the list of languages (French is always loaded) and reports success; the parameterless `chargerManifests` keeps its role for the button.
+  async function chargerLangues(langues: LangueManifest[]): Promise<boolean> {
     setErreurChargement(null);
     try {
       const resultatFr = await assurerManifestAJour((etape) => setEtapeChargement(etape), "fr");
@@ -159,18 +164,26 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
       setDbFr(baseFr);
       onManifestCharge?.(baseFr);
 
-      const resultatEn = await assurerManifestAJour((etape) => setEtapeChargement(etape), "en");
-      const baseEn = resultatEn.db;
-      setEtapeChargement("Indexation (anglais)...");
-      await new Promise((r) => setTimeout(r, 0));
-      await indexerManifest(baseEn, "en", resultatEn.version);
-      setDbEn(baseEn);
+      if (langues.includes("en")) {
+        const resultatEn = await assurerManifestAJour((etape) => setEtapeChargement(etape), "en");
+        const baseEn = resultatEn.db;
+        setEtapeChargement("Indexation (anglais)...");
+        await new Promise((r) => setTimeout(r, 0));
+        await indexerManifest(baseEn, "en", resultatEn.version);
+        setDbEn(baseEn);
+      }
 
       setEtapeChargement(null);
+      return true;
     } catch (e) {
       setErreurChargement((e as Error).message);
       setEtapeChargement(null);
+      return false;
     }
+  }
+
+  async function chargerManifests() {
+    await chargerLangues(["fr", "en"]);
   }
 
   function executerRecherche(valeur: string, modeActuel: ModeRecherche, categorieActuelle: CategorieResultat | "toutes") {
@@ -277,11 +290,12 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
     };
   }, []);
 
+  // FR : ⚠️ CHANGÉ (13/10/2026, v0.4.3), demande de l'utilisateur : « si le Manifest est périmé, et UNIQUEMENT dans ce cas, téléchargement du nouveau ». La décision est dans `lib/manifest/demarrage.ts` (testée) : une langue EN CACHE mais d'une autre version est retéléchargée automatiquement ; une langue ABSENTE n'est jamais
+  // téléchargée seule (le tout premier téléchargement, ~200 Mo, reste un clic) ; hors ligne ou état inconnu : rien. Cette règle remplace celle de la 0.2.2 (« jamais sans un clic »), dont le reste est conservé :
+  // FR ET EN à jour : chargement automatique depuis le cache.
   // FR : ⚠️ AJOUT (26/09/2026, v0.2.2) - chargement AUTOMATIQUE au démarrage,
   // à une condition stricte : les Manifests FR ET EN sont déjà en cache et à
-  // jour. Sinon (premier lancement, nouvelle version publiée par Bungie,
-  // hors ligne), rien ne se passe et le bouton manuel reste affiché : le
-  // gros téléchargement (~200 Mo) n'est JAMAIS lancé sans un clic.
+  // jour (règle d'origine, complétée ci-dessus pour le cas périmé).
   // Pourquoi exiger les DEUX langues : `chargerManifests` enchaîne FR puis
   // EN ; si seul le FR était en cache, le lancer automatiquement
   // déclencherait le téléchargement de l'anglais sans demander.
@@ -298,12 +312,12 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
     verificationDemarrageFaite.current = true;
     (async () => {
       setEtapeChargement("Vérification de la version du Manifest...");
-      const aJour = await manifestsEnCacheAJour(["fr", "en"]);
-      if (aJour) {
-        await chargerManifests();
-      } else {
-        setEtapeChargement(null);
-      }
+      const decision = await demarrerManifests({
+        lireEtat: () => etatCachesManifests(["fr", "en"]),
+        charger: (langues) => chargerLangues(langues),
+        annoncer: setMessageMiseAJourAuto,
+      });
+      if (decision.action === "rien") setEtapeChargement(null);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -331,6 +345,23 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
               {telechargementEnCours ? "Téléchargement..." : "⬇ Manifests FR+EN (dev)"}
             </button>
           )}
+          {/* FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - OUTIL DE TEST, mode DÉVELOPPEMENT seulement (jamais dans le logiciel installé) : marque le cache comme périmé ; au prochain démarrage (Ctrl+F5) la mise à jour automatique se déclenche pour de bon, sans attendre une vraie nouvelle version de Bungie. / EN: ⚠️ ADDED - dev-only test tool. */}
+          {import.meta.env.DEV && (
+            <button
+              onClick={async () => {
+                const marquees = await simulerManifestPerime(["fr", "en"]);
+                setMessageMiseAJourAuto(
+                  marquees.length > 0
+                    ? `🧪 Cache marqué périmé (${marquees.map((l) => l.toUpperCase()).join(" et ")}) : recharge la page (Ctrl+F5) pour voir la mise à jour automatique.`
+                    : "🧪 Aucun Manifest en cache à marquer : charge d'abord le Manifest."
+                );
+              }}
+              title="Mode développement : fait croire à l'appli que son Manifest est périmé, pour essayer la mise à jour automatique au prochain démarrage"
+              style={{ fontSize: "0.7rem", fontWeight: 400 }}
+            >
+              🧪 Manifest périmé (test)
+            </button>
+          )}
           {dbFr ? (dbEn ? "✅ FR + EN chargés" : "✅ FR chargé") : "◯ non chargé"}
         </span>
       </h3>
@@ -345,14 +376,21 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
         </p>
       )}
 
+      {/* FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - annonce, réussite ou échec de la mise à jour AUTOMATIQUE d'un Manifest périmé. / EN: ⚠️ ADDED */}
+      {messageMiseAJourAuto && (
+        <p role="status" data-maj-auto-manifest="" style={{ fontSize: "0.8rem", color: "#b7b3a8", background: "#1c2029", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem 0.75rem" }}>
+          {messageMiseAJourAuto}
+        </p>
+      )}
+
       {!dbFr && (
         <>
           <p>
             Charge la base d'objets Bungie en français ET en anglais (armes, armures, aspects,
-            fragments, perks d'artefact...) — environ 200 Mo au total la première fois. Ensuite, tant
-            que Bungie ne publie pas de nouvelle version, il est rechargé automatiquement depuis
-            le cache à chaque démarrage. Permet de rechercher dans les deux langues ; l'appli
-            reste toujours affichée en français.
+            fragments, perks d'artefact...) — environ 200 Mo au total la première fois. Ensuite, il est
+            rechargé automatiquement depuis le cache à chaque démarrage ; si Bungie publie une nouvelle
+            version, elle est téléchargée automatiquement (environ 100 Mo par langue). Permet de rechercher
+            dans les deux langues ; l'appli reste toujours affichée en français.
           </p>
           <button onClick={chargerManifests} disabled={!!etapeChargement}>
             {etapeChargement && <span className="indicateur-chargement" />}

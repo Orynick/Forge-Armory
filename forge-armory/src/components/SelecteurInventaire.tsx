@@ -21,6 +21,7 @@ import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 // display (a single class-filtered list) with a 4-column/collapsible-
 // section view, to "know what you're selecting before it's in Mon build".
 
+import { ordonnerColonnesPourAffichage, libelleColonne } from "../lib/manifest/colonnesArme";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : règles de tri et d'étiquette partagées avec la Forge
 import TitreRepliable from "./TitreRepliable";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { defilerVers } from "../lib/defilerVers";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : « Aller à »
@@ -598,12 +599,10 @@ function LigneObjet({
               <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucune option trouvée pour cette arme.</p>
             )}
             {/* FR : mods génériques connus (ex: Crosse de contrepoids) relégués en bas, renommés - jamais masqués. */}
-            {[...colonnesDetails]
-              .sort((a, b) => (a.estModConnu ? 1 : 0) - (b.estModConnu ? 1 : 0))
-              .map((col) => (
+            {ordonnerColonnesPourAffichage(colonnesDetails).map((col) => (
               <div key={col.socketIndex} style={{ marginBottom: "0.6rem" }}>
                 <strong style={{ fontSize: "0.75rem", color: "#7d7a70" }}>
-                  {col.estModConnu ? "Mods utilisables" : `Colonne ${col.socketIndex + 1}`}
+                  {libelleColonne(col)}
                 </strong>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.25rem" }}>
                   {col.options.map((opt) => (

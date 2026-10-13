@@ -1926,3 +1926,69 @@ Résultat : validé (logiciel installé) : icônes de classe, d'élément et de 
 - [x] (logiciel installé) **Toutes les images s'affichent**, y compris les trois cartes renommées : aucune image cassée, aucun ancien numéro (« 2. Artefact », « 3. Armes et Armures », « 1. Élément et Doctrine ») nulle part.
 
 Résultat : validé. C'était le dernier test en attente de la 0.3.19.
+
+---
+
+Tests VALIDÉS par l'utilisateur : liste « A-TESTER » de la version **0.4.2**, validée le 12/10/2026 par ce message de l'utilisateur : « Toute la check-list Test 0.4.2 est validée 🥳 ». ⚠️ **Le PDF n'a pas été renvoyé** : les cases n'ont donc pas été relues automatiquement, la validation est celle déclarée dans la conversation (les 9 cases sont ici recopiées cochées). Texte de la liste TEL QU'IL ÉTAIT. **Plus aucun test en attente.** Deux sections entièrement validées.
+
+---
+
+## 🆕 Installation de la version 0.4.2 (12/10/2026)
+
+- [x] `npm.cmd run build` se termine **sans erreur**, puis `npm.cmd run electron:build` fabrique `Forge-Armory-Setup-0.4.2.exe` (dossier `installateur`) ; installé par-dessus, le pied de page indique « Forge Armory v0.4.2 » et **tes builds sont toujours là**.
+
+Résultat : validé.
+
+---
+
+## 🆕 Bouton « Transférer vers » (essais EN JEU)
+
+- [x] **Coffre → personnage** : sur une arme sans importance du Coffre, clique « Transférer vers », choisis un personnage, vérifie que la **confirmation** nomme l'objet, le départ et l'arrivée, puis confirme. Un bandeau vert annonce la réussite, la ligne passe sous ce personnage, et **en jeu** l'arme est bien dans l'inventaire de ce personnage.
+- [x] **Personnage → Coffre** : même chose dans l'autre sens ; **en jeu** l'arme est bien au Coffre.
+- [x] **Personnage → autre personnage** : la confirmation précise « en passant par le Coffre : deux opérations » ; après confirmation, l'arme est chez le second personnage **en jeu**, et le bandeau le dit.
+- [x] **Annuler** : choisis une destination puis « Annuler » : rien ne bouge, ni dans l'appli, ni en jeu.
+- [x] **Objet équipé** : le bouton « Transférer vers » d'un objet **équipé** est grisé ; au survol, l'infobulle explique qu'il faut en équiper un autre en jeu d'abord. (Facultatif : équipe l'objet en jeu après avoir chargé l'inventaire, puis tente le transfert dans l'appli : l'appli doit refuser avec « équipé », car elle relit la position réelle avant d'agir.)
+- [x] **Armure** : pour une armure, seuls sont proposés le **Coffre** et **le personnage de sa classe** (jamais un autre personnage). Teste avec une armure du Coffre : une seule destination de personnage.
+- [x] **Cohérence** : après quelques transferts, clique « Recharger mon inventaire » : l'affichage rechargé est identique à ce que l'appli montrait avant, et à ce qu'il y a en jeu.
+- [x] (facultatif) **Destination pleine** : envoie une arme vers un personnage dont l'emplacement d'armes est plein : le bandeau orange explique « Plus de place à destination » (ou, sinon, affiche le texte de Bungie tel quel : **copie-le-moi**) et l'objet reste où il était.
+
+Résultat : validé, **y compris les essais en jeu** (coffre ↔ personnage, personnage → personnage par le Coffre, annulation, objet équipé, armure, cohérence après rechargement, et le cas facultatif de la destination pleine).
+
+---
+
+Tests VALIDÉS par l'utilisateur : PDF « A-TESTER » de la version **0.4.3** coché et renvoyé le 13/10/2026 (**14 cases cochées sur 14**, vérifiées par la relecture automatique du PDF). Retirés de la liste, recopiés mot pour mot du texte de la liste TELLE QU'ELLE ÉTAIT, cases cochées. **Plus aucun test en attente.** Trois sections entièrement validées.
+
+---
+
+## 🆕 Installation de la version 0.4.3 (13/10/2026)
+
+- [x] `npm.cmd run build` se termine **sans erreur**, puis `npm.cmd run electron:build` fabrique `Forge-Armory-Setup-0.4.3.exe` (dossier `installateur`) ; installé par-dessus, le pied de page indique « Forge Armory v0.4.3 » et **tes builds sont toujours là**.
+
+Résultat : validé.
+
+---
+
+## 🆕 Forge : Collection des armes (essais avec TES données)
+
+- [x] **Lecture des armes** : la vue « Collection » affiche la liste (une courte attente « Lecture des armes du Manifest… » est normale la première fois). **Note les trois nombres du menu « Source »** (Collections du jeu, Hors Collections, Tout) et **le temps d'attente** approximatif, et envoie-les-moi.
+- [x] **Cartes** : sur des armes que tu connais (une exotique, une légendaire), le nom, l'icône, le type, l'emplacement, l'élément et l'archétype sont corrects ; bordure dorée pour un exotique, violette pour un légendaire.
+- [x] **Grisé comme dans le jeu** : le bandeau vert annonce que tes collections ont été lues ; une arme que tu as obtenue au moins une fois (même démantelée) est en couleurs ; une arme que tu n'as **jamais** eue est grisée avec « Jamais obtenue ». Vérifie avec trois armes de chaque sorte. (Si un bandeau **orange** apparaît avec une raison, **copie-la-moi** : aucune arme n'est alors grisée.)
+- [x] **Filtres et recherche** : type d'arme, emplacement, rareté, élément (une arme Stase sous « Stase », une Filobscur sous « Filobscur », pas l'inverse), archétype, « Obtenues / Jamais obtenues », et la recherche par nom (essaie un nom **sans accent**). « ✕ Réinitialiser les filtres » remet tout.
+- [x] **Source « Hors Collections »** : regarde ce que contient cette liste (définitions techniques, anciennes ou variantes) ; dis-moi si tu y vois une arme qui **devrait** être dans les Collections, ou s'il **manque** dans « Collections du jeu » une arme que tu connais.
+- [x] **Fenêtre des perks, même logique que « Détails »** : clique une arme à rolls aléatoires que tu connais : les colonnes montrent toutes les options possibles. Ouvre ensuite « Détails » de la **même arme** dans Mon Inventaire (ou Mon Build) : les colonnes sont les mêmes, dans le même ordre, avec « Mods utilisables » **en bas** dans les deux.
+- [x] **« Afficher les perks inutiles »** : désactivé par défaut, aucune colonne Souvenir, Compte-frags, palier ou ornement ; coché, elles réapparaissent marquées « inutile » ; décoché, elles disparaissent. Dis-moi si une colonne **utile** est cachée, ou si une colonne **inutile** s'affiche par défaut.
+- [x] **Détails inchangés** : la popup « Détails » d'une arme dans l'Inventaire, dans le Coffre et dans Mon Build montre les mêmes colonnes qu'avant la 0.4.3.
+- [x] (npm.cmd run dev) **Diagnostic des perks améliorés** : ouvre quatre armes dont au moins une avec des **perks améliorés** (flèche jaune) ; dans la fenêtre, clique « 🔍 Diagnostic des perks de cette arme », copie le texte, et **envoie-moi les quatre** (c'est ce qui prépare l'affichage des perks améliorés de la 0.4.4).
+- [x] **Onglets** : l'onglet « Inventaire » annonce la prochaine version ; en revenant à « Collection », tes filtres et ta recherche sont **conservés**.
+
+Résultat : validé, les dix cases cochées (lecture des armes, cartes, grisé d'après les collections, filtres et recherche, source « Hors Collections », fenêtre des perks, interrupteur des perks inutiles, popup Détails inchangée, diagnostic des perks améliorés, onglets). **Retours de l'utilisateur** : (1) sur les cartes d'armes, afficher dans cet ordre l'icône de type d'arme, l'icône d'élément de dégâts, l'icône de type de munitions et l'icône antichampion, et garder l'armature ; (2) retirer la mention « Jamais obtenue », redondante avec l'effet grisé ; (3) diagnostics envoyés : deux Confiance (deux révisions), Défense dorée (sans perks améliorés) et Grande Faucheuse (temps perdu). **Non reçus** : les trois nombres du menu « Source » et le temps d'attente de la liste (demandés par le test, facultatifs).
+
+---
+
+## 🆕 Manifest périmé : mise à jour automatique
+
+- [x] (npm.cmd run dev) **Simulation d'un Manifest périmé** : Manifest chargé, clique « 🧪 Manifest périmé (test) » : un message dit de recharger la page. Fais **Ctrl+F5** : un message **🔄** annonce la mise à jour automatique (en nommant les langues), le téléchargement démarre **sans que tu cliques**, puis un message **✅** annonce que le Manifest est mis à jour et la recherche fonctionne. **Note le temps** que cela prend et envoie-le-moi.
+- [x] **Démarrage normal** : avec un Manifest à jour, relance l'appli (Ctrl+F5) : il se charge tout seul depuis le cache, **sans message de mise à jour ni téléchargement**.
+- [x] (facultatif) **Hors ligne** : coupe ta connexion Internet puis relance l'appli : aucun téléchargement n'est tenté, pas d'erreur bruyante, et le bouton « Charger le Manifest » reste disponible.
+
+Résultat : validé, les trois cases cochées (simulation, démarrage normal, hors ligne). **Temps mesuré par l'utilisateur : 15 secondes entre Ctrl+F5 et la fin de la mise à jour automatique** (deux langues, simulation du mode développement).

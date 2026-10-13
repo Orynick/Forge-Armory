@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // FR : ⚠️ AJOUT (12/10/2026) - GÉNÉRATEUR des PROPOSITIONS vectorielles « Solo sans mourir » et « Forge », conformes à la charte graphique (ressources-installateur/forge-armory/app-assets/docs/charte-graphique.html), à partir des ÉBAUCHES de l'utilisateur.
 //     node scripts/generer-propositions-solo-forge.mjs --sortie <dossier>
-// Produit : selecteur/bouton-forge(.svg|-selectionne.svg) · panneaux/titre-solo-sans-mourir.svg · icones/icone-forge.svg · icones/icone-solo-sans-mourir.svg.
+// Produit : selecteur/bouton-forge(.svg|-selectionne.svg) · selecteur/bouton-inventaire(.svg|-selectionne.svg) · panneaux/titre-solo-sans-mourir.svg · icones/icone-forge.svg · icones/icone-solo-sans-mourir.svg.
+// ⚠️ AJOUT (13/10/2026, v0.4.3) : le bouton INVENTAIRE (option 2 choisie par l'utilisateur : un vrai bouton au format du sélecteur plutôt que le titre repliable « Mon Inventaire », trop large et sans lueur à l'état sélectionné) : même méthode que le bouton Forge, avec le COFFRE de l'icône « Mon Inventaire » de l'utilisateur (tracés et masques repris tels quels) et le mot « INVENTAIRE » composé avec ses propres lettres.
 // MÉTHODE : (1) le texte est composé avec les lettres DÉJÀ dessinées dans les titres et boutons de l'utilisateur (outil glyphes-titres.mjs) ; l'espacement vient d'un MODÈLE additif mesuré dans ces fichiers (marge droite de la lettre précédente + marge
 // gauche de la suivante + interlettrage, + une espace entre les mots), validé en recomposant les textes existants ; (2) les symboles sont redessinés en vectoriel selon la charte (argent, fentes transparentes par masque, une partie en cyan avec lueur,
 // dans les zones permises) ; (3) la plaque, l'anneau, les cristaux, le soulignage et l'étoile sont repris tels quels des fichiers de référence ; (4) identifiants internes préfixés.
@@ -17,12 +18,15 @@ const sortie = path.resolve(args.includes("--sortie") ? args[args.indexOf("--sor
 const ARCHIVE = path.join(racine, "ressources-installateur/forge-armory/app-assets/assets/");
 const LIVRES = path.join(racine, "public/assets/");
 const lire = (base, f) => fs.readFileSync(base + f, "utf-8");
+// FR : ⚠️ AJOUT (13/10/2026, v0.4.4) - SOURCE DE REPLI des lettres : le bouton « Bibliothèque » de l'utilisateur a été remplacé par « Legendarium » dans l'archive v5, mais le MODÈLE D'ESPACEMENT ci-dessous en mesure encore les lettres ; une copie est conservée dans `sources-lettres/` (voir son LISEZMOI) pour que les fichiers fabriqués restent identiques. / EN: ⚠️ ADDED - fallback letter source (the old Library button, kept verbatim).
+const SOURCES_LETTRES = path.join(racine, "ressources-installateur/forge-armory/sources-lettres/");
+const dossierSource = (f) => (fs.existsSync(ARCHIVE + f) ? ARCHIVE : SOURCES_LETTRES);
 
 // ============ 1. MODÈLE D'ESPACEMENT, mesuré dans les fichiers de l'utilisateur ============
 const SOURCES = { ...TEXTES, "selecteur/bouton-build-analyzer.svg": "BUILD ANALYZER", "selecteur/bouton-bibliotheque.svg": "BIBLIOTHÈQUE", "selecteur/bouton-loadouts.svg": "LOAD-OUTS" };
 const obs = [], lsbObs = [], rsbObs = [], lettresDe = {};
 for (const [f, texte] of Object.entries(SOURCES)) {
-  const svg = lire(ARCHIVE, f), L = lettresEtiquetees(svg, texte); lettresDe[f] = L;
+  const svg = lire(dossierSource(f), f), L = lettresEtiquetees(svg, texte); lettresDe[f] = L;
   const esp = []; let k = 0, avantEspace = false;
   for (const c of [...texte]) { if (c === " ") { avantEspace = true; continue; } esp[k++] = avantEspace; avantEspace = false; }
   for (let i = 1; i < L.length; i++) obs.push({ a: L[i - 1].car, b: L[i].car, esp: esp[i], gap: L[i].xmin - L[i - 1].xmax });
@@ -139,6 +143,30 @@ for (const [fichier, suffixe] of [["selecteur/bouton-loadouts.svg", ""], ["selec
     icone = icone.replace(/viewBox="[^"]*"/, 'viewBox="0 0 1024 1024"').replaceAll("fa-selecteur-bouton-forge-", "fa-icones-icone-forge-").replace(/(<title[^>]*>)[^<]*(<\/title>)/, "$1Forge Armory — icône Forge$2");
     ecrire("icones/icone-forge.svg", icone);
   }
+}
+
+// ============ 4 bis. BOUTON INVENTAIRE (sélecteur, 2 états, cadre 4316 × 1024) ============
+// FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - le coffre est REPRIS TEL QUEL de `icones/icone-inventaire.svg` (deux tracés d'argent percés par le masque `mChest`, serrure cyan percée par `mLock`) ; ses identifiants prennent le préfixe du bouton, et les deux masques sont ajoutés aux définitions du bouton (les dégradés `silver` et `cyanL` et la lueur `glowSoft` existent déjà dans le bouton).
+// EN: ⚠️ ADDED - the Inventory button: the chest is taken as-is from the user's "Mon Inventaire" icon.
+const texteInventaire = composerTitre("INVENTAIRE");
+const iconeInventaire = lire(LIVRES, "icones/icone-inventaire.svg");
+const coffreInv = /<g transform="translate\(0 9\)">[\s\S]*?<\/g><\/g>/.exec(iconeInventaire);
+const masquesInv = [...iconeInventaire.matchAll(/<mask id="fa-icones-icone-inventaire-(?:mChest|mLock)"[\s\S]*?<\/mask>/g)].map((m) => m[0]);
+if (!coffreInv || masquesInv.length !== 2) throw new Error("coffre ou masques introuvables dans icone-inventaire.svg");
+for (const [fichier, suffixe] of [["selecteur/bouton-loadouts.svg", ""], ["selecteur/bouton-loadouts-selectionne.svg", "-selectionne"]]) {
+  let svg = lire(LIVRES, fichier); const P = prefixeDe(svg);
+  const versBouton = (t) => t.replaceAll("fa-icones-icone-inventaire-", P);
+  svg = svg.replace("</defs>", `${masquesInv.map(versBouton).join("\n    ")}\n  </defs>`);
+  const debut = finCercle(svg), cristaux = svg.indexOf(`<g filter="url(#${P}glow)">`, debut);
+  if (cristaux < 0) throw new Error("cristaux introuvables");
+  svg = svg.slice(0, debut) + "\n    " + versBouton(coffreInv[0]) + "\n    " + svg.slice(cristaux);
+  const u = trouverSoulignage(svg), nn = u.d.match(/-?\d*\.?\d+/g).map(Number), centre = (nn[0] + nn[10]) / 2;
+  const t = placer(texteInventaire, centre - texteInventaire.boite / 2);
+  const ancienTexte = trouverTexte(svg).d, nouveauTexte = serialiser(t.sous);
+  svg = svg.split(ancienTexte).join(nouveauTexte);
+  svg = svg.split(u.d).join(souligner(u.d, t.xg, t.xd));
+  svg = renommer(svg, P, `fa-selecteur-bouton-inventaire${suffixe}-`, `Forge Armory — bouton Inventaire${suffixe ? " (sélectionné)" : ""}`, "Coffre d'argent à serrure cyan dans un cercle, cristaux cyan en haut et en bas ; plaque avec le titre INVENTAIRE, soulignage et étoile.");
+  ecrire(`selecteur/bouton-inventaire${suffixe}.svg`, svg);
 }
 
 // ============ 5. TITRE « SOLO SANS MOURIR » (famille des titres : sans cristaux, sans lueur ; plaque COMPACTE) ============

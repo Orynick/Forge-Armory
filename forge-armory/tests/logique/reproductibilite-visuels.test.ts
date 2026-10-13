@@ -22,14 +22,21 @@ fs.cpSync(path.join(racine, "scripts"), path.join(tmp, "scripts"), { recursive: 
 const r1 = spawnSync("node", ["scripts/retoucher-visuels.mjs"], { cwd: tmp, encoding: "utf-8" });
 const r2 = spawnSync("node", ["scripts/retoucher-visuels.mjs"], { cwd: tmp, encoding: "utf-8" });
 const reconstruit = lister(path.join(tmp, "public/assets")), livre = lister(path.join(racine, "public/assets"));
-const forge = FORGE_ASSETS_COMPLEMENT.filter((a) => /(^selecteur\.forge\.|^icones\.forge$)/.test(a.id)).map((a) => a.fichier.replace(/^assets\//, ""));
+// FR : ⚠️ CHANGÉ (13/10/2026, v0.4.3) - les fichiers qui ne viennent pas de l'archive sont ceux de l'onglet Forge (bouton repos, bouton sélectionné, icône) ET les deux boutons « Inventaire » (option 2 choisie par l'utilisateur) : tous fabriqués par `scripts/generer-propositions-solo-forge.mjs`. EN: files not from the archive: the Forge ones and the two Inventory buttons.
+const forge = FORGE_ASSETS_COMPLEMENT.filter((a) => /(^selecteur\.forge\.|^icones\.forge$|^selecteur\.inventaire\.)/.test(a.id)).map((a) => a.fichier.replace(/^assets\//, ""));
 ok("le script de retouche s'exécute sans erreur depuis l'archive de référence", r1.status === 0 && /retouche\(s\) appliquée\(s\)/.test(r1.stdout), r1.stderr || r1.stdout.slice(-200));
 ok("IDEMPOTENT : une seconde exécution ne change plus rien", r2.status === 0 && /\b0 retouche\(s\) appliquée\(s\)/.test(r2.stdout), r2.stdout.slice(-200));
-ok(`les fichiers de public/assets qui ne viennent PAS de l'archive sont exactement ceux de l'onglet Forge (${forge.length} : bouton repos, bouton sélectionné, icône) : ${forge.join(", ")}`, forge.length === 3 && JSON.stringify(livre.filter((f) => !reconstruit.includes(f))) === JSON.stringify([...forge].sort()), livre.filter((f) => !reconstruit.includes(f)));
+ok(`les fichiers de public/assets qui ne viennent PAS de l'archive sont exactement ceux de l'onglet Forge et du bouton Inventaire (${forge.length} : ${forge.join(", ")})`, forge.length === 5 && JSON.stringify(livre.filter((f) => !reconstruit.includes(f))) === JSON.stringify([...forge].sort()), livre.filter((f) => !reconstruit.includes(f)));
 ok("la reconstruction ne produit AUCUN fichier absent de public/assets (rien n'a été oublié lors de l'intégration)", reconstruit.every((f) => livre.includes(f)), reconstruit.filter((f) => !livre.includes(f)));
 const differents = reconstruit.filter((f) => livre.includes(f) && hash(path.join(tmp, "public/assets", f)) !== hash(path.join(racine, "public/assets", f)));
 ok(`REPRODUCTIBLE : les ${reconstruit.length} fichiers reconstruits depuis l'archive de référence sont identiques OCTET POUR OCTET à ceux de public/assets`, differents.length === 0, differents);
 const v = spawnSync("node", ["scripts/retoucher-visuels.mjs", "--verifier"], { cwd: racine, encoding: "utf-8" });
 ok("`node scripts/retoucher-visuels.mjs --verifier` sur le projet lui-même : aucune retouche ne manque", v.status === 0 && /\b0 retouche\(s\) manquante\(s\)/.test(v.stdout), v.stdout.slice(-200));
+// FR : le GÉNÉRATEUR doit redonner, octet pour octet, les cinq fichiers fabriqués (il lit les boutons et icônes déjà livrés, comme modèles). EN: the generator must reproduce the five fabricated files byte for byte.
+const sortieGen = path.join(tmp, "generes");
+const g = spawnSync("node", ["scripts/generer-propositions-solo-forge.mjs", "--sortie", sortieGen], { cwd: racine, encoding: "utf-8" });
+const fabriques = [...forge];
+const ecartsGen = fabriques.filter((f) => !fs.existsSync(path.join(sortieGen, f)) || hash(path.join(sortieGen, f)) !== hash(path.join(racine, "public/assets", f)));
+ok(`le générateur (scripts/generer-propositions-solo-forge.mjs) redonne OCTET POUR OCTET les ${fabriques.length} fichiers qu'il fabrique (boutons Forge et Inventaire, icône Forge)`, g.status === 0 && ecartsGen.length === 0, ecartsGen.length ? ecartsGen : g.stderr.slice(-300));
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`); process.exit(res.every(Boolean) ? 0 : 1);

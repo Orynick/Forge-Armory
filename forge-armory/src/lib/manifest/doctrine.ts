@@ -1053,6 +1053,11 @@ export interface ColonneOptionsArme {
   options: OptionSocket[];
   /** FR : true si identifié comme un mod d'arme générique connu (via son nom précis, pas une catégorie large) - à afficher à part, en bas, plutôt que masqué. / EN: true if identified as a known generic weapon mod (via its precise name, not a broad category) - to display separately, at the bottom, rather than hidden. */
   estModConnu?: boolean;
+  /**
+   * FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - présent UNIQUEMENT quand l'appelant a demandé les colonnes habituellement masquées (`inclureMasquees`, interrupteur « Afficher les perks inutiles » de la Forge) : « cosmetique » (souvenir, suivi, compte-frags, palier, effet visuel festif) ou « ornement ».
+   * Par défaut ces colonnes ne sont jamais renvoyées et ce champ n'existe pas : la popup Détails est inchangée. / EN: ⚠️ ADDED - set only when hidden columns were requested.
+   */
+  masquee?: "cosmetique" | "ornement";
 }
 
 // FR : ⚠️ AJOUT (03/08/2026, v4) - suite à la régression du filtrage par
@@ -1225,7 +1230,10 @@ const MOTS_OPTION_COSMETIQUE = ["palier", "compte-frags", "compte frags", "souve
 export function obtenirOptionsToutesColonnes(
   db: Database,
   itemHash: number,
-  hashesEquipes: number[] = []
+  hashesEquipes: number[] = [],
+  // FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - `inclureMasquees` : renvoie AUSSI les colonnes cosmétiques / d'ornement normalement masquées, marquées `masquee` (interrupteur « Afficher les perks inutiles » de la Forge). Par défaut (absent) le comportement est strictement celui d'avant : vérifié par un instantané (`tests/logique/instantanes/colonnes-arme.json`).
+  // EN: ⚠️ ADDED - `inclureMasquees` also returns the normally hidden cosmetic/ornament columns, flagged `masquee`. Default behaviour unchanged (snapshot-tested).
+  reglages: { inclureMasquees?: boolean } = {}
 ): ColonneOptionsArme[] {
   const def = obtenirDefinition<DestinyItemDefinition>(db, "DestinyInventoryItemDefinition", itemHash);
   if (!def?.sockets?.socketEntries) return [];
@@ -1360,7 +1368,11 @@ export function obtenirOptionsToutesColonnes(
       const d = normaliser(opt.description);
       return d.includes("ornement d'arme") || d.includes("weapon ornament");
     });
-    if (options.length === 0 || toutesCosmetiques || estOrnement) return;
+    if (options.length === 0) return;
+    if (toutesCosmetiques || estOrnement) {
+      if (reglages.inclureMasquees) colonnes.push({ socketIndex, options, estModConnu: false, masquee: estOrnement ? "ornement" : "cosmetique" });   // ⚠️ v0.4.3 : seulement à la demande
+      return;
+    }
 
     // FR : identifie (sans masquer) les mods génériques connus.
     const estModConnu = options.some((opt) => MOTS_MOD_CONNU.some((m) => normaliser(opt.nom).includes(m)));

@@ -1,21 +1,24 @@
 # Forge Armory — visuels à intégrer dans l'appli (Destiny 2 Build Analyzer)
 
-62 SVG prêts à l'emploi, fond transparent, aucune police à charger. Détails, dimensions et catalogue : `docs/charte-graphique.html`.
+65 SVG prêts à l'emploi, fond transparent, aucune police à charger. Détails, dimensions et catalogue : `docs/charte-graphique.html`.
 
 ## Structure
 ```
 assets/
-  selecteur/          6  Build Analyzer, Bibliothèque, Load-outs × repos / sélectionné      viewBox 4316 × 1024
+  selecteur/          8  Build Analyzer, Legendarium, Load-outs, Collection × repos / sélectionné  viewBox 4316 × 1024
   profils/            8  Neutre, PvE Roaming, PvE DPS, PVP × repos / sélectionné            viewBox 3781 × 1024
   blocs-repliables/  14  7 blocs × replié / déplié (losange + / −)                          viewBox 7805 × 1024
   titres/             8  contexte (0. + ligne), cartes 1 à 5, score global — repos          viewBox 7505 × 1024
-  icones/            21  cercle + symbole seuls (barres réduites, onglets, export infographique)  viewBox 1024 × 1024
+  icones/            22  cercle + symbole seuls (barres réduites, onglets, export infographique)  viewBox 1024 × 1024
   symboles/           4  symboles des profils vectorisés, sans cercle
   marque/             1  emblème Forge Armory
 manifest.json         catalogue de tous les actifs (id, libellé, état, fichier, dimensions, ratio)
 forgeAssets.ts        même catalogue typé pour le code de l'appli
 docs/charte-graphique.html
 ```
+
+## Bouton « Collection » (sous-menu de l'onglet Forge)
+`selecteur.collection.repos` / `selecteur.collection.selectionne` : même cadre, mêmes cristaux et même lueur que les autres boutons du sélecteur (livre ouvert, dos cyan). Icône seule : `icones.collection`.
 
 ## Logos « Armes » et « Armures » (export infographique)
 Trois logos, à afficher **au minimum** dans l'export infographique :
@@ -25,7 +28,7 @@ Trois logos, à afficher **au minimum** dans l'export infographique :
 Hauteur minimale conseillée : 32 px (lisibles) ; à 24 px les détails fins se brouillent.
 
 ## Identifiants (`manifest.json`)
-`<famille>.<clé>[.<état>]`, par exemple `selecteur.bibliotheque.selectionne`, `profils.pvp.repos`, `blocs-repliables.mon-build.deplie`, `titres.3-armes-armures.repos`, `icones.armes`.
+`<famille>.<clé>[.<état>]`, par exemple `selecteur.legendarium.selectionne`, `profils.pvp.repos`, `blocs-repliables.mon-build.deplie`, `titres.3-armes-armures.repos`, `icones.armes`.
 Chaque entrée donne : `label` (texte du titre, à réutiliser en `alt` / `aria-label`), `fichier`, `largeur`, `hauteur`, `ratio`, `hauteurMinPx`.
 
 ## Règles d'intégration
@@ -48,7 +51,7 @@ function ForgeBouton({ id, hauteur = 44, onClick }: { id: string; hauteur?: numb
     </button>
   );
 }
-// <ForgeBouton id="selecteur.bibliotheque.selectionne" />
+// <ForgeBouton id="selecteur.legendarium.selectionne" />
 // <ForgeBouton id={ouvert ? 'blocs-repliables.mon-build.deplie' : 'blocs-repliables.mon-build.replie'} />
 ```
 Adapter le chemin (`/${a.fichier}`) à la façon dont l'appli sert ses fichiers statiques (dossier `public`, import du bundler, etc.).

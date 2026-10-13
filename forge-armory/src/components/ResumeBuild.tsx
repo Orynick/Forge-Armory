@@ -11,6 +11,7 @@
 // selectable + what's selected + the effects) below, and the entry point
 // of the ONLY button that REALLY touches your account: "Equip".
 
+import { ordonnerColonnesPourAffichage, libelleColonne } from "../lib/manifest/colonnesArme";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : règles de tri et d'étiquette partagées avec la Forge
 import TitreRepliable from "./TitreRepliable";
 import PastilleContexte, { ECHELLE_CONTEXTE_RANGEE } from "./PastilleContexte";
 import { LIBELLES_CONTEXTE, ORDRE_CONTEXTES } from "./icones/BadgeContexte";
@@ -503,12 +504,10 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
               {estArme && colonnesDetails.length === 0 && (
                 <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucune option trouvée pour cette arme.</p>
               )}
-              {[...colonnesDetails]
-                .sort((a, b) => (a.estModConnu ? 1 : 0) - (b.estModConnu ? 1 : 0))
-                .map((col) => (
+              {ordonnerColonnesPourAffichage(colonnesDetails).map((col) => (
                 <div key={col.socketIndex} style={{ marginBottom: "0.6rem" }}>
                   <strong style={{ fontSize: "0.75rem", color: "#7d7a70" }}>
-                    {col.estModConnu ? "Mods utilisables" : `Colonne ${col.socketIndex + 1}`}
+                    {libelleColonne(col)}
                   </strong>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.25rem" }}>
                     {col.options.map((opt) => (

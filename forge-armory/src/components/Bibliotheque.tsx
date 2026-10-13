@@ -1,3 +1,4 @@
+// FR : ⚠️ CHANGÉ (13/10/2026, v0.4.4) : cette page s'appelle maintenant « LEGENDARIUM » (ancienne « Bibliothèque », demande de l'utilisateur) ; le fichier et l'identifiant interne gardent l'ancien nom.
 // FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - Bibliothèque, outil annexe de
 // consultation du lore (demande de l'utilisateur). Étape 1 : la page existe
 // et s'affiche via le sélecteur placé sous le bloc Connexion ; son contenu
@@ -28,7 +29,7 @@ export default function Bibliotheque({ db }: Props) {
   return (
     <div className="pilier-carte">
       <h3>
-        <span>Bibliothèque</span>
+        <span>Legendarium</span>   {/* ⚠️ CHANGÉ (13/10/2026, v0.4.4) : s'appelait « Bibliothèque » */}
         <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "#7d7a70" }}>en construction</span>
       </h3>
       <p style={{ margin: "0 0 0.5rem", fontSize: "0.9rem", maxWidth: "65ch" }}>
@@ -37,7 +38,7 @@ export default function Bibliotheque({ db }: Props) {
       </p>
       <p style={{ margin: 0, fontSize: "0.8rem", color: db ? "#7fd88f" : "#e0c080" }}>
         {db
-          ? "✅ Manifest chargé : la Bibliothèque aura tout ce qu'il lui faut."
+          ? "✅ Manifest chargé : le Legendarium aura tout ce qu'il lui faut."
           : "⚠️ Manifest pas encore chargé. Chargez-le depuis Build Analyzer, dans le bloc « Recherche dans le Manifest »."}
       </p>
     </div>

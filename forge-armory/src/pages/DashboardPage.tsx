@@ -488,7 +488,7 @@ export default function DashboardPage() {
       {/* FR : ⚠️ CHANGÉ (06/10/2026, v0.3.5) - NOUVEAUX BOUTONS (fournis par l'utilisateur) et troisième vue « Load-outs » : voir components/SelecteurVues.tsx. / EN: ⚠️ CHANGED - NEW BUTTONS and a third view. */}
       <SelecteurVues vue={vue} onChanger={setVue} />
 
-      {vue === "forge" && <PageForge db={db} />}
+      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
       {vue === "bibliotheque" && <Bibliotheque db={db} />}
 
       {/* FR : ⚠️ AJOUT (06/10/2026, v0.3.5) - vue « Load-outs » : le MÊME panneau que le tiroir, en pleine page (mode « page »). Le tiroir, lui, est masqué avec la vue Build Analyzer (qui reste montée) : les deux se tiennent

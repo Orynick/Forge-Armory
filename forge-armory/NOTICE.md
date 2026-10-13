@@ -236,7 +236,7 @@ npm run electron:dev   (fenêtre 2)
 |---|---|
 | Blocs repliables (Inventaire, Doctrine, Mon Build, Artefact, Partage) | ✅ Fonctionnel |
 | Connexion Bungie (OAuth, profil, inventaire, coffre) | ✅ Fonctionnel |
-| Manifest (téléchargement, recherche bilingue, cache d'instance) | ✅ Fonctionnel — rechargé automatiquement au démarrage s'il est déjà en cache et à jour |
+| Manifest (téléchargement, recherche bilingue, cache d'instance) | ✅ Fonctionnel — rechargé automatiquement au démarrage ; si Bungie publie une nouvelle version, elle est **téléchargée automatiquement** (seulement dans ce cas ; le tout premier téléchargement reste un clic) |
 | Doctrine — sous-classes, aspects, fragments, capacité réelle en fragments | ✅ Fonctionnel |
 | Mon Inventaire / Coffre — filtres, recherche, doublons, popup Détails | ✅ Fonctionnel |
 | Icônes (classes, armures, 18 types d'armes, activités, éléments) | ✅ Fonctionnel |
@@ -255,7 +255,8 @@ npm run electron:dev   (fenêtre 2)
 | Bouton **« Aller à »** (recherche du Manifest → Mon Inventaire, filtré sur l'objet) | ✅ Fonctionnel |
 | Export infographique : logos de section, icônes de classe, d'élément et de contexte | ✅ Fonctionnel — logos de section : Doctrine, Armes, Armure, Artefact |
 | Bouton **« Transférer vers »** (Mon Inventaire et Coffre → personnages et Coffre) | ✅ Fonctionnel — objet équipé non transférable, confirmation, un transfert à la fois |
-| Onglet **Forge** (toutes les armes et armures, rolls de perks, mods) | 🔵 Onglet présent, contenu en préparation |
+| Onglet **Forge**, vue **Collection** (toutes les armes du jeu, leurs perks possibles, grisées si jamais obtenues) | ✅ Fonctionnel — consultation seule ; armures à venir |
+| Onglet **Forge**, vue **Inventaire** (choisir les perks actifs et le mod de vos armes) | 🔵 À venir (prochaine version) |
 
 ---
 
@@ -269,6 +270,16 @@ Dans **Mon Inventaire** et dans le **Coffre**, chaque objet a un bouton **Transf
 - une **armure** ne peut aller que chez un personnage de **sa classe** ou au Coffre ;
 - si la destination est pleine, Bungie refuse : l'appli l'explique et l'objet reste où il était (ou au Coffre si le transfert s'est arrêté à mi-chemin) ;
 - un bandeau en haut de « Mon Inventaire » dit ce qui s'est passé. En cas de doute, **Recharger mon inventaire** remet l'affichage d'accord avec le jeu.
+
+## La Forge : Collection des armes
+
+Chargez d'abord le Manifest (bloc « Recherche dans le Manifest » de Build Analyzer), puis ouvrez l'onglet **Forge** : la vue **Collection** liste les armes du jeu.
+
+- **Comme dans le jeu** : une arme que vous avez obtenue au moins une fois est en couleurs ; une arme que vous n'avez jamais eue est **grisée**. Cela demande d'être connecté à Bungie : sinon (ou si Bungie refuse la lecture), aucune arme n'est grisée et le bandeau en explique la raison.
+- **Filtres** : type d'arme, emplacement, rareté, élément, archétype, obtention, et recherche par nom (sans accents ni majuscules). « ✕ Réinitialiser les filtres » remet tout. Le menu **Source** propose par défaut les **Collections du jeu** ; « Hors Collections » montre les autres définitions d'armes (techniques, anciennes ou variantes), dont l'état « obtenue ou non » ne peut pas être connu : elles ne sont jamais grisées.
+- **Cliquez une arme** : une fenêtre montre toutes ses colonnes de perks possibles, avec les **mêmes règles que le bouton « Détails »** de Mon Inventaire, du Coffre et de Mon Build (les mods en bas, sous « Mods utilisables »). Consultation seule : rien n'est modifié.
+- **« Afficher les perks inutiles »** (désactivé par défaut) réaffiche les colonnes cosmétiques normalement masquées (souvenir, compte-frags, palier, ornement), marquées « inutile ».
+- La vue **Inventaire** (choisir les perks actifs et le mod de vos armes) arrive à la prochaine version.
 
 ## Comprendre le score
 

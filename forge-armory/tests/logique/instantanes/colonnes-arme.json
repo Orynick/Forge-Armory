@@ -1,0 +1,264 @@
+{
+ "5001:6102+6302": [
+  {
+   "socketIndex": 0,
+   "options": [
+    {
+     "hash": 6001,
+     "nom": "Armature adaptative",
+     "description": "",
+     "icone": "https://www.bungie.net/icons/Armature-adaptative.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": false
+  },
+  {
+   "socketIndex": 1,
+   "options": [
+    {
+     "hash": 6101,
+     "nom": "Canon A",
+     "description": "Un canon.",
+     "icone": "https://www.bungie.net/icons/Canon-A.png",
+     "equipeEnJeu": false
+    },
+    {
+     "hash": 6102,
+     "nom": "Canon B",
+     "description": "Un autre canon.",
+     "icone": "https://www.bungie.net/icons/Canon-B.png",
+     "equipeEnJeu": true
+    }
+   ],
+   "estModConnu": false
+  },
+  {
+   "socketIndex": 2,
+   "options": [
+    {
+     "hash": 6201,
+     "nom": "Chargeur A",
+     "description": "",
+     "icone": "https://www.bungie.net/icons/Chargeur-A.png",
+     "equipeEnJeu": false
+    },
+    {
+     "hash": 6202,
+     "nom": "Chargeur B",
+     "description": "",
+     "icone": "https://www.bungie.net/icons/Chargeur-B.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": false
+  },
+  {
+   "socketIndex": 3,
+   "options": [
+    {
+     "hash": 6301,
+     "nom": "Trait 1a",
+     "description": "Effet A.",
+     "icone": "https://www.bungie.net/icons/Trait-1a.png",
+     "equipeEnJeu": false
+    },
+    {
+     "hash": 6302,
+     "nom": "Trait 1b",
+     "description": "Effet B.",
+     "icone": "https://www.bungie.net/icons/Trait-1b.png",
+     "equipeEnJeu": true
+    },
+    {
+     "hash": 6303,
+     "nom": "Trait 1c",
+     "description": "Effet C.",
+     "icone": "https://www.bungie.net/icons/Trait-1c.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": false
+  },
+  {
+   "socketIndex": 5,
+   "options": [
+    {
+     "hash": 6601,
+     "nom": "Crosse de contrepoids",
+     "description": "Mod de crosse.",
+     "icone": "https://www.bungie.net/icons/Crosse-de-contrepoids.png",
+     "equipeEnJeu": false
+    },
+    {
+     "hash": 6602,
+     "nom": "Poignée de sprint",
+     "description": "Mod de poignée.",
+     "icone": "https://www.bungie.net/icons/Poign-e-de-sprint.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": true
+  }
+ ],
+ "5001:": [
+  {
+   "socketIndex": 0,
+   "options": [
+    {
+     "hash": 6001,
+     "nom": "Armature adaptative",
+     "description": "",
+     "icone": "https://www.bungie.net/icons/Armature-adaptative.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": false
+  },
+  {
+   "socketIndex": 1,
+   "options": [
+    {
+     "hash": 6101,
+     "nom": "Canon A",
+     "description": "Un canon.",
+     "icone": "https://www.bungie.net/icons/Canon-A.png",
+     "equipeEnJeu": false
+    },
+    {
+     "hash": 6102,
+     "nom": "Canon B",
+     "description": "Un autre canon.",
+     "icone": "https://www.bungie.net/icons/Canon-B.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": false
+  },
+  {
+   "socketIndex": 2,
+   "options": [
+    {
+     "hash": 6201,
+     "nom": "Chargeur A",
+     "description": "",
+     "icone": "https://www.bungie.net/icons/Chargeur-A.png",
+     "equipeEnJeu": false
+    },
+    {
+     "hash": 6202,
+     "nom": "Chargeur B",
+     "description": "",
+     "icone": "https://www.bungie.net/icons/Chargeur-B.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": false
+  },
+  {
+   "socketIndex": 3,
+   "options": [
+    {
+     "hash": 6301,
+     "nom": "Trait 1a",
+     "description": "Effet A.",
+     "icone": "https://www.bungie.net/icons/Trait-1a.png",
+     "equipeEnJeu": false
+    },
+    {
+     "hash": 6302,
+     "nom": "Trait 1b",
+     "description": "Effet B.",
+     "icone": "https://www.bungie.net/icons/Trait-1b.png",
+     "equipeEnJeu": false
+    },
+    {
+     "hash": 6303,
+     "nom": "Trait 1c",
+     "description": "Effet C.",
+     "icone": "https://www.bungie.net/icons/Trait-1c.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": false
+  },
+  {
+   "socketIndex": 5,
+   "options": [
+    {
+     "hash": 6601,
+     "nom": "Crosse de contrepoids",
+     "description": "Mod de crosse.",
+     "icone": "https://www.bungie.net/icons/Crosse-de-contrepoids.png",
+     "equipeEnJeu": false
+    },
+    {
+     "hash": 6602,
+     "nom": "Poignée de sprint",
+     "description": "Mod de poignée.",
+     "icone": "https://www.bungie.net/icons/Poign-e-de-sprint.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": true
+  }
+ ],
+ "5002:": [
+  {
+   "socketIndex": 0,
+   "options": [
+    {
+     "hash": 6003,
+     "nom": "Œil d'essai",
+     "description": "",
+     "icone": "https://www.bungie.net/icons/-il-d-essai.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": false
+  },
+  {
+   "socketIndex": 1,
+   "options": [
+    {
+     "hash": 6801,
+     "nom": "Perk exotique",
+     "description": "Effet exotique.",
+     "icone": "https://www.bungie.net/icons/Perk-exotique.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": false
+  }
+ ],
+ "5003:": [
+  {
+   "socketIndex": 0,
+   "options": [
+    {
+     "hash": 6001,
+     "nom": "Armature adaptative",
+     "description": "",
+     "icone": "https://www.bungie.net/icons/Armature-adaptative.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": false
+  },
+  {
+   "socketIndex": 1,
+   "options": [
+    {
+     "hash": 6101,
+     "nom": "Canon A",
+     "description": "Un canon.",
+     "icone": "https://www.bungie.net/icons/Canon-A.png",
+     "equipeEnJeu": false
+    }
+   ],
+   "estModConnu": false
+  }
+ ],
+ "5004:": [],
+ "9999:": []
+}

@@ -4,15 +4,17 @@ import { createRoot } from "react-dom/client";
 import SelecteurInventaire, { CibleInventaire } from "../../src/components/SelecteurInventaire";
 import { hashVersIdSqlite } from "../../src/lib/manifest/download";
 import { installerFauxBungie } from "./faux/bungie";
+import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, T_OBJET } from "../logique/fixtures/fauxManifest";
 
 // Bungie : defaultDamageType Kinetic=1, Thermal(Solaire)=3 ; itemType Armor=2, Weapon=3
-const DEFS: Record<string, unknown> = {
-  [`DestinyInventoryItemDefinition:${hashVersIdSqlite(111)}`]: { itemType: 3, defaultDamageType: 3 },
-  [`DestinyInventoryItemDefinition:${hashVersIdSqlite(222)}`]: { itemType: 3, defaultDamageType: 1 },
-  [`DestinyInventoryItemDefinition:${hashVersIdSqlite(333)}`]: { itemType: 2, defaultDamageType: 0 },
-  [`DestinyInventoryItemDefinition:${hashVersIdSqlite(444)}`]: { itemType: 3, defaultDamageType: 1 },
-};
-const fausseDb = { prepare: (sql: string) => { const table = /FROM (\w+)/.exec(sql)?.[1] ?? ""; let id = 0; return { bind: (a: number[]) => { id = a[0]; }, step: () => `${table}:${id}` in DEFS, getAsObject: () => ({ json: JSON.stringify(DEFS[`${table}:${id}`]) }), free: () => {} }; }, exec: () => [] } as never;
+// ⚠️ v0.4.3 : fausse base COMMUNE (`fixtures/fauxManifest.ts`) ; l'arme 111 reçoit les colonnes (armature, canons, chargeurs, traits, souvenir, mods connus, compte-frags) de l'arme d'essai 5001 pour vérifier la popup « Détails » (non-régression du tri des colonnes).
+const defsBase = ajouterArmeModPrecoce(manifestArmesDeTest());
+const objets = defsBase[T_OBJET] as Record<number, Record<string, unknown>>;
+objets[111] = { ...objets[5001], itemType: 3, defaultDamageType: 3 };
+objets[222] = { ...objets[5008], itemType: 3, defaultDamageType: 1 };   // « Arme B » : mods en prise 1, avant des colonnes de perks (popup Détails : ordre à vérifier)
+objets[333] = { itemType: 2, defaultDamageType: 0 };
+objets[444] = { itemType: 3, defaultDamageType: 1 };
+const fausseDb = creerFausseDb(defsBase).db as never;
 
 function Hote() {
   const [cible, setCible] = useState<CibleInventaire | null>(null);
