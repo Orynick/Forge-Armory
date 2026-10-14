@@ -301,7 +301,7 @@ Dans l'onglet **Forge**, la vue **Inventaire** montre **vos** armes (personnages
 
 ### Icône de saison
 
-- Les **armes** et les **armures** portent l'**icône de leur saison** : en **haut à gauche de leur vignette** (comme en jeu) dans Mon Inventaire, le Coffre, Mon Build, la liste de la Forge et la Collection ; et **directement à droite du nom** dans les fenêtres **Détails** (Mon Inventaire, Coffre, Mon Build, Forge, Collection). Survolez l'icône d'une fenêtre pour lire le **nom de la saison** et son numéro.
+- Les **armes** et les **armures** portent l'**icône de leur saison** : en **haut à gauche de leur vignette**, à la **même taille que l'icône des armes façonnées**, dans Mon Inventaire, le Coffre, Mon Build, la liste de la Forge et la Collection ; et **directement à droite du nom** dans les fenêtres **Détails** (Mon Inventaire, Coffre, Mon Build, Forge, Collection). Survolez l'icône d'une fenêtre : elle donne le **nom de la saison** et son numéro quand le Manifest les fournit, sinon « Saison de l'objet » (cas de beaucoup d'armes : le Manifest ne donne pas toujours le nom).
 - L'image vient du **Manifest** de Bungie, donc les saisons futures apparaissent toutes seules. Un objet qui n'a pas de saison dans le Manifest (anciens objets, certaines exotiques) n'a pas d'icône. Les images, textes et PDF exportés n'affichent pas la saison.
 
 ### Le score tient compte de vos perks simulés

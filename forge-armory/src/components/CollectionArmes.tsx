@@ -2,7 +2,7 @@
 // Liste filtrable (type, emplacement, rareté, élément, archétype, source, obtention) avec recherche par nom ; clic sur une arme : fenêtre avec ses colonnes de perks possibles, SANS sélection. Les colonnes utilisent la MÊME fonction et les MÊMES règles d'ordre et d'étiquette que la popup « Détails » (`obtenirOptionsToutesColonnes`, `colonnesArme.ts`).
 // L'interrupteur « Afficher les perks inutiles » (désactivé par défaut) réaffiche les colonnes cosmétiques normalement masquées, marquées « inutile ». Si les collections ne peuvent pas être lues, AUCUNE arme n'est grisée (pas de faux « jamais obtenue ») et la raison est affichée. Une arme hors des Collections du jeu n'a pas d'état : elle reste en couleurs.
 // Liste affichée par pages de 60 (le catalogue en compte des milliers). EN: ⚠️ ADDED - Forge "Collection" view for weapons: colours if ever obtained, greyed if never, filters, search, perk columns with the same logic as the Details popup, and a "show useless perks" switch.
-import FiligraneSaison from "./FiligraneSaison";
+import BadgeSaison from "./BadgeSaison";
 import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import { useEffect, useMemo, useState } from "react";
 import type { Database } from "sql.js";
@@ -108,7 +108,7 @@ export default function CollectionArmes({ db, membership }: Props) {
                 {/* FR : ⚠️ CHANGÉ (14/10/2026, v0.4.11) - la vignette est enveloppée pour recevoir le FILIGRANE DE SAISON en haut à gauche (comme en jeu). / EN: thumbnail wrapped to receive the season watermark. */}
                   <span style={{ position: "relative", display: "block", width: 44, height: 44, flexShrink: 0 }}>
                     {a.icone ? <img src={a.icone} alt="" width={44} height={44} style={{ borderRadius: 4, display: "block", border: `1px solid ${couleurRarete(a)}` }} /> : <span style={{ display: "block", width: 44, height: 44 }} />}
-                    {a.icone && <FiligraneSaison db={db} itemHash={a.hash} taille={44} />}
+                    {a.icone && <BadgeSaison db={db} itemHash={a.hash} taille={44} />}
                   </span>
                 <span style={{ minWidth: 0 }}>
                   <strong style={{ display: "block", fontSize: "0.85rem" }}>{a.nom}</strong>
