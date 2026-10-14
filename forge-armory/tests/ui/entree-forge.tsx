@@ -1,5 +1,9 @@
 // FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - page de test du VRAI composant `PageForge` (vue Collection des armes) avec un faux Manifest d'armes (`tests/logique/fixtures/fauxManifest.ts`) et une fausse API Bungie pour les collections. Variantes par l'adresse : `?modPrecoce` (une arme dont les mods précèdent des colonnes de perks), `?collections=erreur` (Bungie refuse), `?sansCompte` (non connecté), `?sansManifest` (Manifest non chargé), `?beaucoup` (130 armes en plus, pour la pagination).
 import { createRoot } from "react-dom/client";
+import { useState } from "react";
+import { useSimulations } from "../../src/lib/forge/storeSimulations";
+import { appliquerSimulations, nbArmesSimulees } from "../../src/lib/forge/appliquerSimulation";
+import { demoBuild } from "../../src/data/demoBuild";
 import PageForge from "../../src/components/PageForge";
 import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeRevisionAPaliers, T_OBJET } from "../logique/fixtures/fauxManifest";
 
@@ -33,7 +37,26 @@ if (params.has("inventaire")) {
   ];
 }
 const membership = params.has("sansCompte") ? null : { membershipId: "1", membershipType: 3, displayName: "Test#1234" };
-createRoot(document.getElementById("racine")!).render(
-  <div className="app-shell"><PageForge db={params.has("sansManifest") ? null : db} membership={membership} /></div>
-);
+// FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - avec `?inventaire` : (1) un ESPION joue le rôle de la page principale : il lit le MÊME magasin de simulations (`useSimulations`) et applique la simulation à un build qui contient « Fusil à paliers » ; il montre combien d'armes sont simulées et les perks qui seraient comptés dans le score : si l'espion réagit au clic dans la Forge, le score réagit aussi ; (2) `onAjouterAuBuild` / `idsDansBuild` / `onRetour` sont fournis et notés (`window.__ajoutsBuild`, `window.__retours`) ; (3) `?cible=1` : la page arrive comme depuis un bouton « Forge » (arme w1 à ouvrir). / EN: ⚠️ ADDED - spy component reading the same simulation store, and callbacks for the Build/return buttons.
+const w1 = ((window as unknown as { __piecesForge?: Record<string, unknown>[] }).__piecesForge ?? [])[0];
+function Espion() {
+  const simulations = useSimulations();
+  const b = appliquerSimulations({ ...structuredClone(demoBuild), armes: [w1 as never] }, simulations);
+  return <p data-espion="" data-simulees={nbArmesSimulees(b)} data-hashes={b.armes[0].perkHashes.join(",")} style={{ fontSize: "0.7rem" }}>espion : {nbArmesSimulees(b)} arme(s) simulée(s)</p>;
+}
+function Hote() {
+  const inventaire = params.has("inventaire");
+  const [ids, setIds] = useState<Set<string>>(new Set());
+  const [cible, setCible] = useState<{ piece: never; origine: "analyseur"; demande: number } | null>(params.has("cible") ? { piece: w1 as never, origine: "analyseur", demande: 1 } : null);
+  const w = window as unknown as { __ajoutsBuild: string[]; __retours: number };
+  w.__ajoutsBuild = w.__ajoutsBuild ?? []; w.__retours = w.__retours ?? 0;
+  return (
+    <div className="app-shell">
+      <PageForge db={params.has("sansManifest") ? null : db} membership={membership}
+        {...(inventaire ? { cible, onRetour: () => { w.__retours++; setCible(null); }, onAjouterAuBuild: (p: { itemInstanceId?: string }) => { w.__ajoutsBuild.push(p.itemInstanceId ?? "?"); setIds((x) => new Set([...x, p.itemInstanceId ?? "?"])); }, idsDansBuild: ids } : {})} />
+      {inventaire && <Espion />}
+    </div>
+  );
+}
+createRoot(document.getElementById("racine")!).render(<Hote />);
 (window as unknown as { __pret: boolean }).__pret = true;

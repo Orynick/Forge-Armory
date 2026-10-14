@@ -15,6 +15,7 @@
 // module builds the sheet DATA once; both the display and the text version
 // read the same result, so they can never diverge. Nothing new is stored.
 
+import { buildExportable } from "./pieceExportable";   // ⚠️ AJOUT (14/10/2026, v0.4.9)
 import { Database } from "sql.js";
 import { DamageElement, GearPiece, SlotArme, SlotArmure, StatKey } from "../../types/build";
 import { Loadout, nettoyerAuteur } from "./stockage";
@@ -296,7 +297,8 @@ function regrouperBonusSets(actifs: ReturnType<typeof obtenirBonusSetsActifs>): 
  * EN: builds the sheet. Stats should already be refreshed by the caller.
  */
 export function construireFiche(loadout: Loadout, db: Database | null): FicheBuild {
-  const b = loadout.build;
+  // FR : ⚠️ CHANGÉ (14/10/2026, v0.4.9) - la fiche (image, texte, PDF) montre UNIQUEMENT les perks SÉLECTIONNÉS et RÉELS, armes et armures : `buildExportable` remet les perks réels si une copie « avec simulation » arrivait ici. / EN: ⚠️ CHANGED - the sheet only shows selected, real perks.
+  const b = buildExportable(loadout.build);
   const sc = b.subclass;
 
   const doctrineElement = (hash: number): ElementFiche | undefined => {

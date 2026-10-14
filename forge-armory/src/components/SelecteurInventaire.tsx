@@ -91,6 +91,8 @@ interface Props {
   onAjouterObjet: (piece: GearPiece) => void;
   /** FR : remonte la liste des objets possédés au parent (utilisée par le panneau Loadouts pour repérer les pièces démantelées). Optionnel : le composant reste utilisable sans. / EN: lifts the owned items list to the parent (used by the Loadouts panel to spot dismantled pieces). Optional: the component stays usable without it. */
   onObjetsCharges?: (objets: GearPiece[] | null) => void;
+  /** FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - bouton « Forge » de la fenêtre Détails d'une ARME possédée : envoie l'arme à la vue Inventaire de la Forge (absent : pas de bouton). / EN: ⚠️ ADDED - "Forge" button of a weapon's Details window. */
+  onOuvrirForge?: (piece: GearPiece) => void;
   /** FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - voir `CibleInventaire`. `onEffacerCible` retire le filtre (bouton du bandeau, ou « Réinitialiser les filtres »). / EN: see CibleInventaire. */
   cible?: CibleInventaire | null;
   onEffacerCible?: () => void;
@@ -228,6 +230,7 @@ function LigneObjet({
   onAjouterObjet,
   onTransferer,
   transfertBloque = false,
+  onOuvrirForge,
 }: {
   piece: GearPiece;
   db: Database;
@@ -237,6 +240,8 @@ function LigneObjet({
   /** FR : ⚠️ AJOUT (12/10/2026, v0.4.2) - « Transférer vers » (absent : pas de bouton) ; `transfertBloque` : un transfert est en cours (un seul à la fois). / EN: ⚠️ ADDED - "Transfer to" (absent: no button); `transfertBloque`: a transfer is running. */
   onTransferer?: (p: GearPiece, cible: Lieu) => Promise<void>;
   transfertBloque?: boolean;
+  /** FR : ⚠️ AJOUT (v0.4.9) - bouton « Forge » de la fenêtre Détails (armes possédées seulement). / EN: Forge button of the Details window. */
+  onOuvrirForge?: (p: GearPiece) => void;
 }) {
   // FR : ⚠️ AJOUT (03/08/2026) - panneau "Détails" dépliable, pour l'instant
   // limité aux armes (demande explicite de l'utilisateur) : montre le roll
@@ -503,6 +508,12 @@ function LigneObjet({
                 <div style={{ fontSize: "0.8rem", color: "#7d7a70" }}>
                   {obtenirSource(db, piece.itemHash) ?? "Source inconnue"}
                 </div>
+                {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - BOUTON « FORGE » (spécification du 12/10/2026, §1 : « dans la vue de détails, un bouton supplémentaire permet de rejoindre la Forge ») : envoie cette arme possédée à la vue Inventaire de la Forge, qui s'ouvre dessus ; un bouton « Retour » ramène ici, avec cette fenêtre telle qu'on l'a laissée. Armes possédées seulement. / EN: ⚠️ ADDED - Forge button in the Details window (owned weapons only). */}
+                {onOuvrirForge && estArme && piece.itemInstanceId && (
+                  <button data-ouvrir-forge="" onClick={() => onOuvrirForge(piece)} style={{ fontSize: "0.75rem", marginTop: "0.4rem", padding: "0.15rem 0.5rem" }}>
+                    🔨 Forge : choisir les perks de cette arme
+                  </button>
+                )}
                 {/* FR : ⚠️ AJOUT (04/08/2026) - diagnostic anti-champion,
                 mode développement uniquement. À déplier sur une arme qui
                 NE détecte rien (Mille Voix) ET sur une qui fonctionne
@@ -650,7 +661,7 @@ function trierEtGrouperAvecVides(pieces: GearPiece[]): Array<{ slot: SlotArme | 
   return ORDRE_SLOTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) }));
 }
 
-export default function SelecteurInventaire({ membership, db, onAjouterObjet, onObjetsCharges, cible, onEffacerCible }: Props) {
+export default function SelecteurInventaire({ membership, db, onAjouterObjet, onObjetsCharges, cible, onEffacerCible, onOuvrirForge }: Props) {
   const [objets, setObjets] = useState<GearPiece[] | null>(null);
   // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - « Aller à » : à chaque demande, on ouvre le bloc s'il est replié puis on l'amène à l'écran. Petit délai pour que la page ait fini de se réorganiser (sections ouvertes) avant le défilement. / EN: open the block and scroll to it.
   const refBloc = useRef<HTMLDetailsElement>(null);
@@ -1147,7 +1158,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           ) : (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                               {g.items.map((p) => (
-                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} />
+                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} />
                               ))}
                             </ul>
                           )}
@@ -1166,7 +1177,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           ) : (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                               {g.items.map((p) => (
-                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} />
+                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} />
                               ))}
                             </ul>
                           )}
@@ -1321,7 +1332,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                       }}
                     >
                       {g.items.map((p) => (
-                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} />
+                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} />
                       ))}
                     </ul>
                   </details>
@@ -1365,7 +1376,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           }}
                         >
                           {g.items.map((p) => (
-                            <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} afficherStats onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} />
+                            <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} afficherStats onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} />
                           ))}
                         </ul>
                       </div>

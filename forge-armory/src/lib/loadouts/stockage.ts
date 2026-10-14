@@ -24,6 +24,7 @@
 // BuildDraft is stored (weapons, armor, full subclass, artifact), per the
 // user's explicit request.
 
+import { buildExportable } from "./pieceExportable";   // ⚠️ AJOUT (14/10/2026, v0.4.9)
 import { BuildDraft, GearPiece } from "../../types/build";
 
 const CLE_STOCKAGE = "d2-build-analyzer.loadouts.v1";
@@ -187,7 +188,8 @@ export function construireLoadout(nom: string, build: BuildDraft, description = 
     enregistreLe: new Date().toISOString(),
     // FR : ⚠️ AJOUT (06/10/2026) - pseudo de l'auteur, figé comme classe et élément ; absent (`undefined`, donc non écrit dans le JSON) si l'on n'est pas connecté.
     auteur: nettoyerAuteur(auteur),
-    build: structuredClone(build),
+    // FR : ⚠️ CHANGÉ (14/10/2026, v0.4.9) - `buildExportable` : ni la liste des perks DISPONIBLES mais non sélectionnés, ni un perk simulé ne sont enregistrés (demande de l'utilisateur : seuls les perks sélectionnés, réels). / EN: ⚠️ CHANGED - only selected, real perks are saved.
+    build: structuredClone(buildExportable(build)),
   };
 }
 
@@ -404,7 +406,8 @@ export function repererEtSauvegarder(
 
 /** FR : export JSON, pour sauvegarder les loadouts hors du navigateur. / EN: JSON export, to back up loadouts outside the browser. */
 export function exporterLoadouts(): string {
-  return JSON.stringify(listerLoadouts(), null, 2);
+  // FR : ⚠️ CHANGÉ (14/10/2026, v0.4.9) - nettoie aussi les builds enregistrés AVANT cette version (qui contiennent la liste des perks non sélectionnés). / EN: also cleans builds saved before this version.
+  return JSON.stringify(listerLoadouts().map((l) => ({ ...l, build: buildExportable(l.build) })), null, 2);
 }
 
 /**
@@ -446,6 +449,8 @@ export function serialiserUnLoadout(loadout: Loadout): { contenu: string; nomFic
   const { ordre, stockeEnJeu, ...partage } = loadout;
   void ordre;
   void stockeEnJeu;
+  // FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - le fichier d'échange ne contient que les perks SÉLECTIONNÉS (réels), même pour un build enregistré avant cette version. / EN: ⚠️ ADDED - the exchange file only holds the selected, real perks.
+  partage.build = buildExportable(partage.build);
   return {
     contenu: JSON.stringify([partage], null, 2),
     nomFichier: `build-d2-${nomFichierPropre(loadout.nom)}.json`,

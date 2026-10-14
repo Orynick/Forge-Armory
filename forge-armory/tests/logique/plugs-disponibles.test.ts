@@ -27,6 +27,26 @@ ok("PAIRE : disponible si l'UNE des deux versions l'est (base OU version amélio
 ok("CAS RÉALISTE : un perk simulé que l'utilisateur équipe ENSUITE pour de bon est à la fois réel et choisi : le niveau reste « simule » (priorité documentée : simulé, puis réel, puis disponible, puis possible) ; le ✓ du roll réel reste affiché par l'interface, car il vient du roll et non du niveau", niveauDePerk(item(6901, true), 1, dispo, { choisi: 6901, effectif: 6901 }) === "simule");
 ok("DONNÉE NON LUE (disponibilités absentes) : « inconnu », jamais « possible » : on n'affirme rien et on ne grise rien ; le roll réel et le simulé restent reconnus", niveauDePerk(item(6903), 1, undefined) === "inconnu" && niveauDePerk(item(6901, true), 1, undefined) === "reel" && niveauDePerk(item(6903), 1, undefined, { choisi: 6903, effectif: 6903 }) === "simule");
 ok("table VIDE (aucune alternative sur l'exemplaire) : tout perk non équipé est « possible »", niveauDePerk(item(6903), 1, {}) === "possible" && niveauDePerk(item(6901, true), 1, {}) === "reel");
+// ---------- sur les DONNÉES RÉELLES de l'utilisateur (Confiance, Outil polyvalent MIDA) ----------
+import fs from "node:fs";
+interface PriseReelle { prise: number; equipe: number; disponibles: number[] }
+const reelles: { nom: string; hash: number; prises: PriseReelle[] }[] = JSON.parse(fs.readFileSync("tests/logique/fixtures/plugs-diagnostics-reels.json", "utf-8")).armes;
+const dispoDe = (a: (typeof reelles)[0]) => Object.fromEntries(a.prises.filter((p) => p.disponibles.length > 0).map((p) => [p.prise, p.disponibles]));
+let attendusOk = true, nbReel = 0, nbDispo = 0, nbPossible = 0;
+for (const a of reelles) {
+  const d = dispoDe(a);
+  for (const p of a.prises) {
+    if (niveauDePerk(item(p.equipe, true), p.prise, d) !== "reel") attendusOk = false; else nbReel++;
+    for (const h of p.disponibles.filter((x) => x !== p.equipe)) { if (niveauDePerk(item(h), p.prise, d) !== "disponible") attendusOk = false; else nbDispo++; }
+    if (niveauDePerk(item(999999999), p.prise, d) !== "possible") attendusOk = false; else nbPossible++;
+  }
+}
+ok(`DONNÉES RÉELLES (${reelles.map((a) => a.nom).join(" et ")}) : sur ${nbReel} prises, le perk équipé est toujours « reel », les ${nbDispo} autres perks listés sont « disponible » et un perk étranger à la liste est « possible » (${nbPossible} vérifications)`, attendusOk && nbReel === reelles.reduce((n, x) => n + x.prises.length, 0) && nbReel === 26 && nbDispo > 40, [nbReel, nbDispo, nbPossible]);   // 2 armes × 13 prises (0 à 12)
+const conf = reelles.find((a) => a.hash === 810474118)!, mida = reelles.find((a) => a.hash === 3946054154)!;
+ok("DONNÉES RÉELLES : les colonnes de TRAITS de la Confiance (prises 3 et 4) ont de vraies alternatives (3 perks disponibles chacune : Luciole, Hors-la-loi, Visée rapide…) : le contour gris clair aura des perks à montrer", conf.prises.find((p) => p.prise === 3)!.disponibles.length === 3 && conf.prises.find((p) => p.prise === 4)!.disponibles.length === 3 && niveauDePerk(item(1347741687), 3, dispoDe(conf)) === "disponible" && niveauDePerk(item(1183436451, true), 3, dispoDe(conf)) === "reel");
+const p10 = conf.prises.find((p) => p.prise === 10)!;
+ok("CAS PARTICULIER RÉEL (prise 10 de la Confiance, l'ornement) : le perk équipé (Foi aveugle) n'est PAS dans sa propre liste (qui ne contient que « Confiance ») ; il reste « reel » et le perk listé reste « disponible » : l'absence de l'équipé de la liste ne perturbe rien", !p10.disponibles.includes(p10.equipe) && niveauDePerk(item(p10.equipe, true), 10, dispoDe(conf)) === "reel" && niveauDePerk(item(3364068341), 10, dispoDe(conf)) === "disponible");
+ok("DONNÉES RÉELLES : les prises sans alternative (armature, compte-frags, paliers : liste vide) ne produisent que le perk équipé « reel » ; l'Outil polyvalent MIDA porte bien l'armature « Synergie MIDA » (prise 0, hash 2213377102) dont dépend la nouvelle règle d'antichampion", conf.prises.find((p) => p.prise === 0)!.disponibles.length === 0 && mida.prises.find((p) => p.prise === 0)!.equipe === 2213377102 && !(0 in dispoDe(mida)));
 // ---------- diagnostic (mode développement) ----------
 const { db } = creerFausseDb({ [T_OBJET]: { 6901: { displayProperties: { name: "Canon X" } }, 6903: { displayProperties: { name: "Canon Y" } }, 6912: { displayProperties: { name: "Chargeur X" } } } });
 const piece = { itemHash: 5010, itemInstanceId: "w1", nom: "Fusil à paliers", origine: "titan", equipe: true, perksParColonne: [{ socketIndex: 1, hash: 6901 }, { socketIndex: 2, hash: 6912 }], plugsDisponiblesParColonne: { 1: [6901, 6903] } } as never;

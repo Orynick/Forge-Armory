@@ -1,7 +1,7 @@
 // FR : ⚠️ AJOUT (13/10/2026, v0.4.6) - vue « INVENTAIRE » de la Forge (spécification du 12/10/2026, §4) : tes ARMES POSSÉDÉES (personnages et Coffre, lues par la même fonction que « Mon Inventaire »), avec pour chacune son ROLL RÉEL (marqué ✓) et la possibilité de SIMULER un autre roll : une perk par colonne et un mod, parmi les options possibles de CETTE colonne (jamais deux perks dans une colonne).
 // PHASE 1 de la spécification : AUCUNE écriture vers Bungie, jamais. La simulation est enregistrée localement (`lib/forge/simulation.ts`, par exemplaire et par index de prise) et rechargée au démarrage ; elle n'est pas encore branchée au scoring (étape suivante). Le chargement de l'inventaire est déclenché par un bouton, comme dans « Mon Inventaire » (il interroge Bungie).
 // Les colonnes sont celles de la popup « Détails » (même fonction, même ordre, mod en bas), dessinées par le composant partagé `ColonnesPerks`. Version d'un perk simulé : sa version AMÉLIORÉE si l'arme en a déjà une dans son roll réel (voir `armeEstAmelioree`). EN: ⚠️ ADDED - Forge "Inventory" view: owned weapons with their real roll and a local what-if simulation; nothing is ever written to Bungie.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Database } from "sql.js";
 import type { DestinyMembership } from "../lib/bungie/api";
 import type { GearPiece } from "../types/build";
@@ -12,7 +12,8 @@ import type { OptionSocket } from "../lib/manifest/doctrine";
 import { ordonnerColonnesPourAffichage } from "../lib/manifest/colonnesArme";
 import { apparierPerksAmeliores, typeEstAmeliore, OptionJumelee } from "../lib/manifest/perksAmeliores";
 import { normaliser } from "../lib/manifest/search";
-import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees, armesSimulees, lireSimulations, ecrireSimulations, stockageNavigateur, estLeRollReel, armeEstAmelioree, choixEffectif, SIMULATIONS_VIDES, Simulations } from "../lib/forge/simulation";
+import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees, armesSimulees, estLeRollReel, armeEstAmelioree, choixEffectif, SIMULATIONS_VIDES, Simulations } from "../lib/forge/simulation";
+import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";   // ⚠️ v0.4.9 : magasin PARTAGÉ avec la page principale (le score réagit)
 import { obtenirDiagnosticPlugsExemplaire } from "../lib/forge/diagnosticPlugs";   // ⚠️ AJOUT (13/10/2026, v0.4.7) : diagnostic (npm run dev)
 import ColonnesPerks, { ColonneAffichee } from "./ColonnesPerks";
 import IconesArme from "./IconesArme";
@@ -25,12 +26,20 @@ const styleChamp = { fontSize: "0.85rem", background: "#0d0f14", color: "#e8e6df
 const estArme = (p: GearPiece) => SLOTS_ARME.includes(p.slot as string);
 const couleurRarete = (p: GearPiece) => (p.isExotic ? "#ceae33" : p.rarete === "Légendaire" ? "#7a4fa3" : "#4a4f5c");
 
+/** FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - une arme à ouvrir DIRECTEMENT (bouton « Forge » des fenêtres Détails) ; `demande` change à chaque envoi, même pour la même arme. / EN: a weapon to open directly (the "Forge" button of the Details windows). */
+export interface CibleForge { piece: GearPiece; origine: "analyseur" | "loadouts" | "forge" | "bibliotheque"; demande: number }
+
 interface Props {
   db: Database | null;
   membership: DestinyMembership | null;
+  cible?: CibleForge | null;
+  /** FR : ⚠️ AJOUT (v0.4.9) - pose l'arme dans Mon Build (même fonction que « + Ajouter » de Mon Inventaire). / EN: puts the weapon in Mon Build. */
+  onAjouterAuBuild?: (piece: GearPiece) => void;
+  /** FR : identifiants d'exemplaire déjà dans Mon Build. / EN: instance ids already in Mon Build. */
+  idsDansBuild?: ReadonlySet<string>;
 }
 
-export default function InventaireArmes({ db, membership }: Props) {
+export default function InventaireArmes({ db, membership, cible = null, onAjouterAuBuild, idsDansBuild }: Props) {
   const [pieces, setPieces] = useState<GearPiece[] | null>(null);
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -41,9 +50,12 @@ export default function InventaireArmes({ db, membership }: Props) {
   const [ouverte, setOuverte] = useState<GearPiece | null>(null);
   const [voirInutiles, setVoirInutiles] = useState(false);
   const [diagnostic, setDiagnostic] = useState<string | null>(null);   // ⚠️ v0.4.7 : texte du diagnostic des perks disponibles (npm run dev seulement)
-  const stockage = useMemo(() => stockageNavigateur(), []);
-  const [simulations, setSimulations] = useState<Simulations>(() => lireSimulations(stockage));
-  const appliquer = (nouvelles: Simulations) => { setSimulations(nouvelles); ecrireSimulations(stockage, nouvelles); };
+  // FR : ⚠️ CHANGÉ (14/10/2026, v0.4.9) - les simulations viennent du MAGASIN PARTAGÉ (`storeSimulations.ts`) : la page principale les applique au score et à Mon Build, donc un changement ici les fait réagir aussitôt. `appliquer` reçoit une transformation (jamais une copie périmée). / EN: simulations come from the shared store.
+  const simulations = useSimulations();
+  const appliquer = (transformation: (s: Simulations) => Simulations) => mettreAJourSimulations(transformation);
+  const [messageBuild, setMessageBuild] = useState<string | null>(null);
+  // FR : ⚠️ AJOUT (v0.4.9) - une arme envoyée par un bouton « Forge » s'ouvre directement (même si l'inventaire de la Forge n'est pas chargé). / EN: an arriving target opens directly.
+  useEffect(() => { if (cible) { setOuverte(cible.piece); setMessageBuild(null); } }, [cible?.demande]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   async function charger() {
     if (!membership || !db) return;
@@ -80,8 +92,8 @@ export default function InventaireArmes({ db, membership }: Props) {
   function choisirPerk(socketIndex: number, item: OptionJumelee<OptionSocket>) {
     if (!instance) return;
     // FR : cliquer le roll réel, ou de nouveau le perk déjà simulé, REVIENT au roll réel de cette colonne.
-    if (estLeRollReel(item) || simulesOuverte?.[socketIndex]?.choisi === item.option.hash) appliquer(retirerColonne(simulations, instance, socketIndex));
-    else appliquer(choisir(simulations, instance, socketIndex, { choisi: item.option.hash, effectif: choixEffectif(item, armeAmelioree) }));
+    if (estLeRollReel(item) || simulesOuverte?.[socketIndex]?.choisi === item.option.hash) appliquer((s) => retirerColonne(s, instance, socketIndex));
+    else appliquer((s) => choisir(s, instance, socketIndex, { choisi: item.option.hash, effectif: choixEffectif(item, armeAmelioree) }));
   }
 
   if (!membership) return <p style={{ margin: 0, fontSize: "0.85rem", color: "#e0c080" }}>⚠️ Vous n'êtes pas connecté à Bungie : connectez-vous (bloc « Connexion à Bungie ») pour voir vos armes.</p>;
@@ -95,7 +107,7 @@ export default function InventaireArmes({ db, membership }: Props) {
       </p>
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
         <button onClick={charger} disabled={enCours}>{enCours ? "Chargement…" : pieces ? "↻ Recharger mon inventaire" : "Charger mon inventaire"}</button>
-        {nbArmesSimulees > 0 && <button onClick={() => appliquer(SIMULATIONS_VIDES())} data-effacer-simulations="" style={{ fontSize: "0.8rem" }}>✕ Effacer toutes les simulations ({nbArmesSimulees})</button>}
+        {nbArmesSimulees > 0 && <button onClick={() => appliquer(() => SIMULATIONS_VIDES())} data-effacer-simulations="" style={{ fontSize: "0.8rem" }}>✕ Effacer toutes les simulations ({nbArmesSimulees})</button>}
       </div>
       {erreur && <p role="alert" style={{ fontSize: "0.8rem", color: "#e0a080", margin: "0 0 0.5rem" }}>⚠️ {erreur}</p>}
       {pieces && (
@@ -135,7 +147,7 @@ export default function InventaireArmes({ db, membership }: Props) {
           <div role="dialog" aria-modal="true" aria-label={`Simulation des perks de ${ouverte.nom}`} onClick={(e) => e.stopPropagation()} style={{ background: "#12151c", border: `1px solid ${couleurRarete(ouverte)}`, borderRadius: 10, padding: "1rem", width: "min(44rem, 94vw)", maxHeight: "86vh", overflow: "auto", color: "#e8e6df" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
               <strong style={{ fontSize: "1rem" }}>{ouverte.nom}</strong>
-              <button onClick={() => { setOuverte(null); setDiagnostic(null); }} aria-label="Fermer">✕</button>
+              <button onClick={() => { setOuverte(null); setDiagnostic(null); setMessageBuild(null); }} aria-label="Fermer">✕</button>
             </div>
             <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0.2rem 0 0.4rem" }}>{[ouverte.typeArme, ouverte.rarete, LIEUX[ouverte.origine ?? ""], ouverte.equipe ? "équipée" : ""].filter(Boolean).join(" · ")} — simulation locale : rien n'est modifié dans le jeu</p>
             <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0 0 0.4rem" }}>Cliquez une perk pour la simuler (une seule par colonne) ; cliquez le roll réel, ou de nouveau la perk simulée, pour revenir au roll réel de la colonne.</p>
@@ -156,13 +168,22 @@ export default function InventaireArmes({ db, membership }: Props) {
                 <input type="checkbox" checked={voirInutiles} onChange={(e) => setVoirInutiles(e.target.checked)} /> Afficher les perks inutiles
               </label>
               <span data-nb-simulees={instance ? nbColonnesSimulees(simulations, instance) : 0} style={{ fontSize: "0.78rem", color: "#e8c547" }}>{instance && nbColonnesSimulees(simulations, instance) > 0 ? `${nbColonnesSimulees(simulations, instance)} colonne${nbColonnesSimulees(simulations, instance) > 1 ? "s" : ""} simulée${nbColonnesSimulees(simulations, instance) > 1 ? "s" : ""}` : "aucune simulation"}</span>
-              <button disabled={!instance || nbColonnesSimulees(simulations, instance) === 0} onClick={() => instance && appliquer(reinitialiserArme(simulations, instance))} style={{ fontSize: "0.78rem" }}>↺ Revenir au roll réel</button>
+              <button disabled={!instance || nbColonnesSimulees(simulations, instance) === 0} onClick={() => instance && appliquer((s) => reinitialiserArme(s, instance))} style={{ fontSize: "0.78rem" }}>↺ Revenir au roll réel</button>
             </div>
             {/* FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - `npm run dev` seulement : décrit, prise par prise, le perk équipé et les perks DISPONIBLES lus chez Bungie pour cet exemplaire, pour contrôler cette donnée sur le compte de l'utilisateur (voir `diagnosticPlugs.ts`). / EN: dev-only diagnostic button. */}
             {import.meta.env.DEV && (
               <div style={{ marginBottom: "0.6rem" }}>
                 <button onClick={() => setDiagnostic(obtenirDiagnosticPlugsExemplaire(db, ouverte))} style={{ fontSize: "0.72rem" }}>🔍 Diagnostic des perks disponibles de cet exemplaire (à copier à Claude)</button>
                 {diagnostic && <textarea readOnly value={diagnostic} onFocus={(e) => e.currentTarget.select()} rows={9} style={{ display: "block", width: "100%", marginTop: "0.4rem", fontSize: "0.7rem", background: "#0d0f14", color: "#b7b3a8", border: "1px solid #3a3f4b" }} />}
+              </div>
+            )}
+            {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - « ÉQUIPER VERS MON BUILD » (spécification du 12/10/2026, §4) : pose cette arme POSSÉDÉE dans Mon Build ; le score et l'affichage de Mon Build tiennent compte de sa simulation, en temps réel. Rien n'est équipé en jeu. / EN: ⚠️ ADDED - "Equip to Mon Build": puts this owned weapon in Mon Build; the score uses its simulation live. Nothing is equipped in the game. */}
+            {onAjouterAuBuild && instance && (
+              <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", margin: "0 0 0.6rem" }}>
+                <button data-mettre-dans-build="" onClick={() => { onAjouterAuBuild(ouverte); setMessageBuild(`✅ « ${ouverte.nom} » est dans Mon Build : le score tient compte de votre simulation, en temps réel. Rien n'est équipé en jeu.`); }} disabled={!!idsDansBuild?.has(instance)} style={{ fontSize: "0.8rem" }}>
+                  {idsDansBuild?.has(instance) ? "✓ Déjà dans Mon Build" : "➕ Mettre dans Mon Build"}
+                </button>
+                {messageBuild && <span data-message-build="" role="status" style={{ fontSize: "0.75rem", color: "#7fd88f" }}>{messageBuild}</span>}
               </div>
             )}
             {colonnesAffichees.length === 0 && <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucune option trouvée pour cette arme.</p>}

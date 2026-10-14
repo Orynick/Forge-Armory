@@ -101,6 +101,14 @@ export interface GearPiece {
    * EN: ⚠️ ADDED - perks available on THIS instance per socket index (weapons only); undefined = not read.
    */
   plugsDisponiblesParColonne?: Record<number, DefinitionHash[]>;
+  /**
+   * FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - posés UNIQUEMENT par `lib/forge/appliquerSimulation.ts` sur une COPIE de la pièce (jamais sur le build enregistré) : `perksSimules` = au moins une colonne de cette arme est remplacée par un perk simulé dans la Forge ; `perkHashesReels` = les perks RÉELS de l'exemplaire avant remplacement (pour que les fenêtres « Détails » marquent le vrai roll) ; `nbColonnesSimulees` = combien de colonnes.
+   * Dans la copie, `perkHashes` et `perksParColonne` contiennent les perks SIMULÉS : c'est ce que lit le score. EN: ⚠️ ADDED - set only on a COPY by the simulation overlay: flags, the real perks, and the number of simulated columns.
+   */
+  perksSimules?: boolean;
+  perkHashesReels?: DefinitionHash[];
+  perksParColonneReels?: Array<{ socketIndex: number; hash: DefinitionHash }>;
+  nbColonnesSimulees?: number;
   /** FR : nom officiel de l'élément de l'arme (Cinétique/Solaire/Arc/Abyssal/Stase/Filobscur), résolu via le Manifest - absent pour l'armure. / EN: weapon's official element name (Kinetic/Solar/Arc/Void/Stasis/Strand), resolved via the Manifest - absent for armor. */
   elementArme?: string;
   /** FR : URL de l'icône officielle de l'élément (résolue via le Manifest), pour affichage visuel au lieu du texte. / EN: URL of the element's official icon (resolved via the Manifest), for visual display instead of text. */

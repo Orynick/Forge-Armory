@@ -16,7 +16,7 @@
 import { Database } from "sql.js";
 import { obtenirDefinition } from "./download";
 import { normaliser, urlIcone } from "./search";
-import { championDeReference } from "./antiChampionExotiques";
+import { championDeReference, championSynergieMIDA } from "./antiChampionExotiques";   // ⚠️ v0.4.8 : + règle de l'armature « Synergie MIDA »
 import type { TypeMunition } from "../../components/icones/IconeMunition";
 import { DestinyItemDefinition, DestinySocketCategoryDefinition, DestinyPlugSetDefinition } from "../../types/manifest";
 import { SubclassConfig, StatKey, DamageElement } from "../../types/build";
@@ -1638,6 +1638,9 @@ export function deduireAntiChampion(db: Database, itemHash: number): "surcharge"
     // addition to accents. Needed for "tir d'ensemble": if the Manifest
     // uses a different apostrophe than the one typed in code, the
     // comparison would silently fail.
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.8) - armature « Synergie MIDA » : c'est le NOM de l'arme qui décide (Outil polyvalent MIDA : surcharge ; Outil macro MIDA : implacable). Voir `championSynergieMIDA`. / EN: ⚠️ ADDED - MIDA Synergy frame: the weapon name decides.
+    const mida = championSynergieMIDA(def.displayProperties?.name, nomArmature);
+    if (mida) return mida;
     const a = normaliser(nomArmature).replace(/['']/g, "");
     for (const { motCle, champion } of ARMATURE_VERS_CHAMPION) {
       if (a.includes(motCle)) return champion;

@@ -10,6 +10,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Database } from "sql.js";
 import { evaluerBuild } from "../lib/scoring/pillars";
+// FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - lien Forge → score : les simulations de la Forge (magasin partagé) sont appliquées au build pour le SCORE et l'affichage de Mon Build ; le build réel (enregistrement, partage, équipement en jeu) n'est jamais modifié. / EN: Forge → score link: simulations applied to the build for scoring and display only.
+import { useSimulations } from "../lib/forge/storeSimulations";
+import { appliquerSimulations, pieceReelle, nbArmesSimulees } from "../lib/forge/appliquerSimulation";
+import type { CibleForge } from "../components/InventaireArmes";
 import { demoBuild, demoExigences } from "../data/demoBuild";
 import { BuildDraft, GearPiece, SubclassConfig, poserPieceDansBuild } from "../types/build";
 import PilierCarte from "../components/PilierCarte";
@@ -74,9 +78,14 @@ export default function DashboardPage() {
   // EN: ⚠️ ADDED - active custom weighting, passed to the score calculation.
   const [ponderations, setPonderations] = useState<EtatPonderations>(lirePonderations);
 
+  // FR : ⚠️ CHANGÉ (14/10/2026, v0.4.9) - le score est calculé sur le build AVEC la simulation de la Forge (`buildEffectif`) : il se met à jour en temps réel à chaque changement de simulation (critère 7 de la spécification). Même objet que `monBuild` quand rien n'est simulé : aucun calcul de plus.
+  const simulations = useSimulations();
+  const buildEffectif = useMemo(() => appliquerSimulations(monBuild, simulations), [monBuild, simulations]);
+  const nbSimulees = nbArmesSimulees(buildEffectif);
+  const idsDansBuild = useMemo(() => new Set(monBuild.armes.map((a) => a.itemInstanceId).filter((i): i is string => !!i)), [monBuild]);
   const resultat = useMemo(
-    () => evaluerBuild(monBuild, demoExigences, db ?? undefined, poidsActifsEnFractions(ponderations)),
-    [monBuild, db, ponderations]
+    () => evaluerBuild(buildEffectif, demoExigences, db ?? undefined, poidsActifsEnFractions(ponderations)),
+    [buildEffectif, db, ponderations]
   );
 
   // FR : ⚠️ AJOUT (04/08/2026) - corrige un "saut" visuel signalé par
@@ -170,6 +179,17 @@ export default function DashboardPage() {
   const [vue, setVue] = useState<VueApp>("analyseur");
   // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - objet visé par « Aller à » (recherche dans le Manifest → Mon Inventaire). / EN: ⚠️ ADDED - target of the "Go to" button.
   const [cibleInventaire, setCibleInventaire] = useState<CibleInventaire | null>(null);
+  // FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - arme envoyée à la Forge par un bouton « Forge » des fenêtres Détails (Mon Inventaire, Coffre, Mon Build) ; la Forge part du roll RÉEL (`pieceReelle`), pas du roll simulé. Le Build Analyzer reste monté (caché) : le retour retrouve tout tel quel. / EN: a weapon sent to the Forge by a "Forge" button; the Forge starts from the REAL roll.
+  const [cibleForge, setCibleForge] = useState<CibleForge | null>(null);
+  function ouvrirForge(piece: GearPiece) {
+    setCibleForge({ piece: pieceReelle(piece), origine: "analyseur", demande: Date.now() });
+    setVue("forge");
+    window.scrollTo({ top: 0 });
+  }
+  function retourDepuisForge() {
+    setVue(cibleForge?.origine ?? "analyseur");
+    setCibleForge(null);
+  }
   // FR : ⚠️ AJOUT (07/10/2026, v0.3.7) - après « Charger » dans l'onglet « Load-outs », la page revient au Build Analyzer ET amène le bloc « Mon Build » à l'écran : sans cela, l'utilisateur se retrouvait en haut d'une longue
   // page, loin du build chargé, et croyait à un bug. Le compteur déclenche l'effet ci-dessous à chaque chargement (même si c'est le même build deux fois de suite).
   // EN: ⚠️ ADDED - after "Charger" in the Load-outs tab, the page returns to the Build Analyzer AND brings the "Mon Build" block into view.
@@ -488,7 +508,7 @@ export default function DashboardPage() {
       {/* FR : ⚠️ CHANGÉ (06/10/2026, v0.3.5) - NOUVEAUX BOUTONS (fournis par l'utilisateur) et troisième vue « Load-outs » : voir components/SelecteurVues.tsx. / EN: ⚠️ CHANGED - NEW BUTTONS and a third view. */}
       <SelecteurVues vue={vue} onChanger={setVue} />
 
-      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
+      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
       {vue === "bibliotheque" && <Bibliotheque db={db} />}
 
       {/* FR : ⚠️ AJOUT (06/10/2026, v0.3.5) - vue « Load-outs » : le MÊME panneau que le tiroir, en pleine page (mode « page »). Le tiroir, lui, est masqué avec la vue Build Analyzer (qui reste montée) : les deux se tiennent
@@ -530,6 +550,7 @@ export default function DashboardPage() {
         onObjetsCharges={setObjetsPossedes}
         cible={cibleInventaire}
         onEffacerCible={() => setCibleInventaire(null)}
+        onOuvrirForge={ouvrirForge}   // ⚠️ AJOUT (14/10/2026, v0.4.9) : bouton « Forge » de la fenêtre Détails (Mon Inventaire et Coffre)
       />
 
       {/* FR : ⚠️ AJOUT (01/10/2026) - contrôle de l'anti-champion des armes exotiques (dev). / EN: exotic anti-champion check (dev). */}
@@ -538,7 +559,7 @@ export default function DashboardPage() {
       {modeDiagnostic && DIAGNOSTICS_ACTIFS.controleIconesPerksArtefact && db && <ControleIconesPerksArtefact db={db} />}
       {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.diagnosticPilier2 && db && (
         <div style={{ marginBottom: "0.75rem" }}>
-          <button onClick={() => setDiagPilier2(obtenirDiagnosticPilier2(monBuild, db))} style={{ fontSize: "0.75rem" }}>
+          <button onClick={() => setDiagPilier2(obtenirDiagnosticPilier2(buildEffectif, db))} style={{ fontSize: "0.75rem" }}>
             🔍 Diagnostic Pilier 2 (ce que le score lit vraiment)
           </button>
         </div>
@@ -584,7 +605,8 @@ export default function DashboardPage() {
       {/* FR : ⚠️ AJOUT (07/10/2026, v0.3.7) - ancre du défilement après « Charger » (enveloppe sans style : aucun changement d'affichage). / EN: ⚠️ ADDED - scroll anchor (unstyled wrapper). */}
       <div ref={refMonBuild} id="bloc-mon-build" style={{ scrollMarginTop: "0.5rem" }}>
         <ResumeBuild
-          build={monBuild}
+          build={buildEffectif}
+          onOuvrirForge={ouvrirForge}
           membership={memberships[0] ?? null}
           personnages={personnages}
           db={db}
@@ -653,6 +675,12 @@ export default function DashboardPage() {
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: "1rem", flexWrap: "wrap" }}>
         <div className="score-global">{resultat.scoreGlobal}/100</div>
+        {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - dit clairement que le score tient compte de perks SIMULÉS dans la Forge, et que l'enregistrement et le partage restent sur les perks RÉELS. / EN: says that the score uses simulated perks. */}
+        {nbSimulees > 0 && (
+          <div data-score-simule="" title="Les perks choisis dans la Forge (vue Inventaire) remplacent ceux de vos armes pour le calcul du score. L'enregistrement, le partage et l'équipement en jeu gardent vos perks réels." style={{ fontSize: "0.85rem", color: "#e8c547", cursor: "help" }}>
+            🔨 Score calculé avec des perks simulés ({nbSimulees} arme{nbSimulees > 1 ? "s" : ""})
+          </div>
+        )}
         <div
           title={
             resultat.completion.manquants.length > 0

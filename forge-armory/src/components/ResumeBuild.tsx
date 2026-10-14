@@ -80,6 +80,10 @@ interface Props {
    */
   contexte?: ContexteBuild;
   onChangerContexte?: (valeur: ContexteBuild) => void;
+  /**
+   * FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - bouton « Forge » de la fenêtre Détails d'une ARME possédée (spécification du 12/10/2026, §1) : envoie l'arme à la vue Inventaire de la Forge (absent : pas de bouton). `build` est ici le build AVEC la simulation appliquée (armes marquées `perksSimules`) : le badge « simulé » et l'avertissement à l'équipement en dépendent. / EN: ⚠️ ADDED - Forge button of a weapon's Details window; `build` here has the simulation applied.
+   */
+  onOuvrirForge?: (piece: GearPiece) => void;
 }
 
 // FR : ⚠️ AJOUT (24/08/2026) - détermine si un objet est déjà sur le
@@ -101,7 +105,7 @@ function calculerSetsActifsResume(build: BuildDraft, db: Database) {
   return [...parSet.values()];
 }
 
-export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte }: Props) {
+export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge }: Props) {
   const setsAvecBonusActif = useMemo(() => db ? calculerSetsActifsResume(build, db) : [], [build, db]);
   const [personnageCible, setPersonnageCible] = useState<string>(personnages[0]?.characterId ?? "");
   const [enCours, setEnCours] = useState<string | null>(null);
@@ -164,8 +168,12 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
     const estExotique = piece.isExotic
       ? "\n\n⚠️ Rappel : équiper cet exotique remplacera automatiquement tout autre exotique du même type (arme ou armure) déjà équipé."
       : "";
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - AVERTISSEMENT (spécification du 12/10/2026, §8 : les perks simulés ne sont pas appliqués en jeu) : l'arme possédée est équipée avec ses perks RÉELS. / EN: ⚠️ ADDED - warning: simulated perks are not applied in the game.
+    const noteSimulation = piece.perksSimules
+      ? `\n\n🔨 Cette arme a ${piece.nbColonnesSimulees} colonne(s) de perks SIMULÉS dans la Forge : ils ne sont PAS appliqués en jeu. L'arme sera équipée telle qu'elle est réellement (avec ses perks réels).`
+      : "";
     const confirme = window.confirm(
-      `Équiper "${piece.nom}" sur votre personnage en jeu maintenant ? Cette action est réelle et immédiate.${estExotique}`
+      `Équiper "${piece.nom}" sur votre personnage en jeu maintenant ? Cette action est réelle et immédiate.${estExotique}${noteSimulation}`
     );
     if (!confirme) return;
 
@@ -223,8 +231,13 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
     const messageAvertissement = avertissementExotiques
       ? `\n\n⚠️ Attention : ce build contient ${avertissementExotiques} — en jeu, une seule arme exotique et une seule armure exotique peuvent être équipées à la fois. Les dernières équipées remplaceront les précédentes.`
       : "";
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - avertissement : des perks SIMULÉS ne sont pas appliqués en jeu. / EN: ⚠️ ADDED - simulated perks are not applied in the game.
+    const nbSimulees = piecesEquipables.filter((p) => p.perksSimules).length;
+    const noteSimulation = nbSimulees > 0
+      ? `\n\n🔨 ${nbSimulees} arme${nbSimulees > 1 ? "s" : ""} de ce build ${nbSimulees > 1 ? "ont" : "a"} des perks SIMULÉS dans la Forge : ils ne sont PAS appliqués en jeu. Ces armes seront équipées telles qu'elles sont réellement (avec leurs perks réels).`
+      : "";
     const confirme = window.confirm(
-      `Équiper les ${piecesEquipables.length} pièces possédées de ce build sur votre personnage en jeu maintenant ? Cette action est réelle et immédiate.${messageAvertissement}`
+      `Équiper les ${piecesEquipables.length} pièces possédées de ce build sur votre personnage en jeu maintenant ? Cette action est réelle et immédiate.${messageAvertissement}${noteSimulation}`
     );
     if (!confirme) return;
 
@@ -274,7 +287,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
     const [detailsOuverts, setDetailsOuverts] = useState(false);
     const colonnesDetails =
       detailsOuverts && db && piece.itemInstanceId && estArme
-        ? obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashes)
+        ? obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashesReels ?? piece.perkHashes)   // ⚠️ v0.4.9 : le ✓ marque le roll RÉEL, jamais un perk simulé
         : [];
     return (
       <li style={{ marginBottom: "0.3rem" }}>
@@ -311,6 +324,12 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
               <span>
                 {piece.nom ? raccourcirNom(piece.nom) : "(objet placeholder)"} {piece.isExotic && <span style={{ color: "#d4af37" }}>★</span>}
               </span>
+              {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - BADGE « simulé » : cette arme porte des perks choisis dans la Forge (ils comptent dans le score, pas en jeu). / EN: ⚠️ ADDED - "simulated" badge. */}
+              {piece.perksSimules && (
+                <span data-badge-simule="" title={`${piece.nbColonnesSimulees} colonne(s) de perks simulées dans la Forge : prises en compte dans le score, pas appliquées en jeu.`} style={{ fontSize: "0.7rem", color: "#e8c547", border: "1px solid #e8c547", borderRadius: 999, padding: "0 0.4rem", cursor: "help" }}>
+                  🔨 simulé
+                </span>
+              )}
               {/* FR : ⚠️ AJOUT (04/08/2026) - repère 🛡️ aussi dans "Mon
               Build" (il n'existait que dans l'Inventaire/Coffre), demande
               de l'utilisateur. Même infobulle détaillée. */}
@@ -441,6 +460,14 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                       return champion ? <IconeAntiChampion type={champion} taille={16} /> : null;
                     })()}
                   </strong>
+                  {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - BOUTON « FORGE » de la fenêtre Détails de Mon Build (armes possédées seulement) : la Forge s'ouvre sur cette arme à partir de son roll RÉEL ; « Retour » ramène ici. / EN: ⚠️ ADDED - Forge button of Mon Build's Details window. */}
+                  {onOuvrirForge && estArme && piece.itemInstanceId && (
+                    <div>
+                      <button data-ouvrir-forge="" onClick={() => onOuvrirForge(piece)} style={{ fontSize: "0.75rem", marginTop: "0.4rem", padding: "0.15rem 0.5rem" }}>
+                        🔨 Forge : choisir les perks de cette arme
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={() => setDetailsOuverts(false)}

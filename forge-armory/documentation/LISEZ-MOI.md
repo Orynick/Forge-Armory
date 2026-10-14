@@ -13,8 +13,9 @@ at the project root (see below).
 | `audits/` | Rapports d'audit (internes ou externes) | `AUDIT-AAAA-MM-JJ[-sujet].md` |
 | `agent-ia/` | Conception de l'agent IA : architecture et notes de décision | libre |
 | `todo/` | Archives de la TODO avant un tri (copie intégrale, mot pour mot) | `ARCHIVE-TODO-AAAA-MM-JJ.md` |
-| `tests/` | Archives des tests validés, retirés de `A-TESTER.pdf` lors d'un tri, recopiés mot pour mot | `ARCHIVE-TESTS-AAAA-MM-JJ.md` |
 | `sources/` | Sources des documents livrés en PDF à la racine, et le script qui les produit (outil de Claude) | même nom que le PDF, en `.md` |
+
+**Archive des tests validés** : le sous-dossier `tests/` a été **supprimé le 14/10/2026 à la demande de l'utilisateur** (111 sections validées y étaient archivées). Ne pas le recréer sans qu'il le demande : l'historique des validations reste dans `CHANGELOG.md`, entrée par entrée.
 
 Un nouveau type de document (conception d'un autre chantier, procédure,
 etc.) reçoit son propre sous-dossier, sur le même principe.

@@ -79,3 +79,19 @@ export function championDeReference(nomArme: string | undefined): Valeur | undef
   const v = TABLE.get(normaliserNomArme(nomArme));
   return v === undefined ? undefined : v;
 }
+
+/**
+ * FR : ⚠️ AJOUT (14/10/2026, v0.4.8), demande de l'utilisateur (« l'antichampion n'apparaît pas ») - règle de l'ARMATURE « SYNERGIE MIDA » : les deux armes qui la portent ont le MÊME nom d'armature, c'est donc le NOM DE L'ARME qui décide :
+ *   armature « Synergie MIDA » + arme « Outil POLYVALENT MIDA » = anti-SURCHARGE ;
+ *   armature « Synergie MIDA » + arme « Outil MACRO MIDA »      = anti-IMPLACABLE.
+ * Ni l'une ni l'autre n'est dans la liste de référence (qui ne connaît que l'ancien nom « Outil multifonction MIDA », bloqueur, conservé tel quel) et la déduction par armature ne connaissait pas « Synergie MIDA ». Rapprochement sans accents ni majuscules, par MOT du nom (« polyvalent », « macro ») : une arme qui porte l'armature mais dont le nom n'a aucun de ces mots reste SANS réponse (undefined) : on ne devine pas.
+ * Fonction PURE, appelée par la déduction d'origine (`deduireAntiChampion`, doctrine.ts). EN: ⚠️ ADDED - the "MIDA Synergy" frame rule: the weapon NAME decides (polyvalent = overload, macro = unstoppable); unknown names stay undefined.
+ */
+export function championSynergieMIDA(nomArme: string | undefined, nomArmature: string | undefined): TypeChampion | undefined {
+  if (!nomArme || !nomArmature) return undefined;
+  if (!normaliserNomArme(nomArmature).includes("synergie mida")) return undefined;
+  const nom = normaliserNomArme(nomArme);
+  if (/\bpolyvalent\b/.test(nom)) return "surcharge";
+  if (/\bmacro\b/.test(nom)) return "implacable";
+  return undefined;
+}

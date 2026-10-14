@@ -27,7 +27,7 @@ function Hote() {
         <button data-test="aller-inconnu" onClick={aller(999, "Objet inconnu")}>Aller à inconnu</button>
       </div>
       <div style={{ height: 1800 }}>espace au-dessus de Mon Inventaire (oblige la page à défiler)</div>
-      <SelecteurInventaire membership={{ membershipId: "1", membershipType: 3, displayName: "Test#1234" }} db={fausseDb} onAjouterObjet={() => {}} cible={cible} onEffacerCible={() => setCible(null)} />
+      <SelecteurInventaire membership={{ membershipId: "1", membershipType: 3, displayName: "Test#1234" }} db={fausseDb} onAjouterObjet={() => {}} cible={cible} onEffacerCible={() => setCible(null)} onOuvrirForge={(p) => ((window as unknown as { __forge: string[] }).__forge ??= []).push(p.itemInstanceId ?? "?")} />   {/* ⚠️ v0.4.9 : espion du bouton « Forge » de la fenêtre Détails */}
       <div style={{ height: 1500 }}>contenu sous Mon Inventaire (comme Mon Build, l'artefact... dans la vraie page : permet à la page de défiler jusqu'à amener le bloc en haut)</div>
     </div>
   );
