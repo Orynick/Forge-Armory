@@ -1,6 +1,8 @@
 // FR : ⚠️ AJOUT (13/10/2026, v0.4.6) - vue « INVENTAIRE » de la Forge (spécification du 12/10/2026, §4) : tes ARMES POSSÉDÉES (personnages et Coffre, lues par la même fonction que « Mon Inventaire »), avec pour chacune son ROLL RÉEL (marqué ✓) et la possibilité de SIMULER un autre roll : une perk par colonne et un mod, parmi les options possibles de CETTE colonne (jamais deux perks dans une colonne).
 // PHASE 1 de la spécification : AUCUNE écriture vers Bungie, jamais. La simulation est enregistrée localement (`lib/forge/simulation.ts`, par exemplaire et par index de prise) et rechargée au démarrage ; elle n'est pas encore branchée au scoring (étape suivante). Le chargement de l'inventaire est déclenché par un bouton, comme dans « Mon Inventaire » (il interroge Bungie).
 // Les colonnes sont celles de la popup « Détails » (même fonction, même ordre, mod en bas), dessinées par le composant partagé `ColonnesPerks`. Version d'un perk simulé : sa version AMÉLIORÉE si l'arme en a déjà une dans son roll réel (voir `armeEstAmelioree`). EN: ⚠️ ADDED - Forge "Inventory" view: owned weapons with their real roll and a local what-if simulation; nothing is ever written to Bungie.
+import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
+import IconeTitreFaconnee from "./IconeTitreFaconnee";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
 import { useEffect, useMemo, useState } from "react";
 import type { Database } from "sql.js";
@@ -19,13 +21,14 @@ import { estFaconnee } from "../lib/forge/faconnee";   // ⚠️ AJOUT (14/10/20
 import { obtenirDiagnosticPlugsExemplaire } from "../lib/forge/diagnosticPlugs";   // ⚠️ AJOUT (13/10/2026, v0.4.7) : diagnostic (npm run dev)
 import ColonnesPerks, { ColonneAffichee } from "./ColonnesPerks";
 import IconesArme from "./IconesArme";
-import IconeFaconnee from "./IconeFaconnee";   // ⚠️ AJOUT (14/10/2026, v0.4.10) : l'icône du jeu pour les armes façonnées
 
 const TAILLE_PAGE = 60;
 const SLOTS_ARME = ["cinetique", "energie", "lourde"];
 const LIBELLES_SLOT: Record<string, string> = { cinetique: "Cinétique", energie: "Énergétique", lourde: "Lourde" };
 const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste", coffre: "Coffre" };
 const styleChamp = { fontSize: "0.85rem", background: "#0d0f14", color: "#e8e6df", border: "1px solid #3a3f4b", borderRadius: 6, padding: "0.3rem 0.4rem" } as const;
+// FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - style COMMUN des boutons d'action de la fenêtre (« Retour », « Mettre dans Mon Build ») : même hauteur fixe, contenu centré, pour que les deux soient parfaitement alignés (l'émoji ➕ agrandissait sinon la ligne). / EN: ⚠️ ADDED - shared style so both action buttons align.
+const styleAction = { fontSize: "0.8rem", height: "2rem", padding: "0 0.7rem", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.3rem", lineHeight: 1.2, boxSizing: "border-box" } as const;
 const estArme = (p: GearPiece) => SLOTS_ARME.includes(p.slot as string);
 const couleurRarete = (p: GearPiece) => (p.isExotic ? "#ceae33" : p.rarete === "Légendaire" ? "#7a4fa3" : "#4a4f5c");
 
@@ -92,9 +95,9 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
   // FR : les colonnes de l'arme ouverte : mêmes fonctions que la popup « Détails » et que la Collection ; le roll réel (`perkHashes`) marque les options équipées. / EN: columns of the opened weapon, same functions as Details and Collection.
   const colonnesAffichees = useMemo((): ColonneAffichee[] => {
     if (!db || !ouverte) return [];
-    const colonnes = ordonnerColonnesPourAffichage(obtenirOptionsToutesColonnes(db, ouverte.itemHash, ouverte.perkHashes, { inclureMasquees: voirInutiles }));
+    const colonnes = ordonnerColonnesPourAffichage(obtenirOptionsToutesColonnes(db, ouverte.itemHash, ouverte.perkHashes, { inclureMasquees: voirInutiles, toutesSources: ouverteFaconnee, equipesParColonne: ouverte.perksParColonne }));
     return colonnes.map((col) => ({ col, items: col.masquee ? col.options.map((option): OptionJumelee<OptionSocket> => ({ option })) : apparierPerksAmeliores(col.options, (o) => typeEstAmeliore(db, o.hash)) }));
-  }, [db, ouverte, voirInutiles]);
+  }, [db, ouverte, voirInutiles, ouverteFaconnee]);
   const armeAmelioree = armeEstAmelioree(colonnesAffichees.filter((c) => !c.col.masquee).map((c) => c.items));
   const instance = ouverte?.itemInstanceId;
   const simulesOuverte = instance ? simulations.armes[instance] : undefined;
@@ -142,7 +145,7 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
                 <button onClick={() => setOuverte(p)} data-arme-possedee={p.itemInstanceId ?? ""} data-lieu={p.origine ?? ""} data-simulee={nbSim(p) > 0 ? "1" : ""} data-faconnee={p.itemInstanceId && faconnees.has(p.itemInstanceId) ? "1" : ""}
                   style={{ width: "100%", textAlign: "left", display: "flex", gap: "0.5rem", alignItems: "flex-start", padding: "0.4rem", background: "#12151c", color: "#e8e6df", border: `1px solid ${couleurRarete(p)}`, borderRadius: 8, cursor: "pointer" }}>
                   {/* FR : ⚠️ CHANGÉ (14/10/2026, v0.4.10) - ARME FAÇONNÉE : l'icône du jeu (teinte saumon corail) est posée EN BAS À GAUCHE de la vignette de l'arme, comme dans le jeu (demande de l'utilisateur, avec capture). Elle remplace le texte « 🔧 Façonnée » ; nom accessible et infobulle sur l'enveloppe. / EN: ⚠️ CHANGED - the game's icon at the bottom-left of the weapon tile. */}
-                  <VignetteArme icone={p.icone} taille={44} reserverPlace faconnee={!!p.itemInstanceId && faconnees.has(p.itemInstanceId)} />
+                  <VignetteArme icone={p.icone} taille={44} reserverPlace faconnee={!!p.itemInstanceId && faconnees.has(p.itemInstanceId)} db={db} itemHash={p.itemHash} />
                   <span style={{ minWidth: 0 }}>
                     <strong style={{ fontSize: "0.85rem", display: "block" }}>{p.nom ?? `Arme ${p.itemHash}`}</strong>   {/* bloc : les icônes passent sous le nom, comme sur les cartes de la Collection */}
                     <IconesArme db={db} itemHash={p.itemHash} type={p.typeArme} slot={p.slot as string} texteAccessible={[p.typeArme, LIBELLES_SLOT[p.slot as string], p.elementArme].filter(Boolean).join(", ")} />
@@ -159,25 +162,23 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
       {ouverte && (
         <div onClick={() => setOuverte(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
           <div role="dialog" aria-modal="true" aria-label={`Simulation des perks de ${ouverte.nom}`} onClick={(e) => e.stopPropagation()} style={{ background: "#12151c", border: `1px solid ${couleurRarete(ouverte)}`, borderRadius: 10, padding: "1rem", width: "min(44rem, 94vw)", maxHeight: "86vh", overflow: "auto", color: "#e8e6df" }}>
-            {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.10), défaut signalé par l'utilisateur (« je ne vois pas le bouton retourner au Build Analyzer ») : le RETOUR est proposé ICI, en haut de la fenêtre qui s'ouvre seule à l'arrivée depuis un bouton « Forge » ; le bandeau de la page reste derrière son fond sombre. Il ferme la fenêtre et revient à la vue d'origine. / EN: ⚠️ ADDED - the back button INSIDE the window. */}
-            {cible && onRetour && (
-              <div style={{ margin: "0 0 0.6rem" }}>
-                <button data-retour-fenetre="" onClick={() => { setOuverte(null); setDiagnostic(null); setMessageBuild(null); onRetour(); }} style={{ fontSize: "0.8rem" }}>← Retour à {libelleRetour}</button>
-              </div>
-            )}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
-              <strong style={{ fontSize: "1rem" }}>{ouverte.nom}</strong>
+              {/* FR : ⚠️ CHANGÉ (14/10/2026, v0.4.11) - l'icône des armes façonnées est À GAUCHE DU NOM (demande de l'utilisateur). / EN: crafted icon at the left of the name. */}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                {ouverteFaconnee && <IconeTitreFaconnee taille={18} />}
+                <strong style={{ fontSize: "1rem" }}>{ouverte.nom}</strong>
+                {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - ICÔNE DE SAISON directement à droite du nom (demande de l'utilisateur). / EN: season icon right of the name. */}
+                <IconeSaison db={db} itemHash={ouverte.itemHash} />
+                {/* FR : ⚠️ CHANGÉ (14/10/2026, v0.4.11), précision de l'utilisateur : les QUATRE ICÔNES de l'arme (type, élément, munitions, antichampion) sont À DROITE DU NOM, sur la ligne du titre, comme dans les fenêtres Détails (MÊMES tailles : 35 px pour le type d'arme, 16 px pour les autres). Elles étaient d'abord posées sous le nom. / EN: the four icons sit to the RIGHT of the name, on the title line, like the Details windows. */}
+                <span data-icones-fenetre="" style={{ display: "inline-flex", alignItems: "center" }}>
+                  <IconesArme db={db} itemHash={ouverte.itemHash} type={ouverte.typeArme} slot={ouverte.slot as string} tailleType={35} taille={16} texteAccessible={[ouverte.typeArme, LIBELLES_SLOT[ouverte.slot as string], ouverte.elementArme].filter(Boolean).join(", ")} />
+                </span>
+              </span>
               <button onClick={() => { setOuverte(null); setDiagnostic(null); setMessageBuild(null); }} aria-label="Fermer">✕</button>
             </div>
-            <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0.2rem 0 0.4rem" }}>{[ouverte.typeArme, ouverte.rarete, LIEUX[ouverte.origine ?? ""], ouverte.equipe ? "équipée" : "", ouverteFaconnee ? "façonnée" : ""].filter(Boolean).join(" · ")} — simulation locale : rien n'est modifié dans le jeu</p>
+            <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0.2rem 0 0.4rem" }}>{[ouverte.typeArme, ouverte.rarete, LIEUX[ouverte.origine ?? ""], ouverte.equipe ? "équipée" : ""].filter(Boolean).join(" · ")} — simulation locale : rien n'est modifié dans le jeu</p>
             <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0 0 0.4rem" }}>Cliquez une perk pour la simuler (une seule par colonne) ; cliquez le roll réel, ou de nouveau la perk simulée, pour revenir au roll réel de la colonne.</p>
             {/* FR : ⚠️ AJOUT (13/10/2026, v0.4.7), demande de l'utilisateur : la LÉGENDE des quatre niveaux de perks. Si la disponibilité sur l'exemplaire n'a pas été lue (inventaire chargé avant la mise à jour, ou donnée absente), on le dit au lieu de griser à tort. / EN: legend of the four perk levels. */}
-            {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - ARME FAÇONNÉE (« forgée ») : ses perks sont fixes en jeu, on ne les change qu'à la forge en jeu. La donnée réelle ne liste, par colonne de perks, que le perk équipé : les perks grisés sont ceux que l'on pourrait choisir à la forge, si déverrouillés (lecture des déverrouillages ÉCARTÉE : décision de l'utilisateur du 14/10/2026, « on garde les perks possibles sur l'arme et les perks actifs dans Détails » ; la note affichée n'en parle plus). / EN: ⚠️ ADDED - crafted-weapon note. */}
-            {ouverteFaconnee && (
-              <p data-note-faconnee="" style={{ fontSize: "0.75rem", color: "#9ad0d8", margin: "0 0 0.6rem", border: "1px solid #2a4a50", borderRadius: 6, padding: "0.35rem 0.5rem" }}>
-                <span style={{ display: "inline-block", verticalAlign: "middle", marginRight: "0.35rem" }}><IconeFaconnee taille={14} /></span><strong>Arme façonnée.</strong> En jeu, ses perks sont fixes : on ne les change qu'à la <strong>forge en jeu</strong> (table de façonnage), pas librement. L'appli montre ici les perks possibles de ce modèle d'arme (les perks <strong>grisés</strong> sont ceux qui ne sont pas équipés) et marque d'une coche ✓ ceux qui le sont. La simulation fonctionne comme pour les autres armes.
-              </p>
-            )}
             <div data-legende-niveaux="" style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem 0.9rem", alignItems: "center", fontSize: "0.72rem", color: "#9a968a", margin: "0 0 0.6rem" }}>
               <span><span style={{ color: "#7aa2f7" }}>✓</span> roll réel (équipé en jeu)</span>
               {ouverte.plugsDisponiblesParColonne !== undefined ? (
@@ -203,12 +204,17 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
                 {diagnostic && <textarea readOnly value={diagnostic} onFocus={(e) => e.currentTarget.select()} rows={9} style={{ display: "block", width: "100%", marginTop: "0.4rem", fontSize: "0.7rem", background: "#0d0f14", color: "#b7b3a8", border: "1px solid #3a3f4b" }} />}
               </div>
             )}
-            {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - « ÉQUIPER VERS MON BUILD » (spécification du 12/10/2026, §4) : pose cette arme POSSÉDÉE dans Mon Build ; le score et l'affichage de Mon Build tiennent compte de sa simulation, en temps réel. Rien n'est équipé en jeu. / EN: ⚠️ ADDED - "Equip to Mon Build": puts this owned weapon in Mon Build; the score uses its simulation live. Nothing is equipped in the game. */}
-            {onAjouterAuBuild && instance && (
-              <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", margin: "0 0 0.6rem" }}>
-                <button data-mettre-dans-build="" onClick={() => { onAjouterAuBuild(ouverte); setMessageBuild(`✅ « ${ouverte.nom} » est dans Mon Build : le score tient compte de votre simulation, en temps réel. Rien n'est équipé en jeu.`); }} disabled={!!idsDansBuild?.has(instance)} style={{ fontSize: "0.8rem" }}>
-                  {idsDansBuild?.has(instance) ? "✓ Déjà dans Mon Build" : "➕ Mettre dans Mon Build"}
-                </button>
+            {/* FR : ⚠️ CHANGÉ (14/10/2026, v0.4.11), demande de l'utilisateur : « déplace le bouton Retour à Build Analyzer à GAUCHE de Mettre dans Mon Build ; attention à l'alignement ». Une seule ligne, les deux boutons de MÊME hauteur et centrés sur la même ligne (`styleAction`) ; le retour n'existe que si l'on vient d'un bouton « Forge ». « ÉQUIPER VERS MON BUILD » (spécification du 12/10/2026, §4) : pose cette arme POSSÉDÉE dans Mon Build ; le score et l'affichage de Mon Build tiennent compte de sa simulation, en temps réel ; rien n'est équipé en jeu. / EN: ⚠️ CHANGED - one row: Back on the left of "Put in Mon Build", same height, aligned. */}
+            {((cible && onRetour) || (onAjouterAuBuild && instance)) && (
+              <div data-ligne-actions="" style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", margin: "0 0 0.6rem" }}>
+                {cible && onRetour && (
+                  <button data-retour-fenetre="" onClick={() => { setOuverte(null); setDiagnostic(null); setMessageBuild(null); onRetour(); }} style={styleAction}>← Retour à {libelleRetour}</button>
+                )}
+                {onAjouterAuBuild && instance && (
+                  <button data-mettre-dans-build="" onClick={() => { onAjouterAuBuild(ouverte); setMessageBuild(`✅ « ${ouverte.nom} » est dans Mon Build : le score tient compte de votre simulation, en temps réel. Rien n'est équipé en jeu.`); }} disabled={!!idsDansBuild?.has(instance)} style={styleAction}>
+                    {idsDansBuild?.has(instance) ? "✓ Déjà dans Mon Build" : "➕ Mettre dans Mon Build"}
+                  </button>
+                )}
                 {messageBuild && <span data-message-build="" role="status" style={{ fontSize: "0.75rem", color: "#7fd88f" }}>{messageBuild}</span>}
               </div>
             )}

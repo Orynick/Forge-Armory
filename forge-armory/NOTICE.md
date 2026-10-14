@@ -295,7 +295,14 @@ Dans l'onglet **Forge**, la vue **Inventaire** montre **vos** armes (personnages
 ### Armes façonnées (« forgées »)
 
 - Les armes **façonnées** (celles dont les perks se changent à la **forge en jeu**, sur la table de façonnage) sont repérées par **l'icône du jeu**, en bas à gauche de leur vignette, dans la même teinte saumon qu'en jeu : dans la liste de la Forge (vue Inventaire), mais aussi dans **Mon Inventaire**, le **Coffre** et **Mon Build** ; la case **« Seulement les armes façonnées »** les isole. Le repérage s'appuie sur le perk équipé « Arme façonnée » de l'arme, **quelle que soit sa rareté** : les quelques exotiques façonnables portent la même icône.
-- Dans la fenêtre d'une arme façonnée, une **note** rappelle que ses perks sont fixes en jeu et ne se changent qu'à la forge en jeu. L'appli montre les perks **possibles** de ce modèle d'arme : les perks **grisés** ne sont pas équipés, et la coche **✓** marque ceux qui le sont. La simulation fonctionne comme pour les autres armes.
+- Dans les fenêtres (la Forge, et « Détails » de Mon Inventaire, du Coffre et de Mon Build), la même icône est posée **à gauche du nom** de l'arme façonnée. Il n'y a plus d'encadré explicatif : l'infobulle de l'icône dit que les perks se changent à la forge en jeu.
+- Pour une arme façonnée, ces fenêtres montrent **tous les perks possibles** de chaque colonne (les perks **grisés** ne sont pas équipés), et le **perk réellement équipé est toujours présent et coché ✓** dans sa colonne, même si le Manifest ne le liste pas. La simulation fonctionne comme pour les autres armes.
+- **Fenêtre de la Forge** : **à droite du nom**, les **quatre icônes** de l'arme (type d'arme, élément, munitions, antichampion, comme dans les fenêtres Détails) ; le bouton **« ← Retour à … »**, quand on vient d'un bouton « Forge », est sur la même ligne que **« ➕ Mettre dans Mon Build »**, à sa gauche, de même hauteur.
+
+### Icône de saison
+
+- Les **armes** et les **armures** portent l'**icône de leur saison** : en **haut à gauche de leur vignette** (comme en jeu) dans Mon Inventaire, le Coffre, Mon Build, la liste de la Forge et la Collection ; et **directement à droite du nom** dans les fenêtres **Détails** (Mon Inventaire, Coffre, Mon Build, Forge, Collection). Survolez l'icône d'une fenêtre pour lire le **nom de la saison** et son numéro.
+- L'image vient du **Manifest** de Bungie, donc les saisons futures apparaissent toutes seules. Un objet qui n'a pas de saison dans le Manifest (anciens objets, certaines exotiques) n'a pas d'icône. Les images, textes et PDF exportés n'affichent pas la saison.
 
 ### Le score tient compte de vos perks simulés
 

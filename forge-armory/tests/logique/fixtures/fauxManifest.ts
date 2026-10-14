@@ -89,6 +89,39 @@ export function ajouterArmeRevisionAPaliers(defs: Defs): Defs {
   return defs;
 }
 
+/**
+ * FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - ARME FAÇONNÉE d'essai (hash 5020), construite comme la Mesure corrective vue dans le diagnostic réel : CHAQUE colonne de perks a une LISTE DIRECTE d'un seul perk (`reusablePlugItems`, le perk « par défaut ») ET un vrai POOL derrière (jeu de plugs partagé ou aléatoire) que l'ancienne règle « première source non vide » ignorait. Prise 1 : canons (pool partagé), 2 : chargeurs (pool aléatoire), 3 et 4 : traits (pools aléatoires), 5 : le perk « Arme façonnée ».
+ * Le perk 7249 (« Perk équipé hors pool ») n'est dans AUCUNE source : il sert à vérifier qu'un perk équipé absent du Manifest apparaît quand même. / EN: ⚠️ ADDED - a crafted test weapon: a one-perk direct list hiding a real pool.
+ */
+export function ajouterArmeFaconnee(defs: Defs): Defs {
+  const objets = defs[T_OBJET] as Record<number, unknown>, jeux = defs[T_PLUGSET] as Record<number, unknown>;
+  const p = (nom: string, type: string, plugCat: string, description = "") => plug(nom, description, { itemTypeDisplayName: type, plug: { plugCategoryIdentifier: plugCat } });
+  objets[7201] = p("Armature d'attaque", "Armature intrinsèque", "intrinsics", "Armature de la mitrailleuse.");
+  objets[7211] = p("Rainurage polygonal", "Canon", "barrels", "Un canon par défaut."); objets[7212] = p("Frein tête-de-flèche", "Canon", "barrels", "Un frein de bouche."); objets[7213] = p("Canon lisse", "Canon", "barrels", "Un canon lisse.");
+  objets[7221] = p("Chargeur tactique", "Chargeur", "magazines", "Un chargeur par défaut."); objets[7222] = p("Chargeur en alliage", "Chargeur", "magazines", "Un chargeur léger."); objets[7223] = p("Gros chargeur", "Chargeur", "magazines", "Un chargeur large.");
+  objets[7231] = p("Munitions déstabilisantes", "Attribut", "frames", "Effet déstabilisant."); objets[7234] = p("Rafale d'élan", "Attribut", "frames", "Effet d'élan."); objets[7235] = p("Tir en rafale", "Attribut", "frames", "Effet de rafale.");
+  objets[7241] = p("Décompte meurtrier", "Attribut", "frames", "Effet de décompte."); objets[7242] = p("Démoralisation", "Attribut", "frames", "Effet de démoralisation."); objets[7243] = p("Tireur d'élite", "Attribut", "frames", "Effet de précision."); objets[7249] = p("Perk équipé hors pool", "Attribut", "frames", "Un perk que le Manifest ne liste pas.");
+  jeux[8211] = { reusablePlugItems: [7211, 7212, 7213].map((h) => ({ plugItemHash: h })) };
+  jeux[8212] = { reusablePlugItems: [7221, 7222, 7223].map((h) => ({ plugItemHash: h })) };
+  jeux[8213] = { reusablePlugItems: [7231, 7234, 7235].map((h) => ({ plugItemHash: h })) };
+  jeux[8214] = { reusablePlugItems: [7241, 7242, 7243].map((h) => ({ plugItemHash: h })) };
+  objets[5020] = arme("Mesure corrective d'essai", { type: "Mitrailleuse", degats: 3, bucket: BUCKET.energie, tier: HASH_LEGENDAIRE, collectible: 9020,
+    sockets: [{ singleInitialItemHash: 7201 }, { reusablePlugItems: [{ plugItemHash: 7211 }], reusablePlugSetHash: 8211 }, { reusablePlugItems: [{ plugItemHash: 7221 }], randomizedPlugSetHash: 8212 }, { reusablePlugItems: [{ plugItemHash: 7231 }], randomizedPlugSetHash: 8213 }, { reusablePlugItems: [{ plugItemHash: 7241 }], randomizedPlugSetHash: 8214 }, { singleInitialItemHash: 4029346515 }],
+    categories: [{ socketCategoryHash: 7001, socketIndexes: [0] }, { socketCategoryHash: 7002, socketIndexes: [1, 2, 3, 4] }] });
+  return defs;
+}
+
+/**
+ * FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - donne un FILIGRANE DE SAISON (`iconWatermark`) et une saison (`seasonHash` 9001, table `DestinySeasonDefinition` : « Saison de la Sorcière », n° 22) aux objets indiqués. Utilisé seulement par les pages de test avec `?saisons` : les autres tests ne voient aucun filigrane. / EN: ⚠️ ADDED - gives the listed items a season watermark and a season (test pages with `?saisons` only).
+ */
+export const T_SAISON = "DestinySeasonDefinition";
+export function ajouterSaisons(defs: Defs, hashes: number[]): Defs {
+  const objets = defs[T_OBJET] as Record<number, Record<string, unknown>>;
+  for (const h of hashes) if (objets[h]) objets[h] = { ...objets[h], iconWatermark: "/img/saison-sorciere.png", seasonHash: 9001 };
+  defs[T_SAISON] = { 9001: { displayProperties: { name: "Saison de la Sorcière" }, seasonNumber: 22 } };
+  return defs;
+}
+
 /** FR : armes d'essai. Hash : 5001 « Fusil d'essai » (légendaire, cinétique... voir plus bas), 5002 exotique lourd, 5003 sans Collection, 5004 masqué (redacted), 5005 une ARMURE, 5006 sans nom, 5007 objet de la catégorie factice. / EN: test weapons. */
 export function manifestArmesDeTest(): Defs {
   return {

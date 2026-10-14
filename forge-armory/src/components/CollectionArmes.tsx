@@ -2,6 +2,8 @@
 // Liste filtrable (type, emplacement, rareté, élément, archétype, source, obtention) avec recherche par nom ; clic sur une arme : fenêtre avec ses colonnes de perks possibles, SANS sélection. Les colonnes utilisent la MÊME fonction et les MÊMES règles d'ordre et d'étiquette que la popup « Détails » (`obtenirOptionsToutesColonnes`, `colonnesArme.ts`).
 // L'interrupteur « Afficher les perks inutiles » (désactivé par défaut) réaffiche les colonnes cosmétiques normalement masquées, marquées « inutile ». Si les collections ne peuvent pas être lues, AUCUNE arme n'est grisée (pas de faux « jamais obtenue ») et la raison est affichée. Une arme hors des Collections du jeu n'a pas d'état : elle reste en couleurs.
 // Liste affichée par pages de 60 (le catalogue en compte des milliers). EN: ⚠️ ADDED - Forge "Collection" view for weapons: colours if ever obtained, greyed if never, filters, search, perk columns with the same logic as the Details popup, and a "show useless perks" switch.
+import FiligraneSaison from "./FiligraneSaison";
+import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import { useEffect, useMemo, useState } from "react";
 import type { Database } from "sql.js";
 import type { DestinyMembership } from "../lib/bungie/api";
@@ -103,7 +105,11 @@ export default function CollectionArmes({ db, membership }: Props) {
             <li key={a.hash}>
               <button data-arme={a.hash} data-obtention={etat} onClick={() => { setOuverte(a); setVoirInutiles(false); setDiagnostic(null); }} title={`Voir les perks possibles de ${a.nom}`}
                 style={{ width: "100%", display: "flex", gap: "0.6rem", alignItems: "center", textAlign: "left", background: "#12151c", color: "#e8e6df", border: `1px solid ${couleurRarete(a)}`, borderRadius: 8, padding: "0.4rem 0.5rem", cursor: "pointer", opacity: grise ? 0.4 : 1, filter: grise ? "grayscale(1)" : "none" }}>
-                {a.icone ? <img src={a.icone} alt="" width={44} height={44} style={{ borderRadius: 4, flexShrink: 0, border: `1px solid ${couleurRarete(a)}` }} /> : <span style={{ width: 44, height: 44, flexShrink: 0 }} />}
+                {/* FR : ⚠️ CHANGÉ (14/10/2026, v0.4.11) - la vignette est enveloppée pour recevoir le FILIGRANE DE SAISON en haut à gauche (comme en jeu). / EN: thumbnail wrapped to receive the season watermark. */}
+                  <span style={{ position: "relative", display: "block", width: 44, height: 44, flexShrink: 0 }}>
+                    {a.icone ? <img src={a.icone} alt="" width={44} height={44} style={{ borderRadius: 4, display: "block", border: `1px solid ${couleurRarete(a)}` }} /> : <span style={{ display: "block", width: 44, height: 44 }} />}
+                    {a.icone && <FiligraneSaison db={db} itemHash={a.hash} taille={44} />}
+                  </span>
                 <span style={{ minWidth: 0 }}>
                   <strong style={{ display: "block", fontSize: "0.85rem" }}>{a.nom}</strong>
                   {/* FR : ⚠️ CHANGÉ (13/10/2026, v0.4.4), demande de l'utilisateur : quatre ICÔNES (type d'arme, élément, munitions, antichampion) à la place des mots « type · emplacement · élément » ; l'ARMATURE reste en texte ; la mention « Jamais obtenue » est retirée (redondante avec l'effet grisé, qui reste porté par `data-obtention`). EN: four icons replace the words; archetype stays; "never obtained" text removed. */}
@@ -123,7 +129,11 @@ export default function CollectionArmes({ db, membership }: Props) {
         <div onClick={() => setOuverte(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
           <div role="dialog" aria-modal="true" aria-label={`Perks possibles de ${ouverte.nom}`} onClick={(e) => e.stopPropagation()} style={{ background: "#12151c", border: `1px solid ${couleurRarete(ouverte)}`, borderRadius: 10, padding: "1rem", width: "min(44rem, 94vw)", maxHeight: "86vh", overflow: "auto", color: "#e8e6df" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
-              <strong style={{ fontSize: "1rem" }}>{ouverte.nom}</strong>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                <strong style={{ fontSize: "1rem" }}>{ouverte.nom}</strong>
+                {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - ICÔNE DE SAISON directement à droite du nom (demande de l'utilisateur). / EN: season icon right of the name. */}
+                <IconeSaison db={db} itemHash={ouverte.hash} />
+              </span>
               <button onClick={() => setOuverte(null)} aria-label="Fermer">✕</button>
             </div>
             <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0.2rem 0 0.6rem" }}>{[ouverte.type, ouverte.rarete, LIBELLES_SLOT[ouverte.slot], libelleElement(ouverte.element), ouverte.armature].filter(Boolean).join(" · ")} — consultation seule</p>

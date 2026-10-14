@@ -1233,7 +1233,11 @@ export function obtenirOptionsToutesColonnes(
   hashesEquipes: number[] = [],
   // FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - `inclureMasquees` : renvoie AUSSI les colonnes cosmétiques / d'ornement normalement masquées, marquées `masquee` (interrupteur « Afficher les perks inutiles » de la Forge). Par défaut (absent) le comportement est strictement celui d'avant : vérifié par un instantané (`tests/logique/instantanes/colonnes-arme.json`).
   // EN: ⚠️ ADDED - `inclureMasquees` also returns the normally hidden cosmetic/ornament columns, flagged `masquee`. Default behaviour unchanged (snapshot-tested).
-  reglages: { inclureMasquees?: boolean } = {}
+  // FR : ⚠️ AJOUT (14/10/2026, v0.4.11), défaut signalé sur la Mesure corrective (arme FAÇONNÉE) : la fenêtre n'affichait qu'UN perk par colonne (souvent le mauvais, grisé), le perk réellement équipé n'apparaissait pas et les perks possibles non plus. DEUX garanties, optionnelles (sans elles, comportement INCHANGÉ pour toutes les armes) :
+  //   `equipesParColonne` : les perks ÉQUIPÉS de l'exemplaire (prise → perk, comme `GearPiece.perksParColonne`) sont TOUJOURS présents dans leur colonne, cochés, même s'ils manquent à la liste du Manifest (ils y sont ajoutés en fin de colonne) ; une prise qui n'a pas de colonne n'en crée pas ;
+  //   `toutesSources` : la colonne reçoit TOUS les perks possibles de la prise (liste directe, jeu de plugs partagé, jeu de plugs aléatoire, perk initial ; sans doublon, la liste directe d'abord) au lieu de la seule première source non vide. Pour les armes façonnées, dont la liste directe n'a qu'un perk alors qu'un vrai pool existe derrière.
+  // EN: ⚠️ ADDED - two optional guarantees: equipped perks always present and ticked in their column; and `toutesSources` merging every perk source of a socket (for crafted weapons). Default behaviour unchanged.
+  reglages: { inclureMasquees?: boolean; toutesSources?: boolean; equipesParColonne?: Array<{ socketIndex: number; hash: number }> } = {}
 ): ColonneOptionsArme[] {
   const def = obtenirDefinition<DestinyItemDefinition>(db, "DestinyInventoryItemDefinition", itemHash);
   if (!def?.sockets?.socketEntries) return [];
@@ -1289,6 +1293,17 @@ export function obtenirOptionsToutesColonnes(
     if (hashesOptions.length === 0 && entree.singleInitialItemHash) {
       hashesOptions = [entree.singleInitialItemHash];
     }
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - `toutesSources` : fusionne TOUTES les sources de perks de cette prise (voir le commentaire du paramètre). / EN: merges every perk source of this socket.
+    if (reglages.toutesSources) {
+      const fusion: number[] = [];
+      const ajouter = (hs: number[]) => { for (const h of hs) if (!fusion.includes(h)) fusion.push(h); };
+      const pool = (hashJeu: number) => (obtenirDefinition<DestinyPlugSetDefinition>(db, "DestinyPlugSetDefinition", hashJeu)?.reusablePlugItems ?? []).map((p) => p.plugItemHash);
+      ajouter((entree.reusablePlugItems ?? []).map((p) => p.plugItemHash));
+      if (entree.reusablePlugSetHash) ajouter(pool(entree.reusablePlugSetHash));
+      if (entree.randomizedPlugSetHash) ajouter(pool(entree.randomizedPlugSetHash));
+      if (entree.singleInitialItemHash) ajouter([entree.singleInitialItemHash]);
+      if (fusion.length > 0) hashesOptions = fusion;
+    }
     if (hashesOptions.length === 0) return;
 
     const options: OptionSocket[] = [];
@@ -1307,6 +1322,15 @@ export function obtenirOptionsToutesColonnes(
         icone: urlIcone(defOption.displayProperties.icon),
         equipeEnJeu: hashesEquipes.includes(hashOption),
       });
+    }
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - `equipesParColonne` : le perk ÉQUIPÉ de CETTE prise est toujours dans sa colonne, coché, même absent de la liste du Manifest (ajouté en fin de colonne). / EN: the equipped perk of THIS socket is always in its column, ticked.
+    for (const eq of reglages.equipesParColonne ?? []) {
+      if (eq.socketIndex !== socketIndex || options.some((o) => o.hash === eq.hash)) continue;
+      const defEq = obtenirDefinition<DestinyItemDefinition>(db, "DestinyInventoryItemDefinition", eq.hash);
+      if (!defEq?.displayProperties?.name) continue;
+      const resoluEq = obtenirDescriptionComplete(db, eq.hash);
+      if (resoluEq.estOrnement) continue;
+      options.push({ hash: eq.hash, nom: defEq.displayProperties.name, description: resoluEq.description, icone: urlIcone(defEq.displayProperties.icon), equipeEnJeu: true });
     }
     // FR : masque la colonne si TOUTES ses options correspondent à un mot-clé
     // de progression/cosmétique (palier de catalyseur, compte-frags...).

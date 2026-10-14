@@ -5,10 +5,11 @@ import { useSimulations } from "../../src/lib/forge/storeSimulations";
 import { appliquerSimulations, nbArmesSimulees } from "../../src/lib/forge/appliquerSimulation";
 import { demoBuild } from "../../src/data/demoBuild";
 import PageForge from "../../src/components/PageForge";
-import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeRevisionAPaliers, T_OBJET } from "../logique/fixtures/fauxManifest";
+import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeRevisionAPaliers, ajouterArmeFaconnee, ajouterSaisons, T_OBJET } from "../logique/fixtures/fauxManifest";
 
 const params = new URLSearchParams(location.search);
 const defs = manifestArmesDeTest();
+if (params.has("pool")) ajouterArmeFaconnee(defs);   // ⚠️ v0.4.11 : arme façonnée d'essai à liste directe d'un perk ET pool derrière (comme la Mesure corrective)
 if (params.has("paliers") || params.has("inventaire")) ajouterArmeRevisionAPaliers(defs);
 (defs as Record<string, Record<number, unknown>>)[T_OBJET][7777] = { displayProperties: { name: "Arme façonnée" }, itemTypeDisplayName: "Intrinsèque" };   // ⚠️ v0.4.10 : perk « Arme façonnée » d'un AUTRE hash (repli par le nom)   // ⚠️ v0.4.6 : `?inventaire` a besoin de l'arme 5010 (ses armes possédées y renvoient)   // ⚠️ AJOUT (13/10/2026, v0.4.4) : arme à perks améliorés (structure réelle)
 if (params.has("modPrecoce")) ajouterArmeModPrecoce(defs);   // arme dont les mods sont AVANT des colonnes de perks
@@ -16,6 +17,7 @@ if (params.has("beaucoup")) {
   const modele = (defs[T_OBJET] as Record<number, Record<string, unknown>>)[5003];
   for (let i = 0; i < 130; i++) (defs[T_OBJET] as Record<number, unknown>)[7000 + i] = { ...modele, displayProperties: { name: `Arme numéro ${String(i).padStart(3, "0")}`, icon: "/icons/x.png", description: "" }, collectibleHash: 8000 + i };
 }
+if (params.has("saisons")) ajouterSaisons(defs, [5001, 5010, 5020]);   // ⚠️ v0.4.11 : filigrane et saison pour ces armes (Collection et Forge)
 const { db } = creerFausseDb(defs);
 (window as unknown as { __reseau: { url: string; methode: string }[] }).__reseau = [];   // ⚠️ v0.4.6 : journal des appels réseau (la Forge ne doit jamais écrire chez Bungie)
 (window as unknown as { fetch: unknown }).fetch = async (url: string, init?: { method?: string }) => {
@@ -44,6 +46,10 @@ if (params.has("inventaire")) {
     ...(params.has("faconnees") && params.has("sansimage") ? [
       { ...base, icone: undefined, itemHash: 5001, itemInstanceId: "w7", nom: "Façonnée sans image", slot: "energie", typeArme: "Fusil à impulsion", origine: "titan", perkHashes: [4029346515], plugsDisponiblesParColonne: {} },
     ] : []),
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - avec `?faconnees&pool` : « Mesure corrective d'essai » (w8, hash 5020) : arme façonnée dont la liste directe n'a qu'un perk par colonne alors qu'un pool existe derrière ; son roll réel : un canon, un chargeur et un trait 1 du pool, un trait 2 (7249) ABSENT de toute source. / EN: ⚠️ ADDED - a crafted weapon hiding a pool behind a one-perk list.
+    ...(params.has("faconnees") && params.has("pool") ? [
+      { ...base, itemHash: 5020, itemInstanceId: "w8", nom: "Mesure corrective d'essai", slot: "energie", typeArme: "Mitrailleuse", origine: "titan", equipe: true, perkHashes: [7201, 7212, 7222, 7231, 7249, 4029346515], perksParColonne: [{ socketIndex: 0, hash: 7201 }, { socketIndex: 1, hash: 7212 }, { socketIndex: 2, hash: 7222 }, { socketIndex: 3, hash: 7231 }, { socketIndex: 4, hash: 7249 }, { socketIndex: 5, hash: 4029346515 }], plugsDisponiblesParColonne: { 1: [7212], 2: [7222], 3: [7231], 4: [7249] } },
+    ] : []),
     ...(params.has("faconnees") && params.has("exotique") ? [
       { ...base, itemHash: 5002, itemInstanceId: "w6", nom: "Exotique façonnée d'essai", slot: "lourde", typeArme: "Lance-roquettes", origine: "chasseur", isExotic: true, perkHashes: [4029346515], plugsDisponiblesParColonne: {} },
     ] : []),
@@ -61,7 +67,7 @@ function Espion() {
 function Hote() {
   const inventaire = params.has("inventaire");
   const [ids, setIds] = useState<Set<string>>(new Set());
-  const [cible, setCible] = useState<{ piece: never; origine: "analyseur"; demande: number } | null>(params.has("cible") ? { piece: w1 as never, origine: "analyseur", demande: 1 } : null);
+  const [cible, setCible] = useState<{ piece: never; origine: "analyseur"; demande: number } | null>(params.has("cible") ? { piece: (((window as unknown as { __piecesForge?: { itemInstanceId?: string }[] }).__piecesForge ?? []).find((x) => x.itemInstanceId === params.get("cible")) ?? w1) as never, origine: "analyseur", demande: 1 } : null);
   const w = window as unknown as { __ajoutsBuild: string[]; __retours: number };
   w.__ajoutsBuild = w.__ajoutsBuild ?? []; w.__retours = w.__retours ?? 0;
   return (

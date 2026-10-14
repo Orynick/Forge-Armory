@@ -11,6 +11,8 @@
 // selectable + what's selected + the effects) below, and the entry point
 // of the ONLY button that REALLY touches your account: "Equip".
 
+import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
+import IconeTitreFaconnee from "./IconeTitreFaconnee";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
 import { estFaconnee } from "../lib/forge/faconnee";
 import { ordonnerColonnesPourAffichage, libelleColonne } from "../lib/manifest/colonnesArme";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : règles de tri et d'étiquette partagées avec la Forge
@@ -291,7 +293,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
     const [detailsOuverts, setDetailsOuverts] = useState(false);
     const colonnesDetails =
       detailsOuverts && db && piece.itemInstanceId && estArme
-        ? obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashesReels ?? piece.perkHashes)   // ⚠️ v0.4.9 : le ✓ marque le roll RÉEL, jamais un perk simulé
+        ? obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashesReels ?? piece.perkHashes, { toutesSources: faconnee, equipesParColonne: piece.perksParColonneReels ?? piece.perksParColonne })   // ⚠️ v0.4.11 : perks équipés toujours présents, tous les perks possibles d'une arme façonnée ; (v0.4.9) : le ✓ marque le roll RÉEL, jamais un perk simulé
         : [];
     return (
       <li style={{ marginBottom: "0.3rem" }}>
@@ -311,7 +313,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
         <span style={{ fontSize: "0.75rem", color: "#7d7a70" }}>{LIBELLES_SLOT[piece.slot]}</span>
         <div title={db ? texteSurvol(piece, db) : undefined} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", width: 35, flexShrink: 0 }}>
-            <VignetteArme icone={piece.icone} taille={31} faconnee={faconnee} />
+            <VignetteArme icone={piece.icone} taille={31} faconnee={faconnee} db={db} itemHash={piece.itemHash} />
             {!estArme && <IconeSlotArmure slot={piece.slot as SlotArmure} taille={20} />}
             {estArme && <IconeTypeArme typeArme={piece.typeArme} slot={piece.slot} munition={db ? obtenirTypeMunition(db, piece.itemHash) : undefined} categories={db ? obtenirCategoriesObjet(db, piece.itemHash) : undefined} {...(db ? obtenirSecoursTypeArme(db, piece.itemHash) : {})} taille={35} />}
           </div>
@@ -452,7 +454,11 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
                 <div>
                   <strong style={{ fontSize: "1rem", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                    <span>{piece.nom}</span>
+                    {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - icône des armes façonnées À GAUCHE DU NOM (demande de l'utilisateur). / EN: crafted icon at the left of the name. */}
+                  {faconnee && <IconeTitreFaconnee />}
+                  <span>{piece.nom}</span>
+                  {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - ICÔNE DE SAISON directement à droite du nom (demande de l'utilisateur). / EN: season icon right of the name. */}
+                  <IconeSaison db={db} itemHash={piece.itemHash} />
                     <IconeTypeArme typeArme={piece.typeArme} slot={piece.slot} munition={db ? obtenirTypeMunition(db, piece.itemHash) : undefined} categories={db ? obtenirCategoriesObjet(db, piece.itemHash) : undefined} {...(db ? obtenirSecoursTypeArme(db, piece.itemHash) : {})} taille={35} />
                     <IconeElementArme db={db} itemHash={piece.itemHash} taille={16} />
                     {/* FR : ⚠️ AJOUT (30/09/2026, v0.2.9) - type de munitions, à droite de l'élément. / EN: ammo type, right of the element. */}

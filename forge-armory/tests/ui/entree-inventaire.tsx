@@ -4,16 +4,17 @@ import { createRoot } from "react-dom/client";
 import SelecteurInventaire, { CibleInventaire } from "../../src/components/SelecteurInventaire";
 import { hashVersIdSqlite } from "../../src/lib/manifest/download";
 import { installerFauxBungie } from "./faux/bungie";
-import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, T_OBJET } from "../logique/fixtures/fauxManifest";
+import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeFaconnee, ajouterSaisons, T_OBJET } from "../logique/fixtures/fauxManifest";
 
 // Bungie : defaultDamageType Kinetic=1, Thermal(Solaire)=3 ; itemType Armor=2, Weapon=3
 // ⚠️ v0.4.3 : fausse base COMMUNE (`fixtures/fauxManifest.ts`) ; l'arme 111 reçoit les colonnes (armature, canons, chargeurs, traits, souvenir, mods connus, compte-frags) de l'arme d'essai 5001 pour vérifier la popup « Détails » (non-régression du tri des colonnes).
-const defsBase = ajouterArmeModPrecoce(manifestArmesDeTest());
+const defsBase = ajouterArmeFaconnee(ajouterArmeModPrecoce(manifestArmesDeTest()));   // ⚠️ v0.4.11 : + l'arme façonnée d'essai 5020 (utilisée avec `?pool`)
 const objets = defsBase[T_OBJET] as Record<number, Record<string, unknown>>;
 objets[111] = { ...objets[5001], itemType: 3, defaultDamageType: 3 };
 objets[222] = { ...objets[5008], itemType: 3, defaultDamageType: 1 };   // « Arme B » : mods en prise 1, avant des colonnes de perks (popup Détails : ordre à vérifier)
 objets[333] = { itemType: 2, defaultDamageType: 0 };
 objets[444] = { itemType: 3, defaultDamageType: 1 };
+if (/saisons/.test(location.search)) ajouterSaisons(defsBase, [111, 333]);   // ⚠️ v0.4.11 : filigrane et saison pour l'arme 111 (Arme A) et l'armure 333
 const fausseDb = creerFausseDb(defsBase).db as never;
 
 function Hote() {

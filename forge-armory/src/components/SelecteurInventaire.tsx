@@ -1,3 +1,5 @@
+import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
+import IconeTitreFaconnee from "./IconeTitreFaconnee";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
 import { estFaconnee } from "../lib/forge/faconnee";
 import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
@@ -271,7 +273,7 @@ function LigneObjet({
     ? ORDRE_STATS.slice(3, 6).map((cle) => `${LIBELLES_STAT[cle]} ${piece.stats[cle]}`).join(" · ")
     : "";
 
-  const colonnesDetails = detailsOuverts ? obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashes) : [];
+  const colonnesDetails = detailsOuverts ? obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashes, { toutesSources: faconnee, equipesParColonne: piece.perksParColonne }) : [];
 
   return (
     <li style={{ marginBottom: "0.4rem" }}>
@@ -292,7 +294,7 @@ function LigneObjet({
         the text line). The anti-champion icon STAYS to the right of the
         name: it reads with the text, not with the image. */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", width: 35, flexShrink: 0 }}>
-          <VignetteArme icone={piece.icone} taille={31} faconnee={faconnee} />
+          <VignetteArme icone={piece.icone} taille={31} faconnee={faconnee} db={db} itemHash={piece.itemHash} />
           {!estArme && <IconeSlotArmure slot={piece.slot as SlotArmure} taille={20} />}
           {estArme && <IconeTypeArme typeArme={piece.typeArme} slot={piece.slot} munition={db ? obtenirTypeMunition(db, piece.itemHash) : undefined} categories={db ? obtenirCategoriesObjet(db, piece.itemHash) : undefined} {...(db ? obtenirSecoursTypeArme(db, piece.itemHash) : {})} taille={35} />}
         </div>
@@ -497,7 +499,11 @@ function LigneObjet({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
               <div>
                 <strong style={{ fontSize: "1rem", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - icône des armes façonnées À GAUCHE DU NOM (demande de l'utilisateur). / EN: crafted icon at the left of the name. */}
+                  {faconnee && <IconeTitreFaconnee />}
                   <span>{piece.nom}</span>
+                  {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - ICÔNE DE SAISON directement à droite du nom (demande de l'utilisateur). / EN: season icon right of the name. */}
+                  <IconeSaison db={db} itemHash={piece.itemHash} />
                   <IconeTypeArme typeArme={piece.typeArme} slot={piece.slot} munition={db ? obtenirTypeMunition(db, piece.itemHash) : undefined} categories={db ? obtenirCategoriesObjet(db, piece.itemHash) : undefined} {...(db ? obtenirSecoursTypeArme(db, piece.itemHash) : {})} taille={35} />
                   <IconeElementArme db={db} itemHash={piece.itemHash} taille={16} />
                   {/* FR : ⚠️ AJOUT (30/09/2026, v0.2.9) - type de munitions, à droite de l'élément. / EN: ammo type, right of the element. */}
