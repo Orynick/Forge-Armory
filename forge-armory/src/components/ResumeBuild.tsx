@@ -11,6 +11,8 @@
 // selectable + what's selected + the effects) below, and the entry point
 // of the ONLY button that REALLY touches your account: "Equip".
 
+import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
+import { estFaconnee } from "../lib/forge/faconnee";
 import { ordonnerColonnesPourAffichage, libelleColonne } from "../lib/manifest/colonnesArme";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : règles de tri et d'étiquette partagées avec la Forge
 import TitreRepliable from "./TitreRepliable";
 import PastilleContexte, { ECHELLE_CONTEXTE_RANGEE } from "./PastilleContexte";
@@ -279,6 +281,8 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
 
   function LignePiece({ piece }: { piece: GearPiece }) {
     const estArme = (["cinetique", "energie", "lourde"] as (SlotArme | SlotArmure)[]).includes(piece.slot);
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - ARME FAÇONNÉE : l'icône du jeu en bas à gauche de la vignette. Lue sur les perks RÉELS (`perkHashesReels`) : une arme façonnée dont des perks sont simulés reste marquée. / EN: crafted weapon icon, read on the REAL perks.
+    const faconnee = useMemo(() => estArme && estFaconnee(db, piece.perkHashesReels ?? piece.perkHashes), [estArme, db, piece.perkHashesReels, piece.perkHashes]);
     // FR : ⚠️ AJOUT (04/08/2026) - popup "Détails" + infobulle, demande de
     // l'utilisateur : même fonctionnement que dans l'Inventaire/Coffre,
     // via les mêmes fonctions centrales (obtenirOptionsToutesColonnes,
@@ -307,9 +311,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
         <span style={{ fontSize: "0.75rem", color: "#7d7a70" }}>{LIBELLES_SLOT[piece.slot]}</span>
         <div title={db ? texteSurvol(piece, db) : undefined} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", width: 35, flexShrink: 0 }}>
-            {piece.icone && (
-              <img src={piece.icone} alt="" width={31} height={31} style={{ borderRadius: 4 }} />
-            )}
+            <VignetteArme icone={piece.icone} taille={31} faconnee={faconnee} />
             {!estArme && <IconeSlotArmure slot={piece.slot as SlotArmure} taille={20} />}
             {estArme && <IconeTypeArme typeArme={piece.typeArme} slot={piece.slot} munition={db ? obtenirTypeMunition(db, piece.itemHash) : undefined} categories={db ? obtenirCategoriesObjet(db, piece.itemHash) : undefined} {...(db ? obtenirSecoursTypeArme(db, piece.itemHash) : {})} taille={35} />}
           </div>

@@ -3,12 +3,14 @@
 import type { Database } from "sql.js";
 import type { GearPiece } from "../../types/build";
 import { obtenirDefinition } from "../manifest/download";
+import { estFaconnee } from "./faconnee";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
 
 const nomDe = (db: Database, hash: number): string => obtenirDefinition<{ displayProperties?: { name?: string } }>(db, "DestinyInventoryItemDefinition", hash)?.displayProperties?.name || `(sans nom)`;
 
 export function obtenirDiagnosticPlugsExemplaire(db: Database, piece: GearPiece): string {
   const dispo = piece.plugsDisponiblesParColonne;
   const lignes = [`Arme : ${piece.nom ?? "?"} (hash ${piece.itemHash}) — exemplaire ${piece.itemInstanceId ?? "?"} — ${piece.origine ?? "lieu inconnu"}${piece.equipe ? " (équipée)" : ""}`];
+  lignes.push(`Arme façonnée : ${estFaconnee(db, piece.perkHashes) ? "OUI (perk équipé « Arme façonnée »)" : "non"}`);   // ⚠️ AJOUT (v0.4.10)
   lignes.push(dispo === undefined ? "Perks disponibles sur l'exemplaire : NON LUS (le composant 310 de Bungie n'a pas renvoyé de données pour cet exemplaire, ou l'inventaire a été chargé avant la mise à jour : rechargez-le)." : `Perks disponibles sur l'exemplaire : lus pour ${Object.keys(dispo).length} prise(s).`);
   const equipes = new Map((piece.perksParColonne ?? []).map((p) => [p.socketIndex, p.hash]));
   const prises = [...new Set([...equipes.keys(), ...Object.keys(dispo ?? {}).map(Number)])].sort((a, b) => a - b);

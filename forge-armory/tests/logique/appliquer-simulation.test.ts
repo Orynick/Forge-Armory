@@ -31,6 +31,9 @@ ok("sans simulation, avec une simulation vide, ou pour un objet NON possédé (p
 const redevenue = pieceReelle(copie);
 ok("PIÈCE RÉELLE : renvoyer une arme de Mon Build vers la Forge la remet sur son roll RÉEL (perks et colonnes d'origine) et retire tous les repères de simulation : la Forge part du ✓ réel, jamais du roll simulé", JSON.stringify(redevenue.perkHashes) === JSON.stringify([100, 200, 300]) && JSON.stringify(redevenue.perksParColonne) === JSON.stringify(w1.perksParColonne) && redevenue.perksSimules === undefined && redevenue.perkHashesReels === undefined && redevenue.perksParColonneReels === undefined && redevenue.nbColonnesSimulees === undefined, redevenue);
 ok("une pièce sans simulation est rendue telle quelle (même objet) ; aller-retour complet : pièce → copie simulée → pièce réelle donne exactement la pièce d'origine", pieceReelle(w1) === w1 && JSON.stringify(pieceReelle(appliquerSimulationPiece(w1, sim("w1", { 1: [101, 101], 3: [301, 302] })["armes"]["w1"]))) === JSON.stringify(w1));
+// FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - défaut latent trouvé en écrivant les tests de l'icône : une pièce sans `perksParColonne` perdait tous ses perks réels dans la copie simulée.
+const sansColonnes = { ...w1, perksParColonne: undefined } as GearPiece; delete (sansColonnes as { perksParColonne?: unknown }).perksParColonne;
+ok("PIÈCE SANS COLONNES CONNUES (ancien build enregistré) : la simulation ne s'applique pas, la pièce est rendue TELLE QUELLE (même objet) : ses perks réels ne disparaissent pas du score ; idem au niveau du build", appliquerSimulationPiece(sansColonnes, sim("w1", { 2: [201, 202] })["armes"]["w1"]) === sansColonnes && (() => { const b = construire([sansColonnes]); return appliquerSimulations(b, sim("w1", { 2: [201, 202] })) === b; })());
 // ---------- 2. l'application à un build ----------
 const w2 = arme("w2", [[1, 100]]), w3 = arme("w3", [[1, 100]], "lourde");
 const build = construire([w1, w2, w3]);

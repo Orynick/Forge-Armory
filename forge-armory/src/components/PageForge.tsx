@@ -46,7 +46,7 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
       </div>
       {/* FR : ⚠️ CHANGÉ (13/10/2026, v0.4.6) - la vue Inventaire existe : tes armes possédées, leur roll réel et la simulation locale des perks et du mod (voir `InventaireArmes.tsx`). Le panneau reste MONTÉ (caché quand on est sur « Collection ») : l'inventaire chargé, la recherche et la fenêtre ouverte ne sont pas perdus en changeant de vue. / EN: ⚠️ CHANGED - the Inventory view now exists. */}
       <div role="tabpanel" aria-label="Inventaire" hidden={vue !== "inventaire"}>
-        <InventaireArmes db={db} membership={membership} cible={cible} onAjouterAuBuild={onAjouterAuBuild} idsDansBuild={idsDansBuild} />
+        <InventaireArmes db={db} membership={membership} cible={cible} onAjouterAuBuild={onAjouterAuBuild} idsDansBuild={idsDansBuild} onRetour={onRetour} libelleRetour={cible ? LIBELLES_ORIGINE[cible.origine] : undefined} />
       </div>
     </div>
   );

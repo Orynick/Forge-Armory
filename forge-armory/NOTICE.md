@@ -292,13 +292,18 @@ Dans l'onglet **Forge**, la vue **Inventaire** montre **vos** armes (personnages
 - **Rien n'est modifié dans le jeu.** La simulation est enregistrée **sur cet ordinateur** et rechargée au démarrage. « ✕ Effacer toutes les simulations » les efface toutes.
 - **Mettre dans Mon Build** : dans la fenêtre d'une arme, ce bouton pose cette arme dans Mon Build (comme « + Ajouter » de Mon Inventaire). Rien n'est équipé en jeu.
 
+### Armes façonnées (« forgées »)
+
+- Les armes **façonnées** (celles dont les perks se changent à la **forge en jeu**, sur la table de façonnage) sont repérées par **l'icône du jeu**, en bas à gauche de leur vignette, dans la même teinte saumon qu'en jeu : dans la liste de la Forge (vue Inventaire), mais aussi dans **Mon Inventaire**, le **Coffre** et **Mon Build** ; la case **« Seulement les armes façonnées »** les isole. Le repérage s'appuie sur le perk équipé « Arme façonnée » de l'arme, **quelle que soit sa rareté** : les quelques exotiques façonnables portent la même icône.
+- Dans la fenêtre d'une arme façonnée, une **note** rappelle que ses perks sont fixes en jeu et ne se changent qu'à la forge en jeu. L'appli montre les perks **possibles** de ce modèle d'arme : les perks **grisés** ne sont pas équipés, et la coche **✓** marque ceux qui le sont. La simulation fonctionne comme pour les autres armes.
+
 ### Le score tient compte de vos perks simulés
 
 - Dès qu'une arme **de Mon Build** a des perks simulés, le **score est calculé avec eux**, **en temps réel** : chaque clic dans la Forge met le score à jour. Pour qu'un perk fasse bouger le score, son texte doit parler d'un **verbe de l'élément de votre build** (par exemple « Blessure solaire » pour un build solaire) : c'est ce que lit le pilier « Effets du Build ». Les **statistiques de l'arme** (stabilité, etc.) ne sont pas recalculées : le score n'utilise pas celles des armes.
 - Un **badge « 🔨 simulé »** marque l'arme dans Mon Build, et la mention « 🔨 Score calculé avec des perks simulés » apparaît à côté du score. La simulation est liée à l'**exemplaire** : deux exemplaires de la même arme ont chacun la leur.
 - **Ce qui garde vos perks RÉELS** : l'enregistrement du build, le partage, l'export et les Load-outs. **Les images, les textes, les PDF, le fichier d'échange JSON et la sauvegarde complète n'affichent que les perks SÉLECTIONNÉS** (ceux que votre arme porte vraiment) : jamais un perk simulé, ni la liste des perks seulement disponibles ou possibles. Même règle pour les armures (leurs mods équipés). La fenêtre « Détails » de Mon Build marque toujours votre **vrai** roll (✓), jamais un perk simulé.
 - **Équiper en jeu** : les perks simulés ne sont **pas** appliqués en jeu. Les confirmations d'équipement le rappellent ; l'arme est équipée avec ses perks réels.
-- **Bouton « 🔨 Forge »** : dans la fenêtre **Détails** d'une arme possédée (Mon Inventaire, Coffre, Mon Build), il ouvre la Forge directement sur cette arme, à partir de son roll réel. Le bandeau **« ← Retour »** ramène à la vue d'origine, restée telle que vous l'aviez laissée (la fenêtre Détails est toujours ouverte).
+- **Bouton « 🔨 Forge »** : dans la fenêtre **Détails** d'une arme possédée (Mon Inventaire, Coffre, Mon Build), il ouvre la Forge directement sur cette arme, à partir de son roll réel. Un bouton **« ← Retour à … »** en haut de la fenêtre de l'arme (et un bandeau au-dessus des onglets de la Forge) ramène à la vue d'origine, restée telle que vous l'aviez laissée (la fenêtre Détails est toujours ouverte).
 
 ## Comprendre le score
 

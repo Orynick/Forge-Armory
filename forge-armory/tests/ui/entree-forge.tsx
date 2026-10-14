@@ -9,7 +9,8 @@ import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeR
 
 const params = new URLSearchParams(location.search);
 const defs = manifestArmesDeTest();
-if (params.has("paliers") || params.has("inventaire")) ajouterArmeRevisionAPaliers(defs);   // ⚠️ v0.4.6 : `?inventaire` a besoin de l'arme 5010 (ses armes possédées y renvoient)   // ⚠️ AJOUT (13/10/2026, v0.4.4) : arme à perks améliorés (structure réelle)
+if (params.has("paliers") || params.has("inventaire")) ajouterArmeRevisionAPaliers(defs);
+(defs as Record<string, Record<number, unknown>>)[T_OBJET][7777] = { displayProperties: { name: "Arme façonnée" }, itemTypeDisplayName: "Intrinsèque" };   // ⚠️ v0.4.10 : perk « Arme façonnée » d'un AUTRE hash (repli par le nom)   // ⚠️ v0.4.6 : `?inventaire` a besoin de l'arme 5010 (ses armes possédées y renvoient)   // ⚠️ AJOUT (13/10/2026, v0.4.4) : arme à perks améliorés (structure réelle)
 if (params.has("modPrecoce")) ajouterArmeModPrecoce(defs);   // arme dont les mods sont AVANT des colonnes de perks
 if (params.has("beaucoup")) {
   const modele = (defs[T_OBJET] as Record<number, Record<string, unknown>>)[5003];
@@ -33,6 +34,19 @@ if (params.has("inventaire")) {
       plugsDisponiblesParColonne: { 1: [6901], 2: [6912, 6913], 3: [6921], 4: [6931, 6933] } },
     { ...base, itemHash: 5001, itemInstanceId: "w2", nom: "Fusil d'essai", slot: "energie", typeArme: "Fusil à impulsion", origine: "coffre", perkHashes: [] },
     { ...base, itemHash: 5002, itemInstanceId: "w3", nom: "Lance-roquettes d'essai", slot: "lourde", typeArme: "Lance-roquettes", origine: "chasseur", isExotic: true, equipe: false, perkHashes: [], plugsDisponiblesParColonne: {} },   // ⚠️ v0.4.7 : `{}` = lu, aucune alternative sur cet exemplaire (w2 n'a PAS le champ : non lu)
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - avec `?faconnees` : deux armes FAÇONNÉES (« forgées ») : w4 reconnue par le HASH connu du perk « Arme façonnée » (4029346515), w5 par son NOM (autre hash, défini dans le faux Manifest). / EN: ⚠️ ADDED - two crafted weapons: by known hash and by name.
+    ...(params.has("faconnees") ? [
+      { ...base, itemHash: 5001, itemInstanceId: "w4", nom: "Mitrailleuse façonnée d'essai", slot: "energie", typeArme: "Mitrailleuse", origine: "titan", perkHashes: [4029346515], plugsDisponiblesParColonne: {} },
+      { ...base, itemHash: 5001, itemInstanceId: "w5", nom: "Fusil façonné d'essai (par le nom)", slot: "cinetique", typeArme: "Fusil à impulsion", origine: "coffre", perkHashes: [7777], plugsDisponiblesParColonne: {} },
+    ] : []),
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - avec `?exotique` (en plus de `?faconnees`) : une EXOTIQUE façonnée (w6), pour prouver que l'icône ne dépend pas de la rareté (quelques exotiques sont façonnables). / EN: ⚠️ ADDED - a crafted EXOTIC, to prove the icon does not depend on rarity.
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - avec `?sansimage` (en plus de `?faconnees`) : une arme façonnée SANS image (w7) : la liste de la Forge réserve la place de la vignette et l'icône s'y pose quand même. / EN: ⚠️ ADDED - a crafted weapon without image.
+    ...(params.has("faconnees") && params.has("sansimage") ? [
+      { ...base, icone: undefined, itemHash: 5001, itemInstanceId: "w7", nom: "Façonnée sans image", slot: "energie", typeArme: "Fusil à impulsion", origine: "titan", perkHashes: [4029346515], plugsDisponiblesParColonne: {} },
+    ] : []),
+    ...(params.has("faconnees") && params.has("exotique") ? [
+      { ...base, itemHash: 5002, itemInstanceId: "w6", nom: "Exotique façonnée d'essai", slot: "lourde", typeArme: "Lance-roquettes", origine: "chasseur", isExotic: true, perkHashes: [4029346515], plugsDisponiblesParColonne: {} },
+    ] : []),
     { ...base, itemHash: 5005, itemInstanceId: "c1", nom: "Casque d'essai", slot: "casque", origine: "arcaniste", classeRequise: "arcaniste", perkHashes: [] },
   ];
 }

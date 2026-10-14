@@ -1,3 +1,5 @@
+import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
+import { estFaconnee } from "../lib/forge/faconnee";
 import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 // FR : Parcourt l'inventaire + coffre reels du joueur, affiche en 4
 // sections repliables (Chasseur / Titan / Arcaniste / Coffre) - chaque
@@ -253,6 +255,8 @@ function LigneObjet({
   // compare with other copies in the vault).
   const [detailsOuverts, setDetailsOuverts] = useState(false);
   const estArme = (["cinetique", "energie", "lourde"] as (SlotArme | SlotArmure)[]).includes(piece.slot);
+  // FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - ARME FAÇONNÉE : l'icône du jeu en bas à gauche de la vignette (Mon Inventaire et Coffre), comme dans la Forge. Calculé une fois par ligne (`useMemo`). / EN: crafted weapon icon on the thumbnail.
+  const faconnee = useMemo(() => estArme && estFaconnee(db, piece.perkHashes), [estArme, db, piece.perkHashes]);
 
   // FR : ⚠️ CHANGÉ (04/08/2026) - 5 colonnes au lieu de 4 (une colonne
   // manquait, signalé par l'utilisateur) et la particularité d'origine
@@ -288,9 +292,7 @@ function LigneObjet({
         the text line). The anti-champion icon STAYS to the right of the
         name: it reads with the text, not with the image. */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", width: 35, flexShrink: 0 }}>
-          {piece.icone && (
-            <img src={piece.icone} alt="" width={31} height={31} style={{ borderRadius: 4 }} />
-          )}
+          <VignetteArme icone={piece.icone} taille={31} faconnee={faconnee} />
           {!estArme && <IconeSlotArmure slot={piece.slot as SlotArmure} taille={20} />}
           {estArme && <IconeTypeArme typeArme={piece.typeArme} slot={piece.slot} munition={db ? obtenirTypeMunition(db, piece.itemHash) : undefined} categories={db ? obtenirCategoriesObjet(db, piece.itemHash) : undefined} {...(db ? obtenirSecoursTypeArme(db, piece.itemHash) : {})} taille={35} />}
         </div>

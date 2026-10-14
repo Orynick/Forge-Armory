@@ -10,6 +10,8 @@ export function appliquerSimulationPiece(piece: GearPiece, simulation: Simulatio
   if (!simulation || !piece.itemInstanceId) return piece;
   const colonnes = Object.entries(simulation);
   if (colonnes.length === 0) return piece;
+  // FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - une pièce SANS `perksParColonne` (par exemple un build enregistré avant la lecture des colonnes) ne permet pas de remplacer un perk « à la bonne place » : la reconstruire à partir de ses seules colonnes simulées FERAIT PERDRE tous ses perks réels au score (défaut trouvé en écrivant les tests de l'icône). La simulation ne s'applique donc PAS à cette pièce : elle est rendue telle quelle ; « Mettre dans Mon Build » depuis la Forge la remplace par la pièce de l'inventaire, qui a ses colonnes. / EN: ⚠️ ADDED - a piece without column data cannot be overlaid: returned unchanged (rebuilding it from the simulated columns alone would drop all its real perks).
+  if (!piece.perksParColonne) return piece;
   const parColonne = new Map<number, number>((piece.perksParColonne ?? []).map((p) => [p.socketIndex, p.hash]));
   for (const [index, choix] of colonnes) parColonne.set(Number(index), choix.effectif);
   const perksParColonne = [...parColonne.entries()].sort((a, b) => a[0] - b[0]).map(([socketIndex, hash]) => ({ socketIndex, hash }));
