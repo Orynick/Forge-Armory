@@ -469,10 +469,11 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                     })()}
                   </strong>
                   {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - BOUTON « FORGE » de la fenêtre Détails de Mon Build (armes possédées seulement) : la Forge s'ouvre sur cette arme à partir de son roll RÉEL ; « Retour » ramène ici. / EN: ⚠️ ADDED - Forge button of Mon Build's Details window. */}
-                  {onOuvrirForge && estArme && piece.itemInstanceId && (
+                  {/* FR : ⚠️ CHANGÉ (16/10/2026, v0.4.12) - le bouton « Forge » existe aussi pour les ARMURES possédées (spécification du 12/10/2026, §1 : « le bouton Détails des armes et armures… un bouton supplémentaire permet de rejoindre la Forge ») : il ouvre la partie Armures de la Forge sur cette armure ; « Retour » ramène ici. / EN: ⚠️ CHANGED - the Forge button now also exists for owned armor pieces. */}
+                  {onOuvrirForge && piece.itemInstanceId && (
                     <div>
                       <button data-ouvrir-forge="" onClick={() => onOuvrirForge(piece)} style={{ fontSize: "0.75rem", marginTop: "0.4rem", padding: "0.15rem 0.5rem" }}>
-                        🔨 Forge : choisir les perks de cette arme
+                        {estArme ? "🔨 Forge : choisir les perks de cette arme" : "🔨 Forge : choisir les mods de cette armure"}
                       </button>
                     </div>
                   )}

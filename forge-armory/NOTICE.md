@@ -299,9 +299,17 @@ Dans l'onglet **Forge**, la vue **Inventaire** montre **vos** armes (personnages
 - Pour une arme façonnée, ces fenêtres montrent **tous les perks possibles** de chaque colonne (les perks **grisés** ne sont pas équipés), et le **perk réellement équipé est toujours présent et coché ✓** dans sa colonne, même si le Manifest ne le liste pas. La simulation fonctionne comme pour les autres armes.
 - **Fenêtre de la Forge** : **à droite du nom**, les **quatre icônes** de l'arme (type d'arme, élément, munitions, antichampion, comme dans les fenêtres Détails) ; le bouton **« ← Retour à … »**, quand on vient d'un bouton « Forge », est sur la même ligne que **« ➕ Mettre dans Mon Build »**, à sa gauche, de même hauteur.
 
+### Forge : les armures (version 0.4.12, première étape)
+
+- Dans la Forge, vue **Inventaire**, choisissez **Armures** (à côté de **Armes**), puis « Charger mon inventaire » : vos armures des trois personnages et du Coffre, que l'on peut filtrer par nom ou ensemble, classe, emplacement, lieu, exotiques.
+- Ouvrez une armure : ses **emplacements** (archétype, amélioration, mods, mods d'ajustement…) avec le plug **équipé** (✓) et les plugs **disponibles** sur votre exemplaire. Les emplacements **fixes** (archétype, amélioration, ensemble, perk exotique) et **cosmétiques** (teintures, ornements : masqués par défaut) ne se changent pas.
+- Vous pouvez **simuler** un autre **mod** par emplacement : les six **statistiques** montrent l'effet (avant → après). **Rien n'est modifié dans le jeu**, et pour l'instant la simulation **n'influence ni le score ni Mon Build**.
+- Depuis la fenêtre « Détails » d'une armure (Mon Inventaire, Coffre, Mon Build), le bouton **« 🔨 Forge : choisir les mods de cette armure »** ouvre la Forge, partie Armures, directement sur cette armure ; **« ← Retour »** ramène à la vue d'origine.
+- La simulation est gardée dans l'appli (même mémoire locale que celle des armes) ; « Revenir à l'équipement réel » ou « Effacer les simulations d'armures » la retire (celles des armes ne sont pas touchées).
+
 ### Icône de saison
 
-- Les **armes** et les **armures** portent l'**icône de leur saison** : en **haut à gauche de leur vignette**, à la **même taille que l'icône des armes façonnées**, dans Mon Inventaire, le Coffre, Mon Build, la liste de la Forge et la Collection ; et **directement à droite du nom** dans les fenêtres **Détails** (Mon Inventaire, Coffre, Mon Build, Forge, Collection). Survolez l'icône d'une fenêtre : elle donne le **nom de la saison** et son numéro quand le Manifest les fournit, sinon « Saison de l'objet » (cas de beaucoup d'armes : le Manifest ne donne pas toujours le nom).
+- Les **armes** et les **armures** portent l'**icône de leur saison** : en **haut à gauche de leur vignette**, (l'image de saison du jeu, à sa taille d'origine), dans Mon Inventaire, le Coffre, Mon Build, la liste de la Forge et la Collection ; et **directement à droite du nom** dans les fenêtres **Détails** (Mon Inventaire, Coffre, Mon Build, Forge, Collection). Survolez l'icône d'une fenêtre : elle donne le **nom de la saison** et son numéro. Le Manifest ne les donne pas toujours pour un objet : l'appli les **déduit alors d'autres objets de la même saison** (même image de saison), en arrière-plan quelques instants après le chargement ; sans autre objet de référence, l'infobulle dit « Saison de l'objet ».
 - L'image vient du **Manifest** de Bungie, donc les saisons futures apparaissent toutes seules. Un objet qui n'a pas de saison dans le Manifest (anciens objets, certaines exotiques) n'a pas d'icône. Les images, textes et PDF exportés n'affichent pas la saison.
 
 ### Le score tient compte de vos perks simulés

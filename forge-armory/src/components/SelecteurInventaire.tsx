@@ -517,9 +517,10 @@ function LigneObjet({
                   {obtenirSource(db, piece.itemHash) ?? "Source inconnue"}
                 </div>
                 {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - BOUTON « FORGE » (spécification du 12/10/2026, §1 : « dans la vue de détails, un bouton supplémentaire permet de rejoindre la Forge ») : envoie cette arme possédée à la vue Inventaire de la Forge, qui s'ouvre dessus ; un bouton « Retour » ramène ici, avec cette fenêtre telle qu'on l'a laissée. Armes possédées seulement. / EN: ⚠️ ADDED - Forge button in the Details window (owned weapons only). */}
-                {onOuvrirForge && estArme && piece.itemInstanceId && (
+                {/* FR : ⚠️ CHANGÉ (16/10/2026, v0.4.12) - le bouton « Forge » existe aussi pour les ARMURES possédées (spécification du 12/10/2026, §1 : « le bouton Détails des armes et armures… un bouton supplémentaire permet de rejoindre la Forge ») : il ouvre la partie Armures de la Forge sur cette armure ; « Retour » ramène ici. / EN: ⚠️ CHANGED - the Forge button now also exists for owned armor pieces. */}
+                {onOuvrirForge && piece.itemInstanceId && (
                   <button data-ouvrir-forge="" onClick={() => onOuvrirForge(piece)} style={{ fontSize: "0.75rem", marginTop: "0.4rem", padding: "0.15rem 0.5rem" }}>
-                    🔨 Forge : choisir les perks de cette arme
+                    {estArme ? "🔨 Forge : choisir les perks de cette arme" : "🔨 Forge : choisir les mods de cette armure"}
                   </button>
                 )}
                 {/* FR : ⚠️ AJOUT (04/08/2026) - diagnostic anti-champion,

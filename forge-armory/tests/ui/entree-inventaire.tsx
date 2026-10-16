@@ -14,8 +14,8 @@ objets[111] = { ...objets[5001], itemType: 3, defaultDamageType: 3 };
 objets[222] = { ...objets[5008], itemType: 3, defaultDamageType: 1 };   // « Arme B » : mods en prise 1, avant des colonnes de perks (popup Détails : ordre à vérifier)
 objets[333] = { itemType: 2, defaultDamageType: 0 };
 objets[444] = { itemType: 3, defaultDamageType: 1 };
-if (/saisons/.test(location.search)) ajouterSaisons(defsBase, [111, 333]);   // ⚠️ v0.4.11 : filigrane et saison pour l'arme 111 (Arme A) et l'armure 333
-const fausseDb = creerFausseDb(defsBase).db as never;
+if (/saisons/.test(location.search)) ajouterSaisons(defsBase, [111, 333], { sansHash: /saisonsvoisin/.test(location.search), remplissage: /lent/.test(location.search) ? 100 : 0 });   // `?saisonsvoisin` : sans seasonHash, nom déduit d'un autre objet de même filigrane   // ⚠️ v0.4.11 : filigrane et saison pour l'arme 111 (Arme A) et l'armure 333
+const fausseDb = creerFausseDb(defsBase, { ralentirBalayage: /lent/.test(location.search) ? 15 : 0 }).db as never;   // ⚠️ v0.4.11 (soir) : `?lent` : balayage des saisons ralenti (15 ms par objet de référence)
 
 function Hote() {
   const [cible, setCible] = useState<CibleInventaire | null>(null);

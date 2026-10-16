@@ -2,13 +2,13 @@
 import type { Database } from "sql.js";
 import IconeSaison, { CADRAGE_SAISON } from "./IconeSaison";
 import { obtenirSaisonObjet } from "../lib/manifest/saison";
-import { tailleGlypheVignette } from "../lib/forge/tailleVignette";
+import { RETRAIT_BADGE_VIGNETTE, tailleBadgeVignette, tailleGlypheVignette } from "../lib/forge/tailleVignette";
 
 export default function BadgeSaison({ db, itemHash, taille }: { db?: Database | null; itemHash?: number; taille: number }) {
   if (!obtenirSaisonObjet(db, itemHash)) return null;
   const boite = Math.round(tailleGlypheVignette(taille) / CADRAGE_SAISON.partSymbole);   // la boîte est un peu plus grande que le symbole qu'elle contient
   return (
-    <span data-badge-saison="" style={{ position: "absolute", left: 2, top: 2, lineHeight: 0, background: "rgba(13,15,20,0.55)", borderRadius: 3, padding: taille >= 40 ? 2 : 1 }}>
+    <span data-badge-saison="" style={{ position: "absolute", left: RETRAIT_BADGE_VIGNETTE, top: RETRAIT_BADGE_VIGNETTE, width: tailleBadgeVignette(taille), height: tailleBadgeVignette(taille), display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 0, background: "rgba(13,15,20,0.55)", borderRadius: 3 }}>
       <IconeSaison db={db} itemHash={itemHash} taille={boite} />
     </span>
   );

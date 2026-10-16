@@ -2,7 +2,7 @@
 // `reserverPlace` : réserve la place de la vignette même sans image (liste de la Forge) ; sinon, sans image, rien n'est dessiné (comme avant dans Mon Inventaire et Mon Build). La détection (`estFaconnee`) reste à la charge de l'appelant. EN: ⚠️ ADDED - weapon thumbnail with the crafted-weapon icon at the bottom-left, shared by all four views.
 import type { Database } from "sql.js";
 import IconeFaconnee from "./IconeFaconnee";
-import BadgeSaison from "./BadgeSaison";   // ⚠️ CHANGÉ (14/10/2026, v0.4.11) : remplace le filigrane entier
+import FiligraneSaison from "./FiligraneSaison";   // ⚠️ RÉTABLI (15/10/2026, v0.4.11) : le filigrane de saison superposé tel quel, comme à l'origine
 import { tailleGlypheVignette } from "../lib/forge/tailleVignette";
 
 interface Props {
@@ -18,11 +18,11 @@ interface Props {
 
 export default function VignetteArme({ icone, taille, faconnee = false, reserverPlace = false, db, itemHash }: Props) {
   if (!icone && !reserverPlace) return null;
-  const tailleIcone = tailleGlypheVignette(taille);   // la MÊME taille pour l\'icône façonnée et pour l\'icône de saison
+  const tailleIcone = tailleGlypheVignette(taille);
   return (
     <span style={{ position: "relative", display: "block", width: taille, height: taille, flexShrink: 0 }}>
       {icone ? <img src={icone} alt="" width={taille} height={taille} style={{ borderRadius: 4, display: "block" }} /> : <span style={{ display: "block", width: taille, height: taille }} />}
-      {icone && <BadgeSaison db={db} itemHash={itemHash} taille={taille} />}
+      {icone && <FiligraneSaison db={db} itemHash={itemHash} taille={taille} />}
       {faconnee && (
         <span data-badge-faconnee="" role="img" aria-label="Arme façonnée" title="Arme façonnée : ses perks se changent à la forge en jeu" style={{ position: "absolute", left: 2, bottom: 2, lineHeight: 0, background: "rgba(13,15,20,0.55)", borderRadius: 3, padding: taille >= 40 ? 2 : 1 }}>
           <IconeFaconnee taille={tailleIcone} />

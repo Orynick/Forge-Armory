@@ -19,7 +19,8 @@
 import { extrairePlugsDisponibles } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7)
 import { Database } from "sql.js";
 import { obtenirDefinition } from "../manifest/download";
-import { normaliser, urlIcone } from "../manifest/search";
+import { urlIcone } from "../manifest/search";
+import { resoudreStatKey } from "../manifest/statsArmure";   // ⚠️ DÉPLACÉ (15/10/2026, v0.4.12)
 import { DestinyItemDefinition, DestinyStatDefinition } from "../../types/manifest";
 import { GearPiece, StatKey } from "../../types/build";
 import { BUCKET_HASH_VERS_SLOT, TIER_TYPE_HASH_EXOTIQUE, CLASS_TYPE_VERS_CLASSE } from "../../data/constantesManifest";
@@ -28,26 +29,7 @@ import { obtenirAccessTokenValide } from "./oauth";
 import { BUNGIE_API_ROOT, bungieConfig } from "./config";
 import { obtenirNomsDamageType, obtenirIconesDamageType } from "../manifest/doctrine";
 
-// FR : plutôt que de deviner les hash des 6 stats Armor 3.0 (risque de se
-// tromper sans pouvoir tester en direct), on résout le NOM de chaque stat
-// via le Manifest et on le compare à ces libellés connus - ça s'auto-
-// corrige tant que Bungie ne renomme pas complètement les stats.
-const LIBELLES_STAT: Record<StatKey, string[]> = {
-  sante: ["sante", "health"],
-  melee: ["corps a corps", "melee"],
-  grenade: ["grenade"],
-  super: ["super"],
-  classe: ["classe", "class", "competence de classe", "class ability"],
-  arme: ["arme", "armes", "weapon", "weapons"],
-};
-
-function resoudreStatKey(nomStat: string): StatKey | undefined {
-  const nomNormalise = normaliser(nomStat);
-  for (const [cle, libelles] of Object.entries(LIBELLES_STAT) as [StatKey, string[]][]) {
-    if (libelles.some((l) => nomNormalise.includes(l))) return cle;
-  }
-  return undefined;
-}
+// FR : la résolution d'une statistique par son NOM vit maintenant dans `lib/manifest/statsArmure.ts` (partagée avec la Forge des armures ; comportement inchangé).
 
 interface ItemBrut {
   itemHash: number;
@@ -391,7 +373,7 @@ export async function listerObjetsPossedes(
       perkHashes,
       perksParColonne,
       // FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - perks DISPONIBLES sur cet exemplaire, par prise (armes seulement : les builds enregistrés ne grossissent pas pour l'armure). `undefined` = donnée non lue. / EN: perks available on this instance (weapons only).
-      ...(!estArmure && item.itemInstanceId ? { plugsDisponiblesParColonne: extrairePlugsDisponibles(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),
+      ...(item.itemInstanceId ? { plugsDisponiblesParColonne: extrairePlugsDisponibles(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),   // ⚠️ CHANGÉ (15/10/2026, v0.4.12) : lus aussi pour les ARMURES (Forge des armures : mods disponibles sur l'exemplaire)
       isExotic: def.inventory?.tierTypeHash === TIER_TYPE_HASH_EXOTIQUE,
       classeRequise,
       elementArme,

@@ -5,10 +5,12 @@ import { useEffect, useState } from "react";
 import { Database } from "sql.js";
 import type { DestinyMembership } from "../lib/bungie/api";
 import CollectionArmes from "./CollectionArmes";
-import InventaireArmes, { CibleForge } from "./InventaireArmes";   // ⚠️ AJOUT (13/10/2026, v0.4.6)
+import InventaireArmes, { CibleForge } from "./InventaireArmes";
+import InventaireArmures from "./InventaireArmures";   // ⚠️ AJOUT (15/10/2026, v0.4.12) : Forge des armures   // ⚠️ AJOUT (13/10/2026, v0.4.6)
 import type { GearPiece } from "../types/build";
 import { BoutonSousMenu } from "./SelecteurVues";   // ⚠️ AJOUT (13/10/2026, v0.4.4) : boutons stylisés des sous-menus
 
+const SLOTS_ARMURE = ["casque", "gants", "torse", "jambes", "marque"];
 const LIBELLES_ORIGINE: Record<CibleForge["origine"], string> = { analyseur: "Build Analyzer", loadouts: "Load-outs", forge: "la Forge", bibliotheque: "Legendarium" };
 
 interface Props {
@@ -25,10 +27,16 @@ interface Props {
 export default function PageForge({ db, membership = null, cible = null, onRetour, onAjouterAuBuild, idsDansBuild }: Props) {
   const [vue, setVue] = useState<"collection" | "inventaire">("collection");
   useEffect(() => { if (cible) setVue("inventaire"); }, [cible?.demande]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // FR : ⚠️ AJOUT (15/10/2026, v0.4.12) - la vue Inventaire a deux parties : Armes (par défaut) et Armures. La partie Armures n'est montée qu'à sa première ouverture, puis reste montée (cachée) : son inventaire chargé est gardé quand on revient aux armes. Une arrivée depuis un bouton « Forge » (arme possédée) ramène aux armes. / EN: ⚠️ ADDED - the Inventory view has two parts, Weapons (default) and Armor; Armor mounts on first open and then stays mounted.
+  const [objet, setObjet] = useState<"armes" | "armures">("armes");
+  const [armuresMontees, setArmuresMontees] = useState(false);
+  // FR : ⚠️ CHANGÉ (16/10/2026, v0.4.12) - une arrivée depuis un bouton « Forge » ouvre la partie qui correspond à la PIÈCE : Armes pour une arme, Armures pour une armure (qui est alors montée tout de suite). Chaque partie ne reçoit que SA cible : une armure ne doit jamais s'ouvrir dans la fenêtre des armes. / EN: ⚠️ CHANGED - arriving from a "Forge" button opens the part matching the piece.
+  const cibleArmure = !!cible && SLOTS_ARMURE.includes(cible.piece.slot as string);
+  useEffect(() => { if (cible) { setObjet(cibleArmure ? "armures" : "armes"); if (cibleArmure) setArmuresMontees(true); } }, [cible?.demande]);   // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="pilier-carte" role="region" aria-label="Forge">
       {/* FR : ⚠️ CHANGÉ (13/10/2026, v0.4.4), demande de l'utilisateur en cours de test : le TITRE « Forge » (icône et mot) est retiré de la page : inutile ici, l'onglet « Forge » du sélecteur juste au-dessus porte déjà ce nom. La page garde son NOM pour les lecteurs d'écran (région `aria-label="Forge"`) ; la note grise (périmètre de la Forge) reste, alignée à droite. / EN: ⚠️ CHANGED - the "Forge" title (icon and word) is removed from the page (the selector tab above already says it); the region keeps its accessible name; the grey note stays. */}
-      <p data-forge-note="" style={{ margin: "0 0 0.6rem", fontSize: "0.8rem", color: "#7d7a70", textAlign: "right" }}>armes : consultation et simulation locale · armures : à venir</p>
+      <p data-forge-note="" style={{ margin: "0 0 0.6rem", fontSize: "0.8rem", color: "#7d7a70", textAlign: "right" }}>armes et armures : consultation et simulation locale (les armures n'influencent pas encore le score)</p>
       {/* FR : ⚠️ CHANGÉ (13/10/2026, v0.4.4) - les deux onglets en texte sont remplacés par les BOUTONS STYLISÉS (demande de l'utilisateur, après la validation de la 0.4.3) : « Collection » (archive de visuels v4) et « Inventaire » (bouton au format du sélecteur, option 2). Même rôle d'onglet et mêmes noms accessibles qu'avant. / EN: ⚠️ CHANGED - the two text tabs become the stylised buttons. */}
       {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - quand on arrive d'un bouton « Forge » : un retour à la vue d'origine ; elle est restée MONTÉE (cachée), donc la fenêtre Détails et tout le reste sont tels qu'on les a laissés. / EN: ⚠️ ADDED - back button when arriving from a "Forge" button; the origin view stayed mounted, so nothing is lost. */}
       {cible && onRetour && (
@@ -46,7 +54,19 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
       </div>
       {/* FR : ⚠️ CHANGÉ (13/10/2026, v0.4.6) - la vue Inventaire existe : tes armes possédées, leur roll réel et la simulation locale des perks et du mod (voir `InventaireArmes.tsx`). Le panneau reste MONTÉ (caché quand on est sur « Collection ») : l'inventaire chargé, la recherche et la fenêtre ouverte ne sont pas perdus en changeant de vue. / EN: ⚠️ CHANGED - the Inventory view now exists. */}
       <div role="tabpanel" aria-label="Inventaire" hidden={vue !== "inventaire"}>
-        <InventaireArmes db={db} membership={membership} cible={cible} onAjouterAuBuild={onAjouterAuBuild} idsDansBuild={idsDansBuild} onRetour={onRetour} libelleRetour={cible ? LIBELLES_ORIGINE[cible.origine] : undefined} />
+        <div role="group" aria-label="Type d'objet" data-choix-objet="" style={{ display: "flex", gap: "0.5rem", margin: "0 0 0.7rem" }}>
+          {(["armes", "armures"] as const).map((o) => (
+            <button key={o} type="button" aria-pressed={objet === o} data-objet={o} onClick={() => { setObjet(o); if (o === "armures") setArmuresMontees(true); }} style={{ fontSize: "0.85rem", padding: "0.3rem 0.9rem", borderRadius: 999, cursor: "pointer", color: "#e8e6df", background: objet === o ? "#1b2233" : "#12151c", border: `1px solid ${objet === o ? "#7aa2f7" : "#3a3f4b"}` }}>{o === "armes" ? "Armes" : "Armures"}</button>
+          ))}
+        </div>
+        <div hidden={objet !== "armes"}>
+          <InventaireArmes db={db} membership={membership} cible={cibleArmure ? null : cible} onAjouterAuBuild={onAjouterAuBuild} idsDansBuild={idsDansBuild} onRetour={onRetour} libelleRetour={cible ? LIBELLES_ORIGINE[cible.origine] : undefined} />
+        </div>
+        {armuresMontees && (
+          <div hidden={objet !== "armures"}>
+            <InventaireArmures db={db} membership={membership} cible={cibleArmure ? cible : null} onRetour={onRetour} libelleRetour={cible ? LIBELLES_ORIGINE[cible.origine] : undefined} />
+          </div>
+        )}
       </div>
     </div>
   );

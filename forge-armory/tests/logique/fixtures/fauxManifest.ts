@@ -8,7 +8,7 @@ const HASH_EXOTIQUE = 2759499571, HASH_LEGENDAIRE = 4008398120;
 const BUCKET = { cinetique: 1498876634, energie: 2465295065, lourde: 953998645 };
 
 /** FR : fausse base : `LIKE '%motif%'` (sous-chaîne) et `id = ?` sont pris en charge, comme les deux requêtes que fait l'appli. / EN: fake database supporting the two query shapes the app uses. */
-export function creerFausseDb(defs: Defs): { db: never; requetes: string[] } {
+export function creerFausseDb(defs: Defs, options: { ralentirBalayage?: number } = {}): { db: never; requetes: string[] } {   // ⚠️ v0.4.11 (soir) : `ralentirBalayage` = millisecondes d'attente à CHAQUE ligne lue par la requête de balayage des saisons (LIKE), pour tester ce qui se passe PENDANT le balayage
   const requetes: string[] = [];
   const db = {
     exec: () => [],
@@ -25,6 +25,7 @@ export function creerFausseDb(defs: Defs): { db: never; requetes: string[] } {
             const like = /LIKE\s+'(.*)'/.exec(where);
             if (like) { const coeur = like[1].replace(/^%|%$/g, ""); choisies = lignes.filter((l) => l.json.includes(coeur)); }
           }
+          if (options.ralentirBalayage && /LIKE/.test(where)) { const t = Date.now(); while (Date.now() - t < options.ralentirBalayage) { /* attente volontaire */ } }
           courant++; return courant < choisies.length;
         },
         getAsObject: () => ({ id: choisies[courant].id, json: choisies[courant].json }),
@@ -112,12 +113,41 @@ export function ajouterArmeFaconnee(defs: Defs): Defs {
 }
 
 /**
+ * FR : ⚠️ AJOUT (15/10/2026, v0.4.12) - ARMURES d'essai pour la Forge des armures : un casque (5301 : archétype FIXE, amélioration FIXE, un emplacement de MOD à trois plugs, un emplacement d'AJUSTEMENT à deux plugs, un emplacement COSMÉTIQUE de teinture à trois plugs), un plastron EXOTIQUE (5302 : archétype, perk exotique fixe, un emplacement de mod) et une marque de classe (5303 : un seul perk exotique). Les mods donnent des statistiques (`investmentStats`), l'ajustement en retire à l'une pour en donner à l'autre ; les six statistiques sont définies dans `DestinyStatDefinition` (noms français, résolus PAR LE NOM comme l'application). / EN: ⚠️ ADDED - test armors for the armor Forge.
+ */
+export function ajouterArmureForge(defs: Defs): Defs {
+  const objets = defs[T_OBJET] as Record<number, unknown>;
+  defs["DestinyStatDefinition"] = { 8801: { displayProperties: { name: "Santé" } }, 8802: { displayProperties: { name: "Corps à corps" } }, 8803: { displayProperties: { name: "Grenade" } }, 8804: { displayProperties: { name: "Super" } }, 8805: { displayProperties: { name: "Classe" } }, 8806: { displayProperties: { name: "Armes" } } };
+  const cat = (defs[T_CATEGORIE] ?? (defs[T_CATEGORIE] = {})) as Record<number, unknown>;
+  cat[7601] = { displayProperties: { name: "Archétype" } }; cat[7602] = { displayProperties: { name: "Mods d'armure" } }; cat[7603] = { displayProperties: { name: "Apparence" } };
+  const pl = (nom: string, categorie: string, inv: Array<[number, number]>, description = "") => ({ ...plug(nom, description, { plug: { plugCategoryIdentifier: categorie } }), investmentStats: inv.map(([statTypeHash, value]) => ({ statTypeHash, value })) });
+  objets[7401] = pl("Archétype Bastion", "armor_stats", [[8801, 17], [8805, 12]]);
+  objets[7402] = pl("Amélioration d'armure", "armor.masterworks.v2", [[8801, 5], [8802, 5], [8803, 5]]);
+  objets[7411] = pl("Mod de santé", "enhancements.v2_general", [[8801, 10]], "Augmente la santé.");
+  objets[7412] = pl("Mod de classe", "enhancements.v2_general", [[8805, 10]], "Augmente la classe.");
+  objets[7413] = pl("Mod d'armes", "enhancements.v2_general", [[8806, 10]], "Augmente les armes.");
+  objets[7421] = pl("Ajustement : mêlée vers grenade", "enhancements.v2_tuning", [[8802, 5], [8803, -5]]);
+  objets[7422] = pl("Ajustement : super vers classe", "enhancements.v2_tuning", [[8804, 5], [8805, -5]]);
+  objets[7431] = pl("Teinture rouge", "shader", []); objets[7432] = pl("Teinture bleue", "shader", []); objets[7433] = pl("Teinture verte", "shader", []);
+  objets[7441] = pl("Perk exotique d'essai", "intrinsics", [], "Un effet exotique narratif.");
+  const entrees = (...hashes: number[]) => hashes.map((h) => ({ singleInitialItemHash: h }));
+  objets[5301] = { displayProperties: { name: "Casque de bastion d'essai", icon: "/icons/casque.png" }, sockets: { socketEntries: entrees(7401, 7402, 7411, 7421, 7431), socketCategories: [{ socketCategoryHash: 7601, socketIndexes: [0, 1] }, { socketCategoryHash: 7602, socketIndexes: [2, 3] }, { socketCategoryHash: 7603, socketIndexes: [4] }] } };
+  objets[5302] = { displayProperties: { name: "Plastron exotique d'essai", icon: "/icons/plastron.png" }, sockets: { socketEntries: entrees(7401, 7441, 7412), socketCategories: [{ socketCategoryHash: 7601, socketIndexes: [0, 1] }, { socketCategoryHash: 7602, socketIndexes: [2] }] } };
+  objets[5303] = { displayProperties: { name: "Marque de classe d'essai", icon: "/icons/marque.png" }, sockets: { socketEntries: entrees(7441), socketCategories: [{ socketCategoryHash: 7601, socketIndexes: [0] }] } };
+  return defs;
+}
+
+/**
  * FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - donne un FILIGRANE DE SAISON (`iconWatermark`) et une saison (`seasonHash` 9001, table `DestinySeasonDefinition` : « Saison de la Sorcière », n° 22) aux objets indiqués. Utilisé seulement par les pages de test avec `?saisons` : les autres tests ne voient aucun filigrane. / EN: ⚠️ ADDED - gives the listed items a season watermark and a season (test pages with `?saisons` only).
  */
 export const T_SAISON = "DestinySeasonDefinition";
-export function ajouterSaisons(defs: Defs, hashes: number[]): Defs {
+export function ajouterSaisons(defs: Defs, hashes: number[], options: { sansHash?: boolean; remplissage?: number } = {}): Defs {
   const objets = defs[T_OBJET] as Record<number, Record<string, unknown>>;
-  for (const h of hashes) if (objets[h]) objets[h] = { ...objets[h], iconWatermark: "/img/saison-sorciere.png", seasonHash: 9001 };
+  // FR : `sansHash` (v0.4.11, soir) : les objets n'ont QUE le filigrane (comme la Mesure corrective, l'As de pique et l'Eyasluna de l'utilisateur) ; un AUTRE objet du Manifest (9999999) a le même filigrane ET son seasonHash : le nom doit alors être déduit du filigrane. / EN: items have only the watermark; another item shares it and knows its season.
+  for (const h of hashes) if (objets[h]) objets[h] = { ...objets[h], iconWatermark: "/img/saison-sorciere.png", ...(options.sansHash ? {} : { seasonHash: 9001 }) };
+  // FR : `remplissage` : N objets de plus qui ont un seasonHash (de quoi rallonger le balayage quand il est ralenti). / EN: N more items with a seasonHash, to lengthen a slowed scan.
+  for (let i = 0; i < (options.remplissage ?? 0); i++) objets[9990000 + i] = { displayProperties: { name: `Remplissage ${i}` }, iconWatermark: `/img/remplissage-${i}.png`, seasonHash: 9001 };
+  if (options.sansHash) objets[9999999] = { displayProperties: { name: "Objet de référence" }, iconWatermark: "/img/saison-sorciere.png", seasonHash: 9001 };
   defs[T_SAISON] = { 9001: { displayProperties: { name: "Saison de la Sorcière" }, seasonNumber: 22 } };
   return defs;
 }
