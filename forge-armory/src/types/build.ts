@@ -98,7 +98,7 @@ export interface GearPiece {
   perksParColonne?: Array<{ socketIndex: number; hash: DefinitionHash }>;
   /**
    * FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - perks DISPONIBLES sur CET exemplaire, par index de prise (composant 310 de Bungie : ce que l'exemplaire peut porter dans chaque prise, par exemple les canons ou chargeurs entre lesquels on bascule en jeu). Armes possédées seulement. `undefined` = donnée non lue (on ne sait pas), `{}` = aucune alternative. Sert à la vue Inventaire de la Forge (quatre niveaux de perks).
-   * EN: ⚠️ ADDED - perks available on THIS instance per socket index (weapons only); undefined = not read.
+   * EN: ⚠️ ADDED - perks available on THIS instance per socket index (weapons AND, since v0.4.12, armor); undefined = not read.
    */
   plugsDisponiblesParColonne?: Record<number, DefinitionHash[]>;
   /**

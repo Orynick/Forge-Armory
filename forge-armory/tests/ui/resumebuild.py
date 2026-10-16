@@ -32,7 +32,11 @@ with sync_playwright() as p:
     ok("un clic envoie CETTE arme (exemplaire w1) à la Forge, une seule fois", len(envois) == 1 and envois[0]["id"] == "w1", envois)
     pg.get_by_role("button", name="✕").first.click(); pg.wait_for_timeout(150)
     ligne("Casque d'essai").get_by_role("button", name="Détails").click(); pg.wait_for_timeout(300)
-    ok("une ARMURE n'a PAS de bouton Forge (la Forge ne concerne que les armes pour l'instant)", pg.get_by_role("button", name="🔨 Forge : choisir les perks de cette arme").count() == 0)
+    bouton_a = pg.get_by_role("button", name="🔨 Forge : choisir les mods de cette armure")
+    ok("BOUTON FORGE DES ARMURES (v0.4.12) : la fenêtre Détails d'une ARMURE possédée (« Casque d'essai », exemplaire c1) propose « 🔨 Forge : choisir les mods de cette armure » ; le libellé des ARMES n'y est PAS", bouton_a.count() == 1 and pg.get_by_role("button", name="🔨 Forge : choisir les perks de cette arme").count() == 0)
+    bouton_a.click(); pg.wait_for_timeout(150)
+    envois = pg.evaluate("window.__forge.map(p => ({ id: p.itemInstanceId, simules: !!p.perksSimules, slot: p.slot }))")
+    ok("un clic envoie CETTE armure (exemplaire c1, emplacement casque) à la Forge, après l'arme (w1), une seule fois chacune", len(envois) == 2 and envois[1]["id"] == "c1" and envois[1]["slot"] == "casque" and not envois[1]["simules"], envois)
     pg.get_by_role("button", name="✕").first.click(); pg.wait_for_timeout(150)
     ok("une arme NON POSSÉDÉE n'a ni « Détails » ni bouton Forge (elle n'a pas de roll à choisir)", ligne("Lance-roquettes d'essai").get_by_role("button", name="Détails").count() == 0)
     # ---------- avertissements d'équipement ----------
@@ -46,6 +50,13 @@ with sync_playwright() as p:
     m3 = messages[-1]
     ok("ÉQUIPER TOUT LE BUILD : la confirmation compte les armes simulées (1 arme a des perks SIMULÉS, non appliqués en jeu)", "1 arme de ce build a des perks SIMULÉS" in m3 and "PAS appliqués en jeu" in m3, m3)
     ok("les trois confirmations ont été REFUSÉES par le test : aucune action réelle chez Bungie (aucun appel réseau vers l'API)", len(messages) == 3)
+    # ---------- v0.4.12 : une armure SANS identifiant d'exemplaire n'a aucun bouton Forge (elle n'a pas de roll à choisir) ----------
+    ps = b.new_page(viewport={"width": 1280, "height": 1000}); ps.on("pageerror", lambda e: erreurs.append(str(e)))
+    ps.route("**/www.bungie.net/**", lambda r: r.fulfill(status=200, content_type="image/png", body=PNG))
+    ps.goto("file://" + racine + "/tests/ui/_sortie/resumebuild.html?sansid=1"); ps.wait_for_function("window.__pret===true"); ps.wait_for_timeout(300)
+    ligne_sans = ps.locator("li").filter(has_text="Casque d'essai").first
+    ok("une ARMURE sans identifiant d'exemplaire (elle ne vient pas de l'inventaire réel) n'a NI « Détails » NI bouton Forge : sa ligne existe, mais sans fenêtre à ouvrir", ligne_sans.count() == 1 and ligne_sans.get_by_role("button", name="Détails").count() == 0 and ps.get_by_role("button", name="🔨 Forge : choisir les mods de cette armure").count() == 0 and ps.get_by_role("button", name="🔨 Forge : choisir les perks de cette arme").count() == 0)
+    ps.close()
     ok("aucune erreur JavaScript pendant tout le scénario", len(erreurs) == 0, erreurs[:3])
     b.close()
 print(f"\n{sum(res)}/{len(res)} contrôles réussis"); sys.exit(0 if all(res) else 1)
