@@ -4,6 +4,19 @@ Historique daté de toutes les corrections, fonctionnalités et décisions du pr
 Le plus récent en premier. Pour les fonctionnalités actuelles, voir `NOTICE.md` (l'état d'avancement détaillé est dans `NOTES-CONCEPTION.md`) ;
 pour ce qui reste à faire, voir `TODO.md`.
 
+## 18/10/2026 — Intégration Netlify (pas de changement de version)
+
+**Numéro de version** : inchangé (0.4.12) ; aucune modification du code de l'appli, de l'interface ni des données.
+
+**Fait** : fichier `netlify.toml` à la racine du dépôt pour connecter le dépôt GitHub (`Orynick/Forge-Armory`) à Netlify (décision du 11/10 : l'hébergeur restait à choisir entre Vercel et Netlify ; c'est Netlify). Contenu :
+
+- `base = "forge-armory"` (le projet React+Vite est dans ce sous-dossier) ; `publish = "dist"` (relatif à `base`, dossier de sortie de Vite). Commande **provisoire** `npx vite build` : la commande officielle `npm run build` (`tsc -b && vite build`) échoue sur le défaut TypeScript décrit plus bas ; `vite build` seul produit le même `dist` sans l'étape de typage. **Revenir à `npm run build` une fois ce défaut corrigé.** L'appli **navigateur** seule est publiée : rien d'Electron ni de l'installateur Windows n'est déployé.
+- **Redirection SPA** (`/*` → `/index.html`, statut 200) : le build Vite n'émet qu'un seul `index.html` ; sans cette règle, un rafraîchissement sur `/auth/callback` (retour OAuth Bungie) afficherait la page d'erreur « Page not found » de Netlify.
+
+**Reste à faire côté Netlify (interface web, pas dans le dépôt)** : à la création du site (Import from Git, dépôt `Orynick/Forge-Armory`, branche de production `main`, aperçus activés) : définir les variables d'environnement `VITE_BUNGIE_API_KEY`, `VITE_BUNGIE_CLIENT_ID` et `VITE_BUNGIE_REDIRECT_URI` dans *Site configuration > Environment variables* (jamais dans `netlify.toml`, public) ; la valeur de `VITE_BUNGIE_REDIRECT_URI` doit être l'URL du site (par ex. `https://forge-armory.netlify.app/auth/callback`) et être **aussi** déclarée dans votre application Bungie (bungie.net > Application). La branche `test` (créée le 11/10) peut servir d'aperçu : activer *Branch deploys* si besoin.
+
+**Vérifié** : `vite build` dans `forge-armory/` produit bien `dist/` complet (index.html + assets + favicon, chemins relatifs `./` compatibles Netlify), et le `netlify.toml` est du TOML valide. **Défaut connu, non corrigé ici** : la partie TypeScript de `npm run build` (`tsc -b`) échoue depuis la v0.4.11 sur `BadgeSaison.tsx`, qui importe `RETRAIT_BADGE_VIGNETTE` et `tailleBadgeVignette` (inexistants dans `lib/forge/tailleVignette.ts`) et lit `CADRAGE_SAISON.partSymbole` (inexistant aussi ; la clé s'appelle `fraction`). Ces symboles n'existent dans aucun commit du dépôt : le code publié ne compile pas tel quel en TypeScript strict. Conséquence dans `netlify.toml` : la commande de build est `npx vite build` en attendant la correction (dans un changement de version, pas ici) ; la redirection SPA n'en dépend pas.
+
 ## 15/10/2026 — v0.4.12 : Forge des armures, étape 1 (liste, fenêtre, simulation locale des mods)
 
 **Demande** : « Go les armures » (après ma question : la spécification du 12/10/2026 ne dit pas ce qu'on sélectionne sur une armure ; point 10 de `NOTES-CONCEPTION.md`). **Version 0.4.12** (installateur `Forge-Armory-Setup-0.4.12.exe`, liste `A-TESTER-0.4.12.pdf`). Les tests encore ouverts de la 0.4.11 restent dans la liste.
