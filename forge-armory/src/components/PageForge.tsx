@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Database } from "sql.js";
 import type { DestinyMembership } from "../lib/bungie/api";
 import CollectionArmes from "./CollectionArmes";
+import CollectionArmures from "./CollectionArmures";   // ⚠️ AJOUT (16/10/2026, v0.4.12) : Collection des armures
 import InventaireArmes, { CibleForge } from "./InventaireArmes";
 import InventaireArmures from "./InventaireArmures";   // ⚠️ AJOUT (15/10/2026, v0.4.12) : Forge des armures   // ⚠️ AJOUT (13/10/2026, v0.4.6)
 import type { GearPiece } from "../types/build";
@@ -30,6 +31,9 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
   // FR : ⚠️ AJOUT (15/10/2026, v0.4.12) - la vue Inventaire a deux parties : Armes (par défaut) et Armures. La partie Armures n'est montée qu'à sa première ouverture, puis reste montée (cachée) : son inventaire chargé est gardé quand on revient aux armes. Une arrivée depuis un bouton « Forge » (arme possédée) ramène aux armes. / EN: ⚠️ ADDED - the Inventory view has two parts, Weapons (default) and Armor; Armor mounts on first open and then stays mounted.
   const [objet, setObjet] = useState<"armes" | "armures">("armes");
   const [armuresMontees, setArmuresMontees] = useState(false);
+  // FR : ⚠️ AJOUT (16/10/2026, v0.4.12) - la vue Collection a aussi deux parties, Armes (par défaut) et Armures ; la partie Armures n'est montée qu'à sa première ouverture (sa lecture du Manifest est longue) puis reste montée (cachée). Attributs distincts de ceux de l'Inventaire (`data-objet-collection`). / EN: ⚠️ ADDED - the Collection view has two parts too; Armor mounts on first open, then stays mounted.
+  const [objetCollection, setObjetCollection] = useState<"armes" | "armures">("armes");
+  const [collectionArmuresMontee, setCollectionArmuresMontee] = useState(false);
   // FR : ⚠️ CHANGÉ (16/10/2026, v0.4.12) - une arrivée depuis un bouton « Forge » ouvre la partie qui correspond à la PIÈCE : Armes pour une arme, Armures pour une armure (qui est alors montée tout de suite). Chaque partie ne reçoit que SA cible : une armure ne doit jamais s'ouvrir dans la fenêtre des armes. / EN: ⚠️ CHANGED - arriving from a "Forge" button opens the part matching the piece.
   const cibleArmure = !!cible && SLOTS_ARMURE.includes(cible.piece.slot as string);
   useEffect(() => { if (cible) { setObjet(cibleArmure ? "armures" : "armes"); if (cibleArmure) setArmuresMontees(true); } }, [cible?.demande]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -50,7 +54,19 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
         <BoutonSousMenu identifiant="inventaire" libelle="Inventaire" actif={vue === "inventaire"} onClick={() => setVue("inventaire")} />
       </div>
       <div role="tabpanel" aria-label="Collection" hidden={vue !== "collection"}>
-        <CollectionArmes db={db} membership={membership} />
+        <div role="group" aria-label="Type d'objet de la collection" data-choix-objet-collection="" style={{ display: "flex", gap: "0.5rem", margin: "0 0 0.7rem" }}>
+          {(["armes", "armures"] as const).map((o) => (
+            <button key={o} type="button" aria-pressed={objetCollection === o} data-objet-collection={o} onClick={() => { setObjetCollection(o); if (o === "armures") setCollectionArmuresMontee(true); }} style={{ fontSize: "0.85rem", padding: "0.3rem 0.9rem", borderRadius: 999, cursor: "pointer", color: "#e8e6df", background: objetCollection === o ? "#1b2233" : "#12151c", border: `1px solid ${objetCollection === o ? "#7aa2f7" : "#3a3f4b"}` }}>{o === "armes" ? "Armes" : "Armures"}</button>
+          ))}
+        </div>
+        <div hidden={objetCollection !== "armes"}>
+          <CollectionArmes db={db} membership={membership} />
+        </div>
+        {collectionArmuresMontee && (
+          <div hidden={objetCollection !== "armures"}>
+            <CollectionArmures db={db} membership={membership} />
+          </div>
+        )}
       </div>
       {/* FR : ⚠️ CHANGÉ (13/10/2026, v0.4.6) - la vue Inventaire existe : tes armes possédées, leur roll réel et la simulation locale des perks et du mod (voir `InventaireArmes.tsx`). Le panneau reste MONTÉ (caché quand on est sur « Collection ») : l'inventaire chargé, la recherche et la fenêtre ouverte ne sont pas perdus en changeant de vue. / EN: ⚠️ CHANGED - the Inventory view now exists. */}
       <div role="tabpanel" aria-label="Inventaire" hidden={vue !== "inventaire"}>

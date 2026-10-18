@@ -1,0 +1,105 @@
+# FR : ⚠️ AJOUT (16/10/2026, v0.4.12) - TEST D'INTERFACE de la COLLECTION DES ARMURES : le choix « Armes / Armures » de la vue Collection (distinct de celui de l'Inventaire), la lecture du catalogue dans le Manifest, le grisage des armures jamais obtenues (collections du compte), les filtres, la fenêtre d'une armure (ensemble et bonus, emplacements, mods et cosmétiques repliés par défaut), la LECTURE SEULE (aucun bouton de simulation, aucune écriture réseau), le diagnostic (version développement seulement), l'état gardé en changeant de partie, et les cas sans compte et sans Manifest. VRAIS composants `PageForge` et `CollectionArmures`, faux Manifest et faux compte (`?armures=1`). Depuis la racine : python3 tests/ui/forge-collection-armures.py   (construit les pages lui-même)
+# ⚠️ Ne dit RIEN de la structure réelle du Manifest de l'utilisateur (non vérifiée : diagnostic en `npm run dev`). EN: ⚠️ ADDED - UI test of the armor Collection.
+import glob, os, subprocess, sys
+from playwright.sync_api import sync_playwright
+racine = os.getcwd()
+for args in (["forge"], ["forge", "dev"]):
+    if subprocess.run(["node", "tests/ui/build.mjs", *args], capture_output=True).returncode != 0: print("❌ construction impossible :", args); sys.exit(1)
+chrome = os.environ.get("CHROME_PATH") or next(iter(sorted(glob.glob(os.path.expanduser("~/.cache/puppeteer/chrome/*/chrome-linux64/chrome")))), None)
+res = []
+def ok(nom, cond, detail=""):
+    res.append(bool(cond)); print(("✅" if cond else "❌"), nom, ("— " + str(detail)[:520]) if (detail and not cond) else "")
+PNG = bytes.fromhex("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360000002000001e221bc330000000049454e44ae426082")
+URL = "file://" + racine + "/tests/ui/_sortie/forge.html"
+URL_DEV = "file://" + racine + "/tests/ui/_sortie/forge-dev.html"
+with sync_playwright() as p:
+    b = p.chromium.launch(executable_path=chrome) if chrome else p.chromium.launch()
+    ctx = b.new_context(viewport={"width": 1280, "height": 1000}); erreurs = []
+    ctx.route("**/www.bungie.net/**", lambda r: r.fulfill(status=200, content_type="image/png", body=PNG))
+    def ouvrir(params, dev=False):
+        q = ctx.new_page(); q.on("pageerror", lambda e: erreurs.append(str(e)))
+        q.goto((URL_DEV if dev else URL) + params); q.wait_for_function("window.__pret===true"); q.wait_for_timeout(300); return q
+    def vers_armures(q):
+        q.locator('[data-objet-collection="armures"]').click(); q.wait_for_selector("[data-armure-collection]"); q.wait_for_timeout(250)
+    carte = lambda q, h: q.locator(f'[data-armure-collection="{h}"]')
+    hashes = lambda q: sorted(int(x) for x in q.evaluate("() => [...document.querySelectorAll('[data-armure-collection]')].map(e => e.dataset.armureCollection)"))
+    def nb(q): return int(q.locator("[data-compteur-armures]").inner_text().split()[0])
+    def choisir(q, nom, valeur): q.get_by_label(nom).select_option(valeur); q.wait_for_timeout(120)
+    # ---------- 1. le choix Armes / Armures de la Collection ----------
+    pg = ouvrir("?armures=1")
+    etat = pg.evaluate("() => [...document.querySelectorAll('[data-choix-objet-collection] button')].map(b => [b.dataset.objetCollection, b.getAttribute('aria-pressed')])")
+    ok("VUE COLLECTION : deux choix, « Armes » (sélectionné par défaut) et « Armures » ; la partie Armures n'est pas encore montée (aucune carte d'armure) ; les armes sont là ; le choix de la vue Inventaire est un AUTRE groupe (attributs distincts : deux boutons chacun)", etat == [["armes", "true"], ["armures", "false"]] and pg.locator("[data-armure-collection]").count() == 0 and pg.locator("[data-arme]").count() > 0 and pg.locator("[data-objet]").count() == 2 and pg.locator("[data-objet-collection]").count() == 2, [etat, pg.locator("[data-objet]").count()])
+    pg.locator('[data-objet-collection="armures"]').click(); pg.wait_for_selector("[data-armure-collection]"); pg.wait_for_timeout(250)
+    etat = pg.evaluate("() => [...document.querySelectorAll('[data-choix-objet-collection] button')].map(b => [b.dataset.objetCollection, b.getAttribute('aria-pressed')])")
+    ok("un clic sur « Armures » la sélectionne ; la liste des armes est cachée ; la partie Armures lit le Manifest et affiche les armures des COLLECTIONS DU JEU (4 : casque, plastron exotique, marque de classe, gants), jamais une arme", etat == [["armes", "false"], ["armures", "true"]] and not pg.locator("[data-arme]").first.is_visible() and hashes(pg) == [5301, 5302, 5303, 5311] and nb(pg) == 4, [etat, hashes(pg)])
+    ok("COLLECTIONS DU COMPTE : le bandeau dit qu'elles sont lues et que les armures jamais obtenues sont grisées", pg.locator('[data-collections-armures="lues"]').count() == 1 and "armures jamais obtenues sont grisées" in pg.locator("[data-collections-armures]").inner_text())
+    ok("GRISAGE : le plastron exotique (jamais obtenu) est grisé (opacité réduite) et marqué « jamais obtenue » ; le casque, la marque et les gants (obtenus) ne le sont pas", carte(pg, 5302).get_attribute("data-obtention") == "jamais" and carte(pg, 5301).get_attribute("data-obtention") == "obtenu" and pg.evaluate("(h) => getComputedStyle(document.querySelector('[data-armure-collection=\"'+h+'\"]')).opacity", 5302) == "0.45" and pg.evaluate("(h) => getComputedStyle(document.querySelector('[data-armure-collection=\"'+h+'\"]')).opacity", 5301) == "1" and "jamais obtenue" in carte(pg, 5302).inner_text() and "jamais obtenue" not in carte(pg, 5301).inner_text())
+    t1, t2 = carte(pg, 5301).inner_text(), carte(pg, 5302).inner_text()
+    ok("CARTES : emplacement, classe et ENSEMBLE (le casque : Casque, Titan, « Ensemble de bastion d'essai » ; le plastron : Torse, Arcaniste, aucun ensemble)", "Casque" in t1 and "Titan" in t1 and "Ensemble « Ensemble de bastion d'essai »" in t1 and "Torse" in t2 and "Arcaniste" in t2 and "Ensemble «" not in t2, [t1, t2])
+    # ---------- 2. les filtres ----------
+    choisir(pg, "Classe de l'armure du jeu", "titan"); ok("FILTRE par classe : Titan → casque et gants (2)", hashes(pg) == [5301, 5311] and nb(pg) == 2, hashes(pg)); choisir(pg, "Classe de l'armure du jeu", "toutes")
+    choisir(pg, "Emplacement de l'armure du jeu", "gants"); ok("FILTRE par emplacement : Gants → 1 armure (5311)", hashes(pg) == [5311], hashes(pg)); choisir(pg, "Emplacement de l'armure du jeu", "tous")
+    choisir(pg, "Rareté de l'armure du jeu", "Exotique"); ok("FILTRE par rareté : Exotique (dans les Collections) → le plastron seul", hashes(pg) == [5302], hashes(pg)); choisir(pg, "Rareté de l'armure du jeu", "toutes")
+    choisir(pg, "Ensemble d'armure", "Ensemble de bastion d'essai"); ok("FILTRE par ensemble : « Ensemble de bastion d'essai » → casque et gants", hashes(pg) == [5301, 5311], hashes(pg)); choisir(pg, "Ensemble d'armure", "tous")
+    choisir(pg, "Source des armures", "hors"); ok("SOURCE « Hors Collections (3) » : les trois armures sans lot de Collections (le casque d'essai, les jambières exotiques, le casque ancien)", hashes(pg) == [5005, 5312, 5313] and "Hors Collections (3)" in pg.get_by_label("Source des armures").inner_text(), hashes(pg)); choisir(pg, "Source des armures", "tout")
+    ok("SOURCE « Tout (7) » : les sept armures du jeu ; les objets sans nom, masqués, factices, au seau inconnu ou de type 20 n'y sont pas", nb(pg) == 7 and "Tout (7)" in pg.get_by_label("Source des armures").inner_text(), nb(pg)); choisir(pg, "Source des armures", "collections")
+    choisir(pg, "Obtention des armures", "jamais"); ok("FILTRE « jamais obtenues » : le plastron exotique seul", hashes(pg) == [5302], hashes(pg)); choisir(pg, "Obtention des armures", "obtenues"); ok("FILTRE « obtenues » : les trois autres des Collections", hashes(pg) == [5301, 5303, 5311], hashes(pg)); choisir(pg, "Obtention des armures", "toutes")
+    pg.get_by_label("Rechercher une armure du jeu").fill("bastion"); pg.wait_for_timeout(150); ok("RECHERCHE : « bastion » → casque et gants ; « ensemble » trouve les mêmes par le nom de l'ensemble ; un mot absent : aucune armure", hashes(pg) == [5301, 5311] and (pg.get_by_label("Rechercher une armure du jeu").fill("ensemble") or True) and (pg.wait_for_timeout(150) or True) and hashes(pg) == [5301, 5311] and (pg.get_by_label("Rechercher une armure du jeu").fill("zzz") or True) and (pg.wait_for_timeout(150) or True) and nb(pg) == 0)
+    pg.get_by_label("Rechercher une armure du jeu").fill(""); choisir(pg, "Classe de l'armure du jeu", "arcaniste"); pg.get_by_role("button", name="Réinitialiser les filtres").click(); pg.wait_for_timeout(150)
+    ok("« ✕ Réinitialiser les filtres » remet tout par défaut : les quatre armures des Collections", hashes(pg) == [5301, 5302, 5303, 5311] and pg.get_by_label("Classe de l'armure du jeu").input_value() == "toutes", hashes(pg))
+    # ---------- 3. la fenêtre d'une armure ----------
+    carte(pg, 5301).click(); pg.wait_for_selector("[role=dialog]"); pg.wait_for_timeout(250)
+    colonnes = lambda: pg.evaluate("() => [...document.querySelectorAll('[role=dialog] [data-colonne-modele]')].map(c => [Number(c.dataset.colonneModele), c.dataset.genre])")
+    texte = pg.locator("[role=dialog]").inner_text()
+    ok("FENÊTRE du casque : titre, emplacement, classe, « obtenue » et la mention « consultation : rien n'est simulé ni modifié »", "Casque de bastion d'essai" in texte and "Casque · Titan · Légendaire · obtenue" in texte and "rien n'est simulé ni modifié" in texte and pg.locator("[role=dialog]").get_attribute("aria-label") == "Emplacements de Casque de bastion d'essai", texte[:300])
+    bonus = pg.evaluate("() => [...document.querySelectorAll('[role=dialog] [data-bonus-piece]')].map(e => [e.dataset.bonusPiece, e.innerText])")
+    ok("ENSEMBLE ET BONUS : « Ensemble « Ensemble de bastion d'essai » » avec ses deux bonus classés par nombre de pièces (2 puis 4), chacun avec son nom et sa description", "Ensemble « Ensemble de bastion d'essai »" in pg.locator("[role=dialog] [data-bonus-ensemble]").inner_text() and [x[0] for x in bonus] == ["2", "4"] and "Bonus à deux pièces" in bonus[0][1] and "Effet à deux pièces." in bonus[0][1] and "Bonus à quatre pièces" in bonus[1][1], bonus)
+    ok("EMPLACEMENTS par défaut : seuls l'archétype (prise 0) et l'amélioration (prise 1), tous deux fixes ; les mods et la teinture sont REPLIÉS", colonnes() == [[0, "fixe"], [1, "fixe"]], colonnes())
+    plugs0 = pg.evaluate("() => [...document.querySelectorAll('[role=dialog] [data-colonne-modele=\"0\"] [data-plug-modele]')].map(e => [Number(e.dataset.plugModele), e.innerText])")
+    ok("PLUGS POSSIBLES de l'archétype : 7401 et 7403 (plug initial et jeu aléatoire, sans doublon) ; chacun affiche ses BONUS de statistiques (« Super +17 · Arme +12 »)", [x[0] for x in plugs0] == [7401, 7403] and "Super +17 · Arme +12" in plugs0[1][1] and "Santé +17 · Classe +12" in plugs0[0][1], plugs0)
+    pg.get_by_text("Afficher aussi les emplacements de mods").click(); pg.wait_for_timeout(200)
+    ok("« Afficher aussi les emplacements de mods » : les prises 2 (trois mods) et 3 (deux ajustements) apparaissent, marquées « mods » ; la teinture reste repliée", colonnes() == [[0, "fixe"], [1, "fixe"], [2, "mods"], [3, "mods"]] and pg.locator('[role=dialog] [data-colonne-modele="2"] [data-plug-modele]').count() == 3 and pg.locator('[role=dialog] [data-colonne-modele="3"] [data-plug-modele]').count() == 2, colonnes())
+    pg.get_by_text("Afficher les emplacements cosmétiques").click(); pg.wait_for_timeout(200)
+    ok("« Afficher les emplacements cosmétiques » : la teinture (prise 4, trois teintures) apparaît, marquée cosmétique ; avec les deux cases, cinq emplacements", colonnes() == [[0, "fixe"], [1, "fixe"], [2, "mods"], [3, "mods"], [4, "cosmetique"]] and pg.locator('[role=dialog] [data-colonne-modele="4"] [data-plug-modele]').count() == 3, colonnes())
+    pg.get_by_text("Afficher aussi les emplacements de mods").click(); pg.get_by_text("Afficher les emplacements cosmétiques").click(); pg.wait_for_timeout(200)
+    ok("LECTURE SEULE : aucun bouton de simulation dans la fenêtre (aucun plug cliquable, ni « Revenir à l'équipement réel »), et aucune écriture réseau chez Bungie", pg.locator("[role=dialog] [data-colonne-modele] button").count() == 0 and pg.locator("[role=dialog] [data-plug]").count() == 0 and pg.get_by_role("button", name="Revenir à l'équipement réel").count() == 0 and pg.evaluate("() => window.__reseau.filter(r => r.methode !== 'GET').length") == 0, pg.evaluate("() => window.__reseau.filter(r => r.methode !== 'GET')"))
+    ok("le bouton de DIAGNOSTIC est ABSENT de la version normale (réservé à `npm run dev`)", pg.get_by_text("Diagnostic des emplacements de ce modèle d'armure").count() == 0)
+    pg.get_by_label("Fermer").click(); pg.wait_for_timeout(150)
+    carte(pg, 5302).click(); pg.wait_for_selector("[role=dialog]"); pg.wait_for_timeout(200)
+    ok("ARMURE EXOTIQUE (jamais obtenue) : sa fenêtre dit « jamais obtenue », n'a PAS de bloc d'ensemble (elle n'en a pas), et montre l'archétype et le perk exotique (fixe) ", "jamais obtenue" in pg.locator("[role=dialog]").inner_text() and pg.locator("[role=dialog] [data-bonus-ensemble]").count() == 0 and colonnes() == [[0, "fixe"], [1, "fixe"]] and "Perk exotique d'essai" in pg.locator('[role=dialog] [data-colonne-modele="1"]').inner_text())
+    pg.get_by_label("Fermer").click(); pg.wait_for_timeout(150)
+    carte(pg, 5303).click(); pg.wait_for_selector("[role=dialog]"); pg.wait_for_timeout(200)
+    ok("MARQUE DE CLASSE : un seul emplacement (le perk exotique)", colonnes() == [[0, "fixe"]])
+    pg.get_by_label("Fermer").click(); pg.wait_for_timeout(150)
+    # ---------- 4. l'état est gardé quand on change de partie ----------
+    choisir(pg, "Classe de l'armure du jeu", "titan")
+    pg.locator('[data-objet-collection="armes"]').click(); pg.wait_for_timeout(200)
+    ok("RETOUR AUX ARMES : la liste d'armes est de nouveau visible ; la partie Armures reste montée mais cachée", pg.locator("[data-arme]").first.is_visible() and not carte(pg, 5301).is_visible() and pg.locator("[data-armure-collection]").count() == 2)
+    pg.locator('[data-objet-collection="armures"]').click(); pg.wait_for_timeout(200)
+    ok("on revient aux armures SANS relire le Manifest et le FILTRE choisi est gardé (Titan → 2 armures)", carte(pg, 5301).is_visible() and nb(pg) == 2 and pg.get_by_label("Classe de l'armure du jeu").input_value() == "titan")
+    pg.get_by_role("tab", name="Inventaire").click(); pg.wait_for_timeout(150)
+    ok("la vue INVENTAIRE n'est pas touchée : son propre choix Armes / Armures est intact (un seul bouton « Armures » d'inventaire, `data-objet`)", pg.locator('[data-objet="armures"]').count() == 1 and pg.locator('[data-objet="armures"]').is_visible())
+    pg.close()
+    # ---------- 5. diagnostic (version développement) ----------
+    pd = ouvrir("?armures=1", dev=True); vers_armures(pd)
+    carte(pd, 5301).click(); pd.wait_for_selector("[role=dialog]"); pd.wait_for_timeout(200)
+    pd.get_by_text("Diagnostic des emplacements de ce modèle d'armure").click(); pd.wait_for_timeout(150)
+    diag = pd.locator("[role=dialog] textarea").input_value()
+    ok("DIAGNOSTIC (npm run dev) : le texte décrit le modèle et, prise par prise, la catégorie, les quatre champs d'où viennent les plugs et le classement « mods : oui » pour la prise 2 (même replié)", "Modèle d'armure : Casque de bastion d'essai" in diag and "prise 2 | catégorie « Mods d'armure »" in diag and "mods : oui" in diag and "cosmétique : oui" in diag, diag[:300])
+    pd.close()
+    # ---------- 6. saison ----------
+    ps = ouvrir("?armures=1&saisons=1"); vers_armures(ps)
+    ok("SAISON : la miniature du casque (qui a un filigrane) porte l'image de saison, pas celle du plastron", carte(ps, 5301).locator("[data-filigrane-saison]").count() == 1 and carte(ps, 5302).locator("[data-filigrane-saison]").count() == 0)
+    carte(ps, 5301).click(); ps.wait_for_selector("[role=dialog]"); ps.wait_for_timeout(200)
+    ok("la fenêtre du casque a l'icône de saison à droite de son nom", ps.locator("[role=dialog] [data-icone-saison]").count() == 1)
+    ps.close()
+    # ---------- 7. sans compte, sans Manifest ----------
+    pc = ouvrir("?armures=1&sansCompte=1"); vers_armures(pc)
+    ok("SANS COMPTE BUNGIE : le bandeau le dit (« non lues, vous n'êtes pas connecté à Bungie »), aucune armure n'est grisée et le filtre d'obtention est désactivé", pc.locator('[data-collections-armures="non-lues"]').count() == 1 and "vous n'êtes pas connecté à Bungie" in pc.locator("[data-collections-armures]").inner_text() and pc.evaluate("() => [...document.querySelectorAll('[data-armure-collection]')].every(e => e.dataset.obtention === 'inconnu')") and pc.get_by_label("Obtention des armures").is_disabled())
+    pc.close()
+    pm = ouvrir("?armures=1&sansManifest=1"); pm.locator('[data-objet-collection="armures"]').click(); pm.wait_for_timeout(300)
+    ok("SANS MANIFEST : la partie Armures dit où le charger, sans erreur", "Manifest pas encore chargé" in pm.locator("[role=tabpanel][aria-label=Collection]").inner_text() and pm.locator("[data-armure-collection]").count() == 0)
+    pm.close()
+    ok("aucune erreur JavaScript pendant tout le scénario", len(erreurs) == 0, erreurs[:3])
+    b.close()
+print(f"\n{sum(res)}/{len(res)} contrôles réussis"); sys.exit(0 if all(res) else 1)

@@ -138,6 +138,41 @@ export function ajouterArmureForge(defs: Defs): Defs {
 }
 
 /**
+ * FR : ⚠️ AJOUT (16/10/2026, v0.4.12) - CATALOGUE D'ARMURES DU JEU pour la Collection des armures : reprend `ajouterArmureForge` (5301 casque, 5302 plastron exotique, 5303 marque de classe) en leur donnant ce qu'une armure du Manifest a (type 2, classe, seau d'emplacement, rareté, lot de Collections, emplacements AVEC leurs jeux de plugs possibles), et ajoute : 5311 des gants du même ENSEMBLE que le casque (« Ensemble de bastion d'essai », bonus à 2 et 4 pièces), 5312 des jambières exotiques HORS Collections, 5313 un casque ancien hors Collections ; puis des objets qui ne sont PAS des armures du catalogue et doivent être ignorés : 5320 sans nom, 5321 masqué, 5322 au seau inconnu, 5323 factice, 5324 de type 20 (le `LIKE` attrape aussi 20). Collections du faux compte : 9101, 9103, 9104 obtenues ; 9102 (le plastron exotique) JAMAIS obtenue. / EN: ⚠️ ADDED - a game armor catalogue for the armor Collection, plus items that must be ignored.
+ */
+export function ajouterCatalogueArmures(defs: Defs): Defs {
+  ajouterArmureForge(defs);
+  const objets = defs[T_OBJET] as Record<number, unknown>, jeux = defs[T_PLUGSET] as Record<number, unknown>;
+  const BUCKET_ARMURE = { casque: 3448274439, gants: 3551918588, torse: 14239492, jambes: 20886954, marque: 1585787867 };
+  const pl = (nom: string, categorie: string, inv: Array<[number, number]>, description = "") => ({ ...plug(nom, description, { plug: { plugCategoryIdentifier: categorie } }), investmentStats: inv.map(([statTypeHash, value]) => ({ statTypeHash, value })) });
+  objets[7403] = pl("Archétype Éclaireur", "armor_stats", [[8804, 17], [8806, 12]]);
+  jeux[8301] = { reusablePlugItems: [7411, 7412, 7413].map((h) => ({ plugItemHash: h })) };
+  jeux[8302] = { reusablePlugItems: [7421, 7422].map((h) => ({ plugItemHash: h })) };
+  jeux[8303] = { reusablePlugItems: [7401, 7403].map((h) => ({ plugItemHash: h })) };
+  jeux[8304] = { reusablePlugItems: [7431, 7432, 7433].map((h) => ({ plugItemHash: h })) };
+  const armure = (nom: string, o: { slot: keyof typeof BUCKET_ARMURE; classType: number; tier: number; collectible?: number; sockets: unknown[]; categories: unknown[] }) => ({
+    displayProperties: { name: nom, icon: `/icons/${nom.replace(/\W+/g, "-")}.png`, description: "" }, itemType: 2, classType: o.classType, inventory: { bucketTypeHash: BUCKET_ARMURE[o.slot], tierTypeHash: o.tier },
+    ...(o.collectible ? { collectibleHash: o.collectible } : {}), sockets: { socketEntries: o.sockets, socketCategories: o.categories },
+  });
+  objets[5301] = armure("Casque de bastion d'essai", { slot: "casque", classType: 0, tier: HASH_LEGENDAIRE, collectible: 9101, sockets: [{ singleInitialItemHash: 7401, randomizedPlugSetHash: 8303 }, { singleInitialItemHash: 7402 }, { singleInitialItemHash: 7411, reusablePlugSetHash: 8301 }, { singleInitialItemHash: 7421, randomizedPlugSetHash: 8302 }, { singleInitialItemHash: 7431, reusablePlugSetHash: 8304 }], categories: [{ socketCategoryHash: 7601, socketIndexes: [0, 1] }, { socketCategoryHash: 7602, socketIndexes: [2, 3] }, { socketCategoryHash: 7603, socketIndexes: [4] }] });
+  objets[5302] = armure("Plastron exotique d'essai", { slot: "torse", classType: 2, tier: HASH_EXOTIQUE, collectible: 9102, sockets: [{ singleInitialItemHash: 7401 }, { singleInitialItemHash: 7441 }, { singleInitialItemHash: 7412, reusablePlugSetHash: 8301 }], categories: [{ socketCategoryHash: 7601, socketIndexes: [0, 1] }, { socketCategoryHash: 7602, socketIndexes: [2] }] });
+  objets[5303] = armure("Marque de classe d'essai", { slot: "marque", classType: 1, tier: HASH_LEGENDAIRE, collectible: 9103, sockets: [{ singleInitialItemHash: 7441 }], categories: [{ socketCategoryHash: 7601, socketIndexes: [0] }] });
+  objets[5311] = armure("Gants de bastion d'essai", { slot: "gants", classType: 0, tier: HASH_LEGENDAIRE, collectible: 9104, sockets: [{ singleInitialItemHash: 7401 }, { singleInitialItemHash: 7402 }], categories: [{ socketCategoryHash: 7601, socketIndexes: [0, 1] }] });
+  objets[5312] = armure("Jambières exotiques d'essai", { slot: "jambes", classType: 1, tier: HASH_EXOTIQUE, sockets: [{ singleInitialItemHash: 7441 }], categories: [{ socketCategoryHash: 7601, socketIndexes: [0] }] });
+  objets[5313] = armure("Casque d'essai ancien", { slot: "casque", classType: 2, tier: HASH_LEGENDAIRE, sockets: [{ singleInitialItemHash: 7401 }], categories: [{ socketCategoryHash: 7601, socketIndexes: [0] }] });
+  const base = (nom: string) => ({ displayProperties: { name: nom, icon: "/icons/x.png", description: "" }, itemType: 2, classType: 0, inventory: { bucketTypeHash: BUCKET_ARMURE.casque, tierTypeHash: HASH_LEGENDAIRE } });
+  objets[5320] = base("");
+  objets[5321] = { ...base("Armure masquée d'essai"), redacted: true };
+  objets[5322] = { ...base("Armure au seau inconnu"), inventory: { bucketTypeHash: 123, tierTypeHash: HASH_LEGENDAIRE } };
+  objets[5323] = { ...base("Armure factice d'essai"), itemCategoryHashes: [3109687656] };
+  objets[5325] = { ...base("Armure au seau d'arme"), inventory: { bucketTypeHash: 1498876634, tierTypeHash: HASH_LEGENDAIRE } };   // type armure mais seau d'ARME (cinétique) : doit être écartée
+  objets[5324] = { displayProperties: { name: "Faux objet de type 20", icon: "/icons/x.png", description: "" }, itemType: 20, inventory: { bucketTypeHash: BUCKET_ARMURE.casque, tierTypeHash: HASH_LEGENDAIRE } };   // seau d'armure VALIDE : seule la vérification du type (20, pas 2) peut l'écarter
+  defs["DestinyEquipableItemSetDefinition"] = { 9701: { displayProperties: { name: "Ensemble de bastion d'essai" }, setItems: [5301, 5311], setPerks: [{ requiredSetCount: 4, sandboxPerkHash: 9712 }, { requiredSetCount: 2, sandboxPerkHash: 9711 }] } };
+  defs["DestinySandboxPerkDefinition"] = { 9711: { displayProperties: { name: "Bonus à deux pièces", description: "Effet à deux pièces.", icon: "/icons/bonus2.png" } }, 9712: { displayProperties: { name: "Bonus à quatre pièces", description: "Effet à quatre pièces.", icon: "/icons/bonus4.png" } } };
+  return defs;
+}
+
+/**
  * FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - donne un FILIGRANE DE SAISON (`iconWatermark`) et une saison (`seasonHash` 9001, table `DestinySeasonDefinition` : « Saison de la Sorcière », n° 22) aux objets indiqués. Utilisé seulement par les pages de test avec `?saisons` : les autres tests ne voient aucun filigrane. / EN: ⚠️ ADDED - gives the listed items a season watermark and a season (test pages with `?saisons` only).
  */
 export const T_SAISON = "DestinySeasonDefinition";

@@ -28,8 +28,10 @@ interface DefObjetArmure {
   displayProperties?: { name?: string; icon?: string };
   plug?: { plugCategoryIdentifier?: string };
   investmentStats?: Array<{ statTypeHash: number; value: number }>;
-  sockets?: { socketCategories?: Array<{ socketCategoryHash: number; socketIndexes: number[] }> };
+  sockets?: { socketEntries?: EntreeSocketBrute[]; socketCategories?: Array<{ socketCategoryHash: number; socketIndexes: number[] }> };
 }
+/** FR : une entrée de socket du Manifest (les quatre champs d'où viennent les plugs possibles). / EN: a Manifest socket entry (the four fields the possible plugs come from). */
+interface EntreeSocketBrute { singleInitialItemHash?: number; reusablePlugItems?: Array<{ plugItemHash: number }>; reusablePlugSetHash?: number; randomizedPlugSetHash?: number }
 interface DefNommee { displayProperties?: { name?: string } }
 
 /** FR : emplacements purement cosmétiques (teinture, ornement, souvenir…) : masqués par défaut. Appliqué à l'identifiant de catégorie du plug ET au nom normalisé de la catégorie de socket. / EN: purely cosmetic sockets, hidden by default. */
@@ -135,5 +137,69 @@ export function diagnosticArmure(db: Database, piece: GearPiece): string {
     lignes.push(`prise ${c.socketIndex} | catégorie « ${c.categorie || "?"} » | équipé : ${c.equipe.nom} (hash ${c.equipe.hash}, catégorie de plug « ${c.equipe.categoriePlug || "?"} », stats : ${Object.entries(c.equipe.stats).map(([k, v]) => `${k} ${v >= 0 ? "+" : ""}${v}`).join(", ") || "aucune"}) | disponibles : ${dispo.length}${noms ? ` (autres : ${noms}${c.options.length > 7 ? " …" : ""})` : ""} | cosmétique : ${c.cosmetique ? "oui" : "non"} | fixe : ${c.fixe ? "oui" : "non"} | modifiable : ${c.modifiable ? "OUI" : "non"}`);
   }
   for (const p of piece.perksParColonne ?? []) if (!lues.has(p.socketIndex)) lignes.push(`prise ${p.socketIndex} | plug illisible dans le Manifest (hash ${p.hash})`);
+  return lignes.join("\n");
+}
+
+// ==================== ⚠️ AJOUT (16/10/2026, v0.4.12) : LES EMPLACEMENTS D'UN MODÈLE D'ARMURE (Collection, lecture seule) ====================
+// FR : la Collection ne regarde pas un EXEMPLAIRE mais le MODÈLE du jeu : les emplacements viennent des entrées de socket du Manifest, avec TOUS les plugs possibles de chacun (liste directe, jeux de plugs partagé et aléatoire, plug initial : fusionnés sans doublon, comme `toutesSources` des armes façonnées). Les emplacements de MODS (listes très longues) et COSMÉTIQUES sont repliés par défaut. Pour ne pas lire des centaines de plugs inutilement, un emplacement est classé d'après son PREMIER plug lisible AVANT de lire les autres.
+/** FR : un emplacement d'un modèle d'armure et tous ses plugs possibles. / EN: a socket of an armor model and all its possible plugs. */
+export interface ColonneModele { socketIndex: number; categorie: string; options: PlugArmure[]; cosmetique: boolean; mod: boolean; fixe: boolean }
+/** FR : emplacement de mods : identifiant de catégorie de plug « enhancements.… » ou nom de catégorie de socket contenant « mod ». / EN: a mods socket. */
+const estEmplacementMod = (categoriePlug: string, nomCategorie: string) => /^enhancements\./i.test(categoriePlug) || /\bmods?\b/.test(normaliser(nomCategorie));
+function nomsCategoriesSocket(db: Database, def: DefObjetArmure | undefined): Map<number, string> {
+  const noms = new Map<number, string>();
+  for (const cat of def?.sockets?.socketCategories ?? []) {
+    let nom = "";
+    try { nom = obtenirDefinition<DefNommee>(db, "DestinySocketCategoryDefinition", cat.socketCategoryHash)?.displayProperties?.name ?? ""; } catch { /* table absente : nom vide */ }
+    for (const i of cat.socketIndexes) noms.set(i, nom);
+  }
+  return noms;
+}
+function hashesPossibles(db: Database, e: EntreeSocketBrute): number[] {
+  const hashes: number[] = [];
+  const ajouter = (hs: number[]) => { for (const h of hs) if (!hashes.includes(h)) hashes.push(h); };
+  const pool = (hashJeu: number) => (obtenirDefinition<{ reusablePlugItems?: Array<{ plugItemHash: number }> }>(db, "DestinyPlugSetDefinition", hashJeu)?.reusablePlugItems ?? []).map((p) => p.plugItemHash);
+  ajouter((e.reusablePlugItems ?? []).map((p) => p.plugItemHash));
+  if (e.reusablePlugSetHash) ajouter(pool(e.reusablePlugSetHash));
+  if (e.randomizedPlugSetHash) ajouter(pool(e.randomizedPlugSetHash));
+  if (e.singleInitialItemHash) ajouter([e.singleInitialItemHash]);
+  return hashes;
+}
+/** FR : les emplacements d'un modèle d'armure du Manifest ; `mods` et `cosmetiques` les réintègrent (repliés par défaut). / EN: an armor model's sockets; `mods` and `cosmetiques` include the folded ones. */
+export function colonnesModeleArmure(db: Database, itemHash: number, options: { mods?: boolean; cosmetiques?: boolean } = {}): ColonneModele[] {
+  const def = obtenirDefinition<DefObjetArmure>(db, "DestinyInventoryItemDefinition", itemHash);
+  const noms = nomsCategoriesSocket(db, def);
+  const colonnes: ColonneModele[] = [];
+  (def?.sockets?.socketEntries ?? []).forEach((entree, socketIndex) => {
+    const hashes = hashesPossibles(db, entree);
+    const categorie = noms.get(socketIndex) ?? "";
+    const premier = hashes.map((h) => lirePlugArmure(db, h)).find((p): p is PlugArmure => !!p && !p.ornement);
+    if (!premier) return;
+    const cosmetique = MOTS_COSMETIQUES.test(premier.categoriePlug.toLowerCase()) || MOTS_COSMETIQUES.test(normaliser(categorie));
+    const mod = estEmplacementMod(premier.categoriePlug, categorie);
+    if ((cosmetique && !options.cosmetiques) || (mod && !options.mods)) return;   // replié : on ne lit pas ses autres plugs
+    const lus = hashes.map((h) => lirePlugArmure(db, h)).filter((p): p is PlugArmure => !!p && !p.ornement);
+    colonnes.push({ socketIndex, categorie, options: lus, cosmetique, mod, fixe: CATEGORIES_FIXES.test(premier.categoriePlug) });
+  });
+  return colonnes;
+}
+
+/** FR : DIAGNOSTIC (mode développement) : pour un MODÈLE d'armure, entrée de socket par entrée de socket, d'où viennent ses plugs possibles (les quatre champs), combien on en lit, et le classement « cosmétique / mods / fixe », y compris pour les emplacements repliés ou sans plug lisible. À copier à Claude pour vérifier la structure réelle des armures du Manifest. / EN: dev diagnostic of an armor model's sockets. */
+export function diagnosticArmureManifest(db: Database, itemHash: number): string {
+  const def = obtenirDefinition<DefObjetArmure>(db, "DestinyInventoryItemDefinition", itemHash);
+  const lignes: string[] = [`Modèle d'armure : ${def?.displayProperties?.name ?? "?"} (hash ${itemHash})`, diagnosticSaisonObjet(db, itemHash)];
+  const noms = nomsCategoriesSocket(db, def);
+  const entrees = def?.sockets?.socketEntries ?? [];
+  if (entrees.length === 0) lignes.push("aucune entrée de socket dans la définition de cette armure");
+  entrees.forEach((e, i) => {
+    const hashes = hashesPossibles(db, e);
+    const premier = hashes.map((h) => lirePlugArmure(db, h)).find((p): p is PlugArmure => !!p && !p.ornement);
+    const categorie = noms.get(i) ?? "";
+    const brut = `plug initial ${e.singleInitialItemHash ?? "—"} | liste directe ${(e.reusablePlugItems ?? []).length} | jeu partagé ${e.reusablePlugSetHash ?? "—"} | jeu aléatoire ${e.randomizedPlugSetHash ?? "—"}`;
+    if (!premier) { lignes.push(`prise ${i} | catégorie « ${categorie || "?"} » | ${brut} | ${hashes.length} plug(s) possible(s), AUCUN lisible dans le Manifest`); return; }
+    const cosmetique = MOTS_COSMETIQUES.test(premier.categoriePlug.toLowerCase()) || MOTS_COSMETIQUES.test(normaliser(categorie));
+    const noms6 = hashes.slice(0, 6).map((h) => lirePlugArmure(db, h)?.nom ?? "?").join(" | ");
+    lignes.push(`prise ${i} | catégorie « ${categorie || "?"} » | ${brut} | ${hashes.length} plug(s) possible(s) (premiers : ${noms6}${hashes.length > 6 ? " …" : ""}) | catégorie de plug « ${premier.categoriePlug || "?"} » | cosmétique : ${cosmetique ? "oui" : "non"} | mods : ${estEmplacementMod(premier.categoriePlug, categorie) ? "oui" : "non"} | fixe : ${CATEGORIES_FIXES.test(premier.categoriePlug) ? "oui" : "non"}`);
+  });
   return lignes.join("\n");
 }

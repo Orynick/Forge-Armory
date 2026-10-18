@@ -299,6 +299,14 @@ Dans l'onglet **Forge**, la vue **Inventaire** montre **vos** armes (personnages
 - Pour une arme façonnée, ces fenêtres montrent **tous les perks possibles** de chaque colonne (les perks **grisés** ne sont pas équipés), et le **perk réellement équipé est toujours présent et coché ✓** dans sa colonne, même si le Manifest ne le liste pas. La simulation fonctionne comme pour les autres armes.
 - **Fenêtre de la Forge** : **à droite du nom**, les **quatre icônes** de l'arme (type d'arme, élément, munitions, antichampion, comme dans les fenêtres Détails) ; le bouton **« ← Retour à … »**, quand on vient d'un bouton « Forge », est sur la même ligne que **« ➕ Mettre dans Mon Build »**, à sa gauche, de même hauteur.
 
+### Forge : la Collection des armures (version 0.4.12)
+
+- Dans la Forge, vue **Collection**, choisissez **Armures** (à côté de **Armes**) : toutes les armures du jeu, lues dans le Manifest (la première lecture prend quelques instants). Par défaut, seules celles des **Collections du jeu** sont listées ; le menu « Source » permet aussi « Hors Collections » ou « Tout ».
+- Les armures que votre compte **n'a jamais obtenues** sont **grisées** (« jamais obtenue ») ; le filtre « Obtention » les isole.
+- Filtres : nom ou **ensemble**, classe, emplacement, rareté, ensemble, source, obtention. Une armure indique son emplacement, sa classe et son **ensemble** ; sa miniature porte l'**image de saison**.
+- Ouvrez une armure : son **ensemble** et ses **bonus** (à 2, 4 pièces…), puis ses **emplacements** (archétype, amélioration…) avec **tous les plugs possibles** et leurs **bonus de statistiques**. Les emplacements de **mods** (listes longues) et **cosmétiques** sont repliés : deux cases les affichent.
+- C'est une **consultation** : rien n'est simulé ni modifié.
+
 ### Forge : les armures (version 0.4.12, première étape)
 
 - Dans la Forge, vue **Inventaire**, choisissez **Armures** (à côté de **Armes**), puis « Charger mon inventaire » : vos armures des trois personnages et du Coffre, que l'on peut filtrer par nom ou ensemble, classe, emplacement, lieu, exotiques.

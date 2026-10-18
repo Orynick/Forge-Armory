@@ -5,7 +5,7 @@ import { useSimulations } from "../../src/lib/forge/storeSimulations";
 import { appliquerSimulations, nbArmesSimulees } from "../../src/lib/forge/appliquerSimulation";
 import { demoBuild } from "../../src/data/demoBuild";
 import PageForge from "../../src/components/PageForge";
-import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeRevisionAPaliers, ajouterArmeFaconnee, ajouterArmureForge, ajouterSaisons, T_OBJET } from "../logique/fixtures/fauxManifest";
+import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeRevisionAPaliers, ajouterArmeFaconnee, ajouterCatalogueArmures, ajouterSaisons, T_OBJET } from "../logique/fixtures/fauxManifest";
 
 const params = new URLSearchParams(location.search);
 const defs = manifestArmesDeTest();
@@ -17,7 +17,7 @@ if (params.has("beaucoup")) {
   const modele = (defs[T_OBJET] as Record<number, Record<string, unknown>>)[5003];
   for (let i = 0; i < 130; i++) (defs[T_OBJET] as Record<number, unknown>)[7000 + i] = { ...modele, displayProperties: { name: `Arme numéro ${String(i).padStart(3, "0")}`, icon: "/icons/x.png", description: "" }, collectibleHash: 8000 + i };
 }
-if (params.has("armures")) ajouterArmureForge(defs);   // ⚠️ v0.4.12 : armures d'essai (casque, plastron exotique, marque de classe) pour la Forge des armures
+if (params.has("armures")) ajouterCatalogueArmures(defs);   // ⚠️ v0.4.12 : armures d'essai (casque, plastron exotique, marque de classe) pour la Forge des armures
 if (params.has("saisons")) ajouterSaisons(defs, [5001, 5010, 5020, 5301]);   // ⚠️ v0.4.11 : filigrane et saison pour ces armes (Collection et Forge)
 const { db } = creerFausseDb(defs);
 (window as unknown as { __reseau: { url: string; methode: string }[] }).__reseau = [];   // ⚠️ v0.4.6 : journal des appels réseau (la Forge ne doit jamais écrire chez Bungie)
@@ -26,7 +26,7 @@ const { db } = creerFausseDb(defs);
   const reponse = (corps: unknown, status = 200) => ({ ok: status === 200, status, json: async () => corps, text: async () => JSON.stringify(corps) });
   if (!String(url).includes("components=800")) return reponse({ ErrorCode: 1, Response: {} });
   if (params.get("collections") === "erreur") return reponse({ ErrorCode: 5, ErrorStatus: "SystemDisabled" }, 503);
-  return reponse({ ErrorCode: 1, Response: { profileCollectibles: { data: { collectibles: { "9001": { state: 0 }, "9002": { state: 1 } } } }, characterCollectibles: { data: {} } } });
+  return reponse({ ErrorCode: 1, Response: { profileCollectibles: { data: { collectibles: { "9001": { state: 0 }, "9002": { state: 1 }, "9101": { state: 0 }, "9102": { state: 1 }, "9103": { state: 0 }, "9104": { state: 0 } } } }, characterCollectibles: { data: {} } } });
 };
 // FR : ⚠️ AJOUT (13/10/2026, v0.4.6) - `?inventaire` : de fausses ARMES POSSÉDÉES qui correspondent au faux Manifest : « Fusil à paliers » (5010, roll réel : Canon X, Chargeur X AMÉLIORÉ, Trait P, Crosse de contrepoids : une arme « améliorée »), « Fusil d'essai » (5001, sans roll réel connu), un lance-roquettes au Coffre et une ARMURE (écartée de la liste). / EN: ⚠️ ADDED - fake owned weapons matching the fake Manifest.
 if (params.has("inventaire")) {
