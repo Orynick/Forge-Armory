@@ -3,7 +3,7 @@
 // "hasIcon": false pour les 3 classes, confirmé par diagnostic) -
 // premiere version (04/08/2026) recréait des formes SVG à la main,
 // approximatives. Remplacées (04/08/2026) par les vrais fichiers SVG
-// fournis par l'utilisateur (source: svgrepo.com), placés sur un disque
+// fournis par l'utilisateur (source: justrealmilk/destiny-icons, licence CC0), placés sur un disque
 // coloré selon la classe pour la visibilité (les fichiers d'origine sont
 // sombres/noirs) - couleurs et taille du symbole (~68% du disque, marge
 // de sécurité pour ne jamais déborder) confirmées par l'utilisateur via
@@ -14,7 +14,7 @@
 // false for all 3 classes, confirmed by diagnostic) - first version
 // (2026-08-04) recreated hand-drawn SVG shapes, approximate. Replaced
 // (2026-08-04) with the real SVG files provided by the user (source:
-// svgrepo.com), placed on a colored disc per class for visibility (the
+// justrealmilk/destiny-icons, licence CC0), placed on a colored disc per class for visibility (the
 // original files are dark/black) - colors and symbol size (~68% of the
 // disc, safety margin to never overflow) confirmed by the user via
 // preview before integration.

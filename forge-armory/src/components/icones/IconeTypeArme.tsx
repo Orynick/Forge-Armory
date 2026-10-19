@@ -1,8 +1,8 @@
 // FR : icônes de type d'arme, fournies par l'utilisateur (source
-// svgrepo.com). Identifiées via des MOTS-CLÉS dans le texte réel de
+// justrealmilk/destiny-icons, licence CC0). Identifiées via des MOTS-CLÉS dans le texte réel de
 // Bungie (piece.typeArme / r.typeArme), pas une correspondance exacte -
 // plus robuste face aux variations de formulation.
-// EN: weapon type icons, provided by the user (source svgrepo.com).
+// EN: weapon type icons, provided by the user (source justrealmilk/destiny-icons, licence CC0).
 // Identified via KEYWORDS in Bungie's real text (piece.typeArme /
 // r.typeArme), not an exact match - more robust against wording
 // variations.

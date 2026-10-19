@@ -1,5 +1,5 @@
-// FR : icône du Fantôme, fournie par l'utilisateur (source svgrepo.com).
-// EN: Ghost icon, provided by the user (source svgrepo.com).
+// FR : icône du Fantôme, fournie par l'utilisateur (source justrealmilk/destiny-icons, licence CC0).
+// EN: Ghost icon, provided by the user (source justrealmilk/destiny-icons, licence CC0).
 
 interface Props {
   taille?: number;

@@ -130,6 +130,11 @@ export interface GearPiece {
    * legendary set.
    */
   setHash?: DefinitionHash;
+  /**
+   * FR : ⚠️ AJOUT (19/10/2026, branche test, analyse de la spec Bungie v2.21.9) - PALIER ("gear tier") de l'exemplaire, lu dans le composant 300 (instances) du profil (spec : « Gear Tier, if applicable, fished up from the unlock value items.gear_tier »). C'est ce palier qui décide quelle VERSION d'un perk amélioré s'applique à un exemplaire possédé (TODO Forge, point ouvert n°2). `undefined` = palier absent de la réponse ou donnée non lue (on n'affirme rien). Sens exact des valeurs à contrôler avec le diagnostic sur des exemplaires réels.
+   * EN: gear tier of this owned instance, from profile component 300; decides which enhanced-perk version applies to it (Forge TODO open point #2). undefined = absent/not read. Value meaning to be confirmed on real instances.
+   */
+  gearTier?: number;
 }
 
 export interface BuildDraft {
