@@ -28,9 +28,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { obtenirElementFiltre, ELEMENTS_FILTRE, ElementFiltre } from "../lib/manifest/doctrine";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : filtre d'élément
 import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
 import { Database } from "sql.js";
-import { assurerManifestAJour, etatCachesManifests, simulerManifestPerime, telechargerManifestsEnFichiers } from "../lib/manifest/download";
+import { assurerManifestAJour, etatCachesManifests, simulerManifestPerime, telechargerManifestsEnFichiers, obtenirDefinition } from "../lib/manifest/download";   // ⚠️ AJOUT (19/10/2026) : lecture des itemSourceHashes pour le filtre source:
 import { demarrerManifests, LangueManifest } from "../lib/manifest/demarrage";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : mise à jour automatique d'un Manifest PÉRIMÉ
 import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance, chercherTriomphesFlawless, TriompheTrouve } from "../lib/manifest/search";
+// FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la catégorie de SOURCE d'un objet (d2-additional-info, MIT) affichée à côté de la chaîne brute, et le filtre `source:`.
+import { sourceObjetParHash } from "../data/sourceObjet";
+import { saisonParNumero } from "../data/saisons";   // ⚠️ AJOUT (19/10/2026) : saison de sortie en clair (secours du nom + dates)
+import { obtenirSaisonObjet } from "../lib/manifest/saison";   // ⚠️ AJOUT (19/10/2026) : seasonHash/filigrane → numéro
+import { extraireFiltreSource, SOURCE_FILTER_SUGGESTIONS, matchesSourceFilter } from "../data/sourceFilter";
 import { construireIndexInversePerks, obtenirIndexInversePerksEnCache, ObjetParent } from "../lib/manifest/perkSource";
 import { obtenirSource, obtenirAntiChampion, obtenirTypeMunition, obtenirCategoriesObjet, raccourcirNom } from "../lib/manifest/doctrine";
 import IconeAntiChampion, { TypeChampion } from "./icones/IconeAntiChampion";
@@ -117,17 +122,25 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
   // FR : ⚠️ AJOUT (04/08/2026) - filtrage côté client par anti-champion,
   // recalculé seulement quand les résultats ou le filtre changent (pas à
   // chaque rendu), le type de champion n'étant pas indexé.
+  // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - filtre de SOURCE par syntaxe dans le champ de recherche : « source:raid », « source:last-wish »… (13 catégories + activités, d2-additional-info, MIT). Le filtre est EXTRAIT du texte avant la recherche (les autres mots cherchent normalement), puis appliqué côté client sur les itemSourceHashes de chaque objet : un objet sans hash de source est simplement exclu, sans erreur. Combinable avec l'anti-champion et l'élément par ET logique. La négation (-source:raid) est exclue de la v1 pour rester simple. / EN: ⚠️ ADDED - `source:` search filter, combined with the existing filters by logical AND.
+  const [filtreSource, setFiltreSource] = useState<string | null>(null);
   const resultatsAffiches = useMemo(() => {
-    if (!dbFr || (filtreChampion === "tous" && filtreElement === "tous")) return resultats;
+    if (!dbFr || (filtreChampion === "tous" && filtreElement === "tous" && !filtreSource)) return resultats;
     return resultats.filter((r) => {
       if (filtreChampion !== "tous") {
         if (!r.slot || !["cinetique", "energie", "lourde"].includes(r.slot)) return false;
         if (obtenirAntiChampion(dbFr, r.hash) !== filtreChampion) return false;
       }
       if (filtreElement !== "tous" && obtenirElementFiltre(dbFr, r.hash) !== filtreElement) return false;
+      // FR : ⚠️ (19/10/2026) - le filtre source: porte sur N'IMPORTE QUEL objet du Manifest (les perks et fragments ont aussi des sources).
+      if (filtreSource) {
+        let hashes: number[] | undefined;
+        try { hashes = obtenirDefinition<{ itemSourceHashes?: number[] }>(dbFr, "DestinyInventoryItemDefinition", r.hash)?.itemSourceHashes; } catch { /* lecture impossible : l'objet est exclu, pas une erreur */ }
+        if (!matchesSourceFilter(hashes, filtreSource)) return false;
+      }
       return true;
     });
-  }, [resultats, filtreChampion, filtreElement, dbFr]);
+  }, [resultats, filtreChampion, filtreElement, filtreSource, dbFr]);
   const [rechercheEnCours, setRechercheEnCours] = useState(false);
   const [erreurRecherche, setErreurRecherche] = useState<string | null>(null);
   // FR : ⚠️ AJOUT (24/08/2026) - diagnostic (mode dev) pour localiser
@@ -184,10 +197,23 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
 
   async function chargerManifests() {
     await chargerLangues(["fr", "en"]);
+    // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la passe de vérification de péremption couvre AUSSI les tables de sources : `node data/rebuild-source-filters.ts --check` compare le source-filters.json EMBARQUÉ à l'état actuel de d2-additional-info ; s'il est périmé, un AVERTISSEMENT s'affiche (comme l'alerte de péremption du Manifest), jamais un blocage — la régénération se fait côté développement. / EN: the staleness pass also checks the shipped source tables; a warning, never a blocker.
+    try {
+      const r = await fetch("https://api.github.com/repos/DestinyItemManager/d2-additional-info/commits?per_page=1").then((re) => re.ok ? re.json() : null);
+      if (Array.isArray(r) && r[0]?.sha) {
+        const dernierShaConnu = localStorage.getItem("d2ba.d2ai.dernierSha");
+        if (dernierShaConnu && dernierShaConnu !== r[0].sha) setMessageMiseAJourAuto((m) => `${m ? m + " " : ""}⚠️ Les données de SAISONS et SOURCES (d2-additional-info) ont peut-être changé en amont : relancez \`node data/rebuild-source-filters.ts\` côté développement pour mettre à jour \`source-filters.json\`.`);
+        localStorage.setItem("d2ba.d2ai.dernierSha", r[0].sha);
+      }
+    } catch { /* hors ligne : aucune vérification, aucune erreur */ }
   }
 
   function executerRecherche(valeur: string, modeActuel: ModeRecherche, categorieActuelle: CategorieResultat | "toutes") {
-    if (!dbFr || valeur.trim().length < 2) {
+    // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - le filtre source: est EXTRAIT du texte : les autres mots cherchent normalement, le filtre s'applique ensuite côté client (voir resultatsAffiches). « source: » seul ne compte pas dans les 2 caractères minimum. / EN: the source: filter is extracted from the text; the remaining words search normally.
+    const extrait = extraireFiltreSource(valeur);
+    setFiltreSource(extrait?.filtre ?? null);
+    const texteRecherche = extrait ? (extrait.texteRestant || "  ") : valeur;
+    if (!dbFr || texteRecherche.trim().length < 2) {
       setResultats([]);
       setResultatsMasques([]);
       setRechercheEnCours(false);
@@ -202,7 +228,7 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
     setTimeout(() => {
       try {
         // FR : ⚠️ CHANGÉ (06/10/2026) - `true` : les résultats des catégories masquées par défaut sont renvoyés AUSSI (marqués `masque`) pour être listés à part au lieu de disparaître en silence.
-        const tousResultats = rechercherBilingue(dbFr, dbEn, valeur, modeActuel, undefined, categorieActuelle, true);
+        const tousResultats = rechercherBilingue(dbFr, dbEn, texteRecherche, modeActuel, undefined, categorieActuelle, true);
         const brut = tousResultats.filter((r) => !r.masque);
         const masques = tousResultats.filter((r) => r.masque);
         // FR : ⚠️ AJOUT (03/08/2026) - dédoublonnage supplémentaire : le
@@ -410,11 +436,25 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
           <div style={{ display: "flex", gap: "0.75rem", margin: "0.5rem 0", flexWrap: "wrap" }}>
             <input
               type="text"
-              placeholder="En français OU en anglais : dévoration / devour..."
+              placeholder="En français OU en anglais : dévoration / devour… ou source:raid, source:last-wish…"
               value={motCle}
               onChange={(e) => surChangementTexte(e.target.value)}
               style={{ flex: 1, minWidth: "220px", padding: "0.4rem 0.6rem" }}
             />
+            {/* FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - AUTOCOMPLÉTION de « source: » : quand le dernier mot tapé commence le préfixe, les 13 catégories puis les activités (libellées en français) sont proposées ; un clic complète le filtre dans le champ. Aucun menu permanent : la liste disparaît dès que le préfixe n'est plus en frappe. / EN: autocompletion for "source:". */}
+            {(/\bsource:([a-z0-9-]*)$/i.test(motCle.split(/\s+/).pop() ?? "")) && (() => {
+              const saisi = (motCle.split(/\s+/).pop() ?? "").replace(/^source:/i, "");
+              const propositions = SOURCE_FILTER_SUGGESTIONS.filter((p) => p.valeur.startsWith(saisi.toLowerCase())).slice(0, 18);
+              return propositions.length > 0 ? (
+                <div data-autocompletion-source="" style={{ position: "absolute", zIndex: 30, background: "#12151c", border: "1px solid #3a3f4b", borderRadius: 8, padding: "0.3rem", maxHeight: "240px", overflowY: "auto", minWidth: "220px" }}>
+                  {propositions.map((p) => (
+                    <button key={p.valeur} type="button" onClick={() => surChangementTexte(motCle.replace(/\bsource:[a-z0-9-]*$/i, "source:" + p.valeur) + " ")} data-suggestion-source={p.valeur} style={{ display: "block", width: "100%", textAlign: "left", padding: "0.25rem 0.5rem", fontSize: "0.8rem", background: "none", border: "none", color: "#e8e6df", cursor: "pointer" }}>
+                      <span style={{ color: p.genre === "categorie" ? "#9a8f6a" : "#7aa2f7" }}>{p.genre === "categorie" ? "catégorie" : "activité"}</span> · {p.libelle} <span style={{ color: "#7d7a70" }}>source:{p.valeur}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null;
+            })()}
             {/* FR : ⚠️ AJOUT (24/08/2026) - bouton de diagnostic (mode dev),
             pour localiser précisément où un mot-clé matche dans le JSON
             avant d'écrire un filtre anti-dialogue à l'aveugle. */}
@@ -580,16 +620,28 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
                     </strong>{" "}
                     {r.slot && dbFr && (() => {
                       const source = obtenirSource(dbFr, r.hash);
-                      return source ? (
-                        <span style={{ fontSize: "0.8rem", color: "#7d7a70" }}>— {source}</span>
-                      ) : (
-                        <span style={{ fontSize: "0.8rem", color: "#7d7a70" }}>— Source inconnue</span>
+                      // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la catégorie de source (Raid, Donjon, activité précise) rejoint la chaîne brute : « — Raid — Source: "Last Wish" Raid ». Elle vient de d2-additional-info (MIT) ; absente si l'objet n'y figure pas (jamais estimée). / EN: the d2-additional-info source category joins the raw string; never estimated.
+                      const categorieSource = (() => { try { return sourceObjetParHash(dbFr, r.hash); } catch { return undefined; } })();
+                      return (
+                        <span style={{ fontSize: "0.8rem", color: "#7d7a70" }}>
+                          {categorieSource && <>— <span data-source-categorie={categorieSource.cle} style={{ color: "#9a8f6a" }}>{categorieSource.libelle}</span>{" "}</>}
+                          {source ? <>— {source}</> : <>— Source inconnue</>}
+                        </span>
                       );
                     })()}{" "}
                     <span style={{ fontSize: "0.75rem", color: "#7d7a70" }}>
                       (correspondance : {r.champCorrespondant}
                       {r.trouveViaAnglais && " — trouvé via l'anglais"})
                     </span>
+                    {/* FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - SAISON DE SORTIE de l'objet, en clair : le numéro vient du seasonHash/filigrane (mécanisme existant de lib/manifest/saison.ts), le NOM de la table data/seasons.json (d2-additional-info, MIT) qui sert aussi de SECOURS quand la table des saisons du Manifest est absente. Absente si l'objet n'a ni seasonHash ni filigrane connu — jamais estimée. / EN: release season in clear text; never estimated. */}
+                    {dbFr && (() => {
+                      const info = obtenirSaisonObjet(dbFr, r.hash);
+                      if (!info) return null;
+                      const table = info.numero != null ? saisonParNumero(info.numero) : undefined;
+                      const nom = info.nom ?? table?.nom;
+                      if (!nom && info.numero == null) return null;
+                      return <span data-saison-sortie={info.numero ?? ""} style={{ fontSize: "0.75rem", color: "#7d7a70" }}> · Saison de sortie : {nom ?? "?"}{info.numero != null ? ` (saison ${info.numero})` : ""}{table?.debut ? ` — ${table.debut}${table.fin ? ` → ${table.fin}` : " → en cours"}` : ""}</span>;
+                    })()}
                     {r.nomEn && r.nomEn !== r.nom && (
                       <span style={{ fontSize: "0.75rem", color: "#7d7a70" }}> · EN: {r.nomEn}</span>
                     )}

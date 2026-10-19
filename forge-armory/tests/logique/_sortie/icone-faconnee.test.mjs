@@ -1,0 +1,31 @@
+import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);
+
+// src/data/forge/iconeFaconnee.ts
+var ICONE_FACONNEE = {
+  couleur: "#e49f87",
+  largeur: 99.66,
+  hauteur: 100,
+  chemin: "M26.48,45.56 L25.42,45.63 L0.89,45.63 L0.36,45.62 L0.05,45.51 L0.00,0.40 L0.09,0.07 L0.36,0.00 L44.68,0.00 L45.47,0.00 L45.63,0.13 L45.64,11.74 L45.47,11.97 L45.21,11.99 L39.14,11.98 L38.88,12.02 L38.54,12.27 L38.51,20.19 L38.46,22.30 L38.32,23.88 L37.96,26.52 L37.93,27.31 L37.52,29.16 L37.42,29.95 L36.86,32.06 L36.44,33.11 L36.26,33.91 L35.18,36.18 L34.92,36.54 L34.69,37.07 L32.84,39.71 L31.76,40.97 L29.64,43.06 L28.65,43.93 Z M71.01,43.93 L70.01,43.06 L67.90,40.97 L66.82,39.71 L64.97,37.07 L64.73,36.54 L64.47,36.18 L63.40,33.91 L63.21,33.11 L62.79,32.06 L62.24,29.95 L62.14,29.16 L61.72,27.31 L61.69,26.52 L61.34,23.88 L61.20,22.30 L61.15,20.19 L61.11,12.27 L60.78,12.02 L60.51,11.98 L54.45,11.99 L54.18,11.97 L54.02,11.74 L54.02,0.13 L54.18,0.00 L54.97,0.00 L99.30,0.00 L99.56,0.07 L99.66,0.40 L99.60,45.51 L99.30,45.62 L98.77,45.63 L74.23,45.63 L73.18,45.56 Z M73.18,54.44 L74.23,54.37 L98.77,54.37 L99.30,54.38 L99.60,54.49 L99.66,99.60 L99.56,99.93 L99.30,100.00 L54.97,100.00 L54.18,100.00 L54.02,99.87 L54.02,88.26 L54.18,88.03 L54.45,88.01 L60.51,88.02 L60.78,87.98 L61.11,87.73 L61.15,79.81 L61.20,77.70 L61.34,76.12 L61.69,73.48 L61.72,72.69 L62.14,70.84 L62.24,70.05 L62.79,67.94 L63.21,66.89 L63.40,66.09 L64.47,63.82 L64.73,63.46 L64.97,62.93 L66.82,60.29 L67.90,59.03 L70.01,56.94 L71.01,56.07 Z M28.65,56.07 L29.64,56.94 L31.76,59.03 L32.84,60.29 L34.69,62.93 L34.92,63.46 L35.18,63.82 L36.26,66.09 L36.44,66.89 L36.86,67.94 L37.42,70.05 L37.52,70.84 L37.93,72.69 L37.96,73.48 L38.32,76.12 L38.46,77.70 L38.51,79.81 L38.54,87.73 L38.88,87.98 L39.14,88.02 L45.21,88.01 L45.47,88.03 L45.64,88.26 L45.63,99.87 L45.47,100.00 L44.68,100.00 L0.36,100.00 L0.09,99.93 L0.00,99.60 L0.05,54.49 L0.36,54.38 L0.89,54.37 L25.42,54.37 L26.48,54.44 Z"
+};
+
+// tests/logique/icone-faconnee.test.ts
+var res = [];
+var ok = (nom, cond, detail) => {
+  res.push(!!cond);
+  console.log(cond ? "\u2705" : "\u274C", nom);
+  if (!cond && detail !== void 0) console.log("   d\xE9tail :", JSON.stringify(detail).slice(0, 400));
+};
+var sousTraces = ICONE_FACONNEE.chemin.split("M").filter(Boolean).map((t) => t.trim());
+var points = sousTraces.map((t) => t.replace(/ Z$/, "").split(/ ?L/).map((p) => p.split(",").map(Number)));
+ok("le chemin compte QUATRE sous-trac\xE9s, chacun ferm\xE9 (Z)", sousTraces.length === 4 && sousTraces.every((t) => t.endsWith("Z")), sousTraces.length);
+var TOL = 0.5;
+var xs = points.flat().map((p) => p[0]);
+var ys = points.flat().map((p) => p[1]);
+ok("tous les points sont des nombres et tiennent dans le cadre (0 \xE0 largeur, 0 \xE0 hauteur) ; l'ic\xF4ne occupe tout le cadre, \xE0 0,5 % pr\xE8s (rien de perdu en marge)", points.flat().every(([x, y]) => Number.isFinite(x) && Number.isFinite(y)) && Math.min(...xs) >= -0.01 && Math.max(...xs) <= ICONE_FACONNEE.largeur + 0.01 && Math.min(...ys) >= -0.01 && Math.max(...ys) <= ICONE_FACONNEE.hauteur + 0.01 && Math.min(...xs) < TOL && Math.max(...xs) > ICONE_FACONNEE.largeur - TOL && Math.min(...ys) < TOL && Math.max(...ys) > ICONE_FACONNEE.hauteur - TOL, [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]);
+var proche = (x, y) => points.flat().some(([a, b]) => Math.abs(a - x) <= 0.02 && Math.abs(b - y) <= 0.02);
+ok("SYM\xC9TRIE \xE0 quatre axes : le miroir horizontal et le miroir vertical de chaque point sont aussi des points de l'ic\xF4ne (\xE0 l'arrondi pr\xE8s)", points.flat().every(([x, y]) => proche(ICONE_FACONNEE.largeur - x, y) && proche(x, ICONE_FACONNEE.hauteur - y)));
+ok("les quatre blocs ont autant de points (m\xEAme forme refl\xE9t\xE9e)", new Set(points.map((q) => q.length)).size === 1 && points[0].length > 20, points.map((q) => q.length));
+ok("la teinte est le saumon corail #e49f87 mesur\xE9 sur la capture du jeu ; le cadre est presque carr\xE9", ICONE_FACONNEE.couleur === "#e49f87" && Math.abs(ICONE_FACONNEE.largeur / ICONE_FACONNEE.hauteur - 1) < 0.01);
+console.log(`
+${res.filter(Boolean).length}/${res.length} contr\xF4les r\xE9ussis`);
+process.exit(res.every(Boolean) ? 0 : 1);
