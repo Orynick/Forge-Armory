@@ -1,6 +1,6 @@
 # Retouches appliquées aux visuels Forge Armory
 
-Les visuels sont **dessinés par l'utilisateur** (archive « forge-armory-app-assets », `ressources-installateur/forge-armory/app-assets/`, conservée **intacte**). Les fichiers livrés avec l'appli (`public/assets/`) en sont dérivés par **`scripts/retoucher-visuels.mjs`**. Ce document dit ce qui est retouché, pourquoi, et comment refaire les retouches si l'utilisateur livre de nouveaux fichiers.
+Les visuels sont **dessinés par l'utilisateur** (archive « forge-armory-app-assets », `ressources-installateur/forge-armory/app-assets/`, conservée **intacte**). Les fichiers livrés avec l'appli (`public/assets/`) en sont dérivés par **`scripts/retoucher-visuels.mjs`**. Ce document dit ce qui est retouché, pourquoi, et comment refaire les retouches si l'utilisateur livre de nouveaux fichiers. La charte et les autres outils sont décrits dans [CHARTE-GRAPHIQUE.md](CHARTE-GRAPHIQUE.md) et [SCRIPTS-VISUELS.md](SCRIPTS-VISUELS.md).
 
 ## Comment refaire les retouches
 

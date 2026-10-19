@@ -6,7 +6,7 @@ Charte des visuels du **Destiny 2 Build Analyzer** — par Orynick/Orygamer.
 > (`ressources-installateur/forge-armory/app-assets/docs/charte-graphique.html`, archive v5),
 > dessinée par l'utilisateur. Les parties marquées **« Dans l'appli »** décrivent ce qui est
 > *réellement appliqué* par le code et vérifié par les tests. Les outils qui fabriquent ces
-> visuels sont décrits dans [RETOUCHES-VISUELS.md](RETOUCHES-VISUELS.md).
+> visuels sont décrits dans [SCRIPTS-VISUELS.md](SCRIPTS-VISUELS.md).
 > Dernière mise à jour : 19/10/2026 (v0.4.13).
 
 ## Sommaire
@@ -250,8 +250,8 @@ Identifiants : `<famille>.<clé>[.<état>]`, par exemple `selecteur.legendarium.
    **≥ 40 unités**.
 6. Générer le titre avec la **même plaque** ; vérifier la largeur du titre et la ligne.
 7. **Renommer les identifiants internes** (préfixe unique) avant livraison.
-8. Déclarer le fichier, relancer les outils concernés ([RETOUCHES-VISUELS.md](RETOUCHES-VISUELS.md),
-   §1) et les tests.
+8. Déclarer le fichier, relancer les outils concernés ([SCRIPTS-VISUELS.md](SCRIPTS-VISUELS.md),
+   §10) et les tests.
 
 ## Décisions de style notables
 
