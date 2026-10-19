@@ -4,6 +4,20 @@ Historique daté de toutes les corrections, fonctionnalités et décisions du pr
 Le plus récent en premier. Pour les fonctionnalités actuelles, voir `NOTICE.md` (l'état d'avancement détaillé est dans `NOTES-CONCEPTION.md`) ;
 pour ce qui reste à faire, voir `TODO.md`.
 
+## 19/10/2026 — Documentation : charte graphique et guide des scripts des visuels (v0.4.12, sans changement d'appli)
+
+**Demande** : intégrer la charte des visuels et le guide des outils qui les produisent. **Version inchangée (0.4.12)** — documentation uniquement, fusion directe dans `main` (à la demande de l'utilisateur : pas de PR pour de l'ajout de documentation en solo).
+
+**Fait** :
+
+- `documentation/identite-visuelle/CHARTE-GRAPHIQUE.md` (nouveau) : la charte complète des visuels Forge Armory (§1–13 : principes, identité, couleurs, typographie, géométrie, plaque, états, familles, intégration, marques d'objets, barre de la Forge, catalogue, liste de contrôle), fournie par l'utilisateur et conservée mot pour mot ; datée v0.4.13.
+- `documentation/identite-visuelle/SCRIPTS-VISUELS.md` (nouveau) : le guide des outils qui fabriquent, retouchent et vérifient les visuels (§1–12 : vue d'ensemble des 8 outils, chaîne du titre de l'en-tête, cristal du « O » de FORGE, vectorisation du titre, bibliothèque de lettres, cristaux, séparateurs, retouches, générateur de boutons, logos d'export, recettes, pièges, tests), fourni par l'utilisateur et conservé mot pour mot.
+- `documentation/identite-visuelle/RETOUCHES-VISUELS.md` : ajout d'un lien vers les deux nouveaux documents.
+
+**Vérifié** : chemins cités dans la charte contrôlés dans le dépôt (logo PNG, `EnTeteApp.tsx`, `geometrieIdentite.ts`, `charte-graphique.html` de l'archive v5, `forgeAssets.ts`, `forge-armory-emblem.svg` : tous présents). `ressources-installateur/forge-armory/logo-titre/forge-armory-titre.svg` est cité tel quel : il arrivera avec la v0.4.13 (le dépôt est en v0.4.12). Contenu non modifié ; seuls les liens ont été adaptés au dossier.
+
+**Décisions de l'utilisateur** : branche de travail supprimée après fusion (politique de branches : `main`, `test`, `draft-<chantier>` quand nécessaire) ; pas de PR pour de la documentation en solo.
+
 ## 15/10/2026 — v0.4.12 : Forge des armures, étape 1 (liste, fenêtre, simulation locale des mods)
 
 **Demande** : « Go les armures » (après ma question : la spécification du 12/10/2026 ne dit pas ce qu'on sélectionne sur une armure ; point 10 de `NOTES-CONCEPTION.md`). **Version 0.4.12** (installateur `Forge-Armory-Setup-0.4.12.exe`, liste `A-TESTER-0.4.12.pdf`). Les tests encore ouverts de la 0.4.11 restent dans la liste.
