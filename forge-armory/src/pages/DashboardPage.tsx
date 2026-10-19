@@ -363,7 +363,7 @@ export default function DashboardPage() {
     <div>
       {/* FR : ⚠️ CHANGÉ (01/10/2026, v0.3.0) - en-tête Forge Armory à l'essai
       (titre + sous-titre, logo aligné par mesure) : voir EnTeteApp.tsx. Ancien
-      en-tête archivé dans ressources-installateur/ancien-logo/ancien-en-tete.txt.
+      en-tête archivé dans ressources-installateur/forge-armory/archives-precedentes/ancien-logo/ancien-en-tete.txt.
       EN: ⚠️ CHANGED - Forge Armory trial header, see EnTeteApp.tsx. */}
       {/* FR : ⚠️ CHANGÉ (05/10/2026) - le titre et, tout à droite, la version de Destiny 2 prise en compte avec la date du
       patch (data/versionJeu.ts). Sur une fenêtre étroite, l'affichage passe sous le titre en restant calé à droite.
