@@ -1,3 +1,22 @@
+## 19/10/2026 (troisième retour de test, soir) — jointure de source FIDÈLE À DIM (collectible sourceHash + itemHashes) : le filtre du menu matchait RIEN
+
+**Troisième retour de test de l'utilisateur** : « 1a/1b/1c Fonctionnent ! :) :D :D » (la saison par hash d'objet est VALIDÉE, fiche et infobulle) ; « 2a C'est bon ! 2f Fonctionne » ; MAIS « 2b/2c/2d/2e : ne montre rien — je pense que le filtre est cassé. Sans l'utiliser, en laissant sur "toutes les sources", il trouve ce que je veux ». Le cristal du titre est livré par la conversation visuelle (dans app-assets). **Version inchangée (0.4.13).**
+
+**Cause racine (dans le code de DIM cette fois, pas une supposition)** : lecture du filtre `source` de DIM (`src/app/search/items/search-filters/known-values.ts` + `d2-item-factory.ts`) : DIM ne lit JAMAIS les `itemSourceHashes` du Manifest — champ que Bungie ne peuple pratiquement pas. La jointure de DIM : (1) le **`sourceHash` du COLLECTIBLE de l'objet** (`itemDef.collectibleHash` → `DestinyCollectibleDefinition.sourceHash`) comparé aux `sourceHashes` de la source, OU (2) le **`hash` de l'objet** comparé aux `itemHashes** de la source (liste directe). Ma table n'embarquait que les `itemSourceHashes` : le filtre ne pouvait rien matcher.
+
+**Fait** :
+
+- `src/data/source-filters.json` RÉGÉNÉRÉ : chaque entrée porte désormais les DEUX listes de DIM — `sourceHashes` (ceux du collectible ; ex. raid : 34) et `itemHashes` (objets directs ; ex. raid : 11). Le régénérateur parse les deux sections de chaque bloc amont.
+- `src/data/sourceFilter.ts` : `matchesSourceFilter` prend la **jointure DIM exacte** : `collectibleSourceHash ∈ sourceHashes` OU `itemHash ∈ itemHashes` ; les `itemSourceHashes` du Manifest ne sont plus utilisés.
+- `src/data/sourceObjet.ts` : `jointureSource(db, itemHash)` lit le `sourceHash` du collectible (la MÊME lecture que `obtenirSource` du projet — chaîne brute déjà affichée) + le hash de l'objet ; `sourceObjetParHash` (catégorie en clair sur la fiche) suit la même jointure, la plus précise l'emporte (activité avant catégorie).
+- `RechercheManifest` : le menu déroulant appelle `jointureSource` — plus aucune lecture directe du Manifest dans le composant.
+
+**Vérifié** : `saisons-sources` : **17 contrôles** (remplacés en connaissance de cause : les chemins collectible et direct de DIM testés séparément — le hash d'un objet listé directement dans last-wish matche sans collectible ; exclusion sans jointure ; filtre inconnu) ; `tsc` : zéro erreur ; `npm run build` strict : ✓ ; `--check` du régénérateur : repasse après régénération (13 catégories, 24 activités) ; batterie : **42 séries, 403/405** (`icones` 10/11 et `reproductibilite-visuels` 6/7, tous deux PRÉEXISTANTS — le second signale les assets v6 non intégrés, chantier de la conversation visuelle) ; **deux casses volontaires détectées** (chemin direct retiré → 16/17 ; chemin collectible retiré → 15/17).
+
+**DÉFAUT DE CONCEPTION évité de justesse cette fois** : le premier réflexe (d2-additional-info) m'avait fait embarquer les mauvaises listes ; c'est la LECTURE DU CODE DE DIM (la source de vérité de la jointure) qui a donné la bonne structure. Leçon consignée : pour reprendre le travail d'un autre projet, lire son CODE d'abord, ses données ensuite.
+
+**NON vérifié (à retester par l'utilisateur)** : le menu Source avec les mêmes essais que le retour — « Mille » + Raid / Activité · Dernier Vœu ; « Mesure » + Raid ; les combinaisons avec la catégorie Armes et les autres filtres (2b à 2e du canvas).
+
 ## 19/10/2026 (second retour de test, soir) — jointure saison par le HASH D'OBJET (la table de DIM elle-même), filtre de source en MENU DÉROULANT, syntaxe « source: » retirée
 
 **Second retour de test de l'utilisateur** : (1) « Dans le Manifest, pas de filigrane de saison, pas d'indication textuelle. Ailleurs : filigrane présent mais pas de nom de saison au survol » ; (2) « source:raid seul : presque 13k résultats. En ajoutant le filtre Armes, plus aucun » ; **décision** : « il faut rajouter un menu déroulant permettant de filtrer la source : prends exemple sur le filtre de catégorie, celui sur les champions, celui sur les éléments » — et « il va falloir être plus rigoureux pour la suite ». **Version inchangée (0.4.13).**

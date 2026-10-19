@@ -28,11 +28,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { obtenirElementFiltre, ELEMENTS_FILTRE, ElementFiltre } from "../lib/manifest/doctrine";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : filtre d'élément
 import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
 import { Database } from "sql.js";
-import { assurerManifestAJour, etatCachesManifests, simulerManifestPerime, telechargerManifestsEnFichiers, obtenirDefinition } from "../lib/manifest/download";   // ⚠️ AJOUT (19/10/2026) : lecture des itemSourceHashes pour le filtre source:
+import { assurerManifestAJour, etatCachesManifests, simulerManifestPerime, telechargerManifestsEnFichiers } from "../lib/manifest/download";
 import { demarrerManifests, LangueManifest } from "../lib/manifest/demarrage";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : mise à jour automatique d'un Manifest PÉRIMÉ
 import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance, chercherTriomphesFlawless, TriompheTrouve } from "../lib/manifest/search";
 // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la catégorie de SOURCE d'un objet (d2-additional-info, MIT) affichée à côté de la chaîne brute, et le filtre `source:`.
-import { sourceObjetParHash } from "../data/sourceObjet";
+import { sourceObjetParHash, jointureSource } from "../data/sourceObjet";
 import { saisonParNumero, saisonDeLObjet } from "../data/saisons";   // ⚠️ AJOUT (19/10/2026) : saison de sortie en clair (secours du nom + dates)
 import { obtenirSaisonObjet } from "../lib/manifest/saison";   // ⚠️ AJOUT (19/10/2026) : seasonHash/filigrane → numéro
 import { SOURCE_FILTER_SUGGESTIONS, matchesSourceFilter } from "../data/sourceFilter";
@@ -134,9 +134,8 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
       if (filtreElement !== "tous" && obtenirElementFiltre(dbFr, r.hash) !== filtreElement) return false;
       // FR : ⚠️ (19/10/2026) - le filtre source: porte sur N'IMPORTE QUEL objet du Manifest (les perks et fragments ont aussi des sources).
       if (filtreSource) {
-        let hashes: number[] | undefined;
-        try { hashes = obtenirDefinition<{ itemSourceHashes?: number[] }>(dbFr, "DestinyInventoryItemDefinition", r.hash)?.itemSourceHashes; } catch { /* lecture impossible : l'objet est exclu, pas une erreur */ }
-        if (!matchesSourceFilter(hashes, filtreSource)) return false;
+        // FR : ⚠️ CHANGÉ (19/10/2026, 3e retour de test) - jointure DIM : le sourceHash du COLLECTIBLE + le hash de l'objet, plus les itemSourceHashes du Manifest (que Bungie ne peuple pratiquement jamais). / EN: DIM's join: collectible sourceHash + item hash.
+        if (!matchesSourceFilter(jointureSource(dbFr, r.hash), filtreSource)) return false;
       }
       return true;
     });

@@ -65,17 +65,23 @@ function telecharger(): string {
   return Buffer.from(r.stdout, "base64").toString("utf-8");
 }
 
-/** FR : parse les blocs de premier niveau du source-info-v2.ts : { nom → { hashes: number[], labels: string[] } }. La structure amont est du TypeScript généré : chaque bloc "nom: {" contient des listes commentées. / EN: parses the upstream blocks. */
-function parserContenu(s: string): Map<string, number[]> {
-  const groupes = new Map<string, number[]>();
+/** FR : ⚠️ CHANGÉ (19/10/2026, 3e retour de test) - parse les DEUX listes de chaque bloc : `sourceHashes` (ceux du collectible de l'objet, le chemin principal de la jointure DIM) et `itemHashes` (les objets listés directement). L'ancien parseur lisait un flux unique et produisait des `itemSourceHashes` (que Bungie ne peuple pratiquement jamais : le filtre ne matchait rien). / EN: parses BOTH lists of each block: sourceHashes (the item's collectible) and itemHashes (directly listed items). */
+function parserContenu(s: string): Map<string, { sourceHashes: number[]; itemHashes: number[] }> {
+  const groupes = new Map<string, { sourceHashes: number[]; itemHashes: number[] }>();
   let courant: string | null = null;
+  let section: "sourceHashes" | "itemHashes" | null = null;
   for (const ligne of s.split("\n")) {
     const mEntete = /^  '?([a-z0-9-]+)'?: \{$/.exec(ligne);
-    if (mEntete) { courant = mEntete[1]; groupes.set(courant, []); continue; }
+    if (mEntete) { courant = mEntete[1]; groupes.set(courant, { sourceHashes: [], itemHashes: [] }); section = null; continue; }
     if (courant) {
-      const mHash = /^\s+(\d+),\s*\/\//.exec(ligne);
-      if (mHash) groupes.get(courant)!.push(Number(mHash[1]));
-      if (/^  \},?$/.test(ligne)) courant = null;
+      if (/^\s+sourceHashes: \[$/.test(ligne)) { section = "sourceHashes"; continue; }
+      if (/^\s+itemHashes: \[$/.test(ligne)) { section = "itemHashes"; continue; }
+      if (/^\s+\],?$/.test(ligne)) { section = null; continue; }
+      if (section) {
+        const mHash = /^\s+(\d+),/.exec(ligne);
+        if (mHash) groupes.get(courant)![section].push(Number(mHash[1]));
+      }
+      if (/^  \},?$/.test(ligne)) { courant = null; section = null; }
     }
   }
   return groupes;
@@ -83,13 +89,13 @@ function parserContenu(s: string): Map<string, number[]> {
 
 function generer(contenu: string): string {
   const groupes = parserContenu(contenu);
-  const collecter = (noms: string[]): number[] => [...new Set(noms.flatMap((n) => groupes.get(n) ?? []))].sort((a, b) => a - b);
+  const collecter = (noms: string[], champ: "sourceHashes" | "itemHashes"): number[] => [...new Set(noms.flatMap((n) => groupes.get(n)?.[champ] ?? []))].sort((a, b) => a - b);
   const sortie: Record<string, unknown> = {
     _licence: "Données dérivées de d2-additional-info (Destiny Item Manager, licence MIT) : https://github.com/DestinyItemManager/d2-additional-info",
     _source: "output/source-info-v2.ts",
     _genere: "data/rebuild-source-filters.ts",
-    categories: Object.fromEntries(Object.entries(CATEGORIES).map(([cle, c]) => [cle, { libelle_fr: c.libelle_fr, libelle_en: c.libelle_en, itemSourceHashes: collecter(c.groupes) }])),
-    activities: Object.fromEntries(Object.entries(ACTIVITES).filter(([, a]) => collecter(a.groupes).length > 0).map(([cle, a]) => [cle, { libelle_fr: a.fr, libelle_en: a.en, itemSourceHashes: collecter(a.groupes) }])),
+    categories: Object.fromEntries(Object.entries(CATEGORIES).map(([cle, c]) => [cle, { libelle_fr: c.libelle_fr, libelle_en: c.libelle_en, sourceHashes: collecter(c.groupes, "sourceHashes"), itemHashes: collecter(c.groupes, "itemHashes") }])),
+    activities: Object.fromEntries(Object.entries(ACTIVITES).filter(([, a]) => collecter(a.groupes, "sourceHashes").length + collecter(a.groupes, "itemHashes").length > 0).map(([cle, a]) => [cle, { libelle_fr: a.fr, libelle_en: a.en, sourceHashes: collecter(a.groupes, "sourceHashes"), itemHashes: collecter(a.groupes, "itemHashes") }])),
   };
   return JSON.stringify(sortie, null, 1) + "\n";
 }

@@ -28,13 +28,16 @@ const FILIGRANE_VERS_SAISON: Record<number, number> = {
   ok("un filigrane INCONNU ne résout rien (undefined, pas d'invention)", saisonDunFiligrane(999999999) === undefined);
 
   // ---------- 3. le filtre de source ----------
-  const unRaid = Object.values(FILTRES_SOURCES.categories["raid"].itemSourceHashes).slice(0, 3);
-  const unTrials = FILTRES_SOURCES.categories["trials"].itemSourceHashes.slice(0, 3);
-  ok("un objet de RAID remonte sous source:raid et PAS sous source:trials", matchesSourceFilter(unRaid, "raid") && !matchesSourceFilter(unRaid, "trials"), [unRaid]);
-  ok("un objet de TRIALS remonte sous source:trials", matchesSourceFilter(unTrials, "trials"));
-  ok("un objet SANS hash de source est EXCLU sans erreur (undefined → false)", matchesSourceFilter(undefined, "raid") === false && matchesSourceFilter([], "raid") === false);
-  ok("un filtre INCONNU (source:zzz) ne fait rien remonter, sans erreur", matchesSourceFilter(unRaid, "zzz") === false);
-  ok("un objet de la caté­gorie raid remonte aussi sous l'ACTIVITÉ précise si son hash y appartient ; les deux niveaux partagent le même index", (() => { const h = Object.values(FILTRES_SOURCES.activities["last-wish"].itemSourceHashes)[0]; return FILTRES_SOURCES.categories["raid"].itemSourceHashes.includes(h) && matchesSourceFilter([h], "last-wish"); })());
+  // FR : ⚠️ CHANGÉ (19/10/2026, 3e retour de test : la jointure par itemSourceHashes du Manifest ne matchait RIEN — Bungie ne peuple pas ce champ) - la jointure est FIDÈLE À DIM : (1) le sourceHash du COLLECTIBLE de l'objet dans les sourceHashes de la source, OU (2) le hash de l'objet dans les itemHashes.
+  const unRaidCollectible = FILTRES_SOURCES.categories["raid"].sourceHashes.slice(0, 3);
+  const unTrialsCollectible = FILTRES_SOURCES.categories["trials"].sourceHashes.slice(0, 3);
+  const unItemDeLastWish = FILTRES_SOURCES.activities["last-wish"].itemHashes[0];
+  ok("un objet dont le COLLECTIBLE porte un sourceHash de RAID matche raid et PAS trials — le chemin principal de DIM", matchesSourceFilter({ collectibleSourceHash: unRaidCollectible[0], itemHash: 1 }, "raid") && !matchesSourceFilter({ collectibleSourceHash: unRaidCollectible[0], itemHash: 1 }, "trials"), [unRaidCollectible, unTrialsCollectible]);
+  ok("un objet du TRIALS (sourceHash de collectible) matche trials", matchesSourceFilter({ collectibleSourceHash: unTrialsCollectible[0], itemHash: 2 }, "trials"));
+  ok("un objet listé DIRECTEMENT dans une source (itemHashes de last-wish) matche cette source, sans collectible", matchesSourceFilter({ itemHash: unItemDeLastWish }, "last-wish"));
+  ok("un objet SANS jointure (undefined) est EXCLU sans erreur", matchesSourceFilter(undefined, "raid") === false);
+  ok("un objet sans collectible ET hors itemHashes ne matche pas", matchesSourceFilter({ itemHash: 999999999 }, "raid") === false);
+  ok("un filtre INCONNU ne fait rien remonter, sans erreur", matchesSourceFilter({ collectibleSourceHash: unRaidCollectible[0], itemHash: 1 }, "zzz") === false);
 
   // ---------- 4. l'extraction depuis la recherche ----------
   // FR : ⚠️ RETIRÉ (19/10/2026, second retour de test) - la syntaxe « source: » dans le champ de texte a été REMPLACÉE par un MENU DÉROULANT (demande explicite de l'utilisateur) : les contrôles d'extraction et d'alias ne s'appliquent plus. Le menu est testé en interface ; le filtre par hash reste testé ci-dessus.

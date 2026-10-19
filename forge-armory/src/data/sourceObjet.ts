@@ -1,7 +1,5 @@
-// FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - JOINTURE SOURCE D'UN OBJET : la catégorie de source (« Raid », « Donjon », « Last Wish »…) d'un objet du Manifest, par SON `itemSourceHashes`.
-// Pourquoi un module à part : la recherche affiche déjà la chaîne brute (« Source: "Last Wish" Raid » via collectibleHash → sourceString, voir `obtenirSource` de doctrine.ts) mais ni catégorisée ni filtrable. Ce module utilise la table de correspondance de d2-additional-info (MIT, `data/source-filters.json`) : chaque `itemSourceHash` de l'objet est cherché dans l'index (O(1)) qui regroupe les 13 CATÉGORIES et les 24 ACTIVITÉS ; la plus PRÉCISE l'emporte (l'activité « last-wish » avant la catégorie « raid »).
-// ZÉRO appel réseau ; un objet sans `itemSourceHashes` (cas fréquent : perks, fragments) donne undefined, JAMAIS une estimation.
-// EN: ⚠️ ADDED - an item's source category, joined by its itemSourceHashes through the d2-additional-info index; the most specific entry wins.
+// FR : ⚠️ CHANGÉ (19/10/2026, troisième retour de test : la catégorie de source n'apparaissait pas non plus) - JOINTURE SOURCE D'UN OBJET, FIDÈLE À DIM : (1) le `sourceHash` du COLLECTIBLE de l'objet (`collectibleHash` → `DestinyCollectibleDefinition.sourceHash`) cherché dans les `sourceHashes` de chaque entrée, OU (2) le `hash` de l'objet dans les `itemHashes`. La plus PRÉCISE l'emporte (l'activité « last-wish » avant la catégorie « raid »). Zéro appel réseau ; un objet sans source connue donne undefined, JAMAIS une estimation. (L'ancienne jointure par `itemSourceHashes` du Manifest ne matchait rien : Bungie ne peuple pratiquement jamais ce champ.)
+// EN: ⚠️ CHANGED - an item's source, mirroring DIM: collectible sourceHash in sourceHashes, OR item hash in itemHashes; the most specific wins.
 import type { Database } from "sql.js";
 import { FILTRES_SOURCES } from "./sourceFilter";
 import { obtenirDefinition } from "../lib/manifest/download";
@@ -15,17 +13,34 @@ export interface SourceObjet {
   genre: "categorie" | "activite";
 }
 
-/** FR : l'index itemSourceHash → entrée, UNE fois par chargement du module : les activités AVANT les catégories pour que la plus précise gagne à égalité de hash. / EN: hash→entry index; activities first so the most specific wins. */
-const INDEX = new Map<number, SourceObjet>();
-for (const [cle, e] of Object.entries(FILTRES_SOURCES.activities)) for (const h of e.itemSourceHashes) INDEX.set(h, { cle, libelle: e.libelle_fr, genre: "activite" });
-for (const [cle, e] of Object.entries(FILTRES_SOURCES.categories)) for (const h of e.itemSourceHashes) if (!INDEX.has(h)) INDEX.set(h, { cle, libelle: e.libelle_fr, genre: "categorie" });
+/** FR : deux index (le chemin collectible et le chemin direct), activités D'ABORD pour que la plus précise gagne. / EN: two indexes (collectible path and direct path); activities first. */
+const INDEX_COLLECTIBLE = new Map<number, SourceObjet>();
+const INDEX_ITEM = new Map<number, SourceObjet>();
+for (const [cle, e] of Object.entries(FILTRES_SOURCES.activities)) {
+  for (const h of e.sourceHashes ?? []) INDEX_COLLECTIBLE.set(h, { cle, libelle: e.libelle_fr, genre: "activite" });
+  for (const h of e.itemHashes ?? []) INDEX_ITEM.set(h, { cle, libelle: e.libelle_fr, genre: "activite" });
+}
+for (const [cle, e] of Object.entries(FILTRES_SOURCES.categories)) {
+  for (const h of e.sourceHashes ?? []) if (!INDEX_COLLECTIBLE.has(h)) INDEX_COLLECTIBLE.set(h, { cle, libelle: e.libelle_fr, genre: "categorie" });
+  for (const h of e.itemHashes ?? []) if (!INDEX_ITEM.has(h)) INDEX_ITEM.set(h, { cle, libelle: e.libelle_fr, genre: "categorie" });
+}
 
-/** FR : la source la plus précise d'un objet du Manifest (catégorie ou activité), ou undefined sans estimation. Lecture via `obtenirDefinition` (cache WeakMap partagé avec le reste de l'appli, conversion hash→id SQLite incluse). / EN: an item's most specific source, or undefined; read through the shared definition cache. */
+/** FR : le `sourceHash` du COLLECTIBLE de l'objet (la même lecture que `obtenirSource` du projet, qui en tire la chaîne brute). / EN: the item's collectible sourceHash. */
+function collectibleSourceHash(db: Database, itemHash: number): number | undefined {
+  try {
+    const def = obtenirDefinition<{ collectibleHash?: number }>(db, "DestinyInventoryItemDefinition", itemHash);
+    if (!def?.collectibleHash) return undefined;
+    const collectible = obtenirDefinition<{ sourceHash?: number }>(db, "DestinyCollectibleDefinition", def.collectibleHash);
+    return collectible?.sourceHash;
+  } catch { return undefined; }   // tables absentes : undefined, jamais une erreur
+}
+
+/** FR : la source la plus précise d'un objet (catégorie ou activité), ou undefined sans estimation. / EN: an item's most specific source, or undefined. */
 export function sourceObjetParHash(db: Database, itemHash: number): SourceObjet | undefined {
-  let def: { itemSourceHashes?: number[] } | undefined;
-  try { def = obtenirDefinition<{ itemSourceHashes?: number[] }>(db, "DestinyInventoryItemDefinition", itemHash); } catch { return undefined; }   // table absente : undefined, jamais une erreur
-  const hashes = def?.itemSourceHashes;
-  if (!Array.isArray(hashes)) return undefined;
-  for (const h of hashes) { const s = INDEX.get(h); if (s) return s; }   // la première entrée indexée gagne ; undefined sinon
-  return undefined;
+  return INDEX_ITEM.get(itemHash) ?? INDEX_COLLECTIBLE.get(collectibleSourceHash(db, itemHash) ?? -1);
+}
+
+/** FR : ⚠️ AJOUT (19/10/2026, 3e retour) - la JOINTURE COMPLÈTE pour le filtre du menu : les deux chemins de DIM dans un seul objet, passé à `matchesSourceFilter`. / EN: the full join (both DIM paths) for the dropdown filter. */
+export function jointureSource(db: Database, itemHash: number): { collectibleSourceHash?: number; itemHash: number } {
+  return { collectibleSourceHash: collectibleSourceHash(db, itemHash), itemHash };
 }

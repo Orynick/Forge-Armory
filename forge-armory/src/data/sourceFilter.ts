@@ -1,8 +1,14 @@
-// FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - FILTRES DE SOURCE DE LOOT, module PUR (aucun React, aucun réseau) : index hash → filtre reconstruit au chargement de `source-filters.json` (une Map, recherche O(1)), exposé à l'interface pour la syntaxe `source:` dans la recherche, l'autocomplétion et les alias d'activités.
-// Les données viennent de d2-additional-info (Destiny Item Manager, licence MIT : https://github.com/DestinyItemManager/d2-additional-info), régénérées par `data/rebuild-source-filters.ts`. Le fichier comporte DEUX blocs : `categories` (13 catégories génériques : raid, donjon, trials…) et `activities` (une entrée par raid/donjon) ; les deux niveaux partagent le MÊME index.
-// ZÉRO appel réseau : tout est local. Un objet remonte si L'UN de ses `itemSourceHash` (du Manifest, jamais lu ailleurs) appartient au filtre ; un objet SANS hash de source est simplement exclu, jamais une erreur.
-// EN: ⚠️ ADDED - pure source-filter module: hash→filter index from source-filters.json, the `source:` search syntax, autocompletion and activity aliases; no network, no error on missing hashes.
-export interface EntreeSource { libelle_fr: string; libelle_en: string; itemSourceHashes: number[] }
+// FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - FILTRES DE SOURCE DE LOOT, module PUR (aucun React, aucun réseau) : la jointure et les données pour le MENU DÉROULANT « Source de l'objet » de la recherche du Manifest (13 catégories génériques + une entrée par raid/donjon).
+// ⚠️ CHANGÉ (19/10/2026, troisième retour de test : le filtre ne matchait RIEN — « sans l'utiliser il trouve ce que je veux ») : la jointure est désormais FIDÈLE À DIM (Destiny Item Manager, `src/app/search/items/search-filters/known-values.ts`, filtre `source`) : un objet matche si (1) le `sourceHash` de son COLLECTIBLE (`itemDef.collectibleHash` → `DestinyCollectibleDefinition.sourceHash`) appartient aux `sourceHashes` de la source, OU (2) son propre `hash` appartient aux `itemHashes` de la source. Les `itemSourceHashes` du Manifest ne sont PLUS utilisés : Bungie les peuple rarement, c'était la cause de l'échec. Données de d2-additional-info (licence MIT : https://github.com/DestinyItemManager/d2-additional-info), régénérées par `data/rebuild-source-filters.ts`. Zéro appel réseau ; un objet sans source connue est exclu, jamais une erreur.
+// EN: ⚠️ ADDED then CHANGED (the join mirrors DIM's: collectible sourceHash in sourceHashes, OR item hash in itemHashes; the Manifest's itemSourceHashes are rarely populated and matched nothing).
+export interface EntreeSource {
+  libelle_fr: string;
+  libelle_en: string;
+  /** FR : les `sourceHashes` de DIM : ceux du COLLECTIBLE de l'objet. / EN: DIM's sourceHashes, read from the item's collectible. */
+  sourceHashes: number[];
+  /** FR : les `itemHashes` de DIM : objets listés DIRECTEMENT dans la source. / EN: DIM's itemHashes: items listed directly. */
+  itemHashes: number[];
+}
 export interface FiltresSourcesFA {
   _licence: string; _source: string; _genere: string;
   categories: Record<string, EntreeSource>;
@@ -11,26 +17,16 @@ export interface FiltresSourcesFA {
 import filtresJson from "./source-filters.json";
 export const FILTRES_SOURCES: FiltresSourcesFA = filtresJson as FiltresSourcesFA;
 
-/** FR : l'index hash → { type, cle } : UNE passe au chargement, O(1) par filtre. / EN: hash→filter index, built once. */
-const INDEX = new Map<number, { type: "categorie" | "activite"; cle: string }>();
-for (const [cle, e] of Object.entries(FILTRES_SOURCES.categories)) for (const h of e.itemSourceHashes) INDEX.set(h, { type: "categorie", cle });
-for (const [cle, e] of Object.entries(FILTRES_SOURCES.activities)) for (const h of e.itemSourceHashes) INDEX.set(h, { type: "activite", cle });
-
-/** FR : les catégories et activités proposées par l'autocomplétion après « source: » — libellées dans la langue de l'interface. / EN: what "source:" autocompletion offers. */
+/** FR : les valeurs proposées par le MENU « Source de l'objet » — catégories puis activités, libellées en français. / EN: what the Source dropdown offers. */
 export const SOURCE_FILTER_SUGGESTIONS: Array<{ valeur: string; libelle: string; genre: "categorie" | "activite" }> = [
   ...Object.entries(FILTRES_SOURCES.categories).map(([cle, e]) => ({ valeur: cle, libelle: e.libelle_fr, genre: "categorie" as const })),
   ...Object.entries(FILTRES_SOURCES.activities).map(([cle, e]) => ({ valeur: cle, libelle: e.libelle_fr, genre: "activite" as const })),
 ];
 
-
-
-/** FR : un objet remonte-t-il sous `source:<valeur>` ? `valeur` = clé de catégorie OU d'activité ; un objet SANS hash de source est exclu, pas une erreur. / EN: does an item match `source:<value>`? */
-export function matchesSourceFilter(itemSourceHashes: number[] | undefined, filterValue: string): boolean {
-  if (!itemSourceHashes || itemSourceHashes.length === 0) return false;   // pas de source connue : exclu, sans erreur
+/** FR : ⚠️ CHANGÉ (19/10/2026, 3e retour de test) - la jointure de DIM, exactement : (1) le `sourceHash` du COLLECTIBLE de l'objet dans les `sourceHashes` de la source, OU (2) le hash de l'objet dans les `itemHashes`. Le `collectibleSourceHash` se lit : `itemDef.collectibleHash` → `DestinyCollectibleDefinition` → `.sourceHash` (la même lecture que `obtenirSource` du projet, qui affiche la chaîne brute). / EN: DIM's own join: collectible sourceHash in sourceHashes, OR item hash in itemHashes. */
+export function matchesSourceFilter(jointure: { collectibleSourceHash?: number; itemHash: number } | undefined, filterValue: string): boolean {
+  if (!jointure) return false;   // pas de source connue : exclu, sans erreur
   const e = FILTRES_SOURCES.categories[filterValue] ?? FILTRES_SOURCES.activities[filterValue];
-  if (!e) return false;   // filtre inconnu : personne ne remonte (l'autocomplétion propose les valeurs valides)
-  const attendus = new Set(e.itemSourceHashes);
-  return itemSourceHashes.some((h) => attendus.has(h));
+  if (!e) return false;   // filtre inconnu : personne ne remonte (le menu ne propose que des valeurs valides)
+  return (jointure.collectibleSourceHash != null && (e.sourceHashes ?? []).includes(jointure.collectibleSourceHash)) || (e.itemHashes ?? []).includes(jointure.itemHash);
 }
-
-
