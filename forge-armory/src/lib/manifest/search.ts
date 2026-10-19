@@ -541,7 +541,7 @@ export function rechercherDansManifest(
   const motNormalise = normaliserRecherche(motCle.trim());
   // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources », RETOUR DE TEST n°3) - MODE « TOUT » : un mot-clé VIDE liste TOUS les objets des tables demandées (l'appelant l'utilise pour un filtre source: SEUL — le tri se fait côté client ; jamais par défaut : les autres appelants passent un vrai mot-clé). / EN: ⚠️ ADDED - an EMPTY keyword lists every item (used for a lone source: filter; never the default).
   const tout = motNormalise.length === 0;
-  if (motNormalise.length < 2 && !tout) return []; // évite de scanner tout le Manifest pour 1 caractère
+  if (motNormalise.length < 2) return []; // évite de scanner tout le Manifest pour 1 caractère
 
   const resultats: ResultatRecherche[] = [];
 
@@ -818,7 +818,7 @@ export function diagnostiquerCorrespondances(
   tables: string[] = TABLES_RECHERCHE_PAR_DEFAUT
 ): DiagnosticCorrespondance[] {
   const motNormalise = normaliserRecherche(motCle.trim());
-  if (motNormalise.length < 2 && !tout) return [];
+  if (motNormalise.length < 2) return [];
 
   const diagnostics: DiagnosticCorrespondance[] = [];
 

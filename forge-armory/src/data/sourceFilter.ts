@@ -22,24 +22,7 @@ export const SOURCE_FILTER_SUGGESTIONS: Array<{ valeur: string; libelle: string;
   ...Object.entries(FILTRES_SOURCES.activities).map(([cle, e]) => ({ valeur: cle, libelle: e.libelle_fr, genre: "activite" as const })),
 ];
 
-/** FR : ALIAS de saisie libre : taper « Last Wish » ou « Prophétie » (sans préfixe) dans la recherche résout vers le même filtre. Les alias sont insensibles à la casse et aux accents. / EN: free-text activity aliases, case- and accent-insensitive. */
-export const ACTIVITY_ALIASES: Record<string, string> = (() => {
-  const alias: Record<string, string> = {};
-  for (const [cle, e] of Object.entries(FILTRES_SOURCES.activities)) {
-    alias[e.libelle_en.toLowerCase()] = cle;
-    alias[e.libelle_fr.toLowerCase()] = cle;
-  }
-  // FR : quelques alias de saisie courants (le nom anglais ET français sont déjà couverts ci-dessus).
-  alias["last wish"] = "last-wish";
-  alias["dernier voeu"] = "last-wish";
-  alias["dernier vœu"] = "last-wish";
-  alias["prophetie"] = "prophecy";
-  alias["prophétie"] = "prophecy";
-  return alias;
-})();
 
-/** FR : normalise pour comparer (minuscules, sans accents) — la même fonction que la recherche du Manifest. / EN: lowercase, accent-free. */
-const normaliser = (s: string): string => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 /** FR : un objet remonte-t-il sous `source:<valeur>` ? `valeur` = clé de catégorie OU d'activité ; un objet SANS hash de source est exclu, pas une erreur. / EN: does an item match `source:<value>`? */
 export function matchesSourceFilter(itemSourceHashes: number[] | undefined, filterValue: string): boolean {
@@ -50,14 +33,4 @@ export function matchesSourceFilter(itemSourceHashes: number[] | undefined, filt
   return itemSourceHashes.some((h) => attendus.has(h));
 }
 
-/** FR : le champ de recherche contient-il un filtre de source (`source:xxx`) ? Le résout en { texteRestant, filtre } ; null si pas de filtre. / EN: extracts a `source:` filter from free text. */
-export function extraireFiltreSource(recherche: string): { texteRestant: string; filtre: string } | null {
-  const m = /(?:^|\s)source:([a-z0-9-]+)(?=\s|$)/i.exec(recherche);
-  if (!m) return null;
-  return { texteRestant: (recherche.slice(0, m.index) + " " + recherche.slice(m.index + m[0].length)).trim(), filtre: m[1].toLowerCase() };
-}
 
-/** FR : un TEXTE LIBRE (« Last Wish », « Prophétie ») résout-il vers une activité ? Sert de repli quand aucun filtre explicite n'est saisi. / EN: resolves a free-text activity name to its filter key. */
-export function resoudreAliasActivite(texte: string): string | null {
-  return ACTIVITY_ALIASES[normaliser(texte)] ?? null;
-}

@@ -18,22 +18,16 @@ export interface SaisonFA {
   extension: string | null;
 }
 import saisonsJson from "./seasons.json";
-import watermarksJson from "./watermarks.json";
 export const SAISONS: readonly SaisonFA[] = saisonsJson as SaisonFA[];
 /** FR : une saison par SON NUMÉRO, ou undefined. / EN: a season by its number. */
 export const saisonParNumero = (numero: number): SaisonFA | undefined => SAISONS.find((s) => s.numero === numero);
 
-// FR : ⚠️ AJOUT (19/10/2026, RETOUR DE TEST : « je trouve l'objet (Mesure Corrective) mais pas d'indication sur la saison ») - TABLE FILIGRANE → NUMÉRO DE SAISON, dérivée de `output/seasons.json` de d2-additional-info (MIT) : 4 488 filigranes. POURQUOI : les diagnostics de l'utilisateur montrent que son Manifest ne relie AUCUN filigrane à une saison par le balayage interne (« 0 filigrane(s) relié(s) à une saison ») et que la Mesure corrective n'a pas de seasonHash — la déduction interne (v0.4.11) ne peut donc rien chez lui. Cette table donne le numéro DIRECTEMENT depuis le hash du filigrane : c'est le chemin prévu par la spécification du chantier. La clé est le hash de l'objet filigrane (le nombre après le dernier « / » du chemin d'icône, sans extension) ; le numéro est celui de la table des saisons ci-dessus. MAINTENANCE : régénéré avec source-filters.json (même amont).
-// EN: ⚠️ ADDED - watermark→season-number table (4 488 entries, from d2-additional-info); the internal deduction finds nothing on the user's Manifest, this table gives the number directly.
-const FILIGRANES = watermarksJson as Record<string, number>;
-/** FR : le numéro de saison d'un FILIGRANE (hash de l'objet filigrane), ou undefined. / EN: a watermark's season number, or undefined. */
-export function saisonDuFiligrane(hashFiligrane: number | undefined): number | undefined {
-  if (hashFiligrane == null) return undefined;
-  return FILIGRANES[String(hashFiligrane)];
-}
-/** FR : le numéro de saison d'un objet d'aprèS SON CHEMIN D'ICÔNE de filigrane (« /common/destiny2_content/icons/xxx.png » → hash de la partie numérique). / EN: an item's season number from its watermark icon path. */
-export function saisonDuCheminFiligrane(chemin: string | undefined): number | undefined {
-  if (!chemin) return undefined;
-  const m = /\/([0-9]+)\.[a-z]+$/i.exec(chemin);
-  return m ? saisonDuFiligrane(Number(m[1])) : undefined;
+// FR : ⚠️ CORRIGÉ (19/10/2026, second retour de test : « pas de filigrane de saison, pas d'indication textuelle ») - JOINTURE PAR LE HASH DE L'OBJET, la VRAIE table de DIM (`data/seasons/seasons_unfiltered.json` de d2-additional-info, MIT : 57 439 objets → numéro de saison). La première tentative (jointure par le chemin du filigrane) était FAUSSE : les chemins d'icônes du Manifest de l'utilisateur sont en HEXADÉCIMAL, pas numériques — la table `output/seasons.json` de DIM (filigrane→numéro) n'y matched jamais. La table objet→numéro résout DIRECTEMENT, sans filigrane, sans seasonHash, sans balayage : c'est le mécanisme de DIM, repris tel quel. Elle sert aussi l'INFOBULLE de l'icône de saison (partout : fenêtres Détails, vignettes) et la fiche de recherche. MAINTENANCE : régénérée avec source-filters.json (même amont).
+// EN: ⚠️ FIXED - item-hash→season-number table (DIM's own join, 57 439 entries); the watermark-path join was wrong (user Manifest paths are hex, not numeric).
+import saisonsObjetsJson from "./saisons-objets.json";
+const SAISONS_OBJETS = saisonsObjetsJson as Record<string, number>;
+/** FR : le numéro de saison d'un OBJET par son hash (table d2-additional-info), ou undefined — jamais estimé. / EN: an item's season number by its hash, or undefined. */
+export function saisonDeLObjet(itemHash: number | undefined): number | undefined {
+  if (itemHash == null) return undefined;
+  return SAISONS_OBJETS[String(itemHash)];
 }

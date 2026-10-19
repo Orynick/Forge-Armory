@@ -4,12 +4,12 @@
 
 ## Recherche du Manifest (charger le Manifest d'abord)
 
-1. ☐ **Saison de sortie en clair** (CORRIGÉE — à retester) : cherche la Mesure corrective : la fiche affiche « Saison de sortie : <nom> (saison N) — dates » — le numéro vient maintenant de la table filigrane de d2-additional-info quand le Manifest n'en dit rien. Dis-moi si un nom ou un numéro est FAUX.
+1. ☐ **Saison de sortie en clair** (CORRIGÉE, 2e fois — à retester) : cherche la Mesure corrective : la fiche affiche « Saison de sortie : <nom> (saison N) — dates », et le SURVOL de l'icône de saison (fenêtres Détails, vignettes) donne le nom. La jointure est maintenant PAR LE HASH DE L'OBJET (la table de DIM, 57 439 objets) : elle ne dépend plus du filigrane. Dis-moi si un nom ou un numéro est FAUX.
 2. ☐ **Source en clair** : la fiche d'une arme de raid (ex. une arme du Dernier Vœu) affiche « — Raid — Source: "Last Wish" Raid » : la CATÉGORIE (Raid) puis la chaîne brute. Dis-moi si la catégorie manque ou est fausse.
-3. ☐ **Filtre source:** (CORRIGÉ — à retester) : tape « source:raid » SEUL : les objets de raid remontent (avant : rien). Idem « source:trials », « source:last-wish ».
-4. ☐ **Filtre combiné** (CORRIGÉ — à retester) : « vérité source:trials » applique le mot ET le filtre.
+3. ☐ **MENU DÉROULANT Source** (NOUVEAU — remplace la syntaxe source:) : dans « Recherche dans le Manifest », un menu « Source de l'objet » apparaît à côté des menus élément et anti-champion : « Toutes les sources », 13 catégories, puis les activités. Choisir « Raid » + catégorie « Armes uniquement » : les armes de raid (le filtre s'applique aux résultats : tape un mot, ou cherche puis filtre).
+4. ☐ Le menu se combine par ET avec le texte, la catégorie, l'anti-champion et l'élément.
 4. ☐ **Autocomplétion** : tape « source: » : les 13 catégories puis les activités sont proposées en français ; un clic complète le filtre.
-6. ☐ **Saisie libre** (CORRIGÉE — à retester) : tape « Last Wish » sans préfixe (catégorie « Armes uniquement » incluse) : le filtre source:last-wish s'active tout seul et liste les armes du Dernier Vœu.
+6. ☐ La syntaxe « source: » dans le champ de texte n'existe plus (RETIRÉE volontairement, remplacée par le menu) : la taper ne fait rien de spécial.
 7. ☐ **Objet sans source** : un objet sans source connue ne fait pas échouer « source:raid » : simplement absent des résultats (l'ancien exemple « perk de raid » était obsolète).
 
 ## Crédits
