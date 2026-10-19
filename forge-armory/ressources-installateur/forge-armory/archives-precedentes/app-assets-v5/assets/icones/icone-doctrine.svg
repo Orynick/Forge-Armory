@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="fa-icones-icone-doctrine-title">
+  <title id="fa-icones-icone-doctrine-title">Forge Armory — Doctrine Et Élément (icône)</title>
+  <defs>
+    <linearGradient id="fa-icones-icone-doctrine-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-doctrine-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-doctrine-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-doctrine-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-doctrine-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-icones-icone-doctrine-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <mask id="fa-icones-icone-doctrine-mHex" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect x="-2000" y="-2000" width="5000" height="5000" fill="#fff"/><circle cx="742.0" cy="512.0" r="42" fill="#000"/><circle cx="627.0" cy="312.8" r="42" fill="#000"/><circle cx="397.0" cy="312.8" r="42" fill="#000"/><circle cx="282.0" cy="512.0" r="42" fill="#000"/><circle cx="397.0" cy="711.2" r="42" fill="#000"/><circle cx="627.0" cy="711.2" r="42" fill="#000"/></mask>
+    <linearGradient id="fa-icones-icone-doctrine-plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131923"/><stop offset="1" stop-color="#080b11"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-doctrine-fadeH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.12" stop-color="#e8ebef" stop-opacity="0.85"/>
+      <stop offset="0.88" stop-color="#e8ebef" stop-opacity="0.85"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-doctrine-fadeV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.25" stop-color="#e8ebef" stop-opacity="0.7"/>
+      <stop offset="0.75" stop-color="#e8ebef" stop-opacity="0.7"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-doctrine-glowStar" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-icones-icone-doctrine-silver)" stroke-width="22"/>
+    <g transform="translate(512 512) scale(1.4) translate(-512 -512)"><path d="M 742.0 512.0 L 627.0 312.8 L 397.0 312.8 L 282.0 512.0 L 397.0 711.2 L 627.0 711.2 Z" fill="none" stroke="url(#fa-icones-icone-doctrine-silver)" stroke-width="20" stroke-linejoin="round" mask="url(#fa-icones-icone-doctrine-mHex)"/><path d="M 512 408 L 531 493 L 616 512 L 531 531 L 512 616 L 493 531 L 408 512 L 493 493 Z" fill="url(#fa-icones-icone-doctrine-silver)"/><g filter="url(#fa-icones-icone-doctrine-glowSoft)"><circle cx="742.0" cy="512.0" r="25" fill="url(#fa-icones-icone-doctrine-cyanL)"/><circle cx="627.0" cy="312.8" r="25" fill="url(#fa-icones-icone-doctrine-cyanL)"/><circle cx="397.0" cy="312.8" r="25" fill="url(#fa-icones-icone-doctrine-cyanL)"/><circle cx="282.0" cy="512.0" r="25" fill="url(#fa-icones-icone-doctrine-cyanL)"/><circle cx="397.0" cy="711.2" r="25" fill="url(#fa-icones-icone-doctrine-cyanL)"/><circle cx="627.0" cy="711.2" r="25" fill="url(#fa-icones-icone-doctrine-cyanL)"/><circle cx="512" cy="512" r="11" fill="url(#fa-icones-icone-doctrine-cyanL)"/></g></g>
+    
+  </g>
+</svg>

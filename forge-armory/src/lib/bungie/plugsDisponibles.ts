@@ -16,3 +16,13 @@ export function extrairePlugsDisponibles(brut: unknown): PlugsDisponibles | unde
   }
   return sortie;
 }
+
+// FR : ⚠️ AJOUT (19/10/2026, branche test, issue de l'analyse de la spec Bungie v2.21.9) - PALIER ("gear tier") D'UN EXEMPLAIRE POSSÉDÉ, lu dans le composant 300 (instances) du profil, que l'inventaire récupère déjà (v0.4.7). La spec Bungie (DestinyItemInstanceComponent, v2.21.9) documente : « Gear Tier, if applicable, fished up from the unlock value items.gear_tier » - c'est le SYSTÈME DE PALIERS qui décide quelle version d'un perk « amélioré » s'applique à un exemplaire (TODO Forge, point ouvert n°2 : « quelle version s'applique à un exemplaire possédé dépend de son palier »). Forme NON VÉRIFIÉE sur le compte de l'utilisateur (même démarche que le composant 310 : lecture tolérante + diagnostic). Le sens précis des valeurs numériques est à CONTRÔLER avec le diagnostic (mode dev) sur des exemplaires réels.
+// EN: ⚠️ ADDED - reads an owned instance's gear tier from profile component 300 (already fetched); decides which enhanced-perk version applies to that instance (Forge TODO open point #2). Meaning of the numeric values to be confirmed on real instances via the dev diagnostic.
+export function extraireGearTier(brut: unknown): number | undefined {
+  if (typeof brut !== "object" || brut === null) return undefined;
+  const gearTier = (brut as { gearTier?: unknown }).gearTier;
+  if (typeof gearTier !== "number" || !Number.isInteger(gearTier)) return undefined;
+  return gearTier;
+}
+

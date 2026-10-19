@@ -16,7 +16,7 @@
 // perks grouped by socket column - needed for the 4-column display
 // (Hunter/Titan/Warlock/Vault) requested by the user.
 
-import { extrairePlugsDisponibles } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7)
+import { extrairePlugsDisponibles, extraireGearTier } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7) ; ⚠️ AJOUT (19/10/2026) : `extraireGearTier`
 import { Database } from "sql.js";
 import { obtenirDefinition } from "../manifest/download";
 import { urlIcone } from "../manifest/search";
@@ -170,6 +170,9 @@ export async function listerObjetsPossedes(
   const socketsParInstance: Record<string, { sockets: Array<{ plugHash?: number; isEnabled: boolean }> }> =
     profil.itemComponents?.sockets?.data ?? {};
   // FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - composant 310 : perks disponibles par exemplaire et par prise (lu avec tolérance : voir `plugsDisponibles.ts`). / EN: component 310 data.
+  // FR : ⚠️ AJOUT (19/10/2026, branche test, analyse de la spec Bungie v2.21.9) - composant 300 (instances), pour le PALIER ("gear tier") de chaque exemplaire possédé : c'est lui qui décide quelle version d'un perk amélioré s'applique à CET exemplaire (TODO Forge, point ouvert n°2). Le composant 300 était déjà demandé (composants = [102, 200, 201, 205, 300, 302, 305, 310]) : aucune requête réseau de plus. / EN: component 300 (instances), for each owned instance's gear tier (decides which enhanced-perk version applies to THAT instance). Already requested: no extra network call.
+  const gearTierParInstance: Record<string, unknown> =
+    profil.itemComponents?.instances?.data ?? {};
   const plugsReutilisablesParInstance: Record<string, unknown> = profil.itemComponents?.reusablePlugs?.data ?? {};
 
   const cacheNomsStat = new Map<number, StatKey | undefined>();
@@ -374,6 +377,8 @@ export async function listerObjetsPossedes(
       perksParColonne,
       // FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - perks DISPONIBLES sur cet exemplaire, par prise (armes seulement : les builds enregistrés ne grossissent pas pour l'armure). `undefined` = donnée non lue. / EN: perks available on this instance (weapons only).
       ...(item.itemInstanceId ? { plugsDisponiblesParColonne: extrairePlugsDisponibles(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),   // ⚠️ CHANGÉ (15/10/2026, v0.4.12) : lus aussi pour les ARMURES (Forge des armures : mods disponibles sur l'exemplaire)
+      // FR : ⚠️ AJOUT (19/10/2026, branche test) - PALIER de l'exemplaire (composant 300) ; absent de la réponse = pas de champ (on n'affirme rien). / EN: instance gear tier (component 300); absent from the response = no field.
+      ...(item.itemInstanceId ? { gearTier: extraireGearTier(gearTierParInstance[item.itemInstanceId]) } : {}),
       isExotic: def.inventory?.tierTypeHash === TIER_TYPE_HASH_EXOTIQUE,
       classeRequise,
       elementArme,

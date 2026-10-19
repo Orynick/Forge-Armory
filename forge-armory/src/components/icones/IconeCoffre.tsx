@@ -1,5 +1,5 @@
-// FR : icône du Coffre, fournie par l'utilisateur (source svgrepo.com).
-// EN: Vault icon, provided by the user (source svgrepo.com).
+// FR : icône du Coffre, fournie par l'utilisateur (source justrealmilk/destiny-icons, licence CC0).
+// EN: Vault icon, provided by the user (source justrealmilk/destiny-icons, licence CC0).
 
 interface Props {
   taille?: number;

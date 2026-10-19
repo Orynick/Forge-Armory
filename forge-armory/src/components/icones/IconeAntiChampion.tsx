@@ -1,7 +1,7 @@
 // FR : icônes anti-champion, fournies par l'utilisateur (source
-// svgrepo.com). Correspondance confirmée : overload=Surchargé,
+// justrealmilk/destiny-icons, licence CC0). Correspondance confirmée : overload=Surchargé,
 // pierce=Bloqueur, stagger=Implacable.
-// EN: anti-champion icons, provided by the user (source svgrepo.com).
+// EN: anti-champion icons, provided by the user (source justrealmilk/destiny-icons, licence CC0).
 // Confirmed mapping: overload=Overload, pierce=Barrier, stagger=Unstoppable.
 
 export type TypeChampion = "surcharge" | "bloqueur" | "implacable";

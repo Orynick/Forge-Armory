@@ -56,6 +56,21 @@
 
 **NON vérifié (à contrôler sur le vrai Manifest et en interface)** : la jointure saison sur de vrais objets (les filigranes de test viennent de la table DIM, pas du Manifest de l'utilisateur) ; la catégorie de source sur de vraies armes (certains `itemSourceHash` récents peuvent manquer dans d2-additional-info entre deux mises à jour amont) ; l'autocomplétion et la pop-up Crédits en interface réelle (tests d'interface à écrire avec la prochaine série) ; l'avertissement de péremption d2-additional-info en conditions réelles (hors ligne : silencieux, voulu).
 
+## 19/10/2026 (branche test) — lecture du PALIER d'un exemplaire (`gearTier`, composant 300), issue de l'analyse de la spec Bungie v2.21.9
+
+**Origine** : analyse croisée du dépôt [Bungie-net/api](https://github.com/Bungie-net/api) (spec OpenAPI v2.21.9, mise à jour Renegades du 02/12/2025) contre les points ouverts du TODO Forge. La spec documente, dans `DestinyItemInstanceComponent`, un champ `gearTier` : « Gear Tier, if applicable, fished up from the unlock value items.gear_tier » — c'est exactement le **système de paliers** du point ouvert n°2 de la Forge (« quelle version s'applique à un exemplaire possédé dépend de son palier » : perks améliorées). **Version inchangée (0.4.13) ; branche test, pas de comportement nouveau tant que le sens des valeurs n'est pas contrôlé sur le compte de l'utilisateur.**
+
+**Fait** :
+
+- **`lib/bungie/plugsDisponibles.ts`** : nouvelle fonction PURE `extraireGearTier` — lecture tolérante du champ `gearTier` du composant 300 (instances) d'un profil, même démarche que `extrairePlugsDisponibles` pour le composant 310 : donnée absente ou mal formée → `undefined` (« on ne sait pas », jamais un palier deviné). La forme est celle de la documentation de l'API (spéc `DestinyItemInstanceComponent`) : elle n'a PAS encore été vérifiée sur le compte de l'utilisateur.
+- **`lib/bungie/inventaire.ts`** : le composant 300 était déjà demandé (composants = 102, 200, 201, 205, **300**, 302, 305, 310 depuis la v0.4.7) — sa table `instances.data` est maintenant lue et chaque `GearPiece` possÙe son `gearTier` (à `undefined` si absent). **Aucune requête réseau de plus.**
+- **`types/build.ts`** : champ `gearTier?: number` sur `GearPiece`, documenté (décide quelle version d'un perk amélioré s'applique à CET exemplaire).
+
+**NON fait (volontairement)** : le filtre du vote de saison sur `iconWatermarkShelved` avait été tenté puis **REVERTÉ** : le vote via le filigrane « shelved » est un comportement délibéré du 14/10/2026, testé et validé (`saison.test.ts`, 22/22) ; le retirer sur simple hypothâte (« le shelved peut polluer le vote ») contreviendrait à la règle du dépôt : corriger avec les vraies données, pas deviner. La spec Bungie a bien ajouté `iconWatermarkFeatured` (et `DestinyInventoryItemConstantsDefinition` pour les calques d'icônes) : pistes notées pour plus tard, avec un diagnostic réel si le vote se montre faux sur les données de l'utilisateur.
+
+**À CONTRÔLER sur le compte de l'utilisateur** (avant tout usage du palier dans la Forge) : le sens exact des valeurs de `gearTier` sur des exemplaires réels (arme de base, arme améliorée, arme façonnée), par exemple avec un diagnostic en mode dev à ajouter au moment du branchement Forge.
+
+**Vérifié** : `npm run build` strict ✓ built in 1,8 s ; batterie ciblée — `plugs-disponibles` **22/22** (dont 3 nouveaux contrôles PALIER), `saison` 22/22, `simulation` 15/15, `appliquer-simulation` 20/20, `faconnee` 7/7.
 ## 19/10/2026 (soir) — correctifs : `npm run build` strict rétabli (BadgeSaison supprimé), restes « Bibliothèque » retirés (renommés Legendarium)
 
 **Demandes de l'utilisateur** : (1) supprimer la branche fusionnée `vibe/nettoyage-audit-2bis` ; (2) « Point 2 : ok fais-le dans test » — corriger le défaut TypeScript qui bloque `npm run build` strict ; (3) « "Bibliothèque" n'est plus utilisé, ça a été renommé "Legendarium" » — confirmer et retirer les restes. **Version inchangée (0.4.13).**
@@ -110,6 +125,20 @@
 **Défaut PRÉEXISTANT signalé (hors périmètre, non touché)** : `npm run build` échoue sur la 0.4.12 d'origine avec trois erreurs TypeScript dans `components/BadgeSaison.tsx` (symboles `RETRAIT_BADGE_VIGNETTE`, `tailleBadgeVignette`, `partSymbole` attendus de `lib/forge/tailleVignette` mais absents) — vérifié identique avant et après le nettoyage. À traiter dans une version corrective séparée, avec l'accord de l'utilisateur.
 
 **NON vérifié (à contrôler sur le compte de l'utilisateur)** : rien — le nettoyage ne touche aucune donnée ni aucun parcours utilisateur.
+
+## 19/10/2026 — Documentation : charte graphique et guide des scripts des visuels (v0.4.12, sans changement d'appli)
+
+**Demande** : intégrer la charte des visuels et le guide des outils qui les produisent. **Version inchangée (0.4.12)** — documentation uniquement, fusion directe dans `main` (à la demande de l'utilisateur : pas de PR pour de l'ajout de documentation en solo).
+
+**Fait** :
+
+- `documentation/identite-visuelle/CHARTE-GRAPHIQUE.md` (nouveau) : la charte complète des visuels Forge Armory (§1–13 : principes, identité, couleurs, typographie, géométrie, plaque, états, familles, intégration, marques d'objets, barre de la Forge, catalogue, liste de contrôle), fournie par l'utilisateur et conservée mot pour mot ; datée v0.4.13.
+- `documentation/identite-visuelle/SCRIPTS-VISUELS.md` (nouveau) : le guide des outils qui fabriquent, retouchent et vérifient les visuels (§1–12 : vue d'ensemble des 8 outils, chaîne du titre de l'en-tête, cristal du « O » de FORGE, vectorisation du titre, bibliothèque de lettres, cristaux, séparateurs, retouches, générateur de boutons, logos d'export, recettes, pièges, tests), fourni par l'utilisateur et conservé mot pour mot.
+- `documentation/identite-visuelle/RETOUCHES-VISUELS.md` : ajout d'un lien vers les deux nouveaux documents.
+
+**Vérifié** : chemins cités dans la charte contrôlés dans le dépôt (logo PNG, `EnTeteApp.tsx`, `geometrieIdentite.ts`, `charte-graphique.html` de l'archive v5, `forgeAssets.ts`, `forge-armory-emblem.svg` : tous présents). `ressources-installateur/forge-armory/logo-titre/forge-armory-titre.svg` est cité tel quel : il arrivera avec la v0.4.13 (le dépôt est en v0.4.12). Contenu non modifié ; seuls les liens ont été adaptés au dossier.
+
+**Décisions de l'utilisateur** : branche de travail supprimée après fusion (politique de branches : `main`, `test`, `draft-<chantier>` quand nécessaire) ; pas de PR pour de la documentation en solo.
 
 ## 15/10/2026 — v0.4.12 : Forge des armures, étape 1 (liste, fenêtre, simulation locale des mods)
 
