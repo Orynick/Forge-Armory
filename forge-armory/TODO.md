@@ -629,6 +629,14 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 - **confidentialité** : le pseudo Bungie est public, mais il part dans tout fichier ou image partagé ; si un utilisateur ne le souhaite pas, prévoir une case « inclure mon pseudo dans les exports » (à décider avec la phase 2, ouverture à des tiers) ;
 - affichage de l'auteur dans le futur onglet « Load-out » (§ 16).
 
+### 25. Legendarium — bibliothèque de Lore en lecture passive (spécification verrouillée le 19/10/2026)
+
+🟡 **Important** — chantier préparé sur la branche `draft-legendarium`, **pas encore codé** (préparation uniquement, sur demande de l'utilisateur). La spécification complète (décisions verrouillées, palette, interactions, critères d'acceptation, plan de découpage) est dans `documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md` — **ce document fait foi** ; toute divergence doit être signalée avant codage.
+
+**Résumé** : remplacer le panneau « en construction » de la page Legendarium (vue `bibliotheque`, `src/components/Bibliotheque.tsx`) par une bibliothèque de Lore en **lecture passive** (aucune écriture, aucun état persistant, aucun impact sur le scoring ni le build). Sources : `DestinyLoreDefinition` (Légendes D2) et champ `lore` de `DestinyItemDefinition` (objets) via le **cache manifeste existant** (`src/lib/manifest/download.ts`) ; Grimoire D1 via l'API legacy Bungie (repli : données statiques Ishtar Collective). Ordre global : Grimoire D1 → Légendes D2 → armes et armures → cosmétiques (Spectres, Vaisseaux, Passereaux). Armures : casque → gants → torse → jambes → objet de classe, regroupées par classe. Mise en page en trois zones (bandeau titre + recherche + indicateur de cache ; colonne latérale sections puis livres ; zone de lecture avec précédent/suivant). Palette verrouillée « Parchemin / Hologramme » (D1 serif ivoire sur brun, D2 sans-serif cyan sur bleu-noir ; repli ambre/bleu acier ; code couleur par section exclu). Bouton « Lire le Lore » dans les fiches Détails (haut de fiche, justifié à droite, sous la croix, uniquement si l'objet a un Lore), lien profond vers la page, bouton de retour vers l'objet, parcours inverse page → objets porteurs.
+
+**À trancher avant codage** (recommandations dans la spécification, §9) : (1) lien profond par bascule de vue interne avec état en mémoire (recommandé, persistance interdite) ou route React Router dédiée ; (2) source Grimoire D1 : faisabilité réseau/CORS de l'endpoint legacy, sinon repli statique Ishtar Collective ; (3) concilier avec les consignes déjà fixées dans l'en-tête de `Bibliotheque.tsx` (objets sans légende masqués par défaut, rééditions dédoublonnées, exotiques dans une section à part).
+
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 
 - **Icônes des 21 perks par artefact, par la table d'extraction** — abandonné (26/08) : la table lue par
