@@ -73,7 +73,7 @@ texte = texte.resize((round(texte.width * 0.78), round(texte.height * 0.78)), Im
 texte.save(RACINE / "public" / "logo-forge-armory-texte.png", optimize=True)
 
 # --- 2. papillon seul (petites tailles), isolé PAR FORME -----------------------
-# (composantes connexes du blanc, pas un masque circulaire : voir ancien-logo/forge-armory-v1)
+# (composantes connexes du blanc, pas un masque circulaire : voir archives-precedentes/ancien-logo/forge-armory-v1)
 CERCLE_X, CERCLE_Y, RAYON_MAX_PAPILLON = 626.2, 443.6, 268
 yy, xx = np.mgrid[0 : a.shape[0], 0 : a.shape[1]]
 rayon = np.hypot(xx - CERCLE_X, yy - CERCLE_Y)

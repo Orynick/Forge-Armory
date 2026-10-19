@@ -5,7 +5,7 @@ constituera l'identité visuelle de l'application »), pour le futur nom de l'ap
 **Forge Armory** (« Destiny 2 Build Analyzer » en sous-titre ; voir la section 12 de
 `TODO.md`). Elle remplace, pour l'essai, l'ancien logo PARTOUT, alors que le NOM de
 l'appli (fenêtre, logiciel, installateur, exports) n'a pas encore changé. Les
-versions précédentes sont dans `../ancien-logo/` avec la marche à suivre pour y revenir.
+versions précédentes sont dans `archives-precedentes/ancien-logo/` avec la marche à suivre pour y revenir.
 
 ## Fichiers de ce dossier
 
