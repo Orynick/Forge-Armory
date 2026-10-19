@@ -1,7 +1,7 @@
 // FR : icônes de type d'armure, fournies par l'utilisateur (source
-// svgrepo.com). "marque" (objet de classe) pas encore fourni - renvoie
+// justrealmilk/destiny-icons, licence CC0). "marque" (objet de classe) pas encore fourni - renvoie
 // null dans ce cas, pas de blocage.
-// EN: armor type icons, provided by the user (source svgrepo.com).
+// EN: armor type icons, provided by the user (source justrealmilk/destiny-icons, licence CC0).
 // "marque" (class item) not provided yet - returns null in that case, no
 // blocking.
 

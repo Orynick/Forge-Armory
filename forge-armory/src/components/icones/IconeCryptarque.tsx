@@ -1,6 +1,6 @@
 // FR : icône de la faction Cryptarque, fournie par l'utilisateur (source
-// svgrepo.com), à gauche du titre de l'application.
-// EN: Cryptarch faction icon, provided by the user (source svgrepo.com),
+// justrealmilk/destiny-icons, licence CC0), à gauche du titre de l'application.
+// EN: Cryptarch faction icon, provided by the user (source justrealmilk/destiny-icons, licence CC0),
 // to the left of the app title.
 
 interface Props {

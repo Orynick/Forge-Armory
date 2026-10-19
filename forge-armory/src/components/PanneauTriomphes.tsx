@@ -35,7 +35,7 @@ interface Props {
 
 /** FR : crâne stylisé, dessiné pour l'appli (aucune image tierce copiée). / EN: stylised skull, drawn for the app (no third-party image copied). */
 // FR : ⚠️ CHANGÉ (24/08/2026) - crâne dessiné à la main remplacé par le
-// VRAI SVG fourni par l'utilisateur ("raid-complex-svgrepo-com.svg", déjà
+// VRAI SVG fourni par l'utilisateur ("raid-complex (justrealmilk/destiny-icons)", déjà
 // envoyé le 14/08 - retrouvé dans les fichiers reçus plutôt que redemandé).
 // 39 sous-chemins concaténés en un seul `d` (chacun commence par son propre
 // ordre M/moveto, donc autonome - vérifié avant intégration), icône
