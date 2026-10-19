@@ -1,7 +1,7 @@
 // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - test de la TABLE DES SAISONS (`data/saisons.ts`, dérivée de d2-additional-info, MIT), du FILTRE DE SOURCE (`data/sourceFilter.ts`) et de la JOINTURE numéro de saison ← filigrane du Manifest (la table watermark → numéro vient de d2-additional-info ; elle est embarquée ici sous forme compacte pour les tests, les principaux filigranes des saisons 5 à 28).
 // Couvre : 28 saisons, la saison 5 = « Season of the Forge », la saison 28 en cours (fin null), le filtre source: par catégorie ET par activité, l'exclusion sans erreur des objets sans hash de source, l'autocomplétion (exactement les 13 catégories d'abord), les alias de saisie libre, et l'extraction du filtre du champ de recherche.
 // EN: ⚠️ ADDED - test of the seasons table, the source filter module and the watermark→season join.
-import { SAISONS, saisonParNumero } from "../../src/data/saisons";
+import { SAISONS, saisonParNumero, saisonDuCheminFiligrane } from "../../src/data/saisons";
 import { SOURCE_FILTER_SUGGESTIONS, matchesSourceFilter, extraireFiltreSource, resoudreAliasActivite, FILTRES_SOURCES } from "../../src/data/sourceFilter";
 
 const res: boolean[] = [];
@@ -46,6 +46,13 @@ const FILIGRANE_VERS_SAISON: Record<number, number> = {
   ok("chaque catégorie proposée est un filtre VALIDE (la saisie de source:<proposition> matche bien)", SOURCE_FILTER_SUGGESTIONS.filter((s) => s.genre === "categorie").every((s) => !!FILTRES_SOURCES.categories[s.valeur]));
   ok("l'alias de saisie libre : « Last Wish » et « Prophétie » résolvent vers les filtres d'activités (insensible aux accents et à la casse)", resoudreAliasActivite("Last Wish") === "last-wish" && resoudreAliasActivite("Prophétie") === "prophecy" && resoudreAliasActivite("prophetie") === "prophecy");
   ok("un texte qui n'est pas une activité ne résout rien (null)", resoudreAliasActivite("zzz") === null);
+
+
+  // ---------- 6. RETOUR DE TEST (19/10, soir) : la saison par le FILIGRANE de l'objet ----------
+  // FR : le cas réel de l'utilisateur : ni seasonHash, ni balayage interne concluant (« 0 filigrane relié ») — le numéro vient de la table filigrane→numéro, lue sur le CHEMIN de l'icône du filigrane.
+  ok("SAISON PAR FILIGRANE : un objet sans seasonHash mais avec filigrane connu (le vrai filigrane de la saison 12) résout quand même sa saison — le correctif du retour de test n°1", saisonDuCheminFiligrane("/common/destiny2_content/icons/4772275.png") === 12, saisonDuCheminFiligrane("/common/destiny2_content/icons/4772275.png"));
+  ok("un filigrane absent de la table, un chemin vide ou mal formé : aucune saison (undefined, jamais estimée)", saisonDuCheminFiligrane("/common/destiny2_content/icons/999999999.png") === undefined && saisonDuCheminFiligrane("") === undefined && saisonDuCheminFiligrane(undefined) === undefined);
+  ok("le chemin est la vraie forme du Manifest (« /common/destiny2_content/icons/<hash>.png ») : le hash extrait est numérique", saisonDuCheminFiligrane("/common/destiny2_content/icons/05c3ebe414c6946429934d79504922fa.png") === undefined);   // un chemin de filigrane non numérique : pas de fausse saison
 
   console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);
   process.exit(res.every(Boolean) ? 0 : 1);

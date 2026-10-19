@@ -33,9 +33,9 @@ import { demarrerManifests, LangueManifest } from "../lib/manifest/demarrage";  
 import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance, chercherTriomphesFlawless, TriompheTrouve } from "../lib/manifest/search";
 // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la catégorie de SOURCE d'un objet (d2-additional-info, MIT) affichée à côté de la chaîne brute, et le filtre `source:`.
 import { sourceObjetParHash } from "../data/sourceObjet";
-import { saisonParNumero } from "../data/saisons";   // ⚠️ AJOUT (19/10/2026) : saison de sortie en clair (secours du nom + dates)
+import { saisonParNumero, saisonDuCheminFiligrane } from "../data/saisons";   // ⚠️ AJOUT (19/10/2026) : saison de sortie en clair (secours du nom + dates)
 import { obtenirSaisonObjet } from "../lib/manifest/saison";   // ⚠️ AJOUT (19/10/2026) : seasonHash/filigrane → numéro
-import { extraireFiltreSource, SOURCE_FILTER_SUGGESTIONS, matchesSourceFilter } from "../data/sourceFilter";
+import { extraireFiltreSource, SOURCE_FILTER_SUGGESTIONS, matchesSourceFilter, resoudreAliasActivite } from "../data/sourceFilter";
 import { construireIndexInversePerks, obtenirIndexInversePerksEnCache, ObjetParent } from "../lib/manifest/perkSource";
 import { obtenirSource, obtenirAntiChampion, obtenirTypeMunition, obtenirCategoriesObjet, raccourcirNom } from "../lib/manifest/doctrine";
 import IconeAntiChampion, { TypeChampion } from "./icones/IconeAntiChampion";
@@ -210,10 +210,16 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
 
   function executerRecherche(valeur: string, modeActuel: ModeRecherche, categorieActuelle: CategorieResultat | "toutes") {
     // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - le filtre source: est EXTRAIT du texte : les autres mots cherchent normalement, le filtre s'applique ensuite côté client (voir resultatsAffiches). « source: » seul ne compte pas dans les 2 caractères minimum. / EN: the source: filter is extracted from the text; the remaining words search normally.
-    const extrait = extraireFiltreSource(valeur);
+    // FR : ⚠️ CORRIGÉ (19/10/2026, RETOUR DE TEST n°3 : « j'ai les filtres par catégorie, anti-champions, éléments mais pas les sources » et n°4 : « ne semble pas fonctionner ») - TROIS corrections : (1) le texte SANS préfixe qui résout une ACTIVITÉ (« Last Wish », « Prophétie ») bascule AUTOMATIQUEMENT en filtre source: — l'alias était écrit mais jamais branché (RETOUR n°6) ; (2) un filtre source: SEUL (sans autre mot) lance maintenant une RECHERCHE À VIDE contrôlée : tous les objets, puis le filtre par source s'applique côté client — avant, « source:raid » seul repartait immédiatement car le texte restant était vide (< 2 caractères) ; (3) la catégorie choisie (Armes uniquement…) continue de s'appliquer. / EN: THREE fixes: the activity alias now switches to source:, a lone source: filter searches everything then filters, and the category still applies.
+    let extrait = extraireFiltreSource(valeur);
+    if (!extrait) {
+      const alias = resoudreAliasActivite(valeur.trim());
+      if (alias) { extrait = { texteRestant: "", filtre: alias }; surChangementTexte(`source:${alias} `); return; }
+    }
     setFiltreSource(extrait?.filtre ?? null);
-    const texteRecherche = extrait ? (extrait.texteRestant || "  ") : valeur;
-    if (!dbFr || texteRecherche.trim().length < 2) {
+    const filtreSeul = !!extrait && !extrait.texteRestant.trim();
+    const texteRecherche = extrait ? extrait.texteRestant : valeur;
+    if (!dbFr || (texteRecherche.trim().length < 2 && !filtreSeul)) {
       setResultats([]);
       setResultatsMasques([]);
       setRechercheEnCours(false);
@@ -228,7 +234,8 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
     setTimeout(() => {
       try {
         // FR : ⚠️ CHANGÉ (06/10/2026) - `true` : les résultats des catégories masquées par défaut sont renvoyés AUSSI (marqués `masque`) pour être listés à part au lieu de disparaître en silence.
-        const tousResultats = rechercherBilingue(dbFr, dbEn, texteRecherche, modeActuel, undefined, categorieActuelle, true);
+        // FR : ⚠️ (19/10/2026) - filtre source: SEUL : on cherche TOUS les objets (le scan plein-texte accepte une chaîne vide = tout remonter), le filtre par source fait ensuite le tri côté client. / EN: a lone source: filter searches everything; the source filter does the sorting.
+        const tousResultats = rechercherBilingue(dbFr, dbEn, filtreSeul ? "" : texteRecherche, modeActuel, undefined, categorieActuelle, true);
         const brut = tousResultats.filter((r) => !r.masque);
         const masques = tousResultats.filter((r) => r.masque);
         // FR : ⚠️ AJOUT (03/08/2026) - dédoublonnage supplémentaire : le
@@ -636,11 +643,20 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
                     {/* FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - SAISON DE SORTIE de l'objet, en clair : le numéro vient du seasonHash/filigrane (mécanisme existant de lib/manifest/saison.ts), le NOM de la table data/seasons.json (d2-additional-info, MIT) qui sert aussi de SECOURS quand la table des saisons du Manifest est absente. Absente si l'objet n'a ni seasonHash ni filigrane connu — jamais estimée. / EN: release season in clear text; never estimated. */}
                     {dbFr && (() => {
                       const info = obtenirSaisonObjet(dbFr, r.hash);
-                      if (!info) return null;
-                      const table = info.numero != null ? saisonParNumero(info.numero) : undefined;
-                      const nom = info.nom ?? table?.nom;
-                      if (!nom && info.numero == null) return null;
-                      return <span data-saison-sortie={info.numero ?? ""} style={{ fontSize: "0.75rem", color: "#7d7a70" }}> · Saison de sortie : {nom ?? "?"}{info.numero != null ? ` (saison ${info.numero})` : ""}{table?.debut ? ` — ${table.debut}${table.fin ? ` → ${table.fin}` : " → en cours"}` : ""}</span>;
+                      // FR : ⚠️ CORRIGÉ (19/10/2026, RETOUR DE TEST n°1 : « pas d'indication sur la saison » sur la Mesure corrective) - SECOURS PAR LA TABLE FILIGRANE : quand l'objet n'a ni seasonHash ni saison déduite par le balayage interne (le cas du Manifest de l'utilisateur : « 0 filigrane relié »), le numéro vient de la table filigrane→numéro de d2-additional-info, lu sur le CHEMIN de l'icône du filigrane de l'objet. Jamais estimé : pas de filigrane connu → pas de ligne. / EN: fallback to the d2-additional-info watermark table when the internal deduction finds nothing.
+                      let numero = info?.numero;
+                      let nom = info?.nom;
+                      if (numero == null) {
+                        let filigrane: string | undefined;
+                        try { const def = obtenirDefinition<{ iconWatermark?: string; iconWatermarkShelved?: string }>(dbFr, "DestinyInventoryItemDefinition", r.hash); filigrane = def?.iconWatermark || def?.iconWatermarkShelved; } catch { /* lecture impossible : pas de saison affichée */ }
+                        const n = saisonDuCheminFiligrane(filigrane);
+                        if (n != null) { numero = n; nom = nom ?? saisonParNumero(n)?.nom; }
+                      }
+                      if (numero == null && !nom) return null;
+                      const table = numero != null ? saisonParNumero(numero) : undefined;
+                      nom = nom ?? table?.nom;
+                      if (!nom && numero == null) return null;
+                      return <span data-saison-sortie={numero ?? ""} style={{ fontSize: "0.75rem", color: "#7d7a70" }}> · Saison de sortie : {nom ?? "?"}{numero != null ? ` (saison ${numero})` : ""}{table?.debut ? ` — ${table.debut}${table.fin ? ` → ${table.fin}` : " → en cours"}` : ""}</span>;
                     })()}
                     {r.nomEn && r.nomEn !== r.nom && (
                       <span style={{ fontSize: "0.75rem", color: "#7d7a70" }}> · EN: {r.nomEn}</span>

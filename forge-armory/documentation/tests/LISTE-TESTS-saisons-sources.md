@@ -4,12 +4,13 @@
 
 ## Recherche du Manifest (charger le Manifest d'abord)
 
-1. ☐ **Saison de sortie en clair** : cherche un objet dont tu connais la saison (ex. la Mesure corrective) : la fiche affiche « Saison de sortie : <nom> (saison N) — dates ». Dis-moi si un nom ou un numéro est FAUX.
+1. ☐ **Saison de sortie en clair** (CORRIGÉE — à retester) : cherche la Mesure corrective : la fiche affiche « Saison de sortie : <nom> (saison N) — dates » — le numéro vient maintenant de la table filigrane de d2-additional-info quand le Manifest n'en dit rien. Dis-moi si un nom ou un numéro est FAUX.
 2. ☐ **Source en clair** : la fiche d'une arme de raid (ex. une arme du Dernier Vœu) affiche « — Raid — Source: "Last Wish" Raid » : la CATÉGORIE (Raid) puis la chaîne brute. Dis-moi si la catégorie manque ou est fausse.
-3. ☐ **Filtre source:** : tape « source:raid » dans la recherche : seules les objets de raid remontent. Idem « source:trials », « source:last-wish » (activité précise). Combiné avec un mot (« vérité source:trials ») : les DEUX s'appliquent.
+3. ☐ **Filtre source:** (CORRIGÉ — à retester) : tape « source:raid » SEUL : les objets de raid remontent (avant : rien). Idem « source:trials », « source:last-wish ».
+4. ☐ **Filtre combiné** (CORRIGÉ — à retester) : « vérité source:trials » applique le mot ET le filtre.
 4. ☐ **Autocomplétion** : tape « source: » : les 13 catégories puis les activités sont proposées en français ; un clic complète le filtre.
-5. ☐ **Saisie libre** : tape « Last Wish » ou « Prophétie » sans préfixe : la recherche trouve l'activité (alias). *(note : l'alias ouvre le filtre ; dis-moi si tu préfères un menu dédié)*
-6. ☐ **Objet sans source** : une perk ou un fragment (pas de hash de source) ne fait pas échouer « source:raid » : simplement absents des résultats.
+6. ☐ **Saisie libre** (CORRIGÉE — à retester) : tape « Last Wish » sans préfixe (catégorie « Armes uniquement » incluse) : le filtre source:last-wish s'active tout seul et liste les armes du Dernier Vœu.
+7. ☐ **Objet sans source** : un objet sans source connue ne fait pas échouer « source:raid » : simplement absent des résultats (l'ancien exemple « perk de raid » était obsolète).
 
 ## Crédits
 
