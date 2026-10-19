@@ -25,7 +25,7 @@
 
 import { PillarScore } from "../types/build";
 
-export type ClePilier = PillarScore["pilier"];
+type ClePilier = PillarScore["pilier"];
 
 /**
  * FR : ordre d'affichage des piliers, RÉORGANISÉ le 06/09/2026 à la demande

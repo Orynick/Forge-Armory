@@ -17,6 +17,13 @@ version courante : 0.4.11).
 
 ---
 
+## 🧽 Nettoyage (audit du 16/10/2026) — ✅ v0.4.13 (17/10/2026)
+
+- ✅ **Code mort supprimé** : `recupererCoffre`, `recupererInventairePersonnages`, `recupererMembershipsActuels` (api.ts) ; `renommerLoadout`, `modifierDescription`, `modifierIcone` (stockage.ts) ; `scoreBonusSets` + `calculerBonusSetsActifs` + `regrouperParSet` + `DEMO_SETS` (armorSets.ts).
+- ✅ **Exports inutiles retirés** (fonctions conservées) : `destinationsPossibles`, `formaterNomBungie`, `niveauCorrectifs`, `Correctif`, `NiveauCorrectifs`, `TriompheSoloFlawless`, `ClePilier`.
+- 🔵 **Découpages à l'étude** (doctrine.ts 3 052 lignes, SelecteurInventaire.tsx, ResumeBuild.tsx, search.ts, pillars.ts, PanneauLoadouts.tsx, verbes.ts ; données SVG : IconeLoadout.tsx, IconeTypeArme.tsx) — pas du code à réécrire.
+- 🔵 **Défaut préexistant signalé le 17/10/2026** : `npm run build` échoue sur la 0.4.12 d'origine (3 erreurs TypeScript dans `BadgeSaison.tsx` : `RETRAIT_BADGE_VIGNETTE`, `tailleBadgeVignette`, `partSymbole` absents de `lib/forge/tailleVignette`). À traiter en version corrective, avec l'accord de l'utilisateur.
+
 ## 🧭 Prochaines étapes — mises à jour le 12/10/2026
 
 L'ordre de marche fixé par l'utilisateur le 30/09/2026 est **accompli**

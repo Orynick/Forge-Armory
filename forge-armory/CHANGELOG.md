@@ -1,9 +1,3 @@
-# Journal de modification (Changelog)
-
-Historique daté de toutes les corrections, fonctionnalités et décisions du projet.
-Le plus récent en premier. Pour les fonctionnalités actuelles, voir `NOTICE.md` (l'état d'avancement détaillé est dans `NOTES-CONCEPTION.md`) ;
-pour ce qui reste à faire, voir `TODO.md`.
-
 ## 19/10/2026 — retour de test de la 0.4.12 (cristal du titre, boutons/logo de la Forge, filtres de l'Inventaire, mods possibles sur les armures)
 
 **Demandes de l'utilisateur** (retour de test de la 0.4.12, avec trois diagnostics d'armures réelles et deux captures) : (1) « sur le logo+titre de l'App, rajoute le cristal dans le O de FORGE » — « uniquement rajouter le cristal, le reste ne doit pas changer » ; (2) « dans Forge, Inventaire, mettre les boutons Armes et Armures à droite du bouton Inventaire ; prévoir un séparateur entre les deux paires ; utiliser les logos de Forge Armory app assets v5 » ; (3) « mets les mêmes filtres pour l'Inventaire que la Collection » ; (4) « dans la Forge, je vois les mods utilisés mais pas les mods possibles » (note : « sur certains slots, il y aura forcément des doublons, il faudra une interface spécifique pour ne pas les afficher 3 fois ») ; (5) travailler sur une branche « Test-modif » pour tester avant main. **Version inchangée (0.4.12).**
@@ -24,6 +18,25 @@ pour ce qui reste à faire, voir `TODO.md`.
 **Défauts de MON travail, rattrapés** : mon premier scénario de regroupement utilisait deux prises de catégories DIFFÉRENTES (mod et ajustement) et attendait leur regroupement — c'est justement ce qu'il ne faut pas faire ; le fixture a un nouveau casque « à prises répétées » (5304) calqué sur le vrai Masque ; mon premier `tsc` passait `db` possiblement nul au filtre par élément (corrigé avec lecture tolérante).
 
 **NON vérifié (à contrôler sur le compte et l'appli de l'utilisateur)** : l'aspect du cristal à l'écran (mes vérifications sont par analyse de pixels et capture de la zone : à valider visuellement) ; l'ergonomie de la barre unique (logos v5 à 24 px : la notice v3 recommande 32 px minimum pour les logos — à voir en vrai) ; si les plugs théoriques correspondent aux mods réellement plaçables en jeu (l'énergie des mods n'est pas encore gérée : des combinaisons impossibles en jeu restent simulables) ; les tests d'interface (Playwright ne tourne pas dans l'environnement de travail : `forge.py`, `forge-armures.py`, `forge-collection-armures.py`, `selecteur.py` à rejouer — les attributs testés sont conservés, la barre de boutons et les filtres ne sont pas encore couverts par un test d'interface) ; `npm run build` strict.
+
+## 17/10/2026 — v0.4.13 : nettoyage du code mort et des exports inutiles (audit du 16/10/2026)
+
+**Demande** : feuille de route du 17/10/2026, section 2 bis — actions de nettoyage issues de l'audit complet du code de `src/` (109 fichiers, commit 3ae3fbd), sans urgence, regroupées dans une version mineure. **Version 0.4.13.** Aucun changement de comportement : la batterie de tests donne exactement les mêmes résultats avant et après.
+
+**Fait (point 1 de l'audit — code mort confirmé, supprimé)** :
+- `lib/bungie/api.ts` : `recupererCoffre`, `recupererInventairePersonnages` (remplacés par l'appel profil unique ; leur suppression retire aussi les deux `@ts-expect-error` restants) et `recupererMembershipsActuels` (remplacé par `recupererComptesBungie`).
+- `lib/loadouts/stockage.ts` : `renommerLoadout`, `modifierDescription`, `modifierIcone` (remplacés par `modifierInfosLoadout`, écriture unique).
+- `lib/scoring/armorSets.ts` : le groupe `scoreBonusSets` + `calculerBonusSetsActifs` + `regrouperParSet` + `BonusSetActif` + `ArmorSetDefinition` + `DEMO_SETS` (remplacés par `scoreBonusSetsReels` et `obtenirBonusSetsActifs`, sur les vraies données du Manifest). Le fichier passe de 265 à 115 lignes.
+
+**Fait (point 2 de l'audit — exports inutiles, mot-clé `export` retiré, fonctions conservées)** : `destinationsPossibles` (`components/BoutonTransfert.tsx`), `formaterNomBungie` (`lib/bungie/api.ts`), `niveauCorrectifs` et les types `Correctif`, `NiveauCorrectifs` (`data/versionJeu.ts`), `TriompheSoloFlawless` (`data/triomphesSoloFlawless.ts`), `ClePilier` (`data/piliers.ts`). Chaque symbole a été vérifié non importé ailleurs avant suppression ou dé-exportation.
+
+**Pas fait (autres points de l'audit)** : découpages à l'étude de fichiers volumineux (doctrine.ts, SelecteurInventaire.tsx, etc.) ; chantier sécurité (Vite 5 → 8, React Router 6 → 7, CSP). Hors périmètre de cette version.
+
+**Vérifié** : aucune des fonctions supprimées n'était importée ailleurs (recherche croisée des imports sur tout `src/` avant chaque suppression) ; batterie de tests : mêmes résultats que sur la 0.4.12 inchangée (23 séries logiques/interface exécutables dans l'environnement de travail : 21 réussissent, 2 échouent à un contrôle près — `icones` 10/11 et `visuels` 19/20 — à l'identique avant et après, donc préexistants et non liés au nettoyage ; les 13 tests d'interface exigent Playwright, absent de l'environnement de travail).
+
+**Défaut PRÉEXISTANT signalé (hors périmètre, non touché)** : `npm run build` échoue sur la 0.4.12 d'origine avec trois erreurs TypeScript dans `components/BadgeSaison.tsx` (symboles `RETRAIT_BADGE_VIGNETTE`, `tailleBadgeVignette`, `partSymbole` attendus de `lib/forge/tailleVignette` mais absents) — vérifié identique avant et après le nettoyage. À traiter dans une version corrective séparée, avec l'accord de l'utilisateur.
+
+**NON vérifié (à contrôler sur le compte de l'utilisateur)** : rien — le nettoyage ne touche aucune donnée ni aucun parcours utilisateur.
 
 ## 15/10/2026 — v0.4.12 : Forge des armures, étape 1 (liste, fenêtre, simulation locale des mods)
 
