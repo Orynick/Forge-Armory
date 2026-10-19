@@ -10,6 +10,7 @@ import InventaireArmes, { CibleForge } from "./InventaireArmes";
 import InventaireArmures from "./InventaireArmures";   // ⚠️ AJOUT (15/10/2026, v0.4.12) : Forge des armures   // ⚠️ AJOUT (13/10/2026, v0.4.6)
 import type { GearPiece } from "../types/build";
 import { BoutonSousMenu } from "./SelecteurVues";   // ⚠️ AJOUT (13/10/2026, v0.4.4) : boutons stylisés des sous-menus
+import { urlVisuel } from "../lib/visuelsForge";   // ⚠️ AJOUT (19/10/2026) : logos « Armes » et « Armures » de l'archive v5
 
 const SLOTS_ARMURE = ["casque", "gants", "torse", "jambes", "marque"];
 const LIBELLES_ORIGINE: Record<CibleForge["origine"], string> = { analyseur: "Build Analyzer", loadouts: "Load-outs", forge: "la Forge", bibliotheque: "Legendarium" };
@@ -37,6 +38,12 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
   // FR : ⚠️ CHANGÉ (16/10/2026, v0.4.12) - une arrivée depuis un bouton « Forge » ouvre la partie qui correspond à la PIÈCE : Armes pour une arme, Armures pour une armure (qui est alors montée tout de suite). Chaque partie ne reçoit que SA cible : une armure ne doit jamais s'ouvrir dans la fenêtre des armes. / EN: ⚠️ CHANGED - arriving from a "Forge" button opens the part matching the piece.
   const cibleArmure = !!cible && SLOTS_ARMURE.includes(cible.piece.slot as string);
   useEffect(() => { if (cible) { setObjet(cibleArmure ? "armures" : "armes"); if (cibleArmure) setArmuresMontees(true); } }, [cible?.demande]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // FR : ⚠️ AJOUT (19/10/2026) - la barre unique : la partie de la vue ACTIVE (pour marquer le bouton logo Armes/Armures) et le clic qui bascule la vue si besoin puis la partie. / EN: the active view's part, and a click that sets the view then the part.
+  const vueActivePartie = vue === "inventaire" ? objet : objetCollection;
+  function choisirPartie(o: "armes" | "armures") {
+    if (vue === "inventaire") { setObjet(o); if (o === "armures") setArmuresMontees(true); }
+    else { setObjetCollection(o); if (o === "armures") setCollectionArmuresMontee(true); }
+  }
   return (
     <div className="pilier-carte" role="region" aria-label="Forge">
       {/* FR : ⚠️ CHANGÉ (13/10/2026, v0.4.4), demande de l'utilisateur en cours de test : le TITRE « Forge » (icône et mot) est retiré de la page : inutile ici, l'onglet « Forge » du sélecteur juste au-dessus porte déjà ce nom. La page garde son NOM pour les lecteurs d'écran (région `aria-label="Forge"`) ; la note grise (périmètre de la Forge) reste, alignée à droite. / EN: ⚠️ CHANGED - the "Forge" title (icon and word) is removed from the page (the selector tab above already says it); the region keeps its accessible name; the grey note stays. */}
@@ -49,9 +56,19 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
           <span>Vous venez de la fenêtre « Détails » de « {cible.piece.nom} ».</span>
         </div>
       )}
-      <div role="tablist" aria-label="Vues de la Forge" style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem 0.75rem", marginBottom: "0.8rem" }}>
+      {/* FR : ⚠️ CHANGÉ (19/10/2026, retour de test de la 0.4.12 : « mettre les boutons Armes et Armures à droite du bouton Inventaire ; prévoir un séparateur entre les deux paires de boutons ; utiliser les logos présents dans Forge Armory app assets v5 ») - UNE SEULE BARRE : la paire Collection / Inventaire (boutons stylisés, inchangés), un SÉPARATEUR vertical, puis la paire ARMES / ARMURES (logos v5 `icones.armes` : l'épée, `icones.armures` : le bouclier, entourés comme les boutons du sélécteur) qui AIGUILLE la vue ET la partie : Armes → vue active avec objets armes ; Armures → idem armures. L'état reste PAR vue (comportement conservé : rien ne se recharge quand on change). Les attributs `data-objet` / `data-objet-collection` sont inchangés : les tests continuent de fonctionner ; le bouton logo porte en plus `data-objet-logo`. / EN: ONE bar: the styled pair, a separator, then the Armes/Armures pair with the v5 logos; it sets BOTH the view and the part. */}
+      <div role="tablist" aria-label="Vues de la Forge" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem 0.75rem", marginBottom: "0.8rem" }}>
         <BoutonSousMenu identifiant="collection" libelle="Collection" actif={vue === "collection"} onClick={() => setVue("collection")} />
         <BoutonSousMenu identifiant="inventaire" libelle="Inventaire" actif={vue === "inventaire"} onClick={() => setVue("inventaire")} />
+        <span aria-hidden="true" data-separateur-forge="" style={{ alignSelf: "stretch", width: "1px", background: "#3a3f4b", margin: "0.15rem 0.1rem" }} />
+        {(["armes", "armures"] as const).map((o) => (
+          <button key={o} type="button" role="tab" aria-selected={vueActivePartie === o} aria-label={o === "armes" ? "Armes" : "Armures"} title={o === "armes" ? "Armes" : "Armures"}
+            data-objet-logo={o} onClick={() => choisirPartie(o)}
+            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.35rem", height: "2.75rem", padding: "0 0.9rem", cursor: "pointer", borderRadius: 10, color: vueActivePartie === o ? "#e8e6df" : "#9a968a", background: vueActivePartie === o ? "#1b2233" : "#12151c", border: `1px solid ${vueActivePartie === o ? "#7aa2f7" : "#3a3f4b"}` }}>
+            <img src={urlVisuel(o === "armes" ? "icones.armes" : "icones.armures")} alt="" width={24} height={24} style={{ display: "block", pointerEvents: "none" }} draggable={false} />
+            <span>{o === "armes" ? "Armes" : "Armures"}</span>
+          </button>
+        ))}
       </div>
       <div role="tabpanel" aria-label="Collection" hidden={vue !== "collection"}>
         <div role="group" aria-label="Type d'objet de la collection" data-choix-objet-collection="" style={{ display: "flex", gap: "0.5rem", margin: "0 0 0.7rem" }}>

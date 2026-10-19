@@ -47,6 +47,21 @@ def transparent(zone):
 ZONE_EMBLEME = (245, 28, 1005, 884)    # 760 x 856
 ZONE_TEXTE = (120, 905, 1149, 1107)    # 1029 x 202
 embleme = transparent(ZONE_EMBLEME)
+# FR : ⚠️ AJOUT (19/10/2026, demande de l'utilisateur : « sur le logo+titre de l'App, rajoute le cristal dans le O de FORGE ») - CRISTAL DU O : un losange vertical gris argenté (même dégradé que les lettres, mesuré sur la capture de référence) posé au centre du O de « FORGE », UNIQUEMENT ce cristal : le reste de l'image ne change pas (le O de « ARMORY » reste vide). Mesures dans l'image d'origine : O de FORGE = centre (243,5 ; 954), intérieur y 922..986 (65 px), x 219..267 (49 px) ; la capture de référence montre un losange de 55 % du diamètre intérieur vertical et 28 % de l'horizontal, flottant au centre sans toucher l'anneau. Dessiné AVANT le resize (comme le reste du bloc texte).
+# EN: ⚠️ ADDED - diamond crystal in the O of "FORGE" only, drawn before the resize, same silver gradient as the letters.
+LOSANGE_CENTRE = (243.5, 954.0)
+LOSANGE_DEMI_H = 65 * 0.55 / 2      # ~18 px de demi-hauteur
+LOSANGE_DEMI_L = 49 * 0.28 / 2      # ~7 px de demi-largeur
+texte_avant = transparent(ZONE_TEXTE)
+lx, ly = LOSANGE_CENTRE[0] - ZONE_TEXTE[0], LOSANGE_CENTRE[1] - ZONE_TEXTE[1]
+for y in range(texte_avant.height):
+    for x in range(texte_avant.width):
+        dx = abs(x - lx) / max(LOSANGE_DEMI_L, 0.5)
+        dy = abs(y - ly) / max(LOSANGE_DEMI_H, 0.5)
+        if dx + dy <= 1.0 and texte_avant.getpixel((x, y))[3] < 10:
+            teinte = 218 - 21 * (y - (ly - LOSANGE_DEMI_H)) / max(2 * LOSANGE_DEMI_H, 1)   # dégradé mesuré : 218 (haut) -> 197 (bas)
+            texte_avant.putpixel((x, y), (int(teinte), int(teinte), int(teinte), 255))
+texte = texte_avant
 # FR : tailles d'affichage dans l'en-tête (échelle 0,37 : voir src/lib/enTete/geometrieIdentite.ts) :
 # emblème ~92 px de large, bloc texte ~381 px. On garde environ 3,3 FOIS cette taille
 # (net sur un écran Windows dense, DPR 2 à 3) : les images d'origine pèsent
@@ -54,7 +69,6 @@ embleme = transparent(ZONE_EMBLEME)
 # EN: kept at ~3.3x the display size: crisp on dense screens, much lighter.
 embleme = embleme.resize((round(embleme.width * 0.4), round(embleme.height * 0.4)), Image.LANCZOS)   # 304 x 342
 embleme.save(RACINE / "public" / "logo-forge-armory-embleme.png", optimize=True)
-texte = transparent(ZONE_TEXTE)
 texte = texte.resize((round(texte.width * 0.78), round(texte.height * 0.78)), Image.LANCZOS)         # 803 x 158
 texte.save(RACINE / "public" / "logo-forge-armory-texte.png", optimize=True)
 

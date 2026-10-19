@@ -10,7 +10,8 @@ import type { DestinyMembership } from "../lib/bungie/api";
 import type { GearPiece } from "../types/build";
 import { listerObjetsPossedes } from "../lib/bungie/inventaire";
 import { SessionExpiree } from "../lib/bungie/oauth";
-import { obtenirOptionsToutesColonnes } from "../lib/manifest/doctrine";
+import { obtenirOptionsToutesColonnes, ELEMENTS_FILTRE, obtenirElementFiltre } from "../lib/manifest/doctrine";
+import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";   // ⚠️ AJOUT (19/10/2026) : filtre par élément, comme la Collection
 import type { OptionSocket } from "../lib/manifest/doctrine";
 import { ordonnerColonnesPourAffichage } from "../lib/manifest/colonnesArme";
 import { apparierPerksAmeliores, typeEstAmeliore, OptionJumelee } from "../lib/manifest/perksAmeliores";
@@ -54,6 +55,11 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
   const [erreur, setErreur] = useState<string | null>(null);
   const [recherche, setRecherche] = useState("");
   const [lieu, setLieu] = useState("tous");
+  // FR : ⚠️ AJOUT (19/10/2026, demande : « dans la Collection il y a un certain nombre de filtres ; mets les mêmes filtres pour l'Inventaire ») - type, emplacement, rareté et élément des armes POSSÉDÉES (l'archétype et la source/obtention de la Collection n'ont pas de sens ici : l'utilisateur possède déjà l'objet). / EN: same filters as the Collection where they make sense for owned weapons.
+  const [typeArme, setTypeArme] = useState("tous");
+  const [slotArme, setSlotArme] = useState("tous");
+  const [rareteArme, setRareteArme] = useState("toutes");
+  const [elementArme, setElementArme] = useState("tous");
   const [seulementSimulees, setSeulementSimulees] = useState(false);
   const [seulementFaconnees, setSeulementFaconnees] = useState(false);   // ⚠️ AJOUT (14/10/2026, v0.4.10)
   const [affichees, setAffichees] = useState(TAILLE_PAGE);
@@ -87,10 +93,12 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
   const liste = useMemo(() => {
     if (!pieces) return [];
     const q = normaliser(recherche);
+      // FR : ⚠️ AJOUT (19/10/2026) - mêmes filtres que la Collection (type, emplacement, rareté, élément) sur les armes possédées ; l'élément est lu dans le Manifest (caché quand il est illisible, comme sur les cartes). / EN: the Collection's filters, applied to owned weapons; element read from the Manifest.
+    const elementDe = (p: GearPiece) => { try { return db ? obtenirElementFiltre(db, p.itemHash) : undefined; } catch { return undefined; } };   // FR : Manifest absent ou table illisible : l'arme passe le filtre « Tous les éléments » sans erreur
     return pieces
-      .filter((p) => (lieu === "tous" || p.origine === lieu) && (!q || normaliser(`${p.nom ?? ""} ${p.typeArme ?? ""}`).includes(q)) && (!seulementSimulees || (!!p.itemInstanceId && !!simulations.armes[p.itemInstanceId])) && (!seulementFaconnees || (!!p.itemInstanceId && faconnees.has(p.itemInstanceId))))
+      .filter((p) => (lieu === "tous" || p.origine === lieu) && (typeArme === "tous" || p.typeArme === typeArme) && (slotArme === "tous" || p.slot === slotArme) && (rareteArme === "toutes" || p.rarete === rareteArme) && (elementArme === "tous" || elementDe(p) === elementArme) && (!q || normaliser(`${p.nom ?? ""} ${p.typeArme ?? ""}`).includes(q)) && (!seulementSimulees || (!!p.itemInstanceId && !!simulations.armes[p.itemInstanceId])) && (!seulementFaconnees || (!!p.itemInstanceId && faconnees.has(p.itemInstanceId))))
       .sort((a, b) => (a.nom ?? "").localeCompare(b.nom ?? "", "fr"));
-  }, [pieces, recherche, lieu, seulementSimulees, seulementFaconnees, faconnees, simulations]);
+  }, [pieces, recherche, lieu, typeArme, slotArme, rareteArme, elementArme, seulementSimulees, seulementFaconnees, faconnees, simulations, db]);
 
   // FR : les colonnes de l'arme ouverte : mêmes fonctions que la popup « Détails » et que la Collection ; le roll réel (`perkHashes`) marque les options équipées. / EN: columns of the opened weapon, same functions as Details and Collection.
   const colonnesAffichees = useMemo((): ColonneAffichee[] => {
@@ -130,6 +138,23 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
             <select aria-label="Où se trouve l'arme" value={lieu} onChange={(e) => { setLieu(e.target.value); setAffichees(TAILLE_PAGE); }} style={styleChamp}>
               <option value="tous">Partout</option>
               {Object.entries(LIEUX).map(([cle, nom]) => <option key={cle} value={cle}>{nom}</option>)}
+            </select>
+            {/* FR : ⚠️ AJOUT (19/10/2026, demande de l'utilisateur : « mets les mêmes filtres que la Collection ») - type, emplacement, rareté et élément des armes POSSÉDÉES (les valeurs viennent des pièces chargées, pas du catalogue du jeu : seules les valeurs réellement présentes sont proposées). / EN: the Collection's filters on owned weapons; only values present in the loaded inventory are offered. */}
+            <select aria-label="Type d'arme possédée" value={typeArme} onChange={(e) => { setTypeArme(e.target.value); setAffichees(TAILLE_PAGE); }} style={styleChamp}>
+              <option value="tous">Tous types d'arme</option>
+              {[...new Set((pieces ?? []).map((p) => p.typeArme).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), "fr")).map((t) => <option key={t} value={t as string}>{t}</option>)}
+            </select>
+            <select aria-label="Emplacement de l'arme possédée" value={slotArme} onChange={(e) => { setSlotArme(e.target.value); setAffichees(TAILLE_PAGE); }} style={styleChamp}>
+              <option value="tous">Tous emplacements</option>
+              {Object.entries(LIBELLES_SLOT).map(([cle, nom]) => <option key={cle} value={cle}>{nom}</option>)}
+            </select>
+            <select aria-label="Rareté de l'arme possédée" value={rareteArme} onChange={(e) => { setRareteArme(e.target.value); setAffichees(TAILLE_PAGE); }} style={styleChamp}>
+              <option value="toutes">Toutes raretés</option>
+              {[...new Set((pieces ?? []).map((p) => p.rarete).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), "fr")).map((r) => <option key={r} value={r as string}>{r}</option>)}
+            </select>
+            <select aria-label="Élément de l'arme possédée" value={elementArme} onChange={(e) => { setElementArme(e.target.value); setAffichees(TAILLE_PAGE); }} style={styleChamp}>
+              <option value="tous">Tous les éléments</option>
+              {ELEMENTS_FILTRE.map((el) => <option key={el} value={el}>{el === "cinetique" ? "Cinétique" : LIBELLES_ELEMENT_FR[el as keyof typeof LIBELLES_ELEMENT_FR]}</option>)}
             </select>
             <label style={{ fontSize: "0.8rem", display: "inline-flex", gap: "0.35rem", alignItems: "center" }}>
               <input type="checkbox" checked={seulementSimulees} onChange={(e) => { setSeulementSimulees(e.target.checked); setAffichees(TAILLE_PAGE); }} /> Seulement les armes simulées
