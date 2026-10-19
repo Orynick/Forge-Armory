@@ -46,22 +46,6 @@ export interface DestinyMembership {
 }
 
 /**
- * FR : Etape obligatoire avant tout appel Profile : le membership_id
- * renvoye par l'OAuth (App/OAuth/Token) est l'identifiant du COMPTE
- * BUNGIE.NET, pas l'identifiant Destiny (Steam/Xbox/PSN/Epic). Il faut
- * d'abord lister les comptes Destiny lies via cet endpoint (bug trouve et
- * corrige le 01/08/2026 : le code appelait Profile avec le mauvais ID).
- * EN: Mandatory step before any Profile call: the membership_id returned
- * by OAuth (App/OAuth/Token) is the BUNGIE.NET ACCOUNT id, not the Destiny
- * id (Steam/Xbox/PSN/Epic). You must first list the linked Destiny accounts
- * via this endpoint (bug found and fixed on 2026-08-01: the code was
- * calling Profile with the wrong id).
- */
-export async function recupererMembershipsActuels(): Promise<DestinyMembership[]> {
-  return (await recupererComptesBungie()).memberships;
-}
-
-/**
  * FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - nom Bungie affiché dans le bloc
  * Connexion, au format `pseudo#1234` (demande de l'utilisateur). Le même
  * appel que `recupererMembershipsActuels` le fournit déjà : on le lit au
@@ -75,7 +59,7 @@ export async function recupererMembershipsActuels(): Promise<DestinyMembership[]
  * side, zero-padded to 4 digits as in game. Account-level fields first,
  * then the first Destiny membership carrying them; `null` if neither does.
  */
-export function formaterNomBungie(nom: string | null | undefined, code: number | string | null | undefined): string | null {
+function formaterNomBungie(nom: string | null | undefined, code: number | string | null | undefined): string | null {
   if (!nom || code === null || code === undefined || code === "") return null;
   return `${nom}#${String(code).padStart(4, "0")}`;
 }
@@ -118,19 +102,6 @@ export async function recupererProfilComplet(membership: DestinyMembership) {
   return appelBungie(
     `/Destiny2/${membership.membershipType}/Profile/${membership.membershipId}/?components=${COMPOSANTS.join(",")}`
   );
-}
-
-/** Le coffre est simplement un "character" special dans profileInventory (component 102) */
-export async function recupererCoffre(membership: DestinyMembership) {
-  const profil = await recupererProfilComplet(membership);
-  // @ts-expect-error - typage precis a affiner avec bungie-api-ts si besoin
-  return profil.profileInventory?.data?.items ?? [];
-}
-
-export async function recupererInventairePersonnages(membership: DestinyMembership) {
-  const profil = await recupererProfilComplet(membership);
-  // @ts-expect-error - idem
-  return profil.characterInventories?.data ?? {};
 }
 
 export interface Personnage {

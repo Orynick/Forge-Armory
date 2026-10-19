@@ -248,20 +248,6 @@ export function supprimerLoadout(id: string): { ok: boolean; erreur?: string } {
   return ecrire(listerLoadouts().filter((l) => l.id !== id));
 }
 
-export function renommerLoadout(id: string, nouveauNom: string): { ok: boolean; erreur?: string } {
-  return ecrire(
-    listerLoadouts().map((l) => (l.id === id ? { ...l, nom: nouveauNom.trim() || l.nom } : l))
-  );
-}
-
-export function modifierDescription(id: string, description: string): { ok: boolean; erreur?: string } {
-  return ecrire(listerLoadouts().map((l) => (l.id === id ? { ...l, description: description.trim() } : l)));
-}
-
-export function modifierIcone(id: string, icone: string): { ok: boolean; erreur?: string } {
-  return ecrire(listerLoadouts().map((l) => (l.id === id ? { ...l, iconeChoisie: icone || undefined } : l)));
-}
-
 /**
  * FR : ⚠️ AJOUT (01/10/2026, v0.3.0) - modifie le NOM, la DESCRIPTION et l'ICÔNE d'un
  * loadout en UNE SEULE écriture (fenêtre « Modifier... » des Loadouts, qui regroupe les

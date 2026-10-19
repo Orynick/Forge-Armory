@@ -22,7 +22,7 @@
 // necessary because these triumph names follow NO convention and cannot be
 // guessed or matched by name.
 
-export interface TriompheSoloFlawless {
+interface TriompheSoloFlawless {
   /** FR : hash du triomphe dans DestinyRecordDefinition. / EN: triumph hash in DestinyRecordDefinition. */
   hash: number;
   /** FR : nom du donjon (pas du triomphe, dont le nom est souvent cryptique). / EN: dungeon name (not the triumph's, often cryptic). */

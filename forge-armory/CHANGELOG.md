@@ -4,6 +4,25 @@ Historique daté de toutes les corrections, fonctionnalités et décisions du pr
 Le plus récent en premier. Pour les fonctionnalités actuelles, voir `NOTICE.md` (l'état d'avancement détaillé est dans `NOTES-CONCEPTION.md`) ;
 pour ce qui reste à faire, voir `TODO.md`.
 
+## 17/10/2026 — v0.4.13 : nettoyage du code mort et des exports inutiles (audit du 16/10/2026)
+
+**Demande** : feuille de route du 17/10/2026, section 2 bis — actions de nettoyage issues de l'audit complet du code de `src/` (109 fichiers, commit 3ae3fbd), sans urgence, regroupées dans une version mineure. **Version 0.4.13.** Aucun changement de comportement : la batterie de tests donne exactement les mêmes résultats avant et après.
+
+**Fait (point 1 de l'audit — code mort confirmé, supprimé)** :
+- `lib/bungie/api.ts` : `recupererCoffre`, `recupererInventairePersonnages` (remplacés par l'appel profil unique ; leur suppression retire aussi les deux `@ts-expect-error` restants) et `recupererMembershipsActuels` (remplacé par `recupererComptesBungie`).
+- `lib/loadouts/stockage.ts` : `renommerLoadout`, `modifierDescription`, `modifierIcone` (remplacés par `modifierInfosLoadout`, écriture unique).
+- `lib/scoring/armorSets.ts` : le groupe `scoreBonusSets` + `calculerBonusSetsActifs` + `regrouperParSet` + `BonusSetActif` + `ArmorSetDefinition` + `DEMO_SETS` (remplacés par `scoreBonusSetsReels` et `obtenirBonusSetsActifs`, sur les vraies données du Manifest). Le fichier passe de 265 à 115 lignes.
+
+**Fait (point 2 de l'audit — exports inutiles, mot-clé `export` retiré, fonctions conservées)** : `destinationsPossibles` (`components/BoutonTransfert.tsx`), `formaterNomBungie` (`lib/bungie/api.ts`), `niveauCorrectifs` et les types `Correctif`, `NiveauCorrectifs` (`data/versionJeu.ts`), `TriompheSoloFlawless` (`data/triomphesSoloFlawless.ts`), `ClePilier` (`data/piliers.ts`). Chaque symbole a été vérifié non importé ailleurs avant suppression ou dé-exportation.
+
+**Pas fait (autres points de l'audit)** : découpages à l'étude de fichiers volumineux (doctrine.ts, SelecteurInventaire.tsx, etc.) ; chantier sécurité (Vite 5 → 8, React Router 6 → 7, CSP). Hors périmètre de cette version.
+
+**Vérifié** : aucune des fonctions supprimées n'était importée ailleurs (recherche croisée des imports sur tout `src/` avant chaque suppression) ; batterie de tests : mêmes résultats que sur la 0.4.12 inchangée (23 séries logiques/interface exécutables dans l'environnement de travail : 21 réussissent, 2 échouent à un contrôle près — `icones` 10/11 et `visuels` 19/20 — à l'identique avant et après, donc préexistants et non liés au nettoyage ; les 13 tests d'interface exigent Playwright, absent de l'environnement de travail).
+
+**Défaut PRÉEXISTANT signalé (hors périmètre, non touché)** : `npm run build` échoue sur la 0.4.12 d'origine avec trois erreurs TypeScript dans `components/BadgeSaison.tsx` (symboles `RETRAIT_BADGE_VIGNETTE`, `tailleBadgeVignette`, `partSymbole` attendus de `lib/forge/tailleVignette` mais absents) — vérifié identique avant et après le nettoyage. À traiter dans une version corrective séparée, avec l'accord de l'utilisateur.
+
+**NON vérifié (à contrôler sur le compte de l'utilisateur)** : rien — le nettoyage ne touche aucune donnée ni aucun parcours utilisateur.
+
 ## 15/10/2026 — v0.4.12 : Forge des armures, étape 1 (liste, fenêtre, simulation locale des mods)
 
 **Demande** : « Go les armures » (après ma question : la spécification du 12/10/2026 ne dit pas ce qu'on sélectionne sur une armure ; point 10 de `NOTES-CONCEPTION.md`). **Version 0.4.12** (installateur `Forge-Armory-Setup-0.4.12.exe`, liste `A-TESTER-0.4.12.pdf`). Les tests encore ouverts de la 0.4.11 restent dans la liste.
