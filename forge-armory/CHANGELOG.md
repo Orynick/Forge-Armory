@@ -1,3 +1,9 @@
+## 20/10/2026 (soir) — bouton « Accomplissements » sous « Carrière », taille réduite
+
+**Demande de l'utilisateur** : « ajout "accomplissement" sous "carrière". Ajuste la taille de ces deux boutons pour qu'ils ne fassent pas trop bouger la taille du bloc connexion sans non plus devenir illisible. » Le bloc Connexion affiche maintenant DEUX boutons superposés — « Carrière » puis « Accomplissements » (ce dernier ouvre le tiroir « Solo sans mourir », même navigation croisée que depuis la vue Carrière) — à hauteur réduite : 1,75 rem (28 px), le format déjà utilisé par le bouton Load-outs de la confirmation d'enregistrement, au-dessus du minimum de lisibilité de la charte ; la largeur suit le ratio du cadre de chaque bouton (Carrière ≈ 118 px, Accomplissements ≈ 134 px), empilés à gauche avec 0,35 rem d'écart. Les boutons de la modale Carrière et du tiroir restent inchangés.
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓.
+
 ## 20/10/2026 — vue « Carrière » du compte (spécification du 14/10/2026) + intégration de l'archive d'assets v7
 
 **Bouton « Carrière »** (archive d'assets v7 de l'utilisateur, `selecteur.carriere.*`) : visible uniquement CONNECTÉ, sous la coche verte du bloc « Connexion à Bungie ». Aucun appel réseau au chargement de l'appli — les données se chargent au clic, comme « Charger mon inventaire ». Lecture SEULE (GetHistoricalStats, GetActivityHistory, GetProfile déjà chargé).

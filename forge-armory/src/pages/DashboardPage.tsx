@@ -499,19 +499,33 @@ export default function DashboardPage() {
         </div>
 
         {erreurTest && <p style={{ color: "#e08080", margin: "0.5rem 0 0" }}>⚠️ {erreurTest}</p>}
-        {/* FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - bouton « CARRIÈRE » du bloc Connexion (spécification du 14/10/2026) : visible uniquement CONNECTÉ, sous la coche verte du titre. Bouton stylisé de l'archive d'assets v7 (deux états superposés, même règles CSS que le sélecteur : survol, anneau de focus clavier, lueur dans le cadre), `aria-label` car le titre est en tracés dans l'image. AUCUN appel réseau au chargement de l'appli : les données de Carrière se chargent uniquement au clic sur le bouton, comme « Charger mon inventaire ». / EN: ⚠️ ADDED - "Career" button, connected-only; data loads on click only. */}
+        {/* FR : ⚠️ CHANGÉ (20/10/2026, demande de l'utilisateur) - deux boutons superposés sous le bloc, à hauteur RÉDUITE (1,75 rem = 28 px, le format du bouton Load-outs de la confirmation d'enregistrement, au-dessus du minimum de lisibilité de la charte) pour ne pas faire gonfler le bloc Connexion ; la largeur suit le ratio du cadre de chaque bouton. / EN: ⚠️ CHANGED - two stacked buttons at a reduced height so the Connection block doesn't grow much. */}
         {connecte && (
-          <button
-            type="button"
-            className="bouton-vue"
-            aria-label="Carrière"
-            title="Voir les statistiques d'usage de votre compte (lecture seule)"
-            onClick={() => setCarriereOuverte(true)}
-            style={{ "--hauteur-bouton": "2.75rem", marginTop: "0.5rem" } as React.CSSProperties}
-          >
-            <img className="bouton-vue__repos" src={urlVisuel("selecteur.carriere.repos")} alt="" draggable={false} />
-            <img className="bouton-vue__actif" src={urlVisuel("selecteur.carriere.selectionne")} alt="" draggable={false} />
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "0.35rem", marginTop: "0.5rem" }}>
+            <button
+              type="button"
+              className="bouton-vue"
+              aria-label="Carrière"
+              title="Voir les statistiques d'usage de votre compte (lecture seule)"
+              onClick={() => setCarriereOuverte(true)}
+              style={{ "--hauteur-bouton": "1.75rem" } as React.CSSProperties}
+            >
+              <img className="bouton-vue__repos" src={urlVisuel("selecteur.carriere.repos")} alt="" draggable={false} />
+              <img className="bouton-vue__actif" src={urlVisuel("selecteur.carriere.selectionne")} alt="" draggable={false} />
+            </button>
+            {/* FR : ⚠️ AJOUT (20/10/2026, demande de l'utilisateur) - bouton « Accomplissements » SOUS le bouton « Carrière » : ouvre le tiroir « Solo sans mourir » (même navigation croisée que depuis la vue Carrière). / EN: ⚠️ ADDED - "Accomplissements" button under "Career". */}
+            <button
+              type="button"
+              className="bouton-vue"
+              aria-label="Accomplissements"
+              title="Ouvrir les Accomplissements (Donjons / Triomphes)"
+              onClick={() => setTiroirTriomphesOuvert(true)}
+              style={{ "--hauteur-bouton": "1.75rem" } as React.CSSProperties}
+            >
+              <img className="bouton-vue__repos" src={urlVisuel("selecteur.accomplissements.repos")} alt="" draggable={false} />
+              <img className="bouton-vue__actif" src={urlVisuel("selecteur.accomplissements.selectionne")} alt="" draggable={false} />
+            </button>
+          </div>
         )}
 
         {memberships.length > 1 && (
