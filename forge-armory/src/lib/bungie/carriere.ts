@@ -91,13 +91,16 @@ interface ValeurHistoricalStat {
   precision?: { value?: number };
 }
 
+// FR : ⚠️ CHANGÉ (21/10/2026, retour réel du diagnostic) - GetHistoricalStatsForAccount répond
+// `{ mergedAllCharacters: { <statId>: { statId, allTime: { basic, precision? } } } }` (une clé PAR statId,
+// pas de champ `metrics` ; chaque entrée porte elle-même son statId).
+// EN: ⚠️ CHANGED - the account route responds with `mergedAllCharacters`, keyed by statId.
 interface ReponseHistoricalStats {
-  metrics?: Record<
+  mergedAllCharacters?: Record<
     string,
     {
       statId?: string;
       allTime?: ValeurHistoricalStat;
-      allTimeByClass?: Record<string, unknown>;
     }
   >;
 }
@@ -123,16 +126,22 @@ function lireStat(metric: unknown): { valeur: number | null; precision: number |
   return { valeur, precision };
 }
 
+// FR : ⚠️ CORRIGÉ (21/10/2026, retour réel du diagnostic) - l'ancien chemin
+// `/Destiny2/Stats/GetHistoricalStats/{id}/0/` renvoyait 404 : cette route
+// n'existe pas pour l'agrégation de compte. La bonne route est
+// GetHistoricalStatsForAccount : `/Destiny2/{membershipType}/Account/{id}/Stats/`
+// (UNE requête, tous personnages fusionnés), dont la réponse porte les stats
+// dans `mergedAllCharacters` (pas `metrics`). periodType et groups ne sont pas
+// des paramètres de cette route : elle ne renvoie que l'agrégat global,
+// exactement le filtre « Carrière » des Emblèmes du jeu.
+// EN: ⚠️ FIXED - the real route is GetHistoricalStatsForAccount; stats live
+// in `mergedAllCharacters`, not `metrics`.
 export function cheminStatsCarriere(membership: DestinyMembership): string {
-  return `/Destiny2/Stats/GetHistoricalStats/${membership.membershipId}/0/?periodType=AllTime&mode=None&groups=General,Medals`;
+  return `/Destiny2/${membership.membershipType}/Account/${membership.membershipId}/Stats/`;
 }
 
 export async function recupererStatsCarriere(membership: DestinyMembership): Promise<ReponseHistoricalStats> {
-  // FR : characterId = 0 agrège tous les personnages en UNE requête ;
-  // periodType = AllTime = le filtre « Carrière » des Emblèmes du jeu.
-  // mode = None par défaut (toutes activités). groups = General pour le
-  // bloc standard (kills, précision, K/D, efficacité, mêlée, super, etc.).
-  // EN: characterId=0 aggregates in one request; AllTime = in-game Career.
+  // FR : UNE requête pour tout le compte (GetHistoricalStatsForAccount), l'équivalent exact du filtre « Carrière » des Emblèmes du jeu. / EN: one account-wide request, the in-game Career filter.
   return appelBungieCarriere<ReponseHistoricalStats>(cheminStatsCarriere(membership));
 }
 
@@ -172,8 +181,9 @@ export async function chargerCarriere(
   try {
     const stats = await recupererStatsCarriere(membership);
     resultat.diagnostic.clesReponseStats = Object.keys(stats ?? {});
-    resultat.diagnostic.nbMetrics = stats?.metrics ? Object.keys(stats.metrics).length : null;
-    for (const metric of Object.values(stats.metrics ?? {})) {
+    // FR : ⚠️ CHANGÉ - les stats sont dans `mergedAllCharacters`, une entrée par statId.
+    resultat.diagnostic.nbMetrics = stats?.mergedAllCharacters ? Object.keys(stats.mergedAllCharacters).length : null;
+    for (const metric of Object.values(stats.mergedAllCharacters ?? {})) {
       const statId = metric?.statId ?? null;
       if (!statId) continue;
       const { valeur, precision } = lireStat(metric);
@@ -224,7 +234,7 @@ export function formaterDiagnosticCarriere(d: DonneesCarriere): string {
   lignes.push(`requête : GET ${g.requeteStats}`);
   lignes.push(`erreur de la requête : ${g.erreurStats ?? "aucune"}`);
   lignes.push(`clés de la réponse : ${g.clesReponseStats === null ? "(pas de réponse : la requête a échoué)" : g.clesReponseStats.length > 0 ? g.clesReponseStats.join(", ") : "(réponse vide)"}`);
-  lignes.push(`entrées de « metrics » : ${g.nbMetrics === null ? "champ absent de la réponse" : g.nbMetrics}`);
+  lignes.push(`entrées de « mergedAllCharacters » : ${g.nbMetrics === null ? "champ absent de la réponse" : g.nbMetrics}`);
   lignes.push(`historiques d'activités en échec : ${g.erreursActivites.length === 0 ? "aucun" : ""}`);
   lignes.push(...g.erreursActivites.map((l) => `  - ${l}`));
   return lignes.join("\n");

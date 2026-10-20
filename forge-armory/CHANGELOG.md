@@ -1,3 +1,16 @@
+## 21/10/2026 (suite 2) — requête des stats « Carrière » CORRIGÉE sur données réelles : GetHistoricalStatsForAccount
+
+**Retour réel de l'utilisateur** (diagnostic « statIds retournés », `npm run dev`) : « statIds retournés : AUCUN ; requête : GET /Destiny2/Stats/GetHistoricalStats/4611686018433066369/0/?periodType=AllTime&mode=None&groups=General,Medals ; erreur : 404 ». **C'est exactement le soupçon documenté dans l'entrée du 21/10 (suite)** : la route appelée n'existe pas — le 404 renvoyait une page d'erreur XHTML, pas une réponse Bungie. La correction suit la démarche prévue par la spécification : figer la lecture sur des données réelles.
+
+**Corrigé** dans `src/lib/bungie/carriere.ts` :
+- **Route** : `GetHistoricalStatsForAccount` — `/Destiny2/{membershipType}/Account/{membershipId}/Stats/` (UNE requête, tous personnages fusionnés, l'équivalent exact du filtre « Carrière » des Emblèmes du jeu ; `periodType`/`groups` ne sont pas des paramètres de cette route).
+- **Structure** : la réponse porte les stats dans **`mergedAllCharacters`** (une clé par statId, chaque entrée avec `statId` + `allTime.basic/precision`), pas dans `metrics` — la lecture et le type sont mis à jour.
+- **Diagnostic** : la ligne « entrées de metrics » devient « entrées de mergedAllCharacters ».
+
+**Tests alignés sur la vraie route** : `diagnostic-carriere.test.ts` (chemin et libellés), le réseau simulé de `entree-modale-carriere.tsx` (mock de la vraie route et de `mergedAllCharacters`) et les attentes de `modale-carriere.py`.
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓ ; `diagnostic-carriere` 6/6 ; `carriere-large` 19/19. **À contrôler par l'utilisateur** : rouvrir la fenêtre « Carrière » — les statistiques doivent maintenant se remplir ; si un statId affiché reste « non disponible », le diagnostic liste les statIds réellement retournés pour figer la sélection (démarche prévue), et `statIdsCarriere` repassera à `false` une fois la liste validée.
+
 ## 21/10/2026 (suite) — fenêtre « Carrière » : bouton à droite du titre, diagnostic qui s'ouvre, partie « Compte » supprimée, icônes de classes
 
 **Demandes de l'utilisateur** : (1) « Dans la pop-up "Carrière", le bouton "Accomplissements" doit être affiché à droite du titre "Carrière" et non en bas de pop-up. » (2) « Le diagnostic statsID retournés ne s'ouvre pas. » (3) « Dans la même pop-up, la partie "Compte" peut disparaître. » (4) « Utilise les assets d'icônes de classes de personnages. » **Version inchangée (0.4.14).**
