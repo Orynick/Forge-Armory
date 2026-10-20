@@ -26,6 +26,8 @@ export const DIAGNOSTICS_ACTIFS = {
 
   /** FR : état brut des triomphes Solo Flawless — a permis de trouver le bug Flèche de la vigie (characterRecords, pas profileRecords), résolu depuis. Masqué le 25/08 à la demande de l'utilisateur. / EN: raw triumph state - found the Spire of the Watcher bug, fixed since. Hidden on 25/08 at the user's request. */
   etatBrutTriomphes: false,
+  /** FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - vue « Carrière » : liste les statIds BRUTS réellement retournés par GetHistoricalStats (allTime, characterId = 0) pour figer la sélection des stats affichées sur des données réelles (même démarche que le composant 310 et les filigranes de saison). Une fois la sélection figée et validée par l'utilisateur, remettre à false. / EN: Career view - raw statIds diagnostic. */
+  statIdsCarriere: true,
 
   /** FR : ✅ RÉSOLU (24/09/2026) - chemins JSON d'une recherche (RechercheManifest), avec le verdict de la recherche normale par objet (affiché / filtré / masqué). A servi à identifier puis vérifier le filtre anti-dialogue (`flavorText`), confirmé en jeu par l'utilisateur le 24/09. Masqué, mais conservé : à remettre à `true` si une réplique ou un texte sans rapport réapparaît un jour dans les résultats, pour identifier son champ avant d'étendre le filtre. / EN: ✅ RESOLVED - JSON paths of a search with the normal search's verdict per item; used to identify and then verify the anti-dialogue filter, confirmed in game on 24/09. Hidden but kept: set back to `true` if unrelated text ever reappears in results. */
   diagnosticCheminsJson: false,
