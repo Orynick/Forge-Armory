@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
+import { basename, dirname } from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import mkcert from "vite-plugin-mkcert";
@@ -37,24 +38,41 @@ const versionBase = JSON.parse(readFileSync(new URL("./package.json", import.met
 // une branche « draft-<chantier> », la version affichée porte le suffixe du
 // chantier (ex: « 0.4.14 » sur main, « 0.4.14.legendarium » sur
 // draft-legendarium). La version de base (package.json) reste inchangée :
-// elle évolue normalement avec les fonctionnalités. La branche est lue via
-// git ; en l'absence de git (build sans dépôt, CI minimal), on retombe sur
-// la version de base. La variable d'environnement FORGE_BRANCHE permet de
-// forcer le nom de branche (utile en CI).
+// elle évolue normalement avec les fonctionnalités.
+//
+// Détection de la branche, par ordre de priorité :
+// 1. Variable d'environnement FORGE_BRANCHE (pour forcer, utile en CI)
+// 2. git rev-parse (clone normal)
+// 3. Nom du dossier parent (ZIP téléchargé depuis GitHub : le dossier extrait
+//    s'appelle « Forge-Armory-<branche> » — ex: Forge-Armory-draft-sec)
+// 4. Chaîne vide (on retombe sur la version de base)
+//
 // EN: ⚠️ ADDED - « chantier » version: when working on a « draft-<chantier> »
 // branch, the displayed version carries the chantier suffix (e.g. « 0.4.14 »
 // on main, « 0.4.14.legendarium » on draft-legendarium). The base version
-// (package.json) stays untouched and keeps evolving with features. The
-// branch is read via git; without git (build without repo, minimal CI), we
-// fall back to the base version. The FORGE_BRANCHE env var can force the
-// branch name (useful in CI).
+// (package.json) stays untouched and keeps evolving with features.
+//
+// Branch detection, in priority order:
+// 1. FORGE_BRANCHE environment variable (to force, useful in CI)
+// 2. git rev-parse (normal clone)
+// 3. Parent folder name (ZIP downloaded from GitHub: the extracted folder is
+//    named « Forge-Armory-<branch> » — e.g. Forge-Armory-draft-sec)
+// 4. Empty string (fall back to base version)
+function obtenirBrancheDepuisDossier(): string {
+  const dossierParent = basename(dirname(process.cwd()));
+  const match = dossierParent.match(/^Forge-Armory-(.+)$/);
+  return match ? match[1] : "";
+}
+
 function obtenirBranche(): string {
   if (process.env.FORGE_BRANCHE) return process.env.FORGE_BRANCHE;
   try {
-    return execSync("git rev-parse --abbrev-ref HEAD", { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+    const branche = execSync("git rev-parse --abbrev-ref HEAD", { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+    if (branche && branche !== "HEAD") return branche;
   } catch {
-    return "";
+    // Pas de git disponible (ZIP sans .git, CI minimal)
   }
+  return obtenirBrancheDepuisDossier();
 }
 
 const branche = obtenirBranche();
