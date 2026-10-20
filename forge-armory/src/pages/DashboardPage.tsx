@@ -499,9 +499,9 @@ export default function DashboardPage() {
         </div>
 
         {erreurTest && <p style={{ color: "#e08080", margin: "0.5rem 0 0" }}>⚠️ {erreurTest}</p>}
-        {/* FR : ⚠️ CHANGÉ (20/10/2026, demande de l'utilisateur) - les deux boutons CÔTE À CÔTE sur une seule ligne (Carrière puis Accomplissements à sa droite), hauteur +75 % par à la version précédente (3,0625 rem ≈ 49 px) ; la largeur suit le ratio du cadre de chaque bouton, et la ligne passe à la carte si la fenêtre est étroite (flexWrap). / EN: ⚠️ CHANGED - the two buttons side by side on one row, 75 % larger. */}
+        {/* FR : ⚠️ CHANGÉ (20/10/2026, demandes de l'utilisateur) - Carrière AU-DESSUS d'Accomplissements (retour à l'empilement vertical demandé), alignés à GAUCHE sur la même colonne ; hauteur +75 % conservée (3,0625 rem ≈ 49 px), la largeur suit le ratio du cadre de chaque bouton. Les deux boutons sont dans le bloc `connecte &&` : MASQUÉS hors connexion. / EN: ⚠️ CHANGED - Career ABOVE Accomplishments, left-aligned column, 49 px; hidden when not connected. */}
         {connecte && (
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: "0.75rem", marginTop: "0.5rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "0.35rem", marginTop: "0.5rem" }}>
             <button
               type="button"
               className="bouton-vue"

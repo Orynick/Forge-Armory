@@ -1,3 +1,9 @@
+## 20/10/2026 (soir) — retour à l'empilement : Carrière AU-DESSUS d'Accomplissements
+
+**Demande de l'utilisateur** : « Carrière doit être au-dessus de Accomplissements » (retour à l'empilement vertical ; l'essai « côte à côte » de la demande précédente est abandonné) « les deux boutons doivent être masqués quand l'utilisateur n'est pas connecté » (déjà le cas : tout le bloc est sous `connecte &&`) « aligne bien les deux boutons ». Les deux boutons forment une colonne alignée à GAUCHE (`align-items: flex-start`, écart 0,35 rem), la hauteur +75 % est conservée (3,0625 rem ≈ 49 px ; largeurs ≈ 207 px et 235 px selon le ratio de chaque cadre).
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓.
+
 ## 20/10/2026 (soir) — Carrière et Accomplissements côte à côte, +75 %
 
 **Demande de l'utilisateur** (annotation rouge) : les deux boutons du bloc Connexion passent CÔTE À CÔTE sur une seule ligne — « Carrière » puis « Accomplissements » à sa droite — au lieu d'être empilés ; hauteur agrandie de 75 % : 1,75 rem → 3,0625 rem (28 px → 49 px). Largeurs : Carrière ≈ 207 px, Accomplissements ≈ 235 px (ratio du cadre de chaque bouton). La ligne repasse à la carte si la fenêtre est étroite (`flexWrap`), et les tailles des boutons de la modale Carrière et du tiroir restent inchangées.
