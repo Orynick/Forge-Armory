@@ -257,8 +257,29 @@ npm run electron:dev   (fenêtre 2)
 | Bouton **« Transférer vers »** (Mon Inventaire et Coffre → personnages et Coffre) | ✅ Fonctionnel — objet équipé non transférable, confirmation, un transfert à la fois |
 | Onglet **Forge**, vue **Collection** (toutes les armes du jeu, leurs perks possibles, grisées si jamais obtenues) | ✅ Fonctionnel — consultation seule ; armures à venir |
 | Onglet **Forge**, vue **Inventaire** (vos armes possédées : roll réel et simulation des perks et du mod) | ✅ Fonctionnel — simulation locale, rien n'est modifié dans le jeu ; **le score en tient compte** |
+| Onglet **Forge**, vue **Inventaire** : vos **armures** possédées (emplacements, mods et ajustements, simulation avec statistiques avant → après) | ✅ Fonctionnel — quand votre exemplaire ne liste aucun mod possible, les plugs du modèle du jeu complètent (marqués « possibles ») ; les emplacements identiques sont regroupés (× N) |
+| Onglet **Forge**, vue **Collection** : toutes les **armures** du jeu (grisées si jamais obtenues, ensemble et bonus) | ✅ Fonctionnel — consultation seule |
+| Barre de la Forge : boutons **Armes / Armures** avec les logos officiels, à droite des boutons Collection / Inventaire | ✅ Fonctionnel |
+| **Filtre `source:`** dans la recherche du Manifest (Raid, Donjon, Trials, par activité…) | ✅ Fonctionnel — 13 catégories et une entrée par raid/donjon ; autocomplétion en tapant « source: » |
+| **Saison de sortie** en clair sur la fiche d'un résultat de recherche | ✅ Fonctionnel — nom, numéro et dates |
+| **Catégorie de source** en clair sur la fiche (« — Raid — Source: "Last Wish" Raid ») | ✅ Fonctionnel — tables dérivées de d2-additional-info (MIT) |
+| Section **« Crédits »** (pied de page) | ✅ Fonctionnel — pop-up : projet de fan non affilié à Bungie + crédit MIT |
 
 ---
+
+## Filtre « source: » et saison de sortie (recherche du Manifest)
+
+Dans la recherche du Manifest, le champ de texte accepte un **filtre de source** :
+
+- un menu déroulant **« Source de l'objet »** filtre par **catégorie** (Raid, Donjon, Trials d'Osiris, Bannière de Fer, Crucible, Gambit, Nuit Noire / GM, Campagne, Quête exotique, Eververse, Événement, Passe de saison, Marchand) ;
+- ou par **activité précise** : « Raid · Dernier Vœu », « Donjon · Prophétie »… (un raid puis un donjon, dans l'ordre de sortie) ;
+- le filtre se **combine** par ET avec le texte de la recherche, la catégorie (Armes uniquement…), l'anti-champion et l'élément ;
+- un objet sans source connue est simplement écarté, sans erreur ;
+- la **saison de sortie** et la **catégorie de source** s'affichent en clair sur chaque résultat (armes et armures).
+
+Sur chaque résultat de recherche d'arme ou d'armure : la **saison de sortie** en clair (« Saison de sortie : Season of the Forge (saison 5) — 2018-11-27 → 2019-03-04 ») et la **catégorie de source** avant la chaîne brute du jeu.
+
+> Ces tables de correspondance (saisons, sources de loot) sont dérivées de **d2-additional-info** (Destiny Item Manager, licence MIT) et régénérées par un script du projet ; les noms de saisons et descriptions de sources sont des données Bungie. Le détail est dans la section « Crédits », en bas de l'application.
 
 ## Transférer un objet
 
