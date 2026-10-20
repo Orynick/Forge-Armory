@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { execSync } from "node:child_process";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import mkcert from "vite-plugin-mkcert";
@@ -30,7 +31,35 @@ import mkcert from "vite-plugin-mkcert";
 // produisent un fichier au nom identique.
 // EN: ⚠️ ADDED - the project version is injected so it can be DISPLAYED:
 // otherwise there is no way to tell which build is installed.
-const version = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf-8")).version;
+const versionBase = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf-8")).version;
+
+// FR : ⚠️ AJOUT (20/10/2026) - version « chantier » : quand on travaille sur
+// une branche « draft-<chantier> », la version affichée porte le suffixe du
+// chantier (ex: « 0.4.14 » sur main, « 0.4.14.legendarium » sur
+// draft-legendarium). La version de base (package.json) reste inchangée :
+// elle évolue normalement avec les fonctionnalités. La branche est lue via
+// git ; en l'absence de git (build sans dépôt, CI minimal), on retombe sur
+// la version de base. La variable d'environnement FORGE_BRANCHE permet de
+// forcer le nom de branche (utile en CI).
+// EN: ⚠️ ADDED - « chantier » version: when working on a « draft-<chantier> »
+// branch, the displayed version carries the chantier suffix (e.g. « 0.4.14 »
+// on main, « 0.4.14.legendarium » on draft-legendarium). The base version
+// (package.json) stays untouched and keeps evolving with features. The
+// branch is read via git; without git (build without repo, minimal CI), we
+// fall back to the base version. The FORGE_BRANCHE env var can force the
+// branch name (useful in CI).
+function obtenirBranche(): string {
+  if (process.env.FORGE_BRANCHE) return process.env.FORGE_BRANCHE;
+  try {
+    return execSync("git rev-parse --abbrev-ref HEAD", { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+  } catch {
+    return "";
+  }
+}
+
+const branche = obtenirBranche();
+const matchDraft = branche.match(/^draft-(.+)$/);
+const version = matchDraft ? `${versionBase}.${matchDraft[1]}` : versionBase;
 
 // FR : ⛔ AJOUT (21/10/2026, branche draft-sec) - CSP (Content-Security-Policy)
 // de l'appli, injectée dans index.html au build. Défense en profondeur : même
