@@ -1,3 +1,9 @@
+## 20/10/2026 (soir) — Carrière et Accomplissements côte à côte, +75 %
+
+**Demande de l'utilisateur** (annotation rouge) : les deux boutons du bloc Connexion passent CÔTE À CÔTE sur une seule ligne — « Carrière » puis « Accomplissements » à sa droite — au lieu d'être empilés ; hauteur agrandie de 75 % : 1,75 rem → 3,0625 rem (28 px → 49 px). Largeurs : Carrière ≈ 207 px, Accomplissements ≈ 235 px (ratio du cadre de chaque bouton). La ligne repasse à la carte si la fenêtre est étroite (`flexWrap`), et les tailles des boutons de la modale Carrière et du tiroir restent inchangées.
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓.
+
 ## 20/10/2026 (soir) — bouton « Accomplissements » sous « Carrière », taille réduite
 
 **Demande de l'utilisateur** : « ajout "accomplissement" sous "carrière". Ajuste la taille de ces deux boutons pour qu'ils ne fassent pas trop bouger la taille du bloc connexion sans non plus devenir illisible. » Le bloc Connexion affiche maintenant DEUX boutons superposés — « Carrière » puis « Accomplissements » (ce dernier ouvre le tiroir « Solo sans mourir », même navigation croisée que depuis la vue Carrière) — à hauteur réduite : 1,75 rem (28 px), le format déjà utilisé par le bouton Load-outs de la confirmation d'enregistrement, au-dessus du minimum de lisibilité de la charte ; la largeur suit le ratio du cadre de chaque bouton (Carrière ≈ 118 px, Accomplissements ≈ 134 px), empilés à gauche avec 0,35 rem d'écart. Les boutons de la modale Carrière et du tiroir restent inchangés.

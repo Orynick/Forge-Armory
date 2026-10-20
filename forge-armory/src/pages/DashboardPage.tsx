@@ -499,16 +499,16 @@ export default function DashboardPage() {
         </div>
 
         {erreurTest && <p style={{ color: "#e08080", margin: "0.5rem 0 0" }}>⚠️ {erreurTest}</p>}
-        {/* FR : ⚠️ CHANGÉ (20/10/2026, demande de l'utilisateur) - deux boutons superposés sous le bloc, à hauteur RÉDUITE (1,75 rem = 28 px, le format du bouton Load-outs de la confirmation d'enregistrement, au-dessus du minimum de lisibilité de la charte) pour ne pas faire gonfler le bloc Connexion ; la largeur suit le ratio du cadre de chaque bouton. / EN: ⚠️ CHANGED - two stacked buttons at a reduced height so the Connection block doesn't grow much. */}
+        {/* FR : ⚠️ CHANGÉ (20/10/2026, demande de l'utilisateur) - les deux boutons CÔTE À CÔTE sur une seule ligne (Carrière puis Accomplissements à sa droite), hauteur +75 % par à la version précédente (3,0625 rem ≈ 49 px) ; la largeur suit le ratio du cadre de chaque bouton, et la ligne passe à la carte si la fenêtre est étroite (flexWrap). / EN: ⚠️ CHANGED - the two buttons side by side on one row, 75 % larger. */}
         {connecte && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "0.35rem", marginTop: "0.5rem" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: "0.75rem", marginTop: "0.5rem" }}>
             <button
               type="button"
               className="bouton-vue"
               aria-label="Carrière"
               title="Voir les statistiques d'usage de votre compte (lecture seule)"
               onClick={() => setCarriereOuverte(true)}
-              style={{ "--hauteur-bouton": "1.75rem" } as React.CSSProperties}
+              style={{ "--hauteur-bouton": "3.0625rem" } as React.CSSProperties}
             >
               <img className="bouton-vue__repos" src={urlVisuel("selecteur.carriere.repos")} alt="" draggable={false} />
               <img className="bouton-vue__actif" src={urlVisuel("selecteur.carriere.selectionne")} alt="" draggable={false} />
@@ -520,7 +520,7 @@ export default function DashboardPage() {
               aria-label="Accomplissements"
               title="Ouvrir les Accomplissements (Donjons / Triomphes)"
               onClick={() => setTiroirTriomphesOuvert(true)}
-              style={{ "--hauteur-bouton": "1.75rem" } as React.CSSProperties}
+              style={{ "--hauteur-bouton": "3.0625rem" } as React.CSSProperties}
             >
               <img className="bouton-vue__repos" src={urlVisuel("selecteur.accomplissements.repos")} alt="" draggable={false} />
               <img className="bouton-vue__actif" src={urlVisuel("selecteur.accomplissements.selectionne")} alt="" draggable={false} />
