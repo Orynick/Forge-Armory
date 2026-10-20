@@ -1,4 +1,11 @@
 import { BUNGIE_ROOT, bungieConfig } from "./config";
+// FR : ⛔ AJOUT (21/10/2026, branche draft-sec) - les jetons ne sont plus écrits
+// en clair dans localStorage : ils passent par le stockage chiffré (safeStorage)
+// quand le logiciel est installé, avec repli sur localStorage sinon.
+// EN: tokens are no longer written in cleartext in localStorage: they go
+// through the encrypted storage (safeStorage) when installed, with a
+// localStorage fallback otherwise.
+import { effacerSecret, ecrireSecret, lireEnCache } from "../stockageSecurise";
 
 const STORAGE_KEY = "d2ba.bungie.tokens";
 const OAUTH_STATE_KEY = "d2ba.bungie.oauthState";
@@ -140,19 +147,13 @@ export function redirigerVersAutorisation() {
  * FR : ⚠️ AJOUT (24/09/2026) - pont exposé par le logiciel installé
  * (Electron, `electron/preload.cjs`). Absent dans un navigateur : c'est ce
  * qui permet de distinguer les deux modes sans réglage à maintenir.
+ * La déclaration TypeScript de `window.appBureau` est centralisée dans
+ * `src/lib/stockageSecurise.ts` (une seule déclaration globale).
  * EN: ⚠️ ADDED - bridge exposed by the installed app; absent in a browser,
- * which is how the two modes are told apart.
+ * which is how the two modes are told apart. The TypeScript declaration of
+ * `window.appBureau` is centralized in `src/lib/stockageSecurise.ts` (a single
+ * global declaration).
  */
-declare global {
-  interface Window {
-    appBureau?: {
-      estBureau: true;
-      connexionBungie: (urlAutorisation: string) => Promise<{ code: string | null; state: string | null }>;
-      /** FR : ⚠️ AJOUT (v0.2.5) - export PNG/PDF d'une fiche de build (electron/main.cjs, « fiche:exporter »). / EN: PNG/PDF export of a build sheet. */
-      exporterFiche: (html: string, format: "jpeg" | "png" | "pdf", nomFichier: string) => Promise<{ chemin?: string; annule?: boolean }>;
-    };
-  }
-}
 
 /** FR : vrai si l'appli tourne dans le logiciel installé, faux dans un navigateur. */
 export function estBureau(): boolean {
@@ -258,7 +259,7 @@ export async function echangerCodeContreTokens(code: string): Promise<TokenSet> 
   };
 
   if (generation !== authGeneration) throw new Error("Session Bungie modifiée pendant l'authentification.");
-  sauvegarderTokens(tokens);
+  await sauvegarderTokens(tokens);
   return tokens;
 }
 
@@ -319,13 +320,19 @@ async function rafraichirTokensInterne(): Promise<TokenSet> {
     membership_id: data.membership_id ?? actuels.membership_id,
   };
   if (generation !== authGeneration) throw new Error("Session Bungie modifiée pendant le rafraîchissement du token.");
-  sauvegarderTokens(tokens);
+  await sauvegarderTokens(tokens);
   return tokens;
 }
 
 export function lireTokens(): TokenSet | null {
   try {
-    const brut = localStorage.getItem(STORAGE_KEY);
+    // FR : ⛔ CHANGÉ (21/10/2026, draft-sec) - lecture via le cache du stockage
+    // chiffré (peuplé au démarrage par `initialiserStockageSecurise`), avec
+    // repli sur localStorage (navigateur, ou init non encore faite).
+    // EN: read through the encrypted-storage cache (populated at startup by
+    // `initialiserStockageSecurise`), with a localStorage fallback (browser,
+    // or init not done yet).
+    const brut = lireEnCache(STORAGE_KEY);
     if (!brut) return null;
     const tokens = JSON.parse(brut) as Partial<TokenSet>;
     if (
@@ -340,23 +347,23 @@ export function lireTokens(): TokenSet | null {
       typeof tokens.expires_at !== "number" ||
       typeof tokens.membership_id !== "string"
     ) {
-      localStorage.removeItem(STORAGE_KEY);
+      void effacerSecret(STORAGE_KEY);
       return null;
     }
     return tokens as TokenSet;
   } catch {
-    localStorage.removeItem(STORAGE_KEY);
+    void effacerSecret(STORAGE_KEY);
     return null;
   }
 }
 
-function sauvegarderTokens(tokens: TokenSet) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tokens));
+async function sauvegarderTokens(tokens: TokenSet) {
+  await ecrireSecret(STORAGE_KEY, JSON.stringify(tokens));
 }
 
 export function deconnecter() {
   authGeneration += 1;
-  localStorage.removeItem(STORAGE_KEY);
+  void effacerSecret(STORAGE_KEY);
 }
 
 /** Renvoie un access_token valide, en rafraîchissant si besoin (marge de 60s) */
@@ -428,7 +435,7 @@ export function etatSession(): "absente" | "valide" | "expiree" {
 export function expirerSessionPourTest(): boolean {
   const tokens = lireTokens();
   if (!tokens) return false;
-  sauvegarderTokens({ ...tokens, expires_at: Date.now() - 1000, refresh_token: undefined });
+  void sauvegarderTokens({ ...tokens, expires_at: Date.now() - 1000, refresh_token: undefined });
   return true;
 }
 
