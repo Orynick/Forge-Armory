@@ -19,6 +19,14 @@
 
 import { bungieConfig } from "../bungie/config";
 import { lireTokens, obtenirAccessTokenValide } from "../bungie/oauth";
+// FR : ⛔ AJOUT (21/10/2026, branche draft-sec) - la clé API DIM et le jeton
+// d'accès DIM sont des secrets : stockage chiffré (safeStorage) dans le
+// logiciel installé, repli localStorage sinon. L'id d'app DIM (suffixe
+// aléatoire, non secret) reste en localStorage.
+// EN: the DIM API key and access token are secrets: encrypted storage
+// (safeStorage) in the installed app, localStorage fallback otherwise. The DIM
+// app id (random suffix, not secret) stays in localStorage.
+import { effacerSecret, ecrireSecret, lireEnCache } from "../stockageSecurise";
 
 const DIM_API_ROOT = "https://api.destinyitemmanager.com";
 const CLE_STOCKAGE = "d2ba.dim.apiKey";
@@ -47,7 +55,9 @@ function obtenirIdApp(): string {
 }
 
 export async function obtenirCleDimApi(): Promise<string> {
-  const cleEnCache = localStorage.getItem(CLE_STOCKAGE);
+  // FR : ⛔ CHANGÉ (21/10/2026, draft-sec) - cache lu via le stockage sécurisé.
+  // EN: cache read through the encrypted storage.
+  const cleEnCache = lireEnCache(CLE_STOCKAGE);
   if (cleEnCache) return cleEnCache;
 
   const reponse = await fetch(`${DIM_API_ROOT}/new_app`, {
@@ -75,7 +85,9 @@ export async function obtenirCleDimApi(): Promise<string> {
     throw new Error(`Réponse DIM inattendue : ${JSON.stringify(data)}`);
   }
 
-  localStorage.setItem(CLE_STOCKAGE, cle);
+  // FR : ⛔ CHANGÉ (21/10/2026, draft-sec) - écriture chiffrée quand c'est possible.
+  // EN: encrypted write when available.
+  await ecrireSecret(CLE_STOCKAGE, cle);
   return cle;
 }
 
@@ -101,7 +113,9 @@ export async function obtenirTokenDimAcces(): Promise<string> {
   const tokensBungie = lireTokens();
   if (!tokensBungie) throw new Error("Non connecté à Bungie.net - impossible d'obtenir un jeton DIM");
 
-  const enCacheTexte = localStorage.getItem(CLE_STOCKAGE_TOKEN);
+  // FR : ⛔ CHANGÉ (21/10/2026, draft-sec) - cache lu via le stockage sécurisé.
+  // EN: cache read through the encrypted storage.
+  const enCacheTexte = lireEnCache(CLE_STOCKAGE_TOKEN);
   if (enCacheTexte) {
     try {
       const enCache = JSON.parse(enCacheTexte) as Partial<TokenDimEnCache>;
@@ -116,7 +130,7 @@ export async function obtenirTokenDimAcces(): Promise<string> {
     } catch {
       // Cache DIM corrompu : il sera régénéré ci-dessous.
     }
-    localStorage.removeItem(CLE_STOCKAGE_TOKEN);
+    void effacerSecret(CLE_STOCKAGE_TOKEN);
   }
 
   const cleDim = await obtenirCleDimApi();
@@ -147,7 +161,9 @@ export async function obtenirTokenDimAcces(): Promise<string> {
   }
 
   const expiresEnSecondes = data.expiresIn ?? data.expires_in ?? 3600;
-  localStorage.setItem(
+  // FR : ⛔ CHANGÉ (21/10/2026, draft-sec) - écriture chiffrée quand c'est possible.
+  // EN: encrypted write when available.
+  await ecrireSecret(
     CLE_STOCKAGE_TOKEN,
     JSON.stringify({ token, expiresAt: Date.now() + expiresEnSecondes * 1000, membershipId: tokensBungie.membership_id })
   );
