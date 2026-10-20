@@ -11,17 +11,19 @@ import { diagnosticSaisonObjet } from "../manifest/saison";
 import type { ChoixColonne } from "./simulation";
 
 export type StatsPartielles = Partial<Record<StatKey, number>>;
-export interface PlugArmure { hash: number; nom: string; description: string; icone?: string; categoriePlug: string; ornement: boolean; stats: StatsPartielles }
+export interface PlugArmure { hash: number; nom: string; description: string; icone?: string; categoriePlug: string; ornement: boolean; stats: StatsPartielles; /** FR : ⚠️ AJOUT (19/10/2026) - plug lu sur le MODÈLE (pas l'exemplaire) : possible en théorie, non garanti sur CET exemplaire. / EN: plug read from the model, not this instance. */ theorique?: boolean }
 export interface ColonneArmure {
   socketIndex: number;
   /** FR : nom de la catégorie de socket (Manifest, dans la langue de l'utilisateur) ; vide si inconnu. / EN: socket category name; empty if unknown. */
   categorie: string;
   equipe: PlugArmure;
-  /** FR : le plug équipé d'abord, puis les autres plugs disponibles sur l'exemplaire (sans doublon). / EN: the equipped plug first, then the other available plugs. */
+  /** FR : le plug équipé d'abord, puis les autres plugs disponibles sur l'exemplaire (sans doublon) ; ⚠️ AJOUT (19/10/2026) - complétés, quand l'exemplaire n'en liste AUCUN, par les plugs du MODÈLE (Manifest, mêmes quatre sources que la Collection), marqués `theorique : true`. / EN: the equipped plug first, then the other available plugs; completed with the model's plugs when the instance lists none. */
   options: PlugArmure[];
   cosmetique: boolean;
   fixe: boolean;
   modifiable: boolean;
+  /** FR : ⚠️ AJOUT (19/10/2026) - au moins une option vient du MODÈLE (pas de l'exemplaire) : l'emplacement est modifiable « en théorie » seulement. / EN: at least one option comes from the model, not the instance. */
+  theorique?: boolean;
 }
 
 interface DefObjetArmure {
@@ -72,6 +74,22 @@ export function lirePlugArmure(db: Database, hash: number): PlugArmure | null {
 }
 
 /** FR : les colonnes d'une armure possédée (une par emplacement équipé), dans l'ordre des prises ; les colonnes cosmétiques sont masquées sauf demande. / EN: an owned armor piece's columns, in socket order; cosmetic columns hidden unless asked. */
+// FR : ⚠️ AJOUT (19/10/2026, retour de test de la 0.4.12 : les diagnostics de l'utilisateur montrent que le composant 310 liste ZERO plug disponible sur les prises de mods de ses armures réelles) - complément du MODÈLE : quand l'exemplaire ne propose AUCUNE alternative sur une prise non fixe non cosmétique, les plugs POSSIBLES viennent de la définition du modèle (mêmes quatre sources que `colonnesModeleArmure` : liste directe, jeux partagé et aléatoire, plug initial). Marqués `theorique` : ils sont simulables localement mais rien ne prouve que CET exemplaire les accepte (l'énergie des mods, à écrire, pourra les filtrer).
+// EN: ⚠️ ADDED - when the instance lists no alternative plug, the possible plugs come from the model's definition, flagged `theorique`.
+function completerParModele(db: Database, piece: GearPiece, socketIndex: number, vus: Set<number>): PlugArmure[] {
+  const def = obtenirDefinition<DefObjetArmure>(db, "DestinyInventoryItemDefinition", piece.itemHash);
+  const entree = def?.sockets?.socketEntries?.[socketIndex];
+  if (!entree) return [];
+  const ajoutes: PlugArmure[] = [];
+  for (const h of hashesPossibles(db, entree)) {
+    if (vus.has(h)) continue;
+    vus.add(h);
+    const p = lirePlugArmure(db, h);
+    if (p && !p.ornement) ajoutes.push({ ...p, theorique: true });
+  }
+  return ajoutes;
+}
+
 export function colonnesArmure(db: Database, piece: GearPiece, inclureCosmetiques = false): ColonneArmure[] {
   const def = obtenirDefinition<DefObjetArmure>(db, "DestinyInventoryItemDefinition", piece.itemHash);
   const noms = new Map<number, string>();
@@ -94,11 +112,32 @@ export function colonnesArmure(db: Database, piece: GearPiece, inclureCosmetique
       const p = lirePlugArmure(db, h);
       if (p && !p.ornement) options.push(p);
     }
+    // FR : ⚠️ AJOUT (19/10/2026) - l'exemplaire ne propose RIEN d'autre que son plug équipé sur une prise qui devrait être changeable : les plugs POSSIBLES du modèle complètent (théoriques).
+    let theorique = false;
     const fixe = CATEGORIES_FIXES.test(equipe.categoriePlug);
-    colonnes.push({ socketIndex, categorie, equipe, options, cosmetique, fixe, modifiable: !fixe && !cosmetique && options.length >= 2 });
+    if (!fixe && !cosmetique && options.length < 2) {
+      const modele = completerParModele(db, piece, socketIndex, vus);
+      theorique = modele.length > 0;
+      options.push(...modele);
+    }
+    colonnes.push({ socketIndex, categorie, equipe, options, cosmetique, fixe, modifiable: !fixe && !cosmetique && options.length >= 2, theorique: theorique || undefined });
   }
   colonnes.sort((a, b) => a.socketIndex - b.socketIndex);
   return inclureCosmetiques ? colonnes : colonnes.filter((c) => !c.cosmetique);
+}
+
+/** FR : ⚠️ AJOUT (19/10/2026, retour de test de la 0.4.12 : « sur certains slots, il y aura forcément des doublons, il faudra étudier une interface spécifique pour ne pas avoir besoin de les afficher 3 fois ») - REGROUPEMENT POUR L'AFFICHAGE : les prices d'une armure réelle répètent souvent la MÊME liste (le Masque de chasse ultime a trois prises de mods identiques, le Pantalon de chargeur rapide en a deux) : deux colonnes sont regroupées quand leur plug équipé a la MÊME catégorie de plug, le MÊME nom de catégorie de socket et la MÊME liste d'options (mêmes hashes dans le même ordre). Le groupe porte les socketIndexes ; l'affichage le montre UNE fois avec « × N » et un seul clic simule chaque prise... non : un clic reste par prise (les prises restent distinctes pour la simulation) ; l'interface décidera. Fonction PURE. / EN: ⚠️ ADDED - groups identical repeated sockets (same equipped plug category, same options) for display.
+ */
+export interface GroupeColonneArmure { colonnes: ColonneArmure[]; categorie: string; cosmetique: boolean; fixe: boolean; modifiable: boolean; theorique?: boolean }
+export function regrouperColonnesArmure(colonnes: readonly ColonneArmure[]): GroupeColonneArmure[] {
+  const groupes: GroupeColonneArmure[] = [];
+  for (const col of colonnes) {
+    const signatures = (c: ColonneArmure) => `${c.equipe.categoriePlug}|${c.categorie}|${c.options.map((o) => o.hash).join(",")}`;
+    const existant = groupes.find((g) => signatures(g.colonnes[0]) === signatures(col));
+    if (existant) { existant.colonnes.push(col); existant.modifiable = existant.modifiable && col.modifiable; continue; }
+    groupes.push({ colonnes: [col], categorie: col.categorie, cosmetique: col.cosmetique, fixe: col.fixe, modifiable: col.modifiable, theorique: col.theorique });
+  }
+  return groupes;
 }
 
 export interface StatsSimulees { reelles: StatsPartielles; simulees: StatsPartielles; delta: StatsPartielles; nbChangements: number }

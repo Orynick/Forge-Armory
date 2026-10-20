@@ -63,6 +63,8 @@ export default function DashboardPage() {
   // the displayed score. This is a first step; real item selection from
   // inventory/search still needs to be built.
   const [monBuild, setMonBuild] = useState<BuildDraft>(demoBuild);
+  // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - ouverture du pop-up « Crédits » du pied de page. / EN: credits pop-up state.
+  const [creditsOuverts, setCreditsOuverts] = useState(false);
   // FR : ⚠️ AJOUT (24/08/2026) - profil des triomphes pour la vitrine « Solo
   // sans mourir ». Appel SÉPARÉ de l'inventaire (composant 900 seul) : ces
   // données ne changent qu'après avoir terminé un donjon, inutile de les
@@ -361,7 +363,7 @@ export default function DashboardPage() {
     <div>
       {/* FR : ⚠️ CHANGÉ (01/10/2026, v0.3.0) - en-tête Forge Armory à l'essai
       (titre + sous-titre, logo aligné par mesure) : voir EnTeteApp.tsx. Ancien
-      en-tête archivé dans ressources-installateur/ancien-logo/ancien-en-tete.txt.
+      en-tête archivé dans ressources-installateur/forge-armory/archives-precedentes/ancien-logo/ancien-en-tete.txt.
       EN: ⚠️ CHANGED - Forge Armory trial header, see EnTeteApp.tsx. */}
       {/* FR : ⚠️ CHANGÉ (05/10/2026) - le titre et, tout à droite, la version de Destiny 2 prise en compte avec la date du
       patch (data/versionJeu.ts). Sur une fenêtre étroite, l'affichage passe sous le titre en restant calé à droite.
@@ -749,8 +751,29 @@ export default function DashboardPage() {
       EN: ⚠️ ADDED - author credit, explicit request for the first
       shareable/invite build. Kept discreet, at the very bottom. */}
       <p style={{ marginTop: "3rem", fontSize: "0.75rem", color: "#7d7a70", textAlign: "center" }}>
-        Forge Armory v{__VERSION_APP__} — Destiny 2 Build Analyzer — créé par Orynick/Orygamer
+        Forge Armory v{__VERSION_APP__} — Destiny 2 Build Analyzer — créé par Orynick/Orygamer{" "}
+        {/* FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - section CRÉDITS en pied de page, ouverte en pop-up : obligation de la licence MIT de d2-additional-info, dont les tables de saisons et de sources sont embarquées (data/seasons.json, data/source-filters.json). Décision de l'utilisateur : « pied de page avec ouverture de pop-up ». / EN: ⚠️ ADDED - footer "Crédits" link opening a pop-up (MIT obligation). */}
+        <button type="button" data-ouvrir-credits="" onClick={() => setCreditsOuverts(true)} style={{ fontSize: "0.75rem", background: "none", border: "none", color: "#9a8f6a", cursor: "pointer", padding: 0, textDecoration: "underline" }}>Crédits</button>
       </p>
+      {creditsOuverts && (
+        <div onClick={() => setCreditsOuverts(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60 }}>
+          <div role="dialog" aria-modal="true" aria-label="Crédits" data-credits="" onClick={(e) => e.stopPropagation()} style={{ background: "#12151c", border: "1px solid #3a3f4b", borderRadius: 10, padding: "1rem 1.2rem", width: "min(34rem, 92vw)", maxHeight: "80vh", overflowY: "auto", color: "#e8e6df" }}>
+            <h2 style={{ fontSize: "1rem", marginTop: 0 }}>Crédits</h2>
+            <p style={{ fontSize: "0.8rem", color: "#b7b3a8" }}>
+              Forge Armory est un projet de fan, non affilié à Bungie. Destiny 2 est une marque de Bungie, Inc. Les noms de saisons, descriptions de sources et autres données du jeu appartiennent à Bungie.
+            </p>
+            <p style={{ fontSize: "0.8rem", color: "#b7b3a8" }}>
+              <strong>Données de saisons et de sources</strong> :{" "}
+              <a href="https://github.com/DestinyItemManager/d2-additional-info" target="_blank" rel="noreferrer" style={{ color: "#7aa2f7" }}>d2-additional-info</a>{" "}
+              — Destiny Item Manager, <a href="https://github.com/DestinyItemManager/d2-additional-info/blob/master/LICENSE" target="_blank" rel="noreferrer" style={{ color: "#7aa2f7" }}>licence MIT</a>.
+              Les tables de correspondance (saisons, sources de loot) en sont dérivées et régénérées par <code>data/rebuild-source-filters.ts</code>.
+            </p>
+            <p style={{ textAlign: "right", margin: 0 }}>
+              <button type="button" onClick={() => setCreditsOuverts(false)} style={{ fontSize: "0.8rem" }}>Fermer</button>
+            </p>
+          </div>
+        </div>
+      )}
       {/* FR : ⚠️ AJOUT (06/10/2026) - réglage du MODE DIAGNOSTIC (aussi dans l'appli installée), discret, en pied de page : voir components/InterrupteurModeDiagnostic.tsx. EN: ⚠️ ADDED - diagnostic mode switch. */}
       <InterrupteurModeDiagnostic />
     </div>

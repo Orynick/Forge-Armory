@@ -1,6 +1,6 @@
 // FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - test des PERKS DISPONIBLES SUR UN EXEMPLAIRE et des QUATRE NIVEAUX de la vue Inventaire de la Forge (demande de l'utilisateur) : lecture tolérante du composant 310 de Bungie (`lib/bungie/plugsDisponibles.ts`), niveau d'un perk (`niveauDePerk`) dans tous les cas, diagnostic du mode développement.
 // ⚠️ La forme du composant 310 est celle de la documentation de l'API : elle n'a PAS été vérifiée sur le compte de l'utilisateur (c'est le but du diagnostic). EN: ⚠️ ADDED - test of the per-instance available plugs and of the four perk levels.
-import { extrairePlugsDisponibles } from "../../src/lib/bungie/plugsDisponibles";
+import { extrairePlugsDisponibles, extraireGearTier } from "../../src/lib/bungie/plugsDisponibles";
 import { niveauDePerk } from "../../src/lib/forge/simulation";
 import { obtenirDiagnosticPlugsExemplaire } from "../../src/lib/forge/diagnosticPlugs";
 import { creerFausseDb, T_OBJET } from "./fixtures/fauxManifest";
@@ -53,4 +53,12 @@ const piece = { itemHash: 5010, itemInstanceId: "w1", nom: "Fusil à paliers", o
 const d1 = obtenirDiagnosticPlugsExemplaire(db, piece);
 ok("diagnostic : donne l'arme, le lieu, le perk équipé et les perks disponibles de chaque prise, nommés, en marquant l'équipé", /Fusil à paliers.*w1.*titan.*équipée/.test(d1) && /Prise 1 : équipé = Canon X \(6901\) \| disponibles \(2\) = Canon X \(6901\) \[équipé\], Canon Y \(6903\)/.test(d1) && /Prise 2 : équipé = Chargeur X \(6912\) \| disponibles \(0\) = —/.test(d1), d1);
 ok("diagnostic : sans donnée de disponibilité, il le dit clairement (NON LUS) au lieu d'inventer", /NON LUS/.test(obtenirDiagnosticPlugsExemplaire(db, { ...(piece as object), plugsDisponiblesParColonne: undefined } as never)));
+// ---------- ⚠️ AJOUT (19/10/2026, branche test, analyse de la spec Bungie v2.21.9) : PALIER D'UN EXEMPLAIRE (composant 300) ----------
+ok("PALIER : la forme de la spec Bungie (DestinyItemInstanceComponent.gearTier) est lue telle quelle (0 = base, valeur supérieure = palier plus haut)",
+  extraireGearTier({ gearTier: 0 }) === 0 && extraireGearTier({ gearTier: 3 }) === 3 && extraireGearTier({ gearTier: -1 }) === -1);
+ok("PALIER : donnée ABSENTE ou mal formée → undefined (« on ne sait pas »), jamais un palier deviné : undefined, null, texte, nombre, objet sans gearTier, gearTier non entier ou textuel",
+  [undefined, null, "x", 7, {}, { gearTier: "3" }, { gearTier: 2.5 }, { gearTier: null }].every((v) => extraireGearTier(v) === undefined));
+ok("PALIER : un objet réel du composant 300 (canEquip, energy, isEquipped…) est lu sans être perturbé par les autres champs",
+  extraireGearTier({ canEquip: true, isEquipped: true, gearTier: 2, primaryStat: { statHash: 4284893193, value: 2000 } }) === 2);
+
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`); process.exit(res.every(Boolean) ? 0 : 1);

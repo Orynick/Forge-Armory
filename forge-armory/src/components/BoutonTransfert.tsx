@@ -10,7 +10,7 @@ const LIEUX: Lieu[] = ["chasseur", "titan", "arcaniste", "coffre"];
 const COURT: Record<Lieu, string> = { coffre: "Coffre", chasseur: "Chasseur", titan: "Titan", arcaniste: "Arcaniste" };
 
 /** FR : destinations proposées pour cette pièce. / EN: destinations offered for this piece. */
-export function destinationsPossibles(piece: GearPiece): Lieu[] {
+function destinationsPossibles(piece: GearPiece): Lieu[] {
   return LIEUX.filter((l) => l !== (piece.origine ?? "coffre") && (l === "coffre" || !piece.classeRequise || piece.classeRequise === l));
 }
 

@@ -8,8 +8,8 @@ import { listerObjetsPossedes } from "../lib/bungie/inventaire";
 import { SessionExpiree } from "../lib/bungie/oauth";
 import { obtenirBonusSet } from "../lib/manifest/doctrine";
 import { normaliser } from "../lib/manifest/search";
-import { colonnesArmure, diagnosticArmure, statsSimulees } from "../lib/forge/armure";
-import type { ColonneArmure, PlugArmure } from "../lib/forge/armure";
+import { colonnesArmure, diagnosticArmure, statsSimulees, regrouperColonnesArmure } from "../lib/forge/armure";
+import type { ColonneArmure, PlugArmure, GroupeColonneArmure } from "../lib/forge/armure";
 import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees, Simulations } from "../lib/forge/simulation";
 import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 import { LIBELLES_SLOT, LIBELLES_STAT, ORDRE_STATS } from "../data/libellesUI";
@@ -49,6 +49,8 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
   const [classe, setClasse] = useState("toutes");
   const [emplacement, setEmplacement] = useState("tous");
   const [lieu, setLieu] = useState("tous");
+  const [rarete, setRarete] = useState("toutes");   // ⚠️ AJOUT (19/10/2026) : mêmes filtres que la Collection
+  const [ensemble, setEnsemble] = useState("tous");   // ⚠️ AJOUT (19/10/2026)
   const [seulementExotiques, setSeulementExotiques] = useState(false);
   const [seulementSimulees, setSeulementSimulees] = useState(false);
   const [affichees, setAffichees] = useState(TAILLE_PAGE);
@@ -83,9 +85,11 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
     if (!pieces) return [];
     const q = normaliser(recherche);
     return pieces
-      .filter((p) => (classe === "toutes" || p.classeRequise === classe) && (emplacement === "tous" || p.slot === emplacement) && (lieu === "tous" || p.origine === lieu) && (!seulementExotiques || p.isExotic) && (!q || normaliser(`${p.nom ?? ""} ${ensembles.get(p) ?? ""}`).includes(q)) && (!seulementSimulees || nbSim(p) > 0))
+      .filter((p) => (classe === "toutes" || p.classeRequise === classe) && (emplacement === "tous" || p.slot === emplacement) && (lieu === "tous" || p.origine === lieu) && (rarete === "toutes" || p.rarete === rarete) && (ensemble === "tous" || ensembles.get(p) === ensemble) && (!seulementExotiques || p.isExotic) && (!q || normaliser(`${p.nom ?? ""} ${ensembles.get(p) ?? ""}`).includes(q)) && (!seulementSimulees || nbSim(p) > 0))
       .sort((a, b) => (a.nom ?? "").localeCompare(b.nom ?? "", "fr"));
-  }, [pieces, recherche, classe, emplacement, lieu, seulementExotiques, seulementSimulees, ensembles, simulations]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pieces, recherche, classe, emplacement, lieu, rarete, ensemble, seulementExotiques, seulementSimulees, ensembles, simulations]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // FR : ⚠️ AJOUT (19/10/2026) - les ensembles DISTINCTS des armures chargées, pour le filtre « Ensemble » (comme le menu de la Collection). / EN: distinct set names for the Ensemble filter.
+  const ensemblesDistincts = useMemo(() => [...new Set((pieces ?? []).map((p) => ensembles.get(p)).filter((n): n is string => !!n))].sort((a, b) => a.localeCompare(b, "fr")), [pieces, ensembles]);
 
   const instance = ouverte?.itemInstanceId;
   const choixOuverte = instance ? simulations.armes[instance] : undefined;
@@ -96,6 +100,11 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
     if (!instance || !col.modifiable) return;
     if (plug.hash === col.equipe.hash || choixOuverte?.[col.socketIndex]?.choisi === plug.hash) appliquer((s) => retirerColonne(s, instance, col.socketIndex));
     else appliquer((s) => choisir(s, instance, col.socketIndex, { choisi: plug.hash, effectif: plug.hash }));
+  }
+  // FR : ⚠️ AJOUT (19/10/2026) - un clic sur le plug d'un GROUPE de prises identiques simule la PREMIÈRE prise non simulée du groupe : chaque prise reste simulée séparément (le magasin de simulations est par prise), mais l'utilisateur ne voit la liste qu'une seule fois. / EN: a click on a grouped socket's plug simulates the first unsimulated socket of the group.
+  function choisirPlugGroupe(groupe: GroupeColonneArmure, plug: PlugArmure) {
+    const cible = groupe.colonnes.find((c) => choixOuverte?.[c.socketIndex]?.choisi !== plug.hash) ?? groupe.colonnes[0];
+    choisirPlug(cible, plug);
   }
   /** FR : efface les simulations des ARMURES chargées (pas celles des armes). / EN: clears the loaded armor pieces' simulations only. */
   const idsAvecSimulation = (pieces ?? []).filter((p) => p.itemInstanceId && nbSim(p) > 0).map((p) => p.itemInstanceId as string);
@@ -128,6 +137,15 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
             <select aria-label="Où se trouve l'armure" value={lieu} onChange={(e) => { setLieu(e.target.value); setAffichees(TAILLE_PAGE); }} style={styleChamp}>
               <option value="tous">Partout</option>
               {Object.entries(LIEUX).map(([cle, nom]) => <option key={cle} value={cle}>{nom}</option>)}
+            </select>
+            {/* FR : ⚠️ AJOUT (19/10/2026, demande : « mets les mêmes filtres que la Collection ») - rareté et ensemble, comme les menus de la Collection des armures. / EN: rarity and set filters, like the Collection's menus. */}
+            <select aria-label="Rareté de l'armure" value={rarete} onChange={(e) => { setRarete(e.target.value); setAffichees(TAILLE_PAGE); }} style={styleChamp}>
+              <option value="toutes">Toutes raretés</option>
+              {[...new Set((pieces ?? []).map((p) => p.rarete).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), "fr")).map((r) => <option key={r} value={r as string}>{r}</option>)}
+            </select>
+            <select aria-label="Ensemble d'armure possédé" value={ensemble} onChange={(e) => { setEnsemble(e.target.value); setAffichees(TAILLE_PAGE); }} style={styleChamp}>
+              <option value="tous">Tous les ensembles</option>
+              {ensemblesDistincts.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
             <label style={{ fontSize: "0.8rem", display: "inline-flex", gap: "0.35rem", alignItems: "center" }}>
               <input type="checkbox" checked={seulementExotiques} onChange={(e) => { setSeulementExotiques(e.target.checked); setAffichees(TAILLE_PAGE); }} /> Seulement les exotiques
@@ -210,17 +228,22 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
               </div>
             )}
             {colonnes.length === 0 && <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucun emplacement lu pour cette armure (rechargez votre inventaire).</p>}
-            {colonnes.map((col) => (
-              <div key={col.socketIndex} data-colonne={col.socketIndex} data-modifiable={col.modifiable ? "1" : ""} style={{ margin: "0 0 0.7rem" }}>
-                <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#9a968a", margin: "0 0 0.25rem" }}>{col.categorie || `Emplacement ${col.socketIndex}`}{!col.modifiable && <span style={{ fontWeight: 400, color: "#6b6860" }}> · {col.fixe ? "fixe" : col.cosmetique ? "cosmétique" : "un seul plug disponible"}</span>}</div>
+            {/* FR : ⚠️ AJOUT (19/10/2026, retour de test de la 0.4.12 : « sur certains slots, il y aura forcément des doublons, il faudra une interface spécifique pour ne pas les afficher 3 fois ») - les prices IDENTIQUES (même plug équipé, même catégorie, mêmes options) sont regroupées en UN bloc « × N » ; chaque prise du groupe reste simulée séparément (le magasin est par prise) : le marqueur du bloc dit combien sont simulées. / EN: identical sockets are shown once as one block; each socket stays simulated separately. */}
+            {regrouperColonnesArmure(colonnes).map((groupe) => {
+              const premier = groupe.colonnes[0];
+              const nbSimuleesGroupe = groupe.colonnes.filter((c) => choixOuverte?.[c.socketIndex]?.choisi !== undefined && choixOuverte?.[c.socketIndex]?.choisi !== c.equipe.hash).length;
+              return (
+              <div key={premier.socketIndex} data-colonne={premier.socketIndex} data-groupe-prises={groupe.colonnes.length > 1 ? groupe.colonnes.map((c) => c.socketIndex).join(",") : ""} data-modifiable={groupe.modifiable ? "1" : ""} data-theorique={groupe.theorique ? "1" : ""} style={{ margin: "0 0 0.7rem" }}>
+                <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#9a968a", margin: "0 0 0.25rem" }}>{groupe.categorie || `Emplacement ${premier.socketIndex}`}{groupe.colonnes.length > 1 && <span data-multiplicite={groupe.colonnes.length}> × {groupe.colonnes.length}</span>}{nbSimuleesGroupe > 0 && <span style={{ color: "#e8c547" }}> · {nbSimuleesGroupe} simulé{nbSimuleesGroupe > 1 ? "s" : ""}</span>}{!groupe.modifiable && <span style={{ fontWeight: 400, color: "#6b6860" }}> · {groupe.fixe ? "fixe" : groupe.cosmetique ? "cosmétique" : "un seul plug disponible"}</span>}</div>
+                {groupe.theorique && groupe.modifiable && <p data-plugs-theoriques="" style={{ fontSize: "0.7rem", color: "#9a8a6a", margin: "0 0 0.25rem" }}>Plugs possibles lus sur le modèle du jeu (votre exemplaire n'en liste aucun) : la simulation est locale, rien ne prouve que cette pièce les accepte.</p>}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
-                  {col.options.map((plug) => {
-                    const reel = plug.hash === col.equipe.hash;
-                    const simule = choixOuverte?.[col.socketIndex]?.choisi === plug.hash;
-                    const niveau = simule ? "simule" : reel ? "reel" : "disponible";
+                  {premier.options.map((plug) => {
+                    const reel = plug.hash === premier.equipe.hash;
+                    const simule = groupe.colonnes.some((c) => choixOuverte?.[c.socketIndex]?.choisi === plug.hash);
+                    const niveau = simule ? "simule" : reel ? "reel" : plug.theorique ? "theorique" : "disponible";
                     return (
-                      <button key={plug.hash} type="button" disabled={!col.modifiable} onClick={() => choisirPlug(col, plug)} title={plug.description || plug.nom} data-plug={plug.hash} data-niveau={niveau} data-reel={reel ? "1" : ""}
-                        style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.2rem 0.55rem", fontSize: "0.78rem", borderRadius: 999, cursor: col.modifiable ? "pointer" : "default", color: simule ? "#f4e3a0" : reel ? "#e8e6df" : col.modifiable ? "#b9bcc6" : "#8a8a96", background: simule ? "#2a2412" : "#0d0f14", border: `1px solid ${simule ? "#e8c547" : reel ? "#7aa2f7" : "#4a4f5c"}`, opacity: 1 }}>
+                      <button key={plug.hash} type="button" disabled={!groupe.modifiable} onClick={() => (groupe.colonnes.length > 1 ? choisirPlugGroupe(groupe, plug) : choisirPlug(premier, plug))} title={plug.description || plug.nom} data-plug={plug.hash} data-niveau={niveau} data-reel={reel ? "1" : ""} data-theorique={plug.theorique ? "1" : ""}
+                        style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.2rem 0.55rem", fontSize: "0.78rem", borderRadius: 999, cursor: groupe.modifiable ? "pointer" : "default", color: simule ? "#f4e3a0" : reel ? "#e8e6df" : groupe.modifiable ? "#b9bcc6" : "#8a8a96", background: simule ? "#2a2412" : "#0d0f14", border: `1px solid ${simule ? "#e8c547" : reel ? "#7aa2f7" : "#4a4f5c"}`, opacity: 1, fontStyle: plug.theorique && !reel ? "italic" : "normal" }}>
                         {reel && <span style={{ color: "#7aa2f7" }}>✓</span>}
                         {plug.icone && <img src={plug.icone} alt="" width={18} height={18} style={{ borderRadius: 3 }} />}
                         <span>{plug.nom}</span>
@@ -229,7 +252,8 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
                   })}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

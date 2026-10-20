@@ -5,6 +5,7 @@
 import { useVersionSaisons } from "./useVersionSaisons";
 import type { Database } from "sql.js";
 import { libelleSaison, obtenirSaisonObjet } from "../lib/manifest/saison";
+import { saisonDeLObjet, saisonParNumero } from "../data/saisons";   // ⚠️ AJOUT (19/10/2026) : secours de l'infobulle (table objet→saison de d2-additional-info)
 
 /**
  * FR : le coin montré : départ horizontal `x`, départ vertical `y` et côté `fraction`, en proportion de l'image.
@@ -17,7 +18,13 @@ export default function IconeSaison({ db, itemHash, taille = 18 }: { db?: Databa
   const saison = obtenirSaisonObjet(db, itemHash);
   if (!saison) return null;
   const cote = taille / CADRAGE_SAISON.fraction;
-  const libelle = libelleSaison(saison);
+  // FR : ⚠️ AJOUT (19/10/2026, second retour de test : « filigrane présent mais pas de nom de saison au survol ») - SECOURS DE L'INFOBULLE : quand le Manifest ne donne ni nom ni numéro (le cas de l'utilisateur : « 0 filigrane relié à une saison »), le numéro vient de la table objet→saison de d2-additional-info (57 439 objets, MIT) et le nom de la table des saisons locale. L'infobulle ne dit plus jamais juste « Saison de l'objet » quand la saison est connue. / EN: tooltip fallback through the d2-additional-info item→season table.
+  let libelle = libelleSaison(saison);
+  if (!saison.nom) {
+    const n = saisonDeLObjet(itemHash);
+    const table = n != null ? saisonParNumero(n) : undefined;
+    if (table?.nom) libelle = `${table.nom}${n != null ? ` (saison ${n})` : ""}`;
+  }
   return (
     <span data-icone-saison="" role="img" aria-label={libelle} title={libelle} style={{ position: "relative", display: "inline-block", width: taille, height: taille, overflow: "hidden", flexShrink: 0, verticalAlign: "middle", background: "transparent" }}>
       <img src={saison.filigrane} alt="" aria-hidden="true" width={cote} height={cote} draggable={false} style={{ position: "absolute", left: -CADRAGE_SAISON.x * cote, top: -CADRAGE_SAISON.y * cote, maxWidth: "none", mixBlendMode: "screen" }} />
