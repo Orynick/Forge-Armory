@@ -1,3 +1,17 @@
+## 20/10/2026 — vue « Carrière » du compte (spécification du 14/10/2026) + intégration de l'archive d'assets v7
+
+**Bouton « Carrière »** (archive d'assets v7 de l'utilisateur, `selecteur.carriere.*`) : visible uniquement CONNECTÉ, sous la coche verte du bloc « Connexion à Bungie ». Aucun appel réseau au chargement de l'appli — les données se chargent au clic, comme « Charger mon inventaire ». Lecture SEULE (GetHistoricalStats, GetActivityHistory, GetProfile déjà chargé).
+
+**Vue « Carrière »** (modale, même habillage que les fenêtres Détails existantes) : compte (pseudo Bungie, plateformes liées), temps de jeu total et par classe (Titan/Chasseur/Arcaniste, lu du profil déjà chargé — aucune requête supplémentaire), personnages (puissance), 10 dernières activités (type, date, durée si disponible), statistiques « Carrière » du compte (bloc allTime de GetHistoricalStats avec `characterId = 0` : l'agrégation de tous les personnages en UNE requête, l'équivalent exact du filtre « Carrière » des Emblèmes du jeu — les filtres Tout/Semaine/Saison ne sont pas repris). Chaque section s'affiche indépendamment ; une donnée manquante affiche « non disponible », jamais une estimation. Aucune persistance : rafraîchie à chaque ouverture.
+
+**Navigation croisée Carrière ↔ Accomplissements** : bouton « Accomplissements » dans la Carrière qui ouvre le tiroir « Solo sans mourir » ; bouton « Carrière » dans ce tiroir ; les deux vues conservent leur état, retour toujours possible.
+
+**Diagnostic dev** (`statIdsCarriere`, actif) : liste les statIds bruts réellement retournés par GetHistoricalStats pour figer la sélection des stats affichées sur des données réelles (même démarche que le composant 310 et les filigranes de saison). À repasser à `false` après validation.
+
+**Intégration de l'archive v7** : `public/assets` resynchronisé avec `ressources-installateur/forge-armory/app-assets/` (ancien `app-assets` archivé en `app-assets-v6`) ; catalogue généré `forgeAssets.ts` repris TEL QUEL depuis la v7 (77 actifs — il couvre maintenant Carrière, Accomplissements, Armes, Armures et les PNG de marque, le complément n'a plus à les déclarer) ; `retoucher-visuels.mjs` rejoué. Le test `reproductibilite-visuels` repasse 7/7 (les 2 échecs « attendus » de la 0.4.14 sont donc résolus : il ne reste que l'échec préexistant `icones` 10/11, inchangé). Le test `visuels` vérifie le cadre (viewBox) des SVG uniquement — le catalogue v7 déclare des PNG.
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓ ; batterie de logique 29/30 séries au vert (seul échec : `icones` 10/11, préexistant, identique sans ces changements) ; `reproductibilite-visuels` 7/7 ; `visuels` 20/20.
+
 ## 19/10/2026 (nuit) — v0.4.14
 
 **Décision de l'utilisateur** : « le chantier Forge n'est pas totalement finalisé, donc on reste en 0.4.x. Fait un simple incrément, vers 0.4.14. On passera en 0.5 quand le chantier Forge sera terminé 🙂 » — CONVENTION ACTÉE : les 0.4.x suivent le chantier Forge ; **0.5.x sera réservé à sa clôture**.

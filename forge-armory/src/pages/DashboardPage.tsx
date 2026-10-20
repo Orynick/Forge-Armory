@@ -19,6 +19,7 @@ import { BuildDraft, GearPiece, SubclassConfig, poserPieceDansBuild } from "../t
 import PilierCarte from "../components/PilierCarte";
 import BlocContexte from "../components/BlocContexte";
 import PanneauTriomphes from "../components/PanneauTriomphes";
+import ModaleCarriere from "../components/ModaleCarriere";   // ⚠️ AJOUT (20/10/2026, v0.4.14) : vue « Carrière » du compte
 import { recupererProfilTriomphes } from "../lib/bungie/triomphes";
 import { EVENEMENT_SESSION_EXPIREE, redirigerVersAutorisation, deconnecter, etatSession, SessionExpiree, expirerSessionPourTest, estBureau, connecterViaBureau } from "../lib/bungie/oauth";
 import {
@@ -49,6 +50,7 @@ import SelecteurVues, { VueApp } from "../components/SelecteurVues";
 import PageForge from "../components/PageForge";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : onglet Forge
 import { defilerVers } from "../lib/defilerVers";
 import TitreCategorie from "../components/TitreCategorie";
+import { urlVisuel } from "../lib/visuelsForge";   // ⚠️ AJOUT (20/10/2026, v0.4.14) : bouton « Carrière » du bloc Connexion
 import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic";
 import Bibliotheque from "../components/Bibliotheque";
 import { EtatPonderations, lirePonderations, poidsActifsEnFractions } from "../lib/scoring/ponderations";
@@ -70,6 +72,10 @@ export default function DashboardPage() {
   // données ne changent qu'après avoir terminé un donjon, inutile de les
   // recharger à chaque changement d'équipement.
   const [profilTriomphes, setProfilTriomphes] = useState<unknown | null>(null);
+  // FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - vue « CARRIÈRE » du compte (spécification du 14/10/2026) : modale ouverte par le bouton « Carrière » du bloc Connexion (connecté uniquement, sous la coche verte). Aucun appel réseau avant le clic ; aucun état persisté — la modale se ferme et se rouvre sans toucher au reste de l'appli. / EN: ⚠️ ADDED - account "Career" modal state.
+  const [carriereOuverte, setCarriereOuverte] = useState(false);
+  // FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - état d'ouverture du tiroir « Solo sans mourir », délégué ici pour la navigation croisée Carrière ↔ Accomplissements : le bouton « Accomplissements » de la Carrière l'ouvre, et ce tiroir garde un bouton « Carrière » (retour) ; les deux vues conservent leur état. / EN: ⚠️ ADDED - external state of the Accomplishments drawer for the cross-navigation.
+  const [tiroirTriomphesOuvert, setTiroirTriomphesOuvert] = useState<boolean | undefined>(undefined);
   const [db, setDb] = useState<Database | null>(null);
   // FR : ⚠️ AJOUT (06/10/2026) - mode diagnostic (réglable depuis le pied de page, actif aussi dans l'appli installée) : voir lib/modeDiagnostic.ts.
   const modeDiagnostic = useModeDiagnostic();
@@ -493,6 +499,20 @@ export default function DashboardPage() {
         </div>
 
         {erreurTest && <p style={{ color: "#e08080", margin: "0.5rem 0 0" }}>⚠️ {erreurTest}</p>}
+        {/* FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - bouton « CARRIÈRE » du bloc Connexion (spécification du 14/10/2026) : visible uniquement CONNECTÉ, sous la coche verte du titre. Bouton stylisé de l'archive d'assets v7 (deux états superposés, même règles CSS que le sélecteur : survol, anneau de focus clavier, lueur dans le cadre), `aria-label` car le titre est en tracés dans l'image. AUCUN appel réseau au chargement de l'appli : les données de Carrière se chargent uniquement au clic sur le bouton, comme « Charger mon inventaire ». / EN: ⚠️ ADDED - "Career" button, connected-only; data loads on click only. */}
+        {connecte && (
+          <button
+            type="button"
+            className="bouton-vue"
+            aria-label="Carrière"
+            title="Voir les statistiques d'usage de votre compte (lecture seule)"
+            onClick={() => setCarriereOuverte(true)}
+            style={{ "--hauteur-bouton": "2.75rem", marginTop: "0.5rem" } as React.CSSProperties}
+          >
+            <img className="bouton-vue__repos" src={urlVisuel("selecteur.carriere.repos")} alt="" draggable={false} />
+            <img className="bouton-vue__actif" src={urlVisuel("selecteur.carriere.selectionne")} alt="" draggable={false} />
+          </button>
+        )}
 
         {memberships.length > 1 && (
           <p style={{ fontSize: "0.8rem", color: "#b7b3a8", margin: "0.5rem 0 0" }}>
@@ -647,7 +667,19 @@ export default function DashboardPage() {
       EN: ⚠️ ADDED - "Solo Flawless" showcase, LEFT sliding panel mirroring
       the loadouts on the right. Also `fixed`, so its JSX position doesn't
       affect where it appears. */}
-      <PanneauTriomphes profil={profilTriomphes} db={db} />
+      {/* FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - vue « Carrière » du compte : modale (même habillage que les fenêtres Détails existantes, choix de la spécification) ouverte par le bouton du bloc Connexion. Aucune persistance : rafraîchie à chaque ouverture. / EN: ⚠️ ADDED - Career modal. */}
+      {carriereOuverte && connecte && memberships[0] && (
+        <ModaleCarriere
+          onFermer={() => setCarriereOuverte(false)}
+          membership={memberships[0]}
+          memberships={memberships}
+          nomBungie={nomBungie}
+          personnages={personnages}
+          profil={profilTriomphes}
+          onOuvrirAccomplissements={() => setTiroirTriomphesOuvert(true)}
+        />
+      )}
+      <PanneauTriomphes profil={profilTriomphes} db={db} ouvertExterieur={tiroirTriomphesOuvert} onOuvertChange={setTiroirTriomphesOuvert} onOuvrirCarriere={connecte ? () => setCarriereOuverte(true) : undefined} />
 
       <PanneauLoadouts
         objetsPossedes={objetsPossedes}

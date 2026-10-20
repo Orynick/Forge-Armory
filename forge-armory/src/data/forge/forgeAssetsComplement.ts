@@ -9,18 +9,19 @@
 import type { ForgeAsset } from "./forgeAssets";
 
 export const FORGE_ASSETS_COMPLEMENT: readonly ForgeAsset[] = [
-  { id: "titres.connexion.repos", famille: "titres", label: "Connexion à Bungie", etat: "repos", fichier: "assets/titres/titre-connexion.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
-  { id: "titres.manifest.repos", famille: "titres", label: "Recherche dans le Manifest", etat: "repos", fichier: "assets/titres/titre-manifest.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
-  { id: "titres.1-doctrine-elementaire.repos", famille: "titres", label: "1. Doctrine élémentaire", etat: "repos", fichier: "assets/titres/titre-1-doctrine-elementaire.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
-  { id: "titres.2-armes-armures.repos", famille: "titres", label: "2. Armes et Armures", etat: "repos", fichier: "assets/titres/titre-2-armes-armures.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
-  { id: "titres.3-artefact.repos", famille: "titres", label: "3. Artefact", etat: "repos", fichier: "assets/titres/titre-3-artefact.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40 },
+  { id: "titres.connexion.repos", famille: "titres", label: "Connexion à Bungie", etat: "repos", fichier: "assets/titres/titre-connexion.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40, format: "svg" },
+  { id: "titres.manifest.repos", famille: "titres", label: "Recherche dans le Manifest", etat: "repos", fichier: "assets/titres/titre-manifest.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40, format: "svg" },
+  { id: "titres.1-doctrine-elementaire.repos", famille: "titres", label: "1. Doctrine élémentaire", etat: "repos", fichier: "assets/titres/titre-1-doctrine-elementaire.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40, format: "svg" },
+  { id: "titres.2-armes-armures.repos", famille: "titres", label: "2. Armes et Armures", etat: "repos", fichier: "assets/titres/titre-2-armes-armures.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40, format: "svg" },
+  { id: "titres.3-artefact.repos", famille: "titres", label: "3. Artefact", etat: "repos", fichier: "assets/titres/titre-3-artefact.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40, format: "svg" },
   // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - onglet FORGE (logo VALIDÉ par l'utilisateur) : deux états du bouton du sélecteur (famille « selecteur », cadre 4316 × 1024, comme les trois autres) et l'icône seule. Sources : `ressources-installateur/forge-armory/forge-0.4.0/`.
-  { id: "selecteur.forge.repos", famille: "selecteur", label: "Forge", etat: "repos", fichier: "assets/selecteur/bouton-forge.svg", largeur: 4316, hauteur: 1024, ratio: 4.2148, hauteurMinPx: 40 },
-  { id: "selecteur.forge.selectionne", famille: "selecteur", label: "Forge", etat: "selectionne", fichier: "assets/selecteur/bouton-forge-selectionne.svg", largeur: 4316, hauteur: 1024, ratio: 4.2148, hauteurMinPx: 40 },
+  { id: "selecteur.forge.repos", famille: "selecteur", label: "Forge", etat: "repos", fichier: "assets/selecteur/bouton-forge.svg", largeur: 4316, hauteur: 1024, ratio: 4.2148, hauteurMinPx: 40, format: "svg" },
+  { id: "selecteur.forge.selectionne", famille: "selecteur", label: "Forge", etat: "selectionne", fichier: "assets/selecteur/bouton-forge-selectionne.svg", largeur: 4316, hauteur: 1024, ratio: 4.2148, hauteurMinPx: 40, format: "svg" },
   // FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - bouton INVENTAIRE du sélecteur (OPTION 2 choisie par l'utilisateur : un vrai bouton au format du sélecteur, plutôt que le titre repliable « Mon Inventaire » de Build Analyzer). Fabriqué par `scripts/generer-propositions-solo-forge.mjs` à partir du coffre de l'icône « Mon Inventaire » de l'utilisateur ; source : `ressources-installateur/forge-armory/inventaire-0.4.3/`. À BRANCHER après les tests de la 0.4.3 (demande de l'utilisateur) : le sous-menu « Collection » de la Forge prendra le bouton de l'archive v4, « Inventaire » celui-ci. EN: ⚠️ ADDED - Inventory selector button.
-  { id: "selecteur.inventaire.repos", famille: "selecteur", label: "Inventaire", etat: "repos", fichier: "assets/selecteur/bouton-inventaire.svg", largeur: 4316, hauteur: 1024, ratio: 4.2148, hauteurMinPx: 40 },
-  { id: "selecteur.inventaire.selectionne", famille: "selecteur", label: "Inventaire", etat: "selectionne", fichier: "assets/selecteur/bouton-inventaire-selectionne.svg", largeur: 4316, hauteur: 1024, ratio: 4.2148, hauteurMinPx: 40 },
-  { id: "icones.forge", famille: "icones", label: "Forge", etat: null, fichier: "assets/icones/icone-forge.svg", largeur: 1024, hauteur: 1024, ratio: 1, hauteurMinPx: 24 },
+  { id: "selecteur.inventaire.repos", famille: "selecteur", label: "Inventaire", etat: "repos", fichier: "assets/selecteur/bouton-inventaire.svg", largeur: 4316, hauteur: 1024, ratio: 4.2148, hauteurMinPx: 40, format: "svg" },
+  { id: "selecteur.inventaire.selectionne", famille: "selecteur", label: "Inventaire", etat: "selectionne", fichier: "assets/selecteur/bouton-inventaire-selectionne.svg", largeur: 4316, hauteur: 1024, ratio: 4.2148, hauteurMinPx: 40, format: "svg" },
+  { id: "icones.forge", famille: "icones", label: "Forge", etat: null, fichier: "assets/icones/icone-forge.svg", largeur: 1024, hauteur: 1024, ratio: 1, hauteurMinPx: 24, format: "svg" },
+  // FR : ⚠️ CHANGÉ (20/10/2026, v0.4.14) - le catalogue GÉNÉRÉ de l'archive v7 (`ressources-installateur/forge-armory/app-assets/forgeAssets.ts`, 77 actifs) couvre maintenant Carrière, Accomplissements, Armes et Armures : re pris TEL QUEL (règle du projet : jamais modifié à la main), le complément n'a donc plus à déclarer ces entrées. / EN: ⚠️ CHANGED - the v7 generated catalogue now covers Career/Accomplishments/Weapons/Armors; the supplement no longer declares them.
 ];
 
 /**

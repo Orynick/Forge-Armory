@@ -28,7 +28,8 @@ const declares = new Set(TOUS.map((a) => a.fichier));
 const enTrop = surDisque.filter((f) => !declares.has(f) && !["assets/marque/forge-armory-emblem.svg"].includes(f));
 ok("public/assets ne contient AUCUN SVG non déclaré (pas de reste d'ancienne version)", enTrop.length === 0, enTrop);
 const cadre = (f: string) => { const m = /viewBox="(-?[\d.]+) (-?[\d.]+) ([\d.]+) ([\d.]+)"/.exec(lire(f)); return m ? { l: +m[3], h: +m[4] } : null; };   // les symboles de profil ont un cadre qui ne commence pas à 0 0
-const mauvaisCadre = TOUS.filter((a) => { const c = cadre(a.fichier); return !(c && Math.abs(c.l - a.largeur) < 0.5 && Math.abs(c.h - a.hauteur) < 0.5); }).map((a) => a.id);
+// FR : ⚠️ CHANGÉ (20/10/2026, v0.4.14) - le catalogue v7 déclare des PNG (famille « marque » : logo et planche de déclinaisons) : le cadre (viewBox) ne se vérifie que pour les SVG. / EN: ⚠️ CHANGED - the v7 catalogue declares PNGs; the viewBox check applies to SVGs only.
+const mauvaisCadre = TOUS.filter((a) => { if (a.fichier.endsWith(".png")) return false; const c = cadre(a.fichier); return !(c && Math.abs(c.l - a.largeur) < 0.5 && Math.abs(c.h - a.hauteur) < 0.5); }).map((a) => a.id);
 ok("chaque fichier déclaré a le cadre (viewBox : largeur et hauteur) annoncé par son entrée du catalogue", mauvaisCadre.length === 0, mauvaisCadre);
 const tousIds: Record<string, string[]> = {};
 let sale: string[] = [];
