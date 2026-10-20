@@ -1,3 +1,11 @@
+## 19/10/2026 (nuit) — v0.4.14
+
+**Décision de l'utilisateur** : « le chantier Forge n'est pas totalement finalisé, donc on reste en 0.4.x. Fait un simple incrément, vers 0.4.14. On passera en 0.5 quand le chantier Forge sera terminé 🙂 » — CONVENTION ACTÉE : les 0.4.x suivent le chantier Forge ; **0.5.x sera réservé à sa clôture**.
+
+**Contenu de la 0.4.14** (tout validé par les tests de l'utilisateur) : retour de test de la 0.4.12 (cristal du titre — chaîne officielle, barre de la Forge avec logos v5, filtres de l'Inventaire, mods possibles par le modèle + regroupement ×N des prises identiques), nettoyage de l'audit du 16/10 (code mort, exports), `npm run build` strict rétabli (BadgeSaison supprimé), palier (`gearTier`, composant 300), attribution des icônes corrigée (justrealmilk/destiny-icons, CC0), **chantier « saisons et sources » complet** (table de 28 saisons, jointure par hash d'objet, table objet→saison de DIM de 57 439 entrées pour la fiche ET l'infobulle, sources de loot fidèles à DIM, menu déroulant Source avec libellés français corrigés et préfixes Raid ·/Donjon ·, ordre fixé, crédits MIT d2-additional-info en pop-up).
+
+**Vérifié** : batterie complète au vert (hors les 2 échecs préexistants documentés : `icones`, `reproductibilite-visuels`) ; build strict ✓ ; `tsc` zéro erreur.
+
 ## 19/10/2026 (fin de soirée) — ordre du menu Source complété : Flèche d'Étoiles et Racine des Cauchemars replacées
 
 **Demande de l'utilisateur** : « J'ai bien oublié ces deux-là : Flèche d'Étoiles à mettre juste après Dévoreur de Mondes, Racine des Cauchemars à mettre juste après Serment du Disciple. Tu pourras push ce changement directement. » — uniquement l'ORDRE du menu ; les noms et le reste sont inchangés. Corrigé dans le RÉGÉNÉRATEUR (la régénération conserve l'ordre voulu) et le JSON régénéré. Push direct sur `main` autorisé.
