@@ -533,7 +533,7 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
             >
               <option value="toutes">Toutes les sources</option>
               {SOURCE_FILTER_SUGGESTIONS.map((p) => (
-                <option key={p.valeur} value={p.valeur}>{p.genre === "categorie" ? "" : "Activité · "}{p.libelle}</option>
+                <option key={p.valeur} value={p.valeur}>{p.prefixe}{p.libelle}</option>
               ))}
             </select>
           </div>

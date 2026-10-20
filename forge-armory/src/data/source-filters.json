@@ -506,7 +506,7 @@
    ]
   },
   "nightfall": {
-   "libelle_fr": "Nuit difficile / GM",
+   "libelle_fr": "Nuit Noire / GM",
    "libelle_en": "Nightfall / GM",
    "sourceHashes": [
     110159004,
@@ -822,74 +822,13 @@
  },
  "activities": {
   "vault-of-glass": {
-   "libelle_fr": "Coffre des âges",
+   "libelle_fr": "Caveau de Verre",
    "libelle_en": "Vault of Glass",
    "sourceHashes": [
     2065138144
    ],
-   "itemHashes": []
-  },
-  "last-wish": {
-   "libelle_fr": "Dernier Vœu",
-   "libelle_en": "Last Wish",
-   "sourceHashes": [
-    2455011338
-   ],
-   "itemHashes": [
-    3668669364
-   ]
-  },
-  "garden-of-salvation": {
-   "libelle_fr": "Jardin du Salut",
-   "libelle_en": "Garden of Salvation",
-   "sourceHashes": [
-    1491707941
-   ],
-   "itemHashes": [
-    4103414242
-   ]
-  },
-  "deep-stone-crypt": {
-   "libelle_fr": "Crypte de Pierre-Profonde",
-   "libelle_en": "Deep Stone Crypt",
-   "sourceHashes": [
-    866530798,
-    1405897559,
-    1692165595
-   ],
-   "itemHashes": []
-  },
-  "kings-fall": {
-   "libelle_fr": "La Chute du Roi",
-   "libelle_en": "King's Fall",
-   "sourceHashes": [
-    160129377
-   ],
-   "itemHashes": []
-  },
-  "vow-of-the-disciple": {
-   "libelle_fr": "Serment du Disciple",
-   "libelle_en": "Vow of the Disciple",
-   "sourceHashes": [
-    1007078046
-   ],
-   "itemHashes": []
-  },
-  "root-of-nightmares": {
-   "libelle_fr": "Racine des Cauchemars",
-   "libelle_en": "Root of Nightmares",
-   "sourceHashes": [
-    3190710249
-   ],
-   "itemHashes": []
-  },
-  "salvations-edge": {
-   "libelle_fr": "Le Tranchant du Salut",
-   "libelle_en": "Salvation's Edge",
-   "sourceHashes": [
-    2700267533
-   ],
-   "itemHashes": []
+   "itemHashes": [],
+   "genre": "raid"
   },
   "crotas-end": {
    "libelle_fr": "La Fin de Crota",
@@ -897,7 +836,17 @@
    "sourceHashes": [
     1897187034
    ],
-   "itemHashes": []
+   "itemHashes": [],
+   "genre": "raid"
+  },
+  "kings-fall": {
+   "libelle_fr": "La Chute du Roi",
+   "libelle_en": "King's Fall",
+   "sourceHashes": [
+    160129377
+   ],
+   "itemHashes": [],
+   "genre": "raid"
   },
   "leviathan": {
    "libelle_fr": "Léviathan",
@@ -909,7 +858,8 @@
    ],
    "itemHashes": [
     3580904580
-   ]
+   ],
+   "genre": "raid"
   },
   "eater-of-worlds": {
    "libelle_fr": "Dévoreur de Mondes",
@@ -918,16 +868,8 @@
     2937902448,
     4066007318
    ],
-   "itemHashes": []
-  },
-  "spire-of-stars": {
-   "libelle_fr": "Flèche d'Étoiles",
-   "libelle_en": "Spire of Stars",
-   "sourceHashes": [
-    1675483099,
-    2812190367
-   ],
-   "itemHashes": []
+   "itemHashes": [],
+   "genre": "raid"
   },
   "scourge-of-the-past": {
    "libelle_fr": "Fléau du Passé",
@@ -942,7 +884,19 @@
     1271275406,
     2274706510,
     2557722678
-   ]
+   ],
+   "genre": "raid"
+  },
+  "last-wish": {
+   "libelle_fr": "Dernier Vœu",
+   "libelle_en": "Last Wish",
+   "sourceHashes": [
+    2455011338
+   ],
+   "itemHashes": [
+    3668669364
+   ],
+   "genre": "raid"
   },
   "crown-of-sorrow": {
    "libelle_fr": "Couronne du Chagrin",
@@ -956,7 +910,48 @@
     1661191193,
     2027598066,
     2027598067
-   ]
+   ],
+   "genre": "raid"
+  },
+  "deep-stone-crypt": {
+   "libelle_fr": "Crypte de la Pierre Enfouie",
+   "libelle_en": "Deep Stone Crypt",
+   "sourceHashes": [
+    866530798,
+    1405897559,
+    1692165595
+   ],
+   "itemHashes": [],
+   "genre": "raid"
+  },
+  "garden-of-salvation": {
+   "libelle_fr": "Jardin du Salut",
+   "libelle_en": "Garden of Salvation",
+   "sourceHashes": [
+    1491707941
+   ],
+   "itemHashes": [
+    4103414242
+   ],
+   "genre": "raid"
+  },
+  "vow-of-the-disciple": {
+   "libelle_fr": "Serment du Disciple",
+   "libelle_en": "Vow of the Disciple",
+   "sourceHashes": [
+    1007078046
+   ],
+   "itemHashes": [],
+   "genre": "raid"
+  },
+  "salvations-edge": {
+   "libelle_fr": "Orée du Salut",
+   "libelle_en": "Salvation's Edge",
+   "sourceHashes": [
+    2700267533
+   ],
+   "itemHashes": [],
+   "genre": "raid"
   },
   "shattered-throne": {
    "libelle_fr": "Trône Brisé",
@@ -966,17 +961,19 @@
     185321778,
     814876684,
     2844014413
-   ]
+   ],
+   "genre": "donjon"
   },
   "pit-of-heresy": {
-   "libelle_fr": "Fosse d'Hérésie",
+   "libelle_fr": "Fosse de l'Hérésie",
    "libelle_en": "Pit of Heresy",
    "sourceHashes": [
     1745960977
    ],
    "itemHashes": [
     1969802090
-   ]
+   ],
+   "genre": "donjon"
   },
   "prophecy": {
    "libelle_fr": "Prophétie",
@@ -1008,15 +1005,17 @@
     3733988413,
     4025177550,
     4097972038
-   ]
+   ],
+   "genre": "donjon"
   },
   "grasp-of-avarice": {
-   "libelle_fr": "Poigne d'Avarice",
+   "libelle_fr": "Étreinte de l'Avarice",
    "libelle_en": "Grasp of Avarice",
    "sourceHashes": [
     675740011
    ],
-   "itemHashes": []
+   "itemHashes": [],
+   "genre": "donjon"
   },
   "duality": {
    "libelle_fr": "Dualité",
@@ -1029,10 +1028,11 @@
     2026087437,
     3000847393,
     3652506829
-   ]
+   ],
+   "genre": "donjon"
   },
   "spire-of-the-watcher": {
-   "libelle_fr": "Flèche de la Guetteuse",
+   "libelle_fr": "Flèche de la Vigie",
    "libelle_en": "Spire of the Watcher",
    "sourceHashes": [
     1597738585
@@ -1060,7 +1060,8 @@
     4239378215,
     4249949938,
     4267192886
-   ]
+   ],
+   "genre": "donjon"
   },
   "ghosts-of-the-deep": {
    "libelle_fr": "Fantômes des Profondeurs",
@@ -1089,10 +1090,11 @@
     3262192268,
     4193602194,
     4228149269
-   ]
+   ],
+   "genre": "donjon"
   },
   "warlords-ruin": {
-   "libelle_fr": "Ruin du Seigneur de Guerre",
+   "libelle_fr": "Ruine de la Guerrière",
    "libelle_en": "Warlord's Ruin",
    "sourceHashes": [
     613435025
@@ -1102,10 +1104,11 @@
     2806569825,
     3381450498,
     3668817296
-   ]
+   ],
+   "genre": "donjon"
   },
   "vespers-host": {
-   "libelle_fr": "Hôte de Vêpres",
+   "libelle_fr": "Hôte Vesper",
    "libelle_en": "Vesper's Host",
    "sourceHashes": [
     2463956052
@@ -1115,10 +1118,11 @@
     1762785662,
     1762785663,
     4232480042
-   ]
+   ],
+   "genre": "donjon"
   },
   "sundered-doctrine": {
-   "libelle_fr": "Doctrine Disjointe",
+   "libelle_fr": "Dogme Fragmenté",
    "libelle_en": "Sundered Doctrine",
    "sourceHashes": [
     2607970476
@@ -1128,7 +1132,36 @@
     2226158470,
     2485881870,
     3360937899
-   ]
+   ],
+   "genre": "donjon"
+  },
+  "equilibrium": {
+   "libelle_fr": "Équilibre",
+   "libelle_en": "Equilibrium",
+   "sourceHashes": [
+    3247513834
+   ],
+   "itemHashes": [],
+   "genre": "donjon"
+  },
+  "root-of-nightmares": {
+   "libelle_fr": "Racine des Cauchemars",
+   "libelle_en": "Root of Nightmares",
+   "sourceHashes": [
+    3190710249
+   ],
+   "itemHashes": [],
+   "genre": "raid"
+  },
+  "spire-of-stars": {
+   "libelle_fr": "Flèche d'Étoiles",
+   "libelle_en": "Spire of Stars",
+   "sourceHashes": [
+    1675483099,
+    2812190367
+   ],
+   "itemHashes": [],
+   "genre": "raid"
   }
  }
 }

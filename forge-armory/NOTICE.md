@@ -271,12 +271,11 @@ npm run electron:dev   (fenêtre 2)
 
 Dans la recherche du Manifest, le champ de texte accepte un **filtre de source** :
 
-- tapez `source:raid`, `source:trials`, `source:dungeon`… pour ne garder que les objets de cette **catégorie** (Raid, Donjon, Trials d'Osiris, Bannière de Fer, Crucible, Gambit, Nuit difficile/GM, Campagne, Quête exotique, Eververse, Événement, Passe de saison, Marchand) ;
-- ou `source:last-wish`, `source:prophecy`… pour une **activité précise** (un filtre par raid et donjon) ;
-- le filtre se **combine** avec le reste de la recherche (« vérité source:trials » applique les deux) et avec les filtres anti-champion et élément ;
-- en tapant `source:`, l'**autocomplétion** propose les catégories puis les activités en français : un clic complète ;
-- taper « Last Wish » ou « Prophétie » sans préfixe retrouve aussi l'activité (alias insensible aux accents) ;
-- un objet sans source connue est simplement écarté, sans erreur.
+- un menu déroulant **« Source de l'objet »** filtre par **catégorie** (Raid, Donjon, Trials d'Osiris, Bannière de Fer, Crucible, Gambit, Nuit Noire / GM, Campagne, Quête exotique, Eververse, Événement, Passe de saison, Marchand) ;
+- ou par **activité précise** : « Raid · Dernier Vœu », « Donjon · Prophétie »… (un raid puis un donjon, dans l'ordre de sortie) ;
+- le filtre se **combine** par ET avec le texte de la recherche, la catégorie (Armes uniquement…), l'anti-champion et l'élément ;
+- un objet sans source connue est simplement écarté, sans erreur ;
+- la **saison de sortie** et la **catégorie de source** s'affichent en clair sur chaque résultat (armes et armures).
 
 Sur chaque résultat de recherche d'arme ou d'armure : la **saison de sortie** en clair (« Saison de sortie : Season of the Forge (saison 5) — 2018-11-27 → 2019-03-04 ») et la **catégorie de source** avant la chaîne brute du jeu.
 

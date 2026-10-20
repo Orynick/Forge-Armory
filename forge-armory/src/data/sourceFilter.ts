@@ -8,6 +8,8 @@ export interface EntreeSource {
   sourceHashes: number[];
   /** FR : les `itemHashes` de DIM : objets listés DIRECTEMENT dans la source. / EN: DIM's itemHashes: items listed directly. */
   itemHashes: number[];
+  /** FR : ⚠️ AJOUT (19/10/2026, retour de test : « pour tout ce qui est activité, on va être plus explicite et préciser le type ») - genre de l'activité : "raid" ou "donjon", pour le libellé du menu. / EN: activity kind for the dropdown label. */
+  genre?: "raid" | "donjon";
 }
 export interface FiltresSourcesFA {
   _licence: string; _source: string; _genere: string;
@@ -18,9 +20,10 @@ import filtresJson from "./source-filters.json";
 export const FILTRES_SOURCES: FiltresSourcesFA = filtresJson as FiltresSourcesFA;
 
 /** FR : les valeurs proposées par le MENU « Source de l'objet » — catégories puis activités, libellées en français. / EN: what the Source dropdown offers. */
-export const SOURCE_FILTER_SUGGESTIONS: Array<{ valeur: string; libelle: string; genre: "categorie" | "activite" }> = [
-  ...Object.entries(FILTRES_SOURCES.categories).map(([cle, e]) => ({ valeur: cle, libelle: e.libelle_fr, genre: "categorie" as const })),
-  ...Object.entries(FILTRES_SOURCES.activities).map(([cle, e]) => ({ valeur: cle, libelle: e.libelle_fr, genre: "activite" as const })),
+export const SOURCE_FILTER_SUGGESTIONS: Array<{ valeur: string; libelle: string; genre: "categorie" | "activite"; prefixe: string }> = [
+  ...Object.entries(FILTRES_SOURCES.categories).map(([cle, e]) => ({ valeur: cle, libelle: e.libelle_fr, genre: "categorie" as const, prefixe: "" })),
+  // FR : ⚠️ CHANGÉ (19/10/2026, demande de l'utilisateur : « remplace "Activité ·" par "Raid ·" / "Donjon ·" ») - le préfixe du menu dit le TYPE d'activité, et l'ordre du JSON (fixé par la même demande) liste les raids puis les donjons dans l'ordre chronologique voulu. / EN: the menu prefix states the activity kind; the JSON order was fixed by the user.
+  ...Object.entries(FILTRES_SOURCES.activities).map(([cle, e]) => ({ valeur: cle, libelle: e.libelle_fr, genre: "activite" as const, prefixe: e.genre === "raid" ? "Raid · " : e.genre === "donjon" ? "Donjon · " : "" })),
 ];
 
 /** FR : ⚠️ CHANGÉ (19/10/2026, 3e retour de test) - la jointure de DIM, exactement : (1) le `sourceHash` du COLLECTIBLE de l'objet dans les `sourceHashes` de la source, OU (2) le hash de l'objet dans les `itemHashes`. Le `collectibleSourceHash` se lit : `itemDef.collectibleHash` → `DestinyCollectibleDefinition` → `.sourceHash` (la même lecture que `obtenirSource` du projet, qui affiche la chaîne brute). / EN: DIM's own join: collectible sourceHash in sourceHashes, OR item hash in itemHashes. */

@@ -20,7 +20,7 @@ const CATEGORIES: Record<string, { libelle_fr: string; libelle_en: string; group
   "iron-banner": { libelle_fr: "Bannière de Fer", libelle_en: "Iron Banner", groupes: ["ironbanner"] },
   "crucible": { libelle_fr: "Crucible", libelle_en: "Crucible", groupes: ["crucible"] },
   "gambit": { libelle_fr: "Gambit", libelle_en: "Gambit", groupes: ["gambit", "gambitprime"] },
-  "nightfall": { libelle_fr: "Nuit difficile / GM", libelle_en: "Nightfall / GM", groupes: ["nightfall"] },
+  "nightfall": { libelle_fr: "Nuit Noire / GM", libelle_en: "Nightfall / GM", groupes: ["nightfall"] },   // FR : ⚠️ libellé corrigé par l'utilisateur le 19/10/2026.
   "campaign": { libelle_fr: "Campagne", libelle_en: "Campaign", groupes: ["campaign"] },
   "exotic-quest": { libelle_fr: "Quête exotique", libelle_en: "Exotic quest", groupes: ["exoticquest"] },
   "eververse": { libelle_fr: "Eververse", libelle_en: "Eververse", groupes: ["eververse"] },
@@ -30,33 +30,34 @@ const CATEGORIES: Record<string, { libelle_fr: string; libelle_en: string; group
 };
 
 // FR : une entrée par raid et donjon : le filtre `source:<activité>` sort toutes les armes et armures de CETTE activité. Les noms français sont de l'appli (données Bungie) ; les clés et groupes viennent de l'amont. / EN: one entry per raid and dungeon.
-const ACTIVITES: Record<string, { fr: string; en: string; groupes: string[] }> = {
-  "vault-of-glass": { fr: "Coffre des âges", en: "Vault of Glass", groupes: ["vaultofglass"] },
-  "last-wish": { fr: "Dernier Vœu", en: "Last Wish", groupes: ["lastwish"] },
-  "garden-of-salvation": { fr: "Jardin du Salut", en: "Garden of Salvation", groupes: ["gardenofsalvation"] },
-  "deep-stone-crypt": { fr: "Crypte de Pierre-Profonde", en: "Deep Stone Crypt", groupes: ["deepstonecrypt"] },
-  "kings-fall": { fr: "La Chute du Roi", en: "King's Fall", groupes: ["kingsfall"] },
-  "vow-of-the-disciple": { fr: "Serment du Disciple", en: "Vow of the Disciple", groupes: ["vowofthedisciple"] },
-  "root-of-nightmares": { fr: "Racine des Cauchemars", en: "Root of Nightmares", groupes: ["rootofnightmares"] },
-  "salvations-edge": { fr: "Le Tranchant du Salut", en: "Salvation's Edge", groupes: ["salvationsedge"] },
-  "crotas-end": { fr: "La Fin de Crota", en: "Crota's End", groupes: ["crotasend"] },
-  "leviathan": { fr: "Léviathan", en: "Leviathan", groupes: ["leviathan"] },
-  "eater-of-worlds": { fr: "Dévoreur de Mondes", en: "Eater of Worlds", groupes: ["eow"] },
-  "spire-of-stars": { fr: "Flèche d'Étoiles", en: "Spire of Stars", groupes: ["spireofstars"] },
-  "scourge-of-the-past": { fr: "Fléau du Passé", en: "Scourge of the Past", groupes: ["scourgeofthepast"] },
-  "crown-of-sorrow": { fr: "Couronne du Chagrin", en: "Crown of Sorrow", groupes: ["crownofsorrow"] },
-  "shattered-throne": { fr: "Trône Brisé", en: "Shattered Throne", groupes: ["shatteredthrone"] },
-  "pit-of-heresy": { fr: "Fosse d'Hérésie", en: "Pit of Heresy", groupes: ["pit"] },
-  "prophecy": { fr: "Prophétie", en: "Prophecy", groupes: ["prophecy"] },
-  "grasp-of-avarice": { fr: "Poigne d'Avarice", en: "Grasp of Avarice", groupes: ["grasp"] },
-  "duality": { fr: "Dualité", en: "Duality", groupes: ["duality"] },
-  "spire-of-the-watcher": { fr: "Flèche de la Guetteuse", en: "Spire of the Watcher", groupes: ["spireofthewatcher"] },
-  "ghosts-of-the-deep": { fr: "Fantômes des Profondeurs", en: "Ghosts of the Deep", groupes: ["ghostsofthedeep"] },
-  "warlords-ruin": { fr: "Ruin du Seigneur de Guerre", en: "Warlord's Ruin", groupes: ["warlordsruin"] },
-  "vespers-host": { fr: "Hôte de Vêpres", en: "Vesper's Host", groupes: ["vespershost"] },
-  "sundered-doctrine": { fr: "Doctrine Disjointe", en: "Sundered Doctrine", groupes: ["sundereddoctrine"] },
+const ACTIVITES: Record<string, { fr: string; en: string; groupes: string[]; genre: "raid" | "donjon" }> = {
+  // FR : ⚠️ ORDRE et GENRE fixés par l'utilisateur le 19/10/2026 (demande : « remplace "Activité ·" par "Raid ·" / "Donjon ·" et dans cet ordre ») ; libellés français corrigés par la même demande (« Coffre des âges » → « Caveau de Verre », « Crypte de la Pierre-Profonde » → « Crypte de la Pierre Enfouie », etc.). L'ordre d'insertion de cet objet EST l'ordre du menu. / EN: order and kind fixed by the user; this object's insertion order IS the menu order.
+  "vault-of-glass": { fr: "Caveau de Verre", en: "Vault of Glass", groupes: ["vaultofglass"], genre: "raid" },
+  "crotas-end": { fr: "La Fin de Crota", en: "Crota's End", groupes: ["crotasend"], genre: "raid" },
+  "kings-fall": { fr: "La Chute du Roi", en: "King's Fall", groupes: ["kingsfall"], genre: "raid" },
+  "leviathan": { fr: "Léviathan", en: "Leviathan", groupes: ["leviathan"], genre: "raid" },
+  "eater-of-worlds": { fr: "Dévoreur de Mondes", en: "Eater of Worlds", groupes: ["eow"], genre: "raid" },
+  "scourge-of-the-past": { fr: "Fléau du Passé", en: "Scourge of the Past", groupes: ["scourgeofthepast"], genre: "raid" },
+  "last-wish": { fr: "Dernier Vœu", en: "Last Wish", groupes: ["lastwish"], genre: "raid" },
+  "crown-of-sorrow": { fr: "Couronne du Chagrin", en: "Crown of Sorrow", groupes: ["crownofsorrow"], genre: "raid" },
+  "deep-stone-crypt": { fr: "Crypte de la Pierre Enfouie", en: "Deep Stone Crypt", groupes: ["deepstonecrypt"], genre: "raid" },
+  "garden-of-salvation": { fr: "Jardin du Salut", en: "Garden of Salvation", groupes: ["gardenofsalvation"], genre: "raid" },
+  "vow-of-the-disciple": { fr: "Serment du Disciple", en: "Vow of the Disciple", groupes: ["vowofthedisciple"], genre: "raid" },
+  "salvations-edge": { fr: "Orée du Salut", en: "Salvation's Edge", groupes: ["salvationsedge"], genre: "raid" },
+  "shattered-throne": { fr: "Trône Brisé", en: "Shattered Throne", groupes: ["shatteredthrone"], genre: "donjon" },
+  "pit-of-heresy": { fr: "Fosse de l'Hérésie", en: "Pit of Heresy", groupes: ["pit"], genre: "donjon" },
+  "prophecy": { fr: "Prophétie", en: "Prophecy", groupes: ["prophecy"], genre: "donjon" },
+  "grasp-of-avarice": { fr: "Étreinte de l'Avarice", en: "Grasp of Avarice", groupes: ["grasp"], genre: "donjon" },
+  "duality": { fr: "Dualité", en: "Duality", groupes: ["duality"], genre: "donjon" },
+  "spire-of-the-watcher": { fr: "Flèche de la Vigie", en: "Spire of the Watcher", groupes: ["spireofthewatcher"], genre: "donjon" },
+  "ghosts-of-the-deep": { fr: "Fantômes des Profondeurs", en: "Ghosts of the Deep", groupes: ["ghostsofthedeep"], genre: "donjon" },
+  "warlords-ruin": { fr: "Ruine de la Guerrière", en: "Warlord's Ruin", groupes: ["warlordsruin"], genre: "donjon" },
+  "vespers-host": { fr: "Hôte Vesper", en: "Vesper's Host", groupes: ["vespershost"], genre: "donjon" },
+  "sundered-doctrine": { fr: "Dogme Fragmenté", en: "Sundered Doctrine", groupes: ["sundereddoctrine"], genre: "donjon" },
+  "equilibrium": { fr: "Équilibre", en: "Equilibrium", groupes: ["equilibrium"], genre: "donjon" },
+  "root-of-nightmares": { fr: "Racine des Cauchemars", en: "Root of Nightmares", groupes: ["rootofnightmares"], genre: "raid" },
+  "spire-of-stars": { fr: "Flèche d'Étoiles", en: "Spire of Stars", groupes: ["spireofstars"], genre: "raid" },
 };
-
 /** FR : télécharge le fichier amont (réseau une seule fois, ici seulement : l'appli n'appelle JAMAIS ce script). / EN: fetches the upstream file. */
 function telecharger(): string {
   // FR : curl est interdit dans l'environnement de travail : on passe par gh (authentifié, même dépôt public).
@@ -95,7 +96,7 @@ function generer(contenu: string): string {
     _source: "output/source-info-v2.ts",
     _genere: "data/rebuild-source-filters.ts",
     categories: Object.fromEntries(Object.entries(CATEGORIES).map(([cle, c]) => [cle, { libelle_fr: c.libelle_fr, libelle_en: c.libelle_en, sourceHashes: collecter(c.groupes, "sourceHashes"), itemHashes: collecter(c.groupes, "itemHashes") }])),
-    activities: Object.fromEntries(Object.entries(ACTIVITES).filter(([, a]) => collecter(a.groupes, "sourceHashes").length + collecter(a.groupes, "itemHashes").length > 0).map(([cle, a]) => [cle, { libelle_fr: a.fr, libelle_en: a.en, sourceHashes: collecter(a.groupes, "sourceHashes"), itemHashes: collecter(a.groupes, "itemHashes") }])),
+    activities: Object.fromEntries(Object.entries(ACTIVITES).filter(([, a]) => collecter(a.groupes, "sourceHashes").length + collecter(a.groupes, "itemHashes").length > 0).map(([cle, a]) => [cle, { libelle_fr: a.fr, libelle_en: a.en, sourceHashes: collecter(a.groupes, "sourceHashes"), itemHashes: collecter(a.groupes, "itemHashes"), genre: a.genre }])),
   };
   return JSON.stringify(sortie, null, 1) + "\n";
 }
