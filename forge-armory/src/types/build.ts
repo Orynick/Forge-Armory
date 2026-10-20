@@ -109,6 +109,13 @@ export interface GearPiece {
   perkHashesReels?: DefinitionHash[];
   perksParColonneReels?: Array<{ socketIndex: number; hash: DefinitionHash }>;
   nbColonnesSimulees?: number;
+  /**
+   * FR : ⚠️ AJOUT (19/10/2026, chantier « lien armure → score », §2.1) - posés UNIQUEMENT sur une COPIE d'une ARMURE par `appliquerSimulationArmure` : `statsSimulees` = au moins un mod de cette armure est simulé dans la Forge ; `statsReelles` = les six stats RÉELLES avant simulation (pour `pieceReelle` et l'affichage « réel ») ; `nbModsSimules` = combien de prises.
+   * Dans la copie, `stats` contient les stats SIMULÉES : c'est ce que lit le Pilier 5 du score (`sommerStatsArmure`). EN: ⚠️ ADDED - set only on an armor COPY: flags, the real stats, and the number of simulated sockets.
+   */
+  statsSimulees?: boolean;
+  statsReelles?: Partial<StatBlock>;
+  nbModsSimules?: number;
   /** FR : nom officiel de l'élément de l'arme (Cinétique/Solaire/Arc/Abyssal/Stase/Filobscur), résolu via le Manifest - absent pour l'armure. / EN: weapon's official element name (Kinetic/Solar/Arc/Void/Stasis/Strand), resolved via the Manifest - absent for armor. */
   elementArme?: string;
   /** FR : URL de l'icône officielle de l'élément (résolue via le Manifest), pour affichage visuel au lieu du texte. / EN: URL of the element's official icon (resolved via the Manifest), for visual display instead of text. */

@@ -1,3 +1,22 @@
+## 20/10/2026 — §2.1 LIEN ARMURE → SCORE : les mods d'armure simulés dans la Forge changent les statistiques du build, donc le score (branche draft-armure-score)
+
+**Contexte** : première étape « reste à faire » du chantier Forge (feuille de route, §2.1), décidée par l'utilisateur (« Go pour le §2.1 alors :) »). Jusqu'ici la simulation d'armure s'arrêtait à la fenêtre de la Forge : le commentaire d'`appliquerSimulation.ts` le disait explicitement (« l'armure n'est jamais touchée »). **Version inchangée (0.4.14 ; 0.5 réservé à la clôture de la Forge).**
+
+**Fait** :
+
+- `lib/forge/appliquerSimulation.ts` : **`appliquerSimulationArmure(db, pièce, simulation)**** — applique les mods simulés d'une armure à une COPIE : les six STATISTIQUES sont recalculées par `statsSimulees` (la fonction déjà testée de la Forge : le delta exact des investmentStats, jamais une duplication du calcul) ; repères posés (`statsSimulees`, `statsReelles`, `nbModsSimules`). Mêmes règles que les armes : seulement une pièce POSSÉDÉE avec simulation enregistrée, l'originale JAMAIS modifié, rien à appliquer = le même objet.
+- `appliquerSimulations(build, simulations, db)` : parcourt désormais **`build.armure` EN PLUS de `build.armes`**, sur le MÊME magasin (identifiant d'exemplaire + index de prise). Le `db` est requis pour l'armure (les investmentStats des plugs se lisent dans le Manifest) : sans Manifest chargé, les armures ne sont pas simulées — jamais une erreur, le score des armes continue.
+- `types/build.ts` : les repères d'armure simulée (`statsSimulees`, `statsReelles`, `nbModsSimules`).
+- `pieceReelle` : une armure simulée retrouve ses stats RÉELLES et perd ses repères (le bouton « Forge » de Mon Build part des mods réels ✓).
+- `DashboardPage` : le `db` est passé à `appliquerSimulations` — **le score réagit en temps réel aux mods d'armure simulés** (Pilier 5, `sommerStatsArmure` lit les stats de la copie).
+- `ResumeBuild` : l'avertissement d'équipement couvre AUSSI les armures simulées (« Cette armure a N mod(s) SIMULÉS… pas appliqués en jeu ») ; l'avertissement global distingue armes (perks) et armures (mods).
+
+**Vérifié** : `armure-score` (NOUVEAU, 11 : copie ≠ original, stats recalculées exactes — santé 20→10, classe 12→22 par l'échange mod de santé → mod de classe, repères posés, armes non touchées, la somme des stats du build change, LE SCORE change quand le delta dépasse l'arrondi (build à stats hautes), le build réel ne change jamais, sans simulation = même objet, pièce non possédée jamais simulée, `pieceReelle` retrouve l'original, deux exemplaires indépendants) ; `appliquer-simulation` 20/20 et `armure-theorique` 11/11 inchangés (non-régression) ; `cablage-forge` 21/21 (le contrôle de la signature est mis à jour : `db` en troisième paramètre, documenté) ; `tsc` zéro erreur ; `npm run build` strict ✓ ; batterie : **43 séries, 412/416** (les 3 échecs sont PRÉEXISTANTS et documentés : `icones` 10/11, `reproductibilite-visuels` 6/7 — assets v6, `icones` 9/11) ; **trois casses volontaires détectées** (application aux armures retirée → 8/11 ; stats de la copie remplacées par les réelles → 7/11 ; `statsReelles` retiré → 9/11 : `pieceReelle` et le badge ne retrouvent plus l'original).
+
+**Découverte faite en écrivant les tests** (consignée pour la calibration) : le score du Pilier 5 est ARRONDI — un échange à total constant (−10 santé / +10 classe, poids Neutre 1,2 vs 1,0) peut ne pas changer le nombre affiché alors que les stats du build ont bien changé. Le lien fonctionne (les stats simulées traversent, vérifié chiffres à l'appui) ; c'est la granularité de l'arrondi qui fixe le seuil visible de réaction.
+
+**NON vérifié (à tester par l'utilisateur)** : le parcours complet en interface — simuler un mod d'armure dans la Forge, poser l'armure dans Mon Build, voir le Pilier 5 et le score global bouger ; le badge « simulé » sur une armure de Mon Build ; l'avertissement d'équipement pour une armure simulée ; le comportement sans Manifest chargé.
+
 ## 19/10/2026 (nuit) — v0.4.14
 
 **Décision de l'utilisateur** : « le chantier Forge n'est pas totalement finalisé, donc on reste en 0.4.x. Fait un simple incrément, vers 0.4.14. On passera en 0.5 quand le chantier Forge sera terminé 🙂 » — CONVENTION ACTÉE : les 0.4.x suivent le chantier Forge ; **0.5.x sera réservé à sa clôture**.

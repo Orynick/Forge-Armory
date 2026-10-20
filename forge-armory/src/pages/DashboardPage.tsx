@@ -82,7 +82,8 @@ export default function DashboardPage() {
 
   // FR : ⚠️ CHANGÉ (14/10/2026, v0.4.9) - le score est calculé sur le build AVEC la simulation de la Forge (`buildEffectif`) : il se met à jour en temps réel à chaque changement de simulation (critère 7 de la spécification). Même objet que `monBuild` quand rien n'est simulé : aucun calcul de plus.
   const simulations = useSimulations();
-  const buildEffectif = useMemo(() => appliquerSimulations(monBuild, simulations), [monBuild, simulations]);
+  // FR : ⚠️ CHANGÉ (19/10/2026, §2.1 lien armure → score) - le `db` est passé : les ARMURES du build sont simulées aussi (leurs mods recalculent les six stats, le Pilier 5 réagit). Sans Manifest chargé (db null), seules les armes le sont — jamais une erreur. / EN: the db is now passed: the build's ARMOR is simulated too (Pillar 5 reacts).
+  const buildEffectif = useMemo(() => appliquerSimulations(monBuild, simulations, db), [monBuild, simulations, db]);
   const nbSimulees = nbArmesSimulees(buildEffectif);
   const idsDansBuild = useMemo(() => new Set(monBuild.armes.map((a) => a.itemInstanceId).filter((i): i is string => !!i)), [monBuild]);
   const resultat = useMemo(
