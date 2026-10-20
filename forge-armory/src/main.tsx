@@ -10,7 +10,18 @@ import ReactDOM from "react-dom/client";
 // browser.
 import { BrowserRouter, HashRouter } from "react-router-dom";
 import App from "./App";
+// FR : ⛔ AJOUT (21/10/2026, branche draft-sec) - peuplé AVANT le premier
+// rendu : les jetons (lus de façon synchrone par `etatSession` au montage du
+// tableau de bord) doivent être en cache mémoire dès le départ. La promesse
+// n'est pas attendue : en attendant, la lecture retombe sur localStorage.
+// EN: populated BEFORE the first render: the tokens (read synchronously by
+// `etatSession` when the dashboard mounts) must be in the in-memory cache from
+// the start. The promise is not awaited: meanwhile, reads fall back to
+// localStorage.
+import { initialiserStockageSecurise } from "./lib/stockageSecurise";
 import "./index.css";
+
+void initialiserStockageSecurise();
 
 const Routeur = (window as any).appBureau?.estBureau ? HashRouter : BrowserRouter;
 
