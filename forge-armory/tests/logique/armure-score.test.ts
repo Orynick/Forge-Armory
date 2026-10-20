@@ -46,8 +46,10 @@ const sim = (instance: string, colonnes: Record<number, [number, number]>) =>
   // FR : le score GLOBAL est arrondi : un petit delta peut ne pas le faire bouger (vérifié : 7 reste 7 à ce niveau de stats).
   // Le contrôle juste : le PILIER 5 reçoit bien les stats SIMULÉES — on le prouve en comparant les détails du pilier
   // (ses STATISTIQUES sources affichées), et en donnant au build des stats assez hautes pour que l'arrondi sépare les deux scores.
+  // FR : contexte DPS (le contexte vit dans le build, `build.contexte`) : les poids Neutre (santé 1,2 / classe 1,0) laissent
+  // l'échange −10 santé / +10 classe SOUS le seuil d'arrondi du score ; en DPS (santé 0,3 / classe 0,8) il le dépasse : le test prouve la réaction là où elle est visible.
   const aHaute = armure("a1", { sante: 60, classe: 60 });
-  const buildHaut = construire([], [aHaute]);
+  const buildHaut = { ...construire([], [aHaute]), contexte: "dps" as const };
   const effHaut = appliquerSimulations(buildHaut, s, base);
   const scoreHautSimule = evaluerBuild(effHaut, demoExigences, undefined).scoreGlobal;
   const scoreHautReel = evaluerBuild(buildHaut, demoExigences, undefined).scoreGlobal;

@@ -55,12 +55,16 @@ export function appliquerSimulationArmure(db: import("sql.js").Database, piece: 
 /** FR : ⚠️ CHANGÉ (19/10/2026, §2.1) - le build avec la simulation appliquée à ses ARMES ET À SES ARMURES ; le même objet si rien n'est simulé. L'ARMURE a besoin du `db` (les stats des plugs se lisent dans le Manifest) : quand il est absent (pas de Manifest chargé), les armures ne sont PAS simulées — le score reste celui des armes, jamais une erreur. / EN: the build with the simulation applied to its weapons AND armor; the same object if nothing is simulated. Armor needs the db (plug stats are read from the Manifest): without it, armor is not simulated — never an error.
  */
 export function appliquerSimulations(build: BuildDraft, simulations: Simulations, db?: import("sql.js").Database | null): BuildDraft {
+  // FR : ⚠️ CORRIGÉ (20/10/2026) - le tableau des armes n'est reconstruit QUE si une arme CHANGE : une simulation posée sur une ARMURE seule ne doit pas créer un tableau d'armes neuf (l'identité d'objet des pièces non simulées est le contrat des calculs mémorisés). / EN: the weapons array is rebuilt only when a weapon changes.
   let change = false;
-  const armes = build.armes.map((a) => {
-    const copie = appliquerSimulationPiece(a, a.itemInstanceId ? simulations.armes[a.itemInstanceId] : undefined);
-    if (copie !== a) change = true;
-    return copie;
-  });
+  let armes = build.armes;
+  if (build.armes.some((a) => a.itemInstanceId && simulations.armes[a.itemInstanceId] && Object.keys(simulations.armes[a.itemInstanceId]).length > 0)) {
+    armes = build.armes.map((a) => {
+      const copie = appliquerSimulationPiece(a, a.itemInstanceId ? simulations.armes[a.itemInstanceId] : undefined);
+      if (copie !== a) change = true;
+      return copie;
+    });
+  }
   // FR : ⚠️ AJOUT (19/10/2026, §2.1) - les ARMURES du build, sur le MÊME magasin (identifiant d'exemplaire + index de prise) : le score réagit aux mods simulés.
   const armure = db ? build.armure.map((p) => {
     const copie = appliquerSimulationArmure(db, p, p.itemInstanceId ? simulations.armes[p.itemInstanceId] : undefined);
