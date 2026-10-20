@@ -661,8 +661,6 @@ export default function DashboardPage() {
         <ModaleCarriere
           onFermer={() => setCarriereOuverte(false)}
           membership={memberships[0]}
-          memberships={memberships}
-          nomBungie={nomBungie}
           personnages={personnages}
           profil={profilTriomphes}
           onOuvrirAccomplissements={() => setTiroirTriomphesOuvert(true)}

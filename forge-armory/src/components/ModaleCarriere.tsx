@@ -18,9 +18,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Modale from "./Modale";
-import { chargerCarriere, DonneesCarriere } from "../lib/bungie/carriere";
+import { chargerCarriere, DonneesCarriere, formaterDiagnosticCarriere } from "../lib/bungie/carriere";
 import type { DestinyMembership, Personnage } from "../lib/bungie/api";
-import { urlVisuel } from "../lib/visuelsForge";
+import { BoutonVue } from "./BoutonsVuesCompte";   // ⚠️ CHANGÉ (21/10/2026) : le bouton « Accomplissements » est le même composant que dans le bloc Connexion
+import IconeClasse from "./icones/IconeClasse";   // ⚠️ AJOUT (21/10/2026, demande de l'utilisateur : « utilise les assets d'icônes de classes de personnages »)
 import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 
 // FR : libellés des statIds affichés. La liste est FIGÉE depuis la réponse
@@ -67,24 +68,27 @@ function formaterDate(iso: string | null): string {
   return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-const NOMS_PLATEFORME: Record<number, string> = { 1: "Xbox", 2: "PlayStation", 3: "Steam", 4: "Battle.net", 5: "Stadia", 6: "Epic", 10: "Demon", 254: "Bungie.net" };
+// FR : ⚠️ AJOUT (21/10/2026, demande de l'utilisateur) - icônes de CLASSES de personnages : les mêmes que partout dans l'appli (`IconeClasse`, couleurs de classe). Les noms de classe viennent de l'API déjà localisés (« Titan », « Chasseur », « Arcaniste ») ; une classe inconnue (« ? ») n'a pas d'icône. / EN: ⚠️ ADDED - class icons, same component as the rest of the app.
+const CLES_CLASSE: Record<string, "titan" | "chasseur" | "arcaniste"> = { titan: "titan", chasseur: "chasseur", arcaniste: "arcaniste" };
+function iconeDeClasse(nom: string) {
+  const cle = CLES_CLASSE[nom.toLowerCase()];
+  return cle ? <IconeClasse classe={cle} taille={22} /> : null;
+}
 
 interface Props {
   onFermer: () => void;
   membership: DestinyMembership | null;
-  memberships: DestinyMembership[];
-  nomBungie: string | null;
   personnages: Personnage[];
   profil: unknown | null;
   /** FR : ouvrir le tiroir « Solo sans mourir » (navigation croisée Accomplissements). / EN: open the Accomplishments drawer. */
   onOuvrirAccomplissements: () => void;
 }
 
-export default function ModaleCarriere({ onFermer, membership, memberships, nomBungie, personnages, profil, onOuvrirAccomplissements }: Props) {
+export default function ModaleCarriere({ onFermer, membership, personnages, profil, onOuvrirAccomplissements }: Props) {
   const [donnees, setDonnees] = useState<DonneesCarriere | null>(null);
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
-  const [statIdsDiag, setStatIdsDiag] = useState<string | null>(null);
+  const [diagOuvert, setDiagOuvert] = useState(false);   // ⚠️ CHANGÉ (21/10/2026) : un vrai bouton à bascule (avant : texte vide = rien à afficher)
 
   const charger = useCallback(async () => {
     if (!membership) return;
@@ -111,7 +115,14 @@ export default function ModaleCarriere({ onFermer, membership, memberships, nomB
     donnees?.minutesParClasse?.reduce((acc, l) => acc + (Number.isFinite(l.minutes) ? l.minutes : 0), 0) ?? null;
 
   return (
-    <Modale titre="Carrière" onFermer={onFermer} largeur={640} fermerSurFond>
+    /* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur) - le bouton « Accomplissements » est affiché À DROITE DU TITRE « Carrière » (et non plus en bas de la fenêtre). Même composant que dans le bloc Connexion (cadre 4897 x 1024 : plus réduit de 12 % dans un cadre trop étroit), à 2 rem de haut comme avant. / EN: ⚠️ CHANGED - the "Achievements" button now sits to the right of the title. */
+    <Modale
+      titre="Carrière"
+      onFermer={onFermer}
+      largeur={640}
+      fermerSurFond
+      apresTitre={<BoutonVue cle="selecteur.accomplissements" libelle="Accomplissements" infobulle="Ouvrir les Accomplissements (Donjons / Triomphes)" onClick={onOuvrirAccomplissements} hauteur="2rem" />}
+    >
       {enCours && <p style={{ margin: "0 0 0.6rem" }}>⏳ Chargement de votre carrière…</p>}
       {erreur && (
         <p style={{ margin: "0 0 0.6rem", color: "#e08070" }}>
@@ -119,24 +130,13 @@ export default function ModaleCarriere({ onFermer, membership, memberships, nomB
         </p>
       )}
 
-      <Section titre="Compte">
-        <Ligne libelle="Pseudo Bungie" valeur={nomBungie ?? membership?.displayName ?? NON_DISPONIBLE} />
-        <Ligne
-          libelle="Plateformes liées"
-          valeur={
-            memberships.length > 0
-              ? memberships.map((m) => NOMS_PLATEFORME[m.membershipType] ?? m.membershipType.toString()).join(", ") || NON_DISPONIBLE
-              : NON_DISPONIBLE
-          }
-        />
-        <Ligne libelle="Date de la première connexion" valeur={NON_DISPONIBLE} />
-      </Section>
+      {/* FR : ⚠️ SUPPRIMÉ (21/10/2026, demande de l'utilisateur : « la partie Compte peut disparaître ») - la section « Compte » (pseudo Bungie, plateformes liées, date de première connexion) n'existe plus. Le pseudo reste affiché dans le bloc Connexion. / EN: ⚠️ REMOVED - the "Account" section. */}
 
       <Section titre="Temps de jeu">
         <Ligne libelle="Total" valeur={totalMinutes != null ? formaterDuree(totalMinutes * 60) ?? NON_DISPONIBLE : NON_DISPONIBLE} />
         {(donnees?.minutesParClasse ?? []).length > 0 ? (
-          donnees!.minutesParClasse!.map((l) => (
-            <Ligne key={l.classe} libelle={l.classe} valeur={formaterDuree(l.minutes * 60) ?? NON_DISPONIBLE} />
+          donnees!.minutesParClasse!.map((l, i) => (
+            <Ligne key={`${l.classe}-${i}`} libelle={l.classe} icone={iconeDeClasse(l.classe)} valeur={formaterDuree(l.minutes * 60) ?? NON_DISPONIBLE} />
           ))
         ) : (
           <Ligne libelle="Par classe" valeur={NON_DISPONIBLE} />
@@ -145,7 +145,7 @@ export default function ModaleCarriere({ onFermer, membership, memberships, nomB
 
       <Section titre="Personnages">
         {personnages.length > 0 ? (
-          personnages.map((p) => <Ligne key={p.characterId} libelle={p.classe} valeur={`puissance ${p.lumiere}`} />)
+          personnages.map((p) => <Ligne key={p.characterId} libelle={p.classe} icone={iconeDeClasse(p.classe)} valeur={`puissance ${p.lumiere}`} />)
         ) : (
           <Ligne libelle="Niveaux" valeur={NON_DISPONIBLE} />
         )}
@@ -184,31 +184,19 @@ export default function ModaleCarriere({ onFermer, membership, memberships, nomB
         ) : (
           <Ligne libelle="Éliminations, précision, K/D…" valeur={enCours ? "…" : NON_DISPONIBLE} />
         )}
+        {/* FR : ⚠️ CHANGÉ (21/10/2026, retour de l'utilisateur : « le diagnostic statIds retournés ne s'ouvre pas ») - bouton À BASCULE (il s'ouvre et se ferme) dont le contenu s'affiche TOUJOURS : avant, une liste vide donnait un texte vide, donc RIEN à l'écran, et l'erreur de la requête était avalée. Le diagnostic dit maintenant : statIds retournés (ou AUCUN), requête, erreur, structure de la réponse. Réservé au développement. / EN: ⚠️ CHANGED - a real toggle whose content always shows (before: an empty list showed nothing). Dev only. */}
         {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.statIdsCarriere && donnees && (
           <div style={{ marginTop: "0.5rem" }}>
-            <button onClick={() => setStatIdsDiag(donnees.statIdsBruts.join("\n"))} style={{ fontSize: "0.7rem" }}>
-              🔍 Diagnostic : statIds retournés (dev)
+            <button type="button" aria-expanded={diagOuvert} aria-controls="diagnostic-statids-carriere" data-diagnostic-statids-bouton="" onClick={() => setDiagOuvert((o) => !o)} style={{ fontSize: "0.7rem" }}>
+              🔍 Diagnostic : statIds retournés (dev) {diagOuvert ? "▲" : "▼"}
             </button>
-            {statIdsDiag && (
-              <pre style={{ fontSize: "0.7rem", whiteSpace: "pre-wrap", margin: "0.4rem 0 0", color: "#9a968c" }}>{statIdsDiag}</pre>
+            {diagOuvert && (
+              <pre id="diagnostic-statids-carriere" data-diagnostic-statids="" style={{ fontSize: "0.7rem", whiteSpace: "pre-wrap", margin: "0.4rem 0 0", color: "#9a968c" }}>{formaterDiagnosticCarriere(donnees)}</pre>
             )}
           </div>
         )}
       </Section>
 
-      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center", marginTop: "0.8rem" }}>
-        <button
-          type="button"
-          className="bouton-vue"
-          aria-label="Accomplissements"
-          title="Ouvrir les Accomplissements (Donjons / Triomphes)"
-          onClick={onOuvrirAccomplissements}
-          style={{ "--hauteur-bouton": "2rem" } as React.CSSProperties}
-        >
-          <img className="bouton-vue__repos" src={urlVisuel("selecteur.accomplissements.repos")} alt="" draggable={false} />
-          <img className="bouton-vue__actif" src={urlVisuel("selecteur.accomplissements.selectionne")} alt="" draggable={false} />
-        </button>
-      </div>
     </Modale>
   );
 }
@@ -222,10 +210,10 @@ function Section({ titre, children }: { titre: string; children: React.ReactNode
   );
 }
 
-function Ligne({ libelle, valeur }: { libelle: string; valeur: string }) {
+function Ligne({ libelle, valeur, icone }: { libelle: string; valeur: string; icone?: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem" }}>
-      <span style={{ color: "#b7b3a8" }}>{libelle}</span>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem" }}>
+      <span style={{ color: "#b7b3a8", display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>{icone}{libelle}</span>
       <span style={{ color: "#e8e6df", textAlign: "right" }}>{valeur}</span>
     </div>
   );

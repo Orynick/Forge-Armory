@@ -69,6 +69,21 @@ export interface DonneesCarriere {
   activites: ActiviteRecente[];
   /** FR : liste brute des statIds réellement retournés (diagnostic dev : figer la sélection affichée sur des données réelles). / EN: raw statIds for the dev diagnostic. */
   statIdsBruts: string[];
+  /** FR : ⚠️ AJOUT (21/10/2026, retour de l'utilisateur : « le diagnostic statIds retournés ne s'ouvre pas ») - ce qui s'est PASSÉ pendant le chargement. Avant, l'échec de la requête de statistiques était AVALÉ en silence : la liste des statIds restait vide et le diagnostic n'affichait rien. Il dit maintenant pourquoi (requête, erreur, structure de la réponse). / EN: ⚠️ ADDED - what happened while loading (errors were silently swallowed before). */
+  diagnostic: DiagnosticCarriere;
+}
+
+export interface DiagnosticCarriere {
+  /** FR : chemin appelé pour les statistiques agrégées. */
+  requeteStats: string;
+  /** FR : message d'erreur de la requête de statistiques, `null` si elle a réussi. */
+  erreurStats: string | null;
+  /** FR : clés de premier niveau de la réponse (`null` si la requête a échoué). */
+  clesReponseStats: string[] | null;
+  /** FR : nombre d'entrées de `metrics` dans la réponse (`null` si ce champ est absent). */
+  nbMetrics: number | null;
+  /** FR : une ligne par personnage dont l'historique d'activités a échoué. */
+  erreursActivites: string[];
 }
 
 interface ValeurHistoricalStat {
@@ -108,15 +123,17 @@ function lireStat(metric: unknown): { valeur: number | null; precision: number |
   return { valeur, precision };
 }
 
+export function cheminStatsCarriere(membership: DestinyMembership): string {
+  return `/Destiny2/Stats/GetHistoricalStats/${membership.membershipId}/0/?periodType=AllTime&mode=None&groups=General,Medals`;
+}
+
 export async function recupererStatsCarriere(membership: DestinyMembership): Promise<ReponseHistoricalStats> {
   // FR : characterId = 0 agrège tous les personnages en UNE requête ;
   // periodType = AllTime = le filtre « Carrière » des Emblèmes du jeu.
   // mode = None par défaut (toutes activités). groups = General pour le
   // bloc standard (kills, précision, K/D, efficacité, mêlée, super, etc.).
   // EN: characterId=0 aggregates in one request; AllTime = in-game Career.
-  return appelBungieCarriere<ReponseHistoricalStats>(
-    `/Destiny2/Stats/GetHistoricalStats/${membership.membershipId}/0/?periodType=AllTime&mode=None&groups=General,Medals`
-  );
+  return appelBungieCarriere<ReponseHistoricalStats>(cheminStatsCarriere(membership));
 }
 
 export async function recupererActivitesPersonnage(
@@ -147,10 +164,15 @@ export async function chargerCarriere(
   personnages: { characterId: string; classe: string }[],
   profil: unknown
 ): Promise<DonneesCarriere> {
-  const resultat: DonneesCarriere = { stats: [], minutesParClasse: extraireMinutesParClasse(profil), activites: [], statIdsBruts: [] };
+  const resultat: DonneesCarriere = {
+    stats: [], minutesParClasse: extraireMinutesParClasse(profil), activites: [], statIdsBruts: [],
+    diagnostic: { requeteStats: cheminStatsCarriere(membership), erreurStats: null, clesReponseStats: null, nbMetrics: null, erreursActivites: [] },
+  };
 
   try {
     const stats = await recupererStatsCarriere(membership);
+    resultat.diagnostic.clesReponseStats = Object.keys(stats ?? {});
+    resultat.diagnostic.nbMetrics = stats?.metrics ? Object.keys(stats.metrics).length : null;
     for (const metric of Object.values(stats.metrics ?? {})) {
       const statId = metric?.statId ?? null;
       if (!statId) continue;
@@ -158,9 +180,10 @@ export async function chargerCarriere(
       resultat.stats.push({ statId, valeur, precision });
       resultat.statIdsBruts.push(statId);
     }
-  } catch {
-    // FR : section indépendante — l'échec d'une source n'emporte pas les autres.
+  } catch (e) {
+    // FR : section indépendante — l'échec d'une source n'emporte pas les autres. ⚠️ CHANGÉ (21/10/2026) : l'erreur est CONSERVÉE pour le diagnostic (elle était perdue).
     resultat.stats = [];
+    resultat.diagnostic.erreurStats = (e as Error).message;
   }
 
   const activites: ActiviteRecente[] = [];
@@ -179,8 +202,9 @@ export async function chargerCarriere(
             modeInconnu: a.mode == null && a.activityModeType == null,
           });
         }
-      } catch {
-        // FR : un personnage sans histoire (jamais joué, API silencieuse) ne bloque pas les autres.
+      } catch (e) {
+        // FR : un personnage sans histoire (jamais joué, API silencieuse) ne bloque pas les autres. ⚠️ CHANGÉ (21/10/2026) : l'erreur est conservée pour le diagnostic.
+        resultat.diagnostic.erreursActivites.push(`${perso.classe} (${perso.characterId}) : ${(e as Error).message}`);
       }
     })
   );
@@ -188,4 +212,20 @@ export async function chargerCarriere(
   resultat.activites = activites.slice(0, 10);
 
   return resultat;
+}
+
+/** FR : ⚠️ AJOUT (21/10/2026) - texte du diagnostic « statIds retournés » (mode développement). Il s'affiche TOUJOURS : une liste vide dit qu'elle est vide ET pourquoi (erreur de la requête, structure de la réponse) au lieu de ne rien montrer. / EN: text of the dev diagnostic; always shows something. */
+export function formaterDiagnosticCarriere(d: DonneesCarriere): string {
+  const g = d.diagnostic;
+  const lignes: string[] = [];
+  lignes.push(d.statIdsBruts.length > 0 ? `statIds retournés : ${d.statIdsBruts.length}` : "statIds retournés : AUCUN");
+  if (d.statIdsBruts.length > 0) lignes.push(...d.statIdsBruts);
+  lignes.push("");
+  lignes.push(`requête : GET ${g.requeteStats}`);
+  lignes.push(`erreur de la requête : ${g.erreurStats ?? "aucune"}`);
+  lignes.push(`clés de la réponse : ${g.clesReponseStats === null ? "(pas de réponse : la requête a échoué)" : g.clesReponseStats.length > 0 ? g.clesReponseStats.join(", ") : "(réponse vide)"}`);
+  lignes.push(`entrées de « metrics » : ${g.nbMetrics === null ? "champ absent de la réponse" : g.nbMetrics}`);
+  lignes.push(`historiques d'activités en échec : ${g.erreursActivites.length === 0 ? "aucun" : ""}`);
+  lignes.push(...g.erreursActivites.map((l) => `  - ${l}`));
+  return lignes.join("\n");
 }

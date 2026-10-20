@@ -10,7 +10,8 @@ interface Props {
   onAccomplissements: () => void;
 }
 
-function BoutonVue({ cle, libelle, infobulle, onClick }: { cle: string; libelle: string; infobulle: string; onClick: () => void }) {
+/** FR : un bouton de vue à cadre 4897 x 1024. `hauteur` : 3,0625 rem dans le bloc Connexion ; la fenêtre « Carrière » le réutilise (2 rem) à droite de son titre. / EN: one view button; reused by the Career window. */
+export function BoutonVue({ cle, libelle, infobulle, onClick, hauteur = HAUTEUR_BOUTONS_VUES_COMPTE }: { cle: string; libelle: string; infobulle: string; onClick: () => void; hauteur?: string }) {
   return (
     <button
       type="button"
@@ -18,7 +19,7 @@ function BoutonVue({ cle, libelle, infobulle, onClick }: { cle: string; libelle:
       aria-label={libelle}
       title={infobulle}
       onClick={onClick}
-      style={{ "--hauteur-bouton": HAUTEUR_BOUTONS_VUES_COMPTE } as CSSProperties}
+      style={{ "--hauteur-bouton": hauteur } as CSSProperties}
     >
       <img className="bouton-vue__repos" src={urlVisuel(`${cle}.repos`)} alt="" draggable={false} />
       <img className="bouton-vue__actif" src={urlVisuel(`${cle}.selectionne`)} alt="" draggable={false} />
