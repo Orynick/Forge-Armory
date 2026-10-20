@@ -37,12 +37,14 @@ const ACTIVITES: Record<string, { fr: string; en: string; groupes: string[]; gen
   "kings-fall": { fr: "La Chute du Roi", en: "King's Fall", groupes: ["kingsfall"], genre: "raid" },
   "leviathan": { fr: "Léviathan", en: "Leviathan", groupes: ["leviathan"], genre: "raid" },
   "eater-of-worlds": { fr: "Dévoreur de Mondes", en: "Eater of Worlds", groupes: ["eow"], genre: "raid" },
+  "spire-of-stars": { fr: "Flèche d'Étoiles", en: "Spire of Stars", groupes: ["spireofstars"], genre: "raid" },
   "scourge-of-the-past": { fr: "Fléau du Passé", en: "Scourge of the Past", groupes: ["scourgeofthepast"], genre: "raid" },
   "last-wish": { fr: "Dernier Vœu", en: "Last Wish", groupes: ["lastwish"], genre: "raid" },
   "crown-of-sorrow": { fr: "Couronne du Chagrin", en: "Crown of Sorrow", groupes: ["crownofsorrow"], genre: "raid" },
   "deep-stone-crypt": { fr: "Crypte de la Pierre Enfouie", en: "Deep Stone Crypt", groupes: ["deepstonecrypt"], genre: "raid" },
   "garden-of-salvation": { fr: "Jardin du Salut", en: "Garden of Salvation", groupes: ["gardenofsalvation"], genre: "raid" },
   "vow-of-the-disciple": { fr: "Serment du Disciple", en: "Vow of the Disciple", groupes: ["vowofthedisciple"], genre: "raid" },
+  "root-of-nightmares": { fr: "Racine des Cauchemars", en: "Root of Nightmares", groupes: ["rootofnightmares"], genre: "raid" },
   "salvations-edge": { fr: "Orée du Salut", en: "Salvation's Edge", groupes: ["salvationsedge"], genre: "raid" },
   "shattered-throne": { fr: "Trône Brisé", en: "Shattered Throne", groupes: ["shatteredthrone"], genre: "donjon" },
   "pit-of-heresy": { fr: "Fosse de l'Hérésie", en: "Pit of Heresy", groupes: ["pit"], genre: "donjon" },
@@ -55,8 +57,6 @@ const ACTIVITES: Record<string, { fr: string; en: string; groupes: string[]; gen
   "vespers-host": { fr: "Hôte Vesper", en: "Vesper's Host", groupes: ["vespershost"], genre: "donjon" },
   "sundered-doctrine": { fr: "Dogme Fragmenté", en: "Sundered Doctrine", groupes: ["sundereddoctrine"], genre: "donjon" },
   "equilibrium": { fr: "Équilibre", en: "Equilibrium", groupes: ["equilibrium"], genre: "donjon" },
-  "root-of-nightmares": { fr: "Racine des Cauchemars", en: "Root of Nightmares", groupes: ["rootofnightmares"], genre: "raid" },
-  "spire-of-stars": { fr: "Flèche d'Étoiles", en: "Spire of Stars", groupes: ["spireofstars"], genre: "raid" },
 };
 /** FR : télécharge le fichier amont (réseau une seule fois, ici seulement : l'appli n'appelle JAMAIS ce script). / EN: fetches the upstream file. */
 function telecharger(): string {

@@ -871,6 +871,16 @@
    "itemHashes": [],
    "genre": "raid"
   },
+  "spire-of-stars": {
+   "libelle_fr": "Flèche d'Étoiles",
+   "libelle_en": "Spire of Stars",
+   "sourceHashes": [
+    1675483099,
+    2812190367
+   ],
+   "itemHashes": [],
+   "genre": "raid"
+  },
   "scourge-of-the-past": {
    "libelle_fr": "Fléau du Passé",
    "libelle_en": "Scourge of the Past",
@@ -940,6 +950,15 @@
    "libelle_en": "Vow of the Disciple",
    "sourceHashes": [
     1007078046
+   ],
+   "itemHashes": [],
+   "genre": "raid"
+  },
+  "root-of-nightmares": {
+   "libelle_fr": "Racine des Cauchemars",
+   "libelle_en": "Root of Nightmares",
+   "sourceHashes": [
+    3190710249
    ],
    "itemHashes": [],
    "genre": "raid"
@@ -1143,25 +1162,6 @@
    ],
    "itemHashes": [],
    "genre": "donjon"
-  },
-  "root-of-nightmares": {
-   "libelle_fr": "Racine des Cauchemars",
-   "libelle_en": "Root of Nightmares",
-   "sourceHashes": [
-    3190710249
-   ],
-   "itemHashes": [],
-   "genre": "raid"
-  },
-  "spire-of-stars": {
-   "libelle_fr": "Flèche d'Étoiles",
-   "libelle_en": "Spire of Stars",
-   "sourceHashes": [
-    1675483099,
-    2812190367
-   ],
-   "itemHashes": [],
-   "genre": "raid"
   }
  }
 }

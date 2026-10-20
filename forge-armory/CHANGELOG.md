@@ -1,3 +1,7 @@
+## 19/10/2026 (fin de soirée) — ordre du menu Source complété : Flèche d'Étoiles et Racine des Cauchemars replacées
+
+**Demande de l'utilisateur** : « J'ai bien oublié ces deux-là : Flèche d'Étoiles à mettre juste après Dévoreur de Mondes, Racine des Cauchemars à mettre juste après Serment du Disciple. Tu pourras push ce changement directement. » — uniquement l'ORDRE du menu ; les noms et le reste sont inchangés. Corrigé dans le RÉGÉNÉRATEUR (la régénération conserve l'ordre voulu) et le JSON régénéré. Push direct sur `main` autorisé.
+
 ## 19/10/2026 (validation du chantier « saisons et sources », soir) — CHANTIER VALIDÉ : libellés français des activités corrigés, préfixes « Raid · » / « Donjon · », ordre du menu fixé
 
 **Validation de l'utilisateur** : « Mille » + Raid → le Mille Voix apparaît ; « Mille » + Dernier Vœu → pareil ; « Mesure » + Raid → la Mesure Corrective ; les combinaisons avec Armes uniquement et les autres filtres fonctionnent. **Le chantier saisons/sources est VALIDÉ de bout en bout** (saison : fiche, infobulle, noms ; source : catégorie en clair, menu, filtre). Demandes finales (uniquement des NOMS et l'ORDRE d'affichage) :
