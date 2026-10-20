@@ -539,6 +539,8 @@ export function rechercherDansManifest(
   avecMasques = false
 ): ResultatRecherche[] {
   const motNormalise = normaliserRecherche(motCle.trim());
+  // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources », RETOUR DE TEST n°3) - MODE « TOUT » : un mot-clé VIDE liste TOUS les objets des tables demandées (l'appelant l'utilise pour un filtre source: SEUL — le tri se fait côté client ; jamais par défaut : les autres appelants passent un vrai mot-clé). / EN: ⚠️ ADDED - an EMPTY keyword lists every item (used for a lone source: filter; never the default).
+  const tout = motNormalise.length === 0;
   if (motNormalise.length < 2) return []; // évite de scanner tout le Manifest pour 1 caractère
 
   const resultats: ResultatRecherche[] = [];
@@ -547,7 +549,7 @@ export function rechercherDansManifest(
     const index = obtenirIndexTable(db, table);
     for (const ligne of index) {
       // Filtre grossier et rapide, sur du texte déjà normalisé (pas de re-calcul).
-      if (!ligne.jsonNormalise.includes(motNormalise)) continue;
+      if (!tout && !ligne.jsonNormalise.includes(motNormalise)) continue;
 
       const def = ligne.json
         ? JSON.parse(ligne.json)
@@ -556,8 +558,9 @@ export function rechercherDansManifest(
         def,
         table,
         motNormalise
-      );
-      if (!champCorrespondant) continue;
+      );      // FR : ⚠️ (19/10/2026) - en mode « tout », l'absence de correspondance textuelle n'est pas un rejet : l'objet est listé (le tri côté client se fait par source) ; un objet sans nom n'a rien à faire dans une liste.
+      if (!champCorrespondant && !tout) continue;
+      if (tout && !nom) continue;
       if (mode === "nom" && champCorrespondant !== "nom") continue; // mode "nom" : on ignore les correspondances ailleurs
 
       let masque = false;
@@ -576,7 +579,8 @@ export function rechercherDansManifest(
         hash: idSqliteVersHash(ligne.id),
         nom,
         description,
-        champCorrespondant,
+        // FR : ⚠️ (19/10/2026, mode « tout ») - la correspondance peut être null (on liste tout, pas une recherche) : le type de ResultatRecherche attend une valeur non nulle, on retombe sur « nom » par convention d'affichage. / EN: in "list everything" mode the match is null; the display falls back to "nom".
+        champCorrespondant: champCorrespondant ?? "nom",
         slot,
         isExotic: def.inventory?.tierTypeHash === TIER_TYPE_HASH_EXOTIQUE,
         factice: Array.isArray(def.itemCategoryHashes) && def.itemCategoryHashes.includes(CATEGORIE_FACTICE),
