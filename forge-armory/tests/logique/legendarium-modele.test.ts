@@ -17,6 +17,7 @@ import {
   libelleRangChrono,
   libelleSlot,
   aLore,
+  diagnostiquerLore,
 } from "../../src/lib/legendarium/modele";
 import { ereDeSection, PALETTE, PALETTE_PRINCIPALE, PALETTE_REPLI } from "../../src/lib/legendarium/palette";
 
@@ -297,6 +298,43 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
   const balayages = requetes.filter((q) => /FROM DestinyInventoryItemDefinition\b/.test(q) && !/WHERE/.test(q)).length;
   ok("⚠️ aLore : 3 appels = AUCUN balayage de la table des objets (lectures ciblées `WHERE id = ?` uniquement)",
     balayages === 0, { balayages, requetes });
+}
+
+
+// --- ⚠️ AJOUT (21/10/2026, suite 8) : `diagnostiquerLore` — diagnostic dev du bouton « Lire le Lore » absent ---
+// L'utilisateur ne voit pas le bouton : ce diagnostic vérifie avec une fausse base si la table Lore existe, combien de Lores, combien d'objets avec lore lisible.
+{
+  const { db: dbDiag } = creerFausseDb({
+    [T_LORE]: {
+      7101: lore("Izanagi", "Texte du lore d'Izanagi."),
+      7003: lore("Lore vide", ""), // sans corps
+    },
+    [T_OBJET]: {
+      6001: objet("Izanagi — Burden", { itemType: 3, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6002: objet("Arme sans lore", { itemType: 3, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6003: objet("Arme masquée", { itemType: 3, redacted: true, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6005: objet("Arme lore vide", { itemType: 3, lore: 7003, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+    },
+  });
+  const d = diagnostiquerLore(dbDiag);
+  ok("diagnostiquerLore : table Lore existe, 2 Lores dont 1 avec corps",
+    d?.tableLoreExiste === true && d.nbLores === 2 && d.nbLoresAvecCorps === 1, d);
+  ok("diagnostiquerLore : 4 objets, 3 avec champ lore, 1 seul avec un lore lisible (Izanagi ; masqué et lore-vide exclus)",
+    d?.nbObjets === 4 && d.nbObjetsAvecLore === 3 && d.nbObjetsAvecLoreLisible === 1, d);
+  ok("diagnostiquerLore : un exemple = Izanagi (hash 6001)",
+    d?.exemples.length === 1 && d.exemples[0].hash === 6001 && d.exemples[0].nom === "Izanagi — Burden", d?.exemples);
+  ok("diagnostiquerLore : sans Manifest → null, sans erreur", diagnostiquerLore(null) === null);
+}
+{
+  // Table Lore ABSENTE : la fausse base lève une erreur sur `FROM DestinyLoreDefinition` (table inconnue = 0 lignes, pas d'exception).
+  // On simule avec une base qui ne contient PAS la table : lireTable retourne {} (pas d'exception dans la fausse base),
+  // donc on vérifie le comportement "table vide".
+  const { db: dbSansLore } = creerFausseDb({
+    [T_OBJET]: { 6001: objet("Izanagi", { itemType: 3, inventory: { bucketTypeHash: BUCKET.cinetique } }) },
+  });
+  const d = diagnostiquerLore(dbSansLore);
+  ok("diagnostiquerLore : table Lore vide (0 entrée) + 0 objet avec lore → le bouton n'apparaîtrait pas",
+    d?.tableLoreExiste === true && d.nbLores === 0 && d.nbObjetsAvecLore === 0 && d.nbObjetsAvecLoreLisible === 0, d);
 }
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);

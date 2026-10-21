@@ -6,6 +6,7 @@
 import { Database } from "sql.js";
 import { useEffect, useMemo, useState } from "react";
 import { SECTIONS, livresDeSection, ordrePages, rechercherPages, trouverPage } from "../lib/legendarium/modele";
+import type { DiagnosticLore } from "../lib/legendarium/modele";   // ⚠️ AJOUT (21/10/2026, suite 8) : type du diagnostic dev des Lores (bouton « Lire le Lore » absent)
 import type { ResultatRechercheLore } from "../lib/legendarium/modele";
 import { PALETTE, ereDeSection } from "../lib/legendarium/palette";
 import type { DiagnosticGrimoire } from "../lib/legendarium/grimoire"; // ⚠️ type uniquement : le module (et son JSON de 930 Ko) est importé dynamiquement plus bas
@@ -184,6 +185,8 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
   // FR : ⚠️ AJOUT (20/10/2026) - diagnostic dev du Grimoire D1. ⚠️ RÉSULTAT (21/10/2026) : HTTP 200, clé acceptée, 0 livre / 0 carte — Bungie ne sert plus de contenu Grimoire via l'API D1 ; le repli statique embarqué prend le relais. Le module est importé dynamiquement (le JSON de 930 Ko reste hors du bundle principal en production : ce bloc est du code mort en build).
   const [diag, setDiag] = useState<DiagnosticGrimoire | null>(null);
   const [diagOuvert, setDiagOuvert] = useState(false);
+  // FR : ⚠️ AJOUT (21/10/2026, suite 8) - diagnostic dev des LORES D2 : l'utilisateur ne voit PAS le bouton « Lire le Lore » dans les fiches. Ce diagnostic vérifie avec le VRAI Manifest si la table `DestinyLoreDefinition` existe et si les objets portent un champ `lore`. Un seul balayage, dev uniquement. / EN: ADDED - dev diagnostic of D2 lores: the user does NOT see the "Read the Lore" button in sheets. Checks with the REAL Manifest whether the `DestinyLoreDefinition` table exists and whether items carry a `lore` field. One scan, dev only.
+  const [diagLore, setDiagLore] = useState<DiagnosticLore | null>(null);
 
   // FR : le Grimoire D1 est lu UNE FOIS à l'ouverture (API legacy, repli statique embarqué si l'API ne convient pas — c'est le cas constaté). Import dynamique : le chunk (JSON de 930 Ko inclus) n'est chargé qu'ici, pas au démarrage de l'appli.
   useEffect(() => {
@@ -199,6 +202,14 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
     import("../lib/legendarium/grimoire").then(({ diagnostiquerGrimoire }) => diagnostiquerGrimoire()).then((d) => { if (!annule) setDiag(d); });
     return () => { annule = true; };
   }, []);
+
+  // FR : ⚠️ AJOUT (21/10/2026, suite 8) - diagnostic dev des Lores D2 (bouton « Lire le Lore » absent des fiches) : un seul balayage de la table des objets, exécuté UNE FOIS quand le Manifest est prêt. En production, `import.meta.env.DEV` est false : Rollup élimine ce bloc.
+  useEffect(() => {
+    if (!import.meta.env.DEV || !db) return;
+    let annule = false;
+    import("../lib/legendarium/modele").then(({ diagnostiquerLore }) => diagnostiquerLore(db)).then((d) => { if (!annule) setDiagLore(d); });
+    return () => { annule = true; };
+  }, [db]);
 
   // FR : sections D2 depuis le Manifest (cache existant, via le modèle — index des porteurs en un seul balayage).
   const livresD2 = useMemo(() => {
@@ -277,6 +288,13 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
         <details data-diagnostic-grimoire="" style={{ marginTop: "0.5rem", fontSize: "0.75rem", color: "#7d7a70" }} open={diagOuvert} onToggle={(e) => setDiagOuvert((e.target as HTMLDetailsElement).open)}>
           <summary style={{ cursor: "pointer" }}>🔍 Diagnostic Grimoire D1 (dev, à copier à Claude) — {diag.contenuVide ? `⚠️ API vide (HTTP ${diag.statutHttp}, clé OK) → repli statique : ${diag.repliLivres} livre(s), ${diag.repliCartes} carte(s)` : diag.ok ? `✅ ${diag.livres} livre(s), ${diag.cartes} carte(s) de l'API` : diag.erreurBungie ? `❌ ${diag.erreurBungie}` : diag.erreur ? `❌ ${diag.erreur}` : diag.clePresente ? `⏳ HTTP ${diag.statutHttp}` : "❌ aucune clé"}</summary>
           <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.68rem" }}>{JSON.stringify(diag, null, 2)}</pre>
+        </details>
+      )}
+      {/* FR : ⚠️ AJOUT (21/10/2026, suite 8) - diagnostic dev des LORES D2 : le bouton « Lire le Lore » n'apparaît pas dans les fiches Détails de l'utilisateur. Ce panneau dit si la table `DestinyLoreDefinition` existe, combien de Lores elle contient, et combien d'objets portent un `lore` lisible. À copier à Claude. / EN: ADDED - dev diagnostic of D2 lores: the "Read the Lore" button doesn't show in the user's Details sheets. This panel tells whether the `DestinyLoreDefinition` table exists, how many lores it holds, and how many items carry a readable `lore`. Copy to Claude. */}
+      {import.meta.env.DEV && diagLore && (
+        <details data-diagnostic-lore="" style={{ marginTop: "0.5rem", fontSize: "0.75rem", color: "#7d7a70" }}>
+          <summary style={{ cursor: "pointer" }}>🔍 Diagnostic Lores D2 (dev, à copier à Claude) — {diagLore.erreur ? `❌ ${diagLore.erreur}` : !diagLore.tableLoreExiste ? `❌ table DestinyLoreDefinition ABSENTE` : diagLore.nbLores === 0 ? `⚠️ table DestinyLoreDefinition VIDE` : diagLore.nbObjetsAvecLoreLisible === 0 ? `⚠️ ${diagLore.nbLores} Lore(s) mais AUCUN objet avec un lore lisible (sur ${diagLore.nbObjets} objets)` : `✅ ${diagLore.nbLores} Lore(s) dont ${diagLore.nbLoresAvecCorps} avec corps ; ${diagLore.nbObjetsAvecLoreLisible} objet(s) avec un lore lisible`}</summary>
+          <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.68rem" }}>{JSON.stringify(diagLore, null, 2)}</pre>
         </details>
       )}
     </div>

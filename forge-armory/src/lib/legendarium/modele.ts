@@ -1,6 +1,6 @@
 // FR : ⚠️ AJOUT (20/10/2026, chantier Legendarium, branche draft-legendarium) - MODÈLE du Legendarium : lecture des tables `DestinyLoreDefinition` et `DestinyItemDefinition` (champ `lore`) dans le cache manifeste EXISTANT (`lib/manifest/download.ts`) — AUCUN second mécanisme de téléchargement. Fonctions PURES ou à effets de lecture uniquement : rien n'écrit, rien ne persiste. / EN: Legendarium model: reads the `DestinyLoreDefinition` and `DestinyItemDefinition` (field `lore`) tables from the EXISTING manifest cache (`lib/manifest/download.ts`) — NO second download mechanism. Pure or read-only functions: nothing writes, nothing persists.
 import type { Database } from "sql.js";
-import { obtenirDefinition, idSqliteVersHash } from "../manifest/download";
+import { obtenirDefinition, lireTable, idSqliteVersHash } from "../manifest/download";
 import { normaliser } from "../manifest/search";
 import { BUCKET_HASH_VERS_SLOT, CLASS_TYPE_VERS_CLASSE } from "../../data/constantesManifest";
 import { CATEGORIE_FACTICE } from "../manifest/search";
@@ -155,6 +155,66 @@ export function aLore(db: Database | null | undefined, itemHash: number): boolea
   }
   if (!def || !estPorteur(def) || def.lore === undefined) return false;
   return Boolean(lireLore(db, def.lore)?.body?.trim());
+}
+
+/** FR : résultat du diagnostic dev des Lores (étape 5, suite 8) : vérifie, avec le VRAI Manifest de l'utilisateur, si la table `DestinyLoreDefinition` existe et contient des entrées, et si les objets portent un champ `lore`. C'est la seule façon de savoir pourquoi le bouton « Lire le Lore » n'apparaît pas. / EN: result of the dev lore diagnostic (step 5, suite 8): checks, with the user's REAL Manifest, whether the `DestinyLoreDefinition` table exists and has entries, and whether items carry a `lore` field. The only way to know why the "Read the Lore" button doesn't show. */
+export interface DiagnosticLore {
+  /** FR : la table `DestinyLoreDefinition` existe-t-elle dans le Manifest ? / EN: does the `DestinyLoreDefinition` table exist in the Manifest? */
+  tableLoreExiste: boolean;
+  /** FR : nombre d'entrées dans `DestinyLoreDefinition`. / EN: entry count in `DestinyLoreDefinition`. */
+  nbLores: number;
+  /** FR : nombre d'entrées de Lore avec un corps de texte non vide. / EN: lore entries with a non-empty body. */
+  nbLoresAvecCorps: number;
+  /** FR : la table `DestinyInventoryItemDefinition` existe-t-elle ? / EN: does the `DestinyInventoryItemDefinition` table exist? */
+  tableObjetsExiste: boolean;
+  /** FR : nombre total d'objets lus (balayage complet, dev uniquement). / EN: total items read (full scan, dev only). */
+  nbObjets: number;
+  /** FR : nombre d'objets portant un champ `lore` (nombre). / EN: items carrying a `lore` field (number). */
+  nbObjetsAvecLore: number;
+  /** FR : parmi eux, nombre d'objets éligibles (nommés, non masqués, non factices) dont le Lore a un corps. / EN: among them, eligible items (named, not redacted, not dummy) whose lore has a body. */
+  nbObjetsAvecLoreLisible: number;
+  /** FR : quelques exemples d'objets avec Lore lisible (hash + nom), pour vérifier en fiche. / EN: a few examples of items with readable lore (hash + name), to check in a sheet. */
+  exemples: { hash: number; nom: string }[];
+  /** FR : message d'erreur si une table est absente (la requête lève). / EN: error message if a table is missing (the query throws). */
+  erreur?: string;
+}
+
+/** FR : ⚠️ AJOUT (21/10/2026, suite 8) - DIAGNOSTIC dev : pourquoi le bouton « Lire le Lore » n'apparaît-il pas ? Un seul balayage de la table des objets (dev uniquement, jamais en production). Ne modifie rien, ne persiste rien. / EN: ADDED - DEV DIAGNOSTIC: why doesn't the "Read the Lore" button show? One scan of the items table (dev only, never in production). Changes nothing, persists nothing. */
+export function diagnostiquerLore(db: Database | null | undefined): DiagnosticLore | null {
+  if (!db) return null;
+  // Table des Lores
+  let tableLoreExiste = true, nbLores = 0, nbLoresAvecCorps = 0;
+  try {
+    const lores = lireTable<DestinyLoreDefinition>(db, TABLE_LORE);
+    nbLores = Object.keys(lores).length;
+    nbLoresAvecCorps = Object.values(lores).filter((l) => l?.body?.trim()).length;
+  } catch (e) {
+    tableLoreExiste = false;
+    return { tableLoreExiste, nbLores, nbLoresAvecCorps, tableObjetsExiste: true, nbObjets: 0, nbObjetsAvecLore: 0, nbObjetsAvecLoreLisible: 0, exemples: [], erreur: `Table ${TABLE_LORE} absente ou illisible : ${(e as Error).message}` };
+  }
+  // Table des objets : un seul balayage
+  let tableObjetsExiste = true, nbObjets = 0, nbObjetsAvecLore = 0, nbObjetsAvecLoreLisible = 0;
+  const exemples: { hash: number; nom: string }[] = [];
+  try {
+    const objets = lireTable<DestinyItemDefinition>(db, TABLE_OBJETS);
+    for (const [idSqlite, def] of Object.entries(objets)) {
+      nbObjets++;
+      if (def?.lore === undefined) continue;
+      nbObjetsAvecLore++;
+      if (!estPorteur(def)) continue;
+      const lore = lireLore(db, def.lore);
+      if (!lore?.body?.trim()) continue;
+      nbObjetsAvecLoreLisible++;
+      if (exemples.length < 5) {
+        const nom = def.displayProperties?.name?.trim();
+        if (nom) exemples.push({ hash: idSqliteVersHash(+idSqlite), nom });
+      }
+    }
+  } catch (e) {
+    tableObjetsExiste = false;
+    return { tableLoreExiste, nbLores, nbLoresAvecCorps, tableObjetsExiste, nbObjets, nbObjetsAvecLore, nbObjetsAvecLoreLisible, exemples, erreur: `Table ${TABLE_OBJETS} absente ou illisible : ${(e as Error).message}` };
+  }
+  return { tableLoreExiste, nbLores, nbLoresAvecCorps, tableObjetsExiste, nbObjets, nbObjetsAvecLore, nbObjetsAvecLoreLisible, exemples };
 }
 
 /** FR : l'objet porteur d'une page de Lore, pour le parcours inverse (depuis la page, voir l'objet). / EN: the carrier item of a lore page, for the reverse path (from the page, see the item). */

@@ -1,3 +1,19 @@
+## 21/10/2026 (branche `draft-legendarium`, suite 8) — ANNULATION du déplacement Carrière/Accomplissements (régression signalée) + diagnostic dev des Lores D2 (bouton « Lire le Lore » absent)
+
+**⚠️ Annulé (régression signalée par l'utilisateur, suite 7)** :
+- **`src/pages/DashboardPage.tsx`** — le déplacement des boutons « Carrière » et « Accomplissements » au-dessus du sélecteur de vue (hors du bloc Connexion) est **ANNULÉ** : l'utilisateur les a signalés comme sortis de la section « Connexion » **sans son accord**, et le fonctionnement dans Load-outs/Forge/Legendarium était toujours faux. Les boutons sont **remis dans le bloc Connexion**, exactement comme avant la suite 7. **Le bug « la pop-up ne s'ouvre pas hors Build Analyzer » reste OUVERT** : il est noté dans le TODO de **main** (§25), à traiter séparément avec l'accord de l'utilisateur.
+
+**Fait** :
+- **`src/lib/legendarium/modele.ts`** (⚠️ AJOUT) — `diagnostiquerLore(db)` + interface `DiagnosticLore` : diagnostic **dev uniquement** qui vérifie avec le VRAI Manifest si la table `DestinyLoreDefinition` existe, combien elle contient de Lores (avec/sans corps), et combien d'objets portent un champ `lore` lisible (avec 5 exemples hash+nom). Un seul balayage de la table des objets. Ne modifie rien, ne persiste rien. C'est la seule façon de savoir pourquoi le bouton « 📖 Lire le Lore » n'apparaît pas dans les fiches.
+- **`src/components/Bibliotheque.tsx`** (⚠️ AJOUT) — panneau dev `<details data-diagnostic-lore>` dans l'onglet Legendarium (à côté du diagnostic Grimoire D1) : s'exécute une fois quand le Manifest est prêt, en `import.meta.env.DEV` uniquement (éliminé du build de production par Rollup). Résumé en une ligne + JSON complet à copier.
+- **Tests** : `legendarium-modele` **55/55** (5 nouveaux : `diagnostiquerLore` — table Lore existe/2 Lores/1 avec corps, 4 objets/3 avec lore/1 lisible, exemple Izanagi, sans Manifest → null, table vide → 0) ; `cablage-forge` **25/25** (test Carrière/Accomplissements corrigé : boutons DANS le bloc Connexion, déplacement annulé). `tsc` zéro erreur, `npm run build` strict ✓.
+
+**Version inchangée (0.4.14).**
+
+**Conservé de la suite 7** (demandes explicites de l'utilisateur, non annulées) : la navigation « ← Précédent / Suivant → » **au-dessus et en-dessous** de la page de Lore (pas dedans) ; le bouton « 📖 Lire le Lore » dans la **pop-up Détails du Build Analyzer** (`SelecteurInventaire.tsx` + `onLireLore` câblé dans `DashboardPage`).
+
+**À faire côté utilisateur** : `npm run dev` → onglet **Legendarium** → avec le Manifest chargé, copier le panneau **« 🔍 Diagnostic Lores D2 (dev, à copier à Claude) »** (`data-diagnostic-lore`) — il dira si la table `DestinyLoreDefinition` existe dans le vrai Manifest et combien d'objets portent un `lore` lisible.
+
 ## 21/10/2026 (branche `draft-legendarium`, suite 7) — RETOURS UTILISATEUR : nav Précédent/Suivant au-dessus/en-dessous de la page + bouton « Lire le Lore » dans la pop-up Détails du Build Analyzer + boutons Carrière/Accomplissements globaux
 
 **Fait** :
