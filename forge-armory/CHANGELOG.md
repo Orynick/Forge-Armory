@@ -74,6 +74,8 @@
 
 **Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓ ; batterie de logique 29/30 séries au vert (seul échec : `icones` 10/11, préexistant, identique sans ces changements) ; `reproductibilite-visuels` 7/7 ; `visuels` 20/20.
 
+
+
 ## 19/10/2026 (nuit) — v0.4.14
 
 **Décision de l'utilisateur** : « le chantier Forge n'est pas totalement finalisé, donc on reste en 0.4.x. Fait un simple incrément, vers 0.4.14. On passera en 0.5 quand le chantier Forge sera terminé 🙂 » — CONVENTION ACTÉE : les 0.4.x suivent le chantier Forge ; **0.5.x sera réservé à sa clôture**.
