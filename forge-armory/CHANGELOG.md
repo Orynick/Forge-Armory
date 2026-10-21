@@ -1,3 +1,17 @@
+## 21/10/2026 (suite 3) — RÉGRESSION CORRIGÉE : barre de la Forge (boutons Armes/Armures en double, Collection/Inventaire vides)
+
+**Retour de l'utilisateur** (capture du zip de la branche main) : « Les boutons Armes et Armures apparaissent deux fois (ceux que j'ai entourés de rouge ne devraient pas être là). De plus ils sont vides, sans logo. Les boutons Collection et Inventaire sont absents, il n'y a que leur encart. C'est une vraie régression ! »
+
+**Cause** : le commit du 19/10 (« barre de boutons Forge (logos v5) ») AVAIT AJOUTÉ les boutons logo Armes/Armures dans la barre du haut SANS RETIRER les anciens boutons « pills » Armes/Armures présents dans chaque panneau (Collection et Inventaire) : chaque partie apparaissait donc DEUX FOIS. Sur la capture, les deux grands boutons vides à gauche sont les boutons stylisés « Collection » et « Inventaire » (leurs images ne se chargeaient pas dans le zip : le dossier `assets` n'était pas embarqué tel quel), et les pills entourés en rouge sont les doublons.
+
+**Corrigé** dans `src/components/PageForge.tsx` :
+- Les groupes de pills « Armes / Armures » sont RETIRÉS des deux panneaux (`data-choix-objet`, `data-choix-objet-collection`, `data-objet`, `data-objet-collection` supprimés). La barre du haut — « Collection », « Inventaire » (boutons stylisés), séparateur vertical, « Armes », « Armures » (logos v5 `icones.armes` / `icones.armures`) — est le SEUL sélecteur de la vue ET de la partie ; elle aiguille les deux (un clic sur « Armures » bascule la partie de la vue active et la monte à la demande). Le comportement par vue est conservé (rien ne se recharge en changeant).
+- Les boutons logo portent `data-objet-logo` ; les tests d'interface cliquent désormais ces boutons.
+
+**Tests** : `cablage-forge` mis à jour (21/21 : la barre est le seul sélecteur, les attributs des pills sont absents du code) ; `tests/ui/forge.py`, `forge-armures.py`, `forge-collection-armures.py` mis à jour (clics sur les boutons logo `data-objet-logo`, nouveaux contrôles : AUCUN bouton pill dans les panneaux, logos `icone-armes.svg` / `icone-armures.svg` chargés, séparateur présent).
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓ ; batterie logique 29/30 séries (le seul échec, `icones` 10/11, est PRÉEXISTANT et documenté depuis la 0.4.14) — dont `cablage-forge` 21/21, `visuels` 20/20, `reproductibilite-visuels` 7/7, `armure-forge` 22/22. **Non rejoué ici** : les tests d'interface Playwright (pas de navigateur dans cette sandbox — même limite documentée dans les entrées précédentes) ; ils sont prêts à être rejoués (`python3 tests/ui/forge.py`, `forge-armures.py`, `forge-collection-armures.py`). **À contrôler par l'utilisateur** : rouvrir la Forge dans le zip de main : une seule paire Armes/Armures (avec les logos épée/bouclier), Collection et Inventaire affichés normalement.
+
 ## 21/10/2026 (suite 2) — requête des stats « Carrière » CORRIGÉE sur données réelles : GetHistoricalStatsForAccount
 
 **Retour réel de l'utilisateur** (diagnostic « statIds retournés », `npm run dev`) : « statIds retournés : AUCUN ; requête : GET /Destiny2/Stats/GetHistoricalStats/4611686018433066369/0/?periodType=AllTime&mode=None&groups=General,Medals ; erreur : 404 ». **C'est exactement le soupçon documenté dans l'entrée du 21/10 (suite)** : la route appelée n'existe pas — le 404 renvoyait une page d'erreur XHTML, pas une réponse Bungie. La correction suit la démarche prévue par la spécification : figer la lecture sur des données réelles.
