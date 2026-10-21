@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4316 1024" role="img" aria-labelledby="fa-selecteur-bouton-armes-title fa-selecteur-bouton-armes-desc">
+  <title id="fa-selecteur-bouton-armes-title">Forge Armory — Armes</title>
+  <desc id="fa-selecteur-bouton-armes-desc">Bouton Armes : logo dans un cercle à cristaux, plaque avec titre et ligne, style Forge Armory.</desc>
+  <defs>
+    <linearGradient id="fa-selecteur-bouton-armes-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-armes-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-armes-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-armes-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-selecteur-bouton-armes-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-selecteur-bouton-armes-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    
+    <linearGradient id="fa-selecteur-bouton-armes-plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131923"/><stop offset="1" stop-color="#080b11"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-armes-fadeH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.12" stop-color="#e8ebef" stop-opacity="0.85"/>
+      <stop offset="0.88" stop-color="#e8ebef" stop-opacity="0.85"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-armes-fadeV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.25" stop-color="#e8ebef" stop-opacity="0.7"/>
+      <stop offset="0.75" stop-color="#e8ebef" stop-opacity="0.7"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="fa-selecteur-bouton-armes-glowStar" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  <mask id="fa-selecteur-bouton-armes-mSwOnly" maskUnits="userSpaceOnUse" x="-400" y="-300" width="1800" height="1800"><rect x="-2000" y="-2000" width="5000" height="5000" fill="#fff"/><rect x="-6.5" y="52" width="13" height="180" fill="#000"/><path d="M 0 244 L 15 266 L 0 288 L -15 266 Z" fill="#000" stroke="#000" stroke-width="12" stroke-linejoin="miter"/><path d="M -20 374 L 20 374 M -20 390 L 20 390 M -20 406 L 20 406" stroke="#000" stroke-width="4" fill="none"/><path d="M 0 424 L 12 438 L 0 452 L -12 438 Z" fill="#000"/></mask>
+  </defs>
+
+  <g shape-rendering="geometricPrecision">
+    <rect x="1010" y="220" width="3134" height="4" fill="url(#fa-selecteur-bouton-armes-fadeH)"/><rect x="1010" y="800" width="3134" height="4" fill="url(#fa-selecteur-bouton-armes-fadeH)"/>
+    <path d="M 874.2 250.0 L 4163.7 250.0 L 4245.7 332.0 L 4245.7 692.0 L 4163.7 774.0 L 874.2 774.0 L 865.5 774.0 A 440 440 0 0 0 865.5 250.0 Z" fill="url(#fa-selecteur-bouton-armes-plateFill)"/>
+    <path d="M 884.6 265.0 L 4148.7 265.0 L 4230.7 347.0 L 4230.7 677.0 L 4148.7 759.0 L 884.6 759.0" fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="2.5" stroke-linejoin="miter"/>
+    <path d="M 874.2 250.0 L 4163.7 250.0 L 4245.7 332.0 L 4245.7 692.0 L 4163.7 774.0 L 874.2 774.0" fill="none" stroke="url(#fa-selecteur-bouton-armes-silver)" stroke-width="11" stroke-linejoin="miter" stroke-linecap="butt"/>
+    <rect x="1133.5" y="433.4" width="3" height="157.2" fill="url(#fa-selecteur-bouton-armes-fadeV)"/>
+  </g>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-selecteur-bouton-armes-silver)" stroke-width="22"/>
+    <g transform="translate(512 512) scale(1.0) translate(-512 -512)"><g transform="translate(512 149.3) scale(1.55)"><g mask="url(#fa-selecteur-bouton-armes-mSwOnly)"><path d="M 0 0 L 34 150 L 36 304 L -36 304 L -34 150 Z" fill="url(#fa-selecteur-bouton-armes-silver)"/><path d="M 0 296 L 96 296 L 136 246 L 142 334 L 104 322 L 40 338 L 0 352 Z" fill="url(#fa-selecteur-bouton-armes-silver)"/><path d="M 0 296 L -96 296 L -136 246 L -142 334 L -104 322 L -40 338 L 0 352 Z" fill="url(#fa-selecteur-bouton-armes-silver)"/><path d="M -15 358 L 15 358 L 15 414 L -15 414 Z" fill="url(#fa-selecteur-bouton-armes-silver)"/><path d="M 0 408 L 28 438 L 0 468 L -28 438 Z" fill="url(#fa-selecteur-bouton-armes-silver)"/></g><g filter="url(#fa-selecteur-bouton-armes-glowSoft)"><rect x="-3" y="60" width="6" height="164" fill="url(#fa-selecteur-bouton-armes-cyanL)"/><path d="M 0 244 L 15 266 L 0 288 L -15 266 Z" transform="translate(0 0)" fill="url(#fa-selecteur-bouton-armes-cyanL)"/><path d="M 0 428 L 8 438 L 0 448 L -8 438 Z" fill="url(#fa-selecteur-bouton-armes-cyanL)"/></g></g></g>
+    
+  </g>
+  <g><path d="M 2224.72 347.54 L 2300.32 527.05 L 2309.78 527.05 L 2309.78 531.00 L 2274.96 531.00 L 2274.96 527.05 L 2279.88 527.05 L 2216.77 378.14 L 2155.78 527.05 L 2161.88 527.05 L 2161.88 531.00 L 2137.93 531.00 L 2137.93 527.05 L 2146.54 527.05 Z M 2368.73 357.91 M 2393.42 359.89 C 2393.92 384.58 2393.92 409.27 2393.92 434.21 V 447.30 C 2393.92 471.99 2393.92 496.93 2393.42 521.12 L 2368.73 523.35 V 531.00 H 2445.03 V 523.35 L 2419.84 521.12 C 2419.10 496.93 2419.10 472.48 2419.10 446.31 H 2436.63 C 2458.12 446.31 2464.53 454.21 2469.72 474.70 L 2481.08 515.20 C 2483.79 528.53 2491.70 533.72 2509.23 533.72 C 2518.86 533.72 2525.52 532.48 2531.94 531.00 V 523.35 L 2508.49 521.86 L 2495.65 476.93 C 2490.71 456.68 2483.30 446.31 2461.82 442.60 C 2494.66 437.17 2509.72 418.65 2509.72 396.68 C 2509.72 367.05 2487.00 350.26 2446.76 350.26 H 2368.73 Z M 2419.84 358.90 H 2442.07 C 2471.20 358.90 2485.28 372.98 2485.28 396.93 C 2485.28 419.89 2470.21 438.16 2442.56 438.16 H 2419.10 C 2419.10 408.28 2419.10 383.35 2419.84 358.90 Z M 2759.16 531.00 H 2810.77 V 523.35 L 2785.58 521.12 C 2785.09 496.93 2785.09 471.99 2785.09 447.30 V 434.21 C 2785.09 409.27 2785.09 384.58 2785.58 360.14 L 2810.28 357.91 V 350.26 H 2758.67 L 2700.65 497.91 L 2641.63 350.26 H 2590.77 V 357.91 L 2615.21 360.14 L 2614.72 520.38 L 2589.53 523.35 V 531.00 H 2651.26 V 523.35 L 2625.09 520.38 V 437.42 L 2623.86 370.51 L 2688.55 531.00 H 2697.68 L 2760.65 370.01 L 2759.91 450.51 C 2759.66 472.23 2759.91 496.43 2759.41 521.12 L 2734.97 523.35 V 531.00 Z M 3003.67 395.69 H 3015.03 L 3013.55 350.26 H 2880.71 V 357.91 L 2905.40 359.89 C 2905.89 384.58 2905.89 409.27 2905.89 434.21 V 447.30 C 2905.89 471.99 2905.89 496.93 2905.40 521.12 L 2880.71 523.35 V 531.00 H 3018.24 L 3019.47 484.83 H 3008.36 L 3000.46 522.36 H 2931.82 C 2931.57 497.42 2931.57 472.23 2931.57 443.35 H 2973.30 L 2976.51 468.53 H 2985.89 V 409.27 H 2976.51 L 2973.30 434.95 H 2931.57 C 2931.57 408.28 2931.57 383.35 2931.82 359.15 H 2996.02 Z M 3141.26 535.20 C 3180.52 535.20 3205.71 515.44 3205.71 484.09 C 3205.71 458.41 3193.61 444.33 3156.32 428.53 L 3144.72 423.84 C 3125.71 415.69 3114.35 405.57 3114.35 387.30 C 3114.35 366.31 3130.65 355.20 3153.36 355.20 C 3162.50 355.20 3169.41 356.93 3176.82 360.88 L 3184.47 395.69 H 3195.83 L 3197.07 359.64 C 3184.72 351.00 3170.40 346.06 3151.39 346.06 C 3117.81 346.06 3092.13 362.60 3092.13 394.21 C 3092.13 420.14 3107.93 435.94 3137.81 448.78 L 3148.67 453.22 C 3174.35 463.84 3182.50 473.22 3182.50 491.00 C 3182.50 513.96 3165.71 526.06 3139.29 526.06 C 3126.94 526.06 3118.05 524.33 3108.42 519.40 L 3100.52 482.85 H 3089.66 L 3088.18 520.88 C 3100.52 529.02 3120.77 535.20 3141.26 535.20 Z" fill="url(#fa-selecteur-bouton-armes-silverText)"/>
+    <path d="M 2124.6 630.0 L 2172.1 626.04 L 2615.8 626.04 L 2615.8 633.96 L 2172.1 633.96 Z M 3215.1 630.0 L 3167.6 626.04 L 2723.8 626.04 L 2723.8 633.96 L 3167.6 633.96 Z" fill="url(#fa-selecteur-bouton-armes-silver)" opacity="0.9"/>
+    <g filter="url(#fa-selecteur-bouton-armes-glowStar)"><path d="M 2669.8 586.8 L 2679.7 620.1 L 2704.4 630.0 L 2679.7 639.9 L 2669.8 673.2 L 2659.9 639.9 L 2635.3 630.0 L 2659.9 620.1 Z" fill="url(#fa-selecteur-bouton-armes-cyanL)"/><path d="M 2669.8 610.6 L 2674.8 630.0 L 2669.8 649.4 L 2664.9 630.0 Z" fill="#ffffff"/></g></g>
+</svg>

@@ -284,6 +284,27 @@ summary > span {
   height: calc(var(--hauteur-logo-titre) * var(--echelle-bouton, 1));
 }
 
+/* ⚠️ AJOUT (21/10/2026, demande de l'utilisateur) - boutons « Carrière » et « Accomplissements » du bloc Connexion à la MÊME TAILLE : les deux fichiers ont le cadre 4897 x 1024 (le bouton Carrière a été élargi à la largeur d'Accomplissements : retouche 5 de scripts/retoucher-visuels.mjs). `.bouton-vue` impose 4316 / 1024 : sans ce modificateur, le fichier d'Accomplissements était RÉDUIT de 12 % pour tenir dans le cadre (son anneau était plus petit que celui de Carrière). / EN: both buttons use the 4897 x 1024 frame so they have the same size. */
+.bouton-vue--large,
+.bouton-vue--large:hover,
+.bouton-vue--large:active {
+  aspect-ratio: 4897 / 1024;
+}
+
+/* ⚠️ AJOUT (21/10/2026, demande de l'utilisateur, capture d'écran annotée) - bloc Connexion, une fois CONNECTÉ : les boutons « Carrière » (au-dessus) et « Accomplissements » forment une colonne CENTRÉE dans la place libre entre le titre et le statut « connecté », à la hauteur du titre et du compte (deux lignes de la grille). Le titre et le statut restent sur la même ligne, le compte sous le titre. Hors connexion, la classe n'est pas posée : mise en page inchangée (et les boutons n'existent pas). Sur une fenêtre étroite, retour à la mise en page empilée (la colonne passe sous le compte). / EN: once connected, the two buttons sit in a column centred in the free space between the title and the status. */
+.pilier-carte--connexion { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; column-gap: 0.75rem; row-gap: 0.5rem; align-items: start; }
+.pilier-carte--connexion > h3 { display: contents; }
+.pilier-carte--connexion > h3 > .titre-categorie { grid-column: 1; grid-row: 1; }
+.pilier-carte--connexion > h3 > span { grid-column: 3; grid-row: 1; align-self: center; justify-self: end; }
+.pilier-carte--connexion > .connexion-compte { grid-column: 1; grid-row: 2; }
+.pilier-carte--connexion > .connexion-vues-compte { grid-column: 2; grid-row: 1 / span 2; justify-self: center; align-self: start; }
+.pilier-carte--connexion > :not(h3):not(.connexion-compte):not(.connexion-vues-compte) { grid-column: 1 / -1; }
+@media (max-width: 1100px) {
+  .pilier-carte--connexion { display: block; }
+  .pilier-carte--connexion > h3 { display: flex; }
+  .pilier-carte--connexion > .connexion-vues-compte { margin-top: 0.5rem; justify-self: auto; align-self: auto; }   /* le navigateur applique `justify-self` même hors grille : on le neutralise, sinon la colonne se centrait au lieu de rester à gauche */
+}
+
 /* ============================================================================================================================
    ⚠️ AJOUT (07/10/2026, v0.3.13) - TITRES DE CATÉGORIES illustrés (visuels fournis, components/TitreCategorie.tsx) : les six ont le même cadre
    (7505 × 1024), donc UNE seule hauteur ; la largeur suit. Pas d'état sélectionné : ce ne sont pas des boutons.

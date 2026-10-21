@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="fa-icones-icone-legendarium-title fa-icones-icone-legendarium-desc">
+  <title id="fa-icones-icone-legendarium-title">Forge Armory — Legendarium (icône)</title>
+  <desc id="fa-icones-icone-legendarium-desc">Livre ouvert argenté dans un cercle, cristaux cyan, et titre Legendarium.</desc>
+  <defs>
+    <linearGradient id="fa-icones-icone-legendarium-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-legendarium-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-legendarium-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-legendarium-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-legendarium-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-icones-icone-legendarium-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    
+    <mask id="fa-icones-icone-legendarium-cutL" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <path d="M 500 392 Q 436 346 304 344 L 304 616 Q 424 620 500 676 Z" fill="#000" stroke="#000" stroke-width="26" stroke-linejoin="miter"/>
+    </mask>
+    <mask id="fa-icones-icone-legendarium-txtL" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <path d="M 470 420 Q 430 394 356 388" fill="none" stroke="#000" stroke-width="7"/><path d="M 470 462 Q 424 436 334 432" fill="none" stroke="#000" stroke-width="7"/><path d="M 470 504 Q 430 480 372 476" fill="none" stroke="#000" stroke-width="7"/><path d="M 470 546 Q 424 522 334 518" fill="none" stroke="#000" stroke-width="7"/><path d="M 470 588 Q 434 566 384 562" fill="none" stroke="#000" stroke-width="7"/>
+    </mask>
+    <mask id="fa-icones-icone-legendarium-cutR" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <path d="M 524 392 Q 588 346 720 344 L 720 616 Q 600 620 524 676 Z" fill="#000" stroke="#000" stroke-width="26" stroke-linejoin="miter"/>
+    </mask>
+    <mask id="fa-icones-icone-legendarium-txtR" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <path d="M 554 420 Q 594 394 668 388" fill="none" stroke="#000" stroke-width="7"/><path d="M 554 462 Q 600 436 690 432" fill="none" stroke="#000" stroke-width="7"/><path d="M 554 504 Q 594 480 652 476" fill="none" stroke="#000" stroke-width="7"/><path d="M 554 546 Q 600 522 690 518" fill="none" stroke="#000" stroke-width="7"/><path d="M 554 588 Q 590 566 640 562" fill="none" stroke="#000" stroke-width="7"/>
+    </mask>
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-icones-icone-legendarium-silver)" stroke-width="22"/>
+    <g transform="translate(512 520) scale(1.1) translate(-512 -529)">
+    <path d="M 500 714 Q 420 652 270 650 L 270 372 L 304 344 L 304 616 Q 424 620 500 676 Z" fill="url(#fa-icones-icone-legendarium-silver)" mask="url(#fa-icones-icone-legendarium-cutL)"/>
+    <path d="M 500 392 Q 436 346 304 344 L 304 616 Q 424 620 500 676 Z" fill="url(#fa-icones-icone-legendarium-silver)" mask="url(#fa-icones-icone-legendarium-txtL)"/>
+    <path d="M 524 714 Q 604 652 754 650 L 754 372 L 720 344 L 720 616 Q 600 620 524 676 Z" fill="url(#fa-icones-icone-legendarium-silver)" mask="url(#fa-icones-icone-legendarium-cutR)"/>
+    <path d="M 524 392 Q 588 346 720 344 L 720 616 Q 600 620 524 676 Z" fill="url(#fa-icones-icone-legendarium-silver)" mask="url(#fa-icones-icone-legendarium-txtR)"/>
+    </g>
+    
+    <g filter="url(#fa-icones-icone-legendarium-glow)">
+      <path d="M 512 110 L 512 282 L 491 189.12 Z" fill="url(#fa-icones-icone-legendarium-cyanL)"/>
+      <path d="M 512 110 L 533 189.12 L 512 282 Z" fill="url(#fa-icones-icone-legendarium-cyanR)"/>
+      <path d="M 512 122 L 514.2 189.12 L 512 270 L 509.8 189.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 175.12 L 515 186.12 L 526 189.12 L 515 192.12 L 512 203.12 L 509 192.12 L 498 189.12 L 509 186.12 Z" fill="#ffffff"/>
+    </g>
+    
+    <g filter="url(#fa-icones-icone-legendarium-glow)">
+      <path d="M 512 744 L 512 916 L 491 823.12 Z" fill="url(#fa-icones-icone-legendarium-cyanL)"/>
+      <path d="M 512 744 L 533 823.12 L 512 916 Z" fill="url(#fa-icones-icone-legendarium-cyanR)"/>
+      <path d="M 512 756 L 514.2 823.12 L 512 904 L 509.8 823.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 809.12 L 515 820.12 L 526 823.12 L 515 826.12 L 512 837.12 L 509 826.12 L 498 823.12 L 509 820.12 Z" fill="#ffffff"/>
+    </g>
+  </g>
+</svg>
