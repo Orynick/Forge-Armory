@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="fa-icones-icone-armures-title">
+  <title id="fa-icones-icone-armures-title">Forge Armory — Armures (icône)</title>
+  <defs>
+    <linearGradient id="fa-icones-icone-armures-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-armures-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-armures-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-armures-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-armures-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-icones-icone-armures-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <mask id="fa-icones-icone-armures-mFrame" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect x="-2000" y="-2000" width="5000" height="5000" fill="#fff"/><circle cx="404.0" cy="633.0" r="22" fill="#000"/><circle cx="620.0" cy="633.0" r="22" fill="#000"/><path d="M 358.0 262.0 L 358.0 292.0" stroke="#000" stroke-width="6" fill="none"/><path d="M 666.0 262.0 L 666.0 292.0" stroke="#000" stroke-width="6" fill="none"/></mask>
+    <linearGradient id="fa-icones-icone-armures-plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131923"/><stop offset="1" stop-color="#080b11"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-armures-fadeH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.12" stop-color="#e8ebef" stop-opacity="0.85"/>
+      <stop offset="0.88" stop-color="#e8ebef" stop-opacity="0.85"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-armures-fadeV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.25" stop-color="#e8ebef" stop-opacity="0.7"/>
+      <stop offset="0.75" stop-color="#e8ebef" stop-opacity="0.7"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-armures-glowStar" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-icones-icone-armures-silver)" stroke-width="22"/>
+    <g transform="translate(512 512) scale(1.2295) translate(-512 -496.0)"><path d="M 342.0 290.0 L 382.0 252.0 L 642.0 252.0 L 682.0 290.0 L 682.0 520.0 L 630.0 640.0 L 512.0 740.0 L 394.0 640.0 L 342.0 520.0 Z M 378.0 310.0 L 402.0 286.0 L 622.0 286.0 L 646.0 310.0 L 646.0 512.0 L 604.0 620.0 L 512.0 696.0 L 420.0 620.0 L 378.0 512.0 Z" fill="url(#fa-icones-icone-armures-silver)" fill-rule="evenodd" mask="url(#fa-icones-icone-armures-mFrame)"/><g filter="url(#fa-icones-icone-armures-glowSoft)"><circle cx="404.0" cy="633.0" r="12" fill="url(#fa-icones-icone-armures-cyanL)"/><circle cx="620.0" cy="633.0" r="12" fill="url(#fa-icones-icone-armures-cyanL)"/></g></g>
+    <g filter="url(#fa-icones-icone-armures-glow)">
+      <path d="M 512 342 L 512 682 L 468 498.4 Z" fill="url(#fa-icones-icone-armures-cyanL)"/>
+      <path d="M 512 342 L 556 498.4 L 512 682 Z" fill="url(#fa-icones-icone-armures-cyanR)"/>
+      <path d="M 512 354 L 514.2 498.4 L 512 670 L 509.8 498.4 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 484.4 L 515 495.4 L 526 498.4 L 515 501.4 L 512 512.4 L 509 501.4 L 498 498.4 L 509 495.4 Z" fill="#ffffff"/>
+    </g>
+    
+  </g>
+</svg>
