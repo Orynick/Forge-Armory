@@ -84,7 +84,7 @@ export function lireLore(db: Database | null | undefined, loreHash: number | und
   }
 }
 
-/** FR : la page de Lore d'un objet, ou `undefined` si l'objet n'en a pas (le bouton « Lire le Lore » n'apparaît que dans ce cas-l… non : UNIQUEMENT quand elle existe). / EN: the lore page of an item, or `undefined` if it has none (the "Read the Lore" button only appears when it exists). */
+/** FR : ⚠️ CHANGÉ (20/10/2026, décision utilisateur) - la page de Lore d'un objet, ou `undefined` si l'objet n'en a pas (le bouton « Lire le Lore » n'apparaît que quand elle existe). DÉDOUBLONNAGE : l'identifiant de la page est `"lore:<hashLore>"` (UNE page par Lore), et le TITRE est le NOM DE L'OBJET (pas le titre interne du Lore) — « pour cette section, tout comme pour la section des cosmétiques, on utilise le nom de l'objet comme titre de la page de Lore ». Les rééditions (objets différents partageant le même Lore) ne créent PAS de page en double : tous les porteurs sont embarqués dans `porteurs` pour le parcours inverse. / EN: the lore page of an item, or `undefined` if it has none (the "Read the Lore" button only appears when it exists). DEDUPLICATION: the page id is `"lore:<loreHash>"` (ONE page per lore), and the TITLE is the ITEM'S NAME — reissues (different items sharing the same lore) do NOT create a duplicate page: all carriers are embedded in `porteurs` for the reverse path. */
 export function pageLoreObjet(db: Database | null | undefined, itemHash: number): PageLore | undefined {
   if (!db) return undefined;
   let def: DestinyItemDefinition | undefined;
@@ -99,12 +99,18 @@ export function pageLoreObjet(db: Database | null | undefined, itemHash: number)
   const texte = lore?.body?.trim();
   if (!texte) return undefined;
   return {
-    id: `item:${itemHash}`,
+    id: `lore:${def.lore}`,
     titre: nom,
-    sousTitre: lore?.subtitle?.trim() || lore?.displayProperties?.name?.trim() || undefined,
+    sousTitre: lore?.subtitle?.trim() || undefined,
     texte,
     loreHash: def.lore,
+    porteurs: porteursDeLore(db, def.lore),
   };
+}
+
+/** FR : ⚠️ AJOUT (20/10/2026, décision utilisateur) - l'identifiant stable de la page de Lore atteinte depuis une fiche Détails : la forme du lien profond `"item:<hashObjet>"` est résolue en `"lore:<hashLore>"` (forme de la page, dédoublonnée). Renvoie `undefined` si l'objet n'a pas de Lore. / EN: the stable id of the lore page reached from a Details sheet: the deep-link form `"item:<itemHash>"` resolves to `"lore:<loreHash>"` (page form, deduplicated). Returns `undefined` if the item has no lore. */
+export function idPageDepuisObjet(db: Database | null | undefined, itemHash: number): string | undefined {
+  return pageLoreObjet(db, itemHash)?.id;
 }
 
 /** FR : l'objet porteur d'une page de Lore, pour le parcours inverse (depuis la page, voir l'objet). / EN: the carrier item of a lore page, for the reverse path (from the page, see the item). */
@@ -177,9 +183,25 @@ function livresObjets(db: Database): LivreLore[] {
   const porteurs = porteursParSection(db, "objets");
   const armes = porteurs.filter((p) => p.slotArmure === undefined);
   const armures = trierArmuresParEnsemble(porteurs.filter((p) => p.slotArmure !== undefined));
-  const pageDe = (p: ObjetPorteur): PageLore | null => pageLoreObjet(db, p.hash) ?? null;
-  const livreArmes: LivreLore = { id: "objets-armes", titre: "Lore des armes", pages: armes.map(pageDe).filter((p): p is PageLore => p !== null) };
-  const livreArmures: LivreLore = { id: "objets-armures", titre: "Ensembles d'armures", pages: armures.map(pageDe).filter((p): p is PageLore => p !== null) };
+  // ⚠️ CHANGÉ (20/10/2026, décision utilisateur) : DÉDOUBLONNAGE — une page par Lore (les rééditions partagent le même Lore) ; le TITRE de la page est le NOM DE L'OBJET (porteur principal = premier dans l'ordre de lecture).
+  const dedup = (liste: ObjetPorteur[]): PageLore[] => {
+    const vus = new Set<string>();
+    const pages: PageLore[] = [];
+    for (const p of liste) {
+      const page = pageLoreObjet(db, p.hash);
+      if (!page || vus.has(page.id)) continue;
+      vus.add(page.id);
+      if (page.porteurs && page.porteurs.length > 0) {
+        const principal = page.porteurs.find((x) => x.hash === p.hash) ?? page.porteurs[0];
+        pages.push({ ...page, titre: principal.nom });
+      } else {
+        pages.push(page);
+      }
+    }
+    return pages;
+  };
+  const livreArmes: LivreLore = { id: "objets-armes", titre: "Lore des armes", pages: dedup(armes) };
+  const livreArmures: LivreLore = { id: "objets-armures", titre: "Ensembles d'armures", pages: dedup(armures) };
   return [livreArmes, livreArmures].filter((l) => l.pages.length > 0);
 }
 
@@ -187,11 +209,17 @@ function livresObjets(db: Database): LivreLore[] {
 function livreCosmetiques(db: Database): LivreLore {
   const porteurs = porteursParSection(db, "cosmetiques");
   porteurs.sort((a, b) => a.nom.localeCompare(b.nom, "fr") || a.hash - b.hash);
-  return {
-    id: "cosmetiques",
-    titre: "Spectres, Vaisseaux, Passereaux",
-    pages: porteurs.map((p) => pageLoreObjet(db, p.hash)).filter((p): p is PageLore => p !== null),
-  };
+  // ⚠️ CHANGÉ (20/10/2026, décision utilisateur) : DÉDOUBLONNAGE — une page par Lore ; TITRE = NOM DE L'OBJET (porteur principal = premier par ordre alphabétique).
+  const vus = new Set<string>();
+  const pages: PageLore[] = [];
+  for (const p of porteurs) {
+    const page = pageLoreObjet(db, p.hash);
+    if (!page || vus.has(page.id)) continue;
+    vus.add(page.id);
+    const principal = page.porteurs?.find((x) => x.hash === p.hash) ?? page.porteurs?.[0];
+    pages.push(principal ? { ...page, titre: principal.nom } : page);
+  }
+  return { id: "cosmetiques", titre: "Spectres, Vaisseaux, Passereaux", pages };
 }
 
 /** FR : une entrée DestinyLoreDefinition est une page de LÉGENDE (livre de Lore D2) quand elle n'est le Lore d'AUCUN objet du Manifest ; le Lore d'un objet (armes, armures, cosmétiques) est rangé dans les sections « objets » / « cosmétiques », jamais ici. C'est la séparation qui tient la promesse « comme en jeu » (les Légendes forment leurs propres livres). / EN: a DestinyLoreDefinition entry is a LEGENDS page (a D2 lore book) when it is the lore of NO item in the Manifest; an item's lore (weapons, armor, cosmetics) goes to the "objets"/"cosmétiques" sections, never here. This is what keeps the "like in game" promise (Legends form their own books). */
@@ -289,12 +317,25 @@ export function rechercherPages(livresParSection: Partial<Record<SectionLegendar
   return resultats;
 }
 
-/** FR : trouve une page par son identifiant stable, dans toutes les sections (lien profond). / EN: finds a page by its stable id, across all sections (deep link). */
-export function trouverPage(livresParSection: Partial<Record<SectionLegendarium, LivreLore[]>>, pageId: string): ResultatRechercheLore | undefined {
+/** FR : ⚠️ CHANGÉ (20/10/2026, décision utilisateur) - trouve une page par son identifiant stable, dans toutes les sections (lien profond). Accepte AUSSI la forme lien profond `"item:<hashObjet>"` (fiche Détails) : résolue via `loreHash` des pages (les rééditions partagent la page de leur Lore). / EN: finds a page by its stable id, across all sections (deep link). ALSO accepts the deep-link form `"item:<itemHash>"` (Details sheet): resolved via the pages' `loreHash` (reissues share their lore's page). */
+export function trouverPage(livresParSection: Partial<Record<SectionLegendarium, LivreLore[]>>, pageId: string, db?: Database | null): ResultatRechercheLore | undefined {
   for (const section of SECTIONS) {
     for (const livre of livresParSection[section.id] ?? []) {
       const page = livre.pages.find((p) => p.id === pageId);
       if (page) return { section: section.id, livre, page };
+    }
+  }
+  // Forme lien profond « item:<hashObjet> » : résoudre via le loreHash
+  const m = /^item:(\d+)$/.exec(pageId);
+  if (m && db) {
+    const idCible = idPageDepuisObjet(db, Number(m[1]));
+    if (idCible) {
+      for (const section of SECTIONS) {
+        for (const livre of livresParSection[section.id] ?? []) {
+          const page = livre.pages.find((p) => p.id === idCible);
+          if (page) return { section: section.id, livre, page };
+        }
+      }
     }
   }
   return undefined;

@@ -11,7 +11,7 @@ export type EreLegendarium = "d1" | "d2";
 
 /** FR : une page de Lore (carte du Grimoire D1, page de Légende D2, ou texte de Lore d'un objet). L'identifiant est STABLE : c'est le lien profond depuis une fiche Détails et pour le retour inverse. / EN: one lore page (a D1 Grimoire card, a D2 Legends page, or an item's lore text). The id is STABLE: it is the deep link from a Details sheet and for the reverse path. */
 export interface PageLore {
-  /** FR : identifiant stable de la page. Pour un Lore d'objet : `"item:<hashObjet>"`. Pour une Légende D2 : `"lore:<hashLore>"`. Pour le Grimoire D1 : `"grimoire:<idCarte>"`. / EN: stable page id. For an item lore: `"item:<itemHash>"`. For a D2 Legend: `"lore:<loreHash>"`. For the D1 Grimoire: `"grimoire:<cardId>"`. */
+  /** FR : identifiant stable de la page. Pour un Lore d'objet : `"lore:<hashLore>"` (UNE page par Lore, dédoublonnée — les rééditions partagent le même Lore et donc la même page). Pour une Légende D2 : `"lore:<hashLore>"`. Pour le Grimoire D1 : `"grimoire:<idCarte>"`. / EN: stable page id. For an item lore: `"lore:<loreHash>"` (ONE page per lore, deduplicated — reissues share the same lore and thus the same page). For a D2 Legend: `"lore:<loreHash>"`. For the D1 Grimoire: `"grimoire:<cardId>"`. */
   id: string;
   titre: string;
   /** FR : sous-titre optionnel (nom du chapitre pour les Légendes). / EN: optional subtitle (chapter name for Legends). */
@@ -20,6 +20,8 @@ export interface PageLore {
   texte: string;
   /** FR : hash du Lore quand la page vient d'une entrée DestinyLoreDefinition (Légendes D2 et Lore d'objets). / EN: lore hash when the page comes from a DestinyLoreDefinition entry (D2 Legends and item lore). */
   loreHash?: DefinitionHash;
+  /** FR : ⚠️ AJOUT (20/10/2026, décision utilisateur) - objets portant ce Lore (rééditions comprises), pour le parcours inverse depuis la page. Vide pour les Légendes D2 et le Grimoire D1. / EN: items carrying this lore (reissues included), for the reverse path from the page. Empty for D2 Legends and the D1 Grimoire. */
+  porteurs?: ObjetPorteur[];
 }
 
 /** FR : un livre = un groupe de pages (livre du Grimoire D1, livre de Légendes D2, « Lore des armes », « Ensembles d'armures », « Spectres, Vaisseaux, Passereaux »). / EN: a book = a group of pages (a D1 Grimoire book, a D2 Legends book, "Weapon lore", "Armor sets", "Ghosts, Ships, Sparrows"). */

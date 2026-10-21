@@ -9,6 +9,7 @@ import {
   rechercherPages,
   trouverPage,
   pageLoreObjet,
+  idPageDepuisObjet,
   porteursDeLore,
   trierArmuresParEnsemble,
   libelleSlot,
@@ -34,6 +35,7 @@ const { db } = creerFausseDb({
   [T_OBJET]: {
     // Arme avec Lore
     6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }),
+    6040: objet("Izanagi — Burden (réédition)", { itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }), // ⚠️ rééédition : MÊME Lore 7101
     // Arme SANS Lore (pas de champ `lore`)
     6002: objet("Arme sans lore", { itemType: 3, itemTypeDisplayName: "Fusil à pompe", inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 4008398120 } }),
     // Arme masquée (redacted) avec un lore : exclue
@@ -74,6 +76,7 @@ const { db: db2 } = creerFausseDb({
   },
   [T_OBJET]: {
     6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }),
+    6040: objet("Izanagi — Burden (réédition)", { itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }), // ⚠️ rééédition : MÊME Lore 7101
     6002: objet("Arme sans lore", { itemType: 3, itemTypeDisplayName: "Fusil à pompe", inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 4008398120 } }),
     6003: objet("Arme masquée", { itemType: 3, redacted: true, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
     6004: objet("Armure factice", { itemType: 2, lore: 7101, itemCategoryHashes: [3109687656], inventory: { bucketTypeHash: BUCKET.casque } }),
@@ -104,8 +107,8 @@ ok("la palette active est la palette principale (un seul échange de constante p
 
 // --- Page de Lore d'un objet (lien profond) ---
 const pageIzanagi = pageLoreObjet(db2, 6001);
-ok("un objet AVEC Lore a une page : identifiant stable « item:<hash> », titre = nom de l'objet, texte = corps du Lore",
-  pageIzanagi?.id === "item:6001" && pageIzanagi.titre === "Izanagi — Burden" && pageIzanagi.texte === "Un seul coup, mais un coup parfait." && pageIzanagi.loreHash === 7101, pageIzanagi);
+ok("un objet AVEC Lore a une page : identifiant stable « lore:<hashLore> » (dédoublonné), titre = NOM DE L'OBJET (décision utilisateur), texte = corps du Lore",
+  pageIzanagi?.id === "lore:7101" && pageIzanagi.titre === "Izanagi — Burden" && pageIzanagi.texte === "Un seul coup, mais un coup parfait." && pageIzanagi.loreHash === 7101, pageIzanagi);
 ok("un objet SANS Lore n'a PAS de page (le bouton « Lire le Lore » n'apparaît pas)", pageLoreObjet(db2, 6002) === undefined);
 ok("un objet masqué (redacted) ou factice n'a PAS de page, même avec un champ lore", pageLoreObjet(db2, 6003) === undefined && pageLoreObjet(db2, 6004) === undefined);
 ok("sans Manifest ou hash inconnu : pas de page, sans erreur", pageLoreObjet(null, 6001) === undefined && pageLoreObjet(db2, 999999) === undefined);
@@ -122,12 +125,16 @@ const livresObjets = livresDeSection(db2, "objets");
 const livreArmes = livresObjets.find((l) => l.id === "objets-armes");
 const livreArmures = livresObjets.find((l) => l.id === "objets-armures");
 ok("la section « objets » a un livre « Lore des armes » (arme avec Lore seule ; l'arme sans Lore, masquée et factice exclues)",
-  livreArmes?.pages.length === 1 && livreArmes.pages[0].id === "item:6001", livreArmes?.pages.map((p) => p.id));
+  livreArmes?.pages.length === 1 && livreArmes.pages[0].id === "lore:7101", livreArmes?.pages.map((p) => p.id));
+ok("⚠️ DÉDOUBLONNAGE : la rééédition d'Izanagi (même Lore 7101) ne crée PAS de page en double — UNE page « lore:7101 », TITRE = NOM DE L'OBJET du porteur principal",
+  livreArmes?.pages.length === 1 && livreArmes.pages[0].titre === "Izanagi — Burden", livreArmes?.pages.map((p) => p.titre));
+ok("⚠️ la page dédoublonnée embarque TOUS les porteurs (Izanagi + sa réédition) pour le parcours inverse",
+  livreArmes?.pages[0].porteurs?.length === 2 && livreArmes.pages[0].porteurs.some((x) => x.hash === 6040), livreArmes?.pages[0].porteurs?.map((x) => x.hash));
 ok("la section « objets » a un livre « Ensembles d'armures » avec 7 armures (Titan ×5 + Chasseur ×2)",
   livreArmures?.pages.length === 7, livreArmures?.pages.map((p) => p.titre));
 
 // --- Règle des ensembles d'armures (verrouillée) ---
-const ordreAttendu = ["item:6010", "item:6011", "item:6012", "item:6013", "item:6014", "item:6020", "item:6021"];
+const ordreAttendu = ["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114", "lore:7120", "lore:7121"];
 ok("RÈGLE VERROUILLÉE : armures regroupées par classe (Titan puis Chasseur), ordre casque → gants → torse → jambes → objet de classe",
   JSON.stringify(livreArmures?.pages.map((p) => p.id)) === JSON.stringify(ordreAttendu), livreArmures?.pages.map((p) => p.id));
 ok("l'ordre des slots verrouillé est bien casque, gants, torse, jambes, marque",
@@ -146,7 +153,7 @@ ok("le tri par ensemble reclasse un mélange (classe d'abord, puis slot)",
 // --- Cosmétiques ---
 const livresCosm = livresDeSection(db2, "cosmetiques");
 ok("la section « cosmétiques » liste le Spectre AVEC son Lore (le Vaisseau sans Lore est exclu)",
-  livresCosm.length === 1 && livresCosm[0].titre === "Spectres, Vaisseaux, Passereaux" && livresCosm[0].pages.length === 1 && livresCosm[0].pages[0].id === "item:6030", livresCosm[0]?.pages.map((p) => p.id));
+  livresCosm.length === 1 && livresCosm[0].titre === "Spectres, Vaisseaux, Passereaux" && livresCosm[0].pages.length === 1 && livresCosm[0].pages[0].id === "lore:7130", livresCosm[0]?.pages.map((p) => p.id));
 
 // --- Grimoire D1 : hors Manifest D2 ---
 ok("la section « grimoire » (D1) ne lit PAS le Manifest D2 : aucun livre", livresDeSection(db2, "grimoire").length === 0);
@@ -154,7 +161,7 @@ ok("la section « grimoire » (D1) ne lit PAS le Manifest D2 : aucun livre", liv
 // --- Ordre de lecture aplati (précédent/suivant) ---
 const ordre = ordrePages(livresObjets);
 ok("l'ordre aplati d'une section enchaîne les livres dans l'ordre (armes puis armures)",
-  JSON.stringify(ordre) === JSON.stringify(["item:6001", ...ordreAttendu]), ordre);
+  JSON.stringify(ordre) === JSON.stringify(["lore:7101", ...ordreAttendu]), ordre);
 
 // --- Recherche par mots-clés ---
 const tousLesLivres = { legendes: livresLegendes, objets: livresObjets, cosmetiques: livresCosm };
@@ -166,15 +173,20 @@ const r3 = rechercherPages(tousLesLivres, "mot-inexistant-xyz");
 ok("aucun résultat pour un mot inexistant ; chaîne vide = aucun résultat", r3.length === 0 && rechercherPages(tousLesLivres, "   ").length === 0);
 
 // --- Lien profond ---
-const cible = trouverPage(tousLesLivres, "item:6012");
-ok("le lien profond retrouve une page par son identifiant stable, avec sa section et son livre",
-  cible?.section === "objets" && cible.livre.id === "objets-armures" && cible.page.id === "item:6012", cible?.page.id);
-ok("un identifiant inconnu ne trouve rien", trouverPage(tousLesLivres, "item:999999") === undefined);
+const cible = trouverPage(tousLesLivres, "lore:7112");
+ok("le lien profond retrouve une page par son identifiant stable « lore:<hash> », avec sa section et son livre",
+  cible?.section === "objets" && cible.livre.id === "objets-armures" && cible.page.id === "lore:7112", cible?.page.id);
+// ⚠️ (20/10/2026, décision utilisateur) : la forme lien profond « item:<hashObjet> » (fiche Détails) est acceptée et résolue vers la page dédoublonnée
+const cibleLien = trouverPage(tousLesLivres, "item:6012", db2);
+ok("la forme lien profond « item:6012 » (fiche Détails) est résolue vers la page « lore:7112 »",
+  cibleLien?.page.id === "lore:7112" && cibleLien.page.titre === "Torse du Siège brisé", cibleLien?.page.id);
+ok("idPageDepuisObjet résout le hash objet vers l'identifiant de page", idPageDepuisObjet(db2, 6001) === "lore:7101" && idPageDepuisObjet(db2, 6002) === undefined);
+ok("un identifiant inconnu ne trouve rien", trouverPage(tousLesLivres, "lore:999999") === undefined && trouverPage(tousLesLivres, "item:999999", db2) === undefined);
 
 // --- Parcours inverse : depuis un Lore, les objets porteurs ---
 const porteurs = porteursDeLore(db2, 7101);
-ok("le parcours inverse retrouve l'objet porteur d'un Lore (l'arme masquée et l'armure factice sont exclues)",
-  porteurs.length === 1 && porteurs[0].hash === 6001 && porteurs[0].nom === "Izanagi — Burden" && porteurs[0].emplacement === "Fusil de précision", porteurs);
+ok("le parcours inverse retrouve TOUS les porteurs d'un Lore (Izanagi + sa réédition ; l'arme masquée et l'armure factice sont exclues)",
+  porteurs.length === 2 && porteurs.some((x) => x.hash === 6001) && porteurs.some((x) => x.hash === 6040) && porteurs[0].emplacement === "Fusil de précision", porteurs.map((x) => x.hash));
 const porteursTitan = porteursDeLore(db2, 7110);
 ok("le parcours inverse sur le Lore du casque Titan porte le classe et l'emplacement (pour la règle des ensembles)",
   porteursTitan.length === 1 && porteursTitan[0].classe === "titan" && porteursTitan[0].slotArmure === "casque" && porteursTitan[0].emplacement === "Casque · Titan", porteursTitan[0]);

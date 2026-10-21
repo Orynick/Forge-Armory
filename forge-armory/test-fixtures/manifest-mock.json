@@ -1,141 +1,555 @@
 {
-    "_a_propos": "Jeu de donnees FACTICE (mais schema realiste) pour tester le code qui depend du Manifest, sans avoir besoin d'un vrai telechargement (~200 Mo). L'appli reelle continue de telecharger le vrai Manifest depuis Bungie - ce fichier ne sert QUE pour scripts/tester-avec-fixtures.mjs. Structure : table -> id SQLite (deja convert en signe si besoin) -> definition (meme forme JSON que le vrai Manifest).",
-    "DestinyInventoryItemDefinition": {
-        "fr": {
-            "1": {
-                "hash": 1,
-                "displayProperties": {
-                    "name": "Couronne des Tempêtes",
-                    "description": "Exotique Titan/Chasseur/Arcaniste. Tuer un ennemi avec une capacité Arc accorde des stacks de Grenade, Mêlée et régénération de Super.",
-                    "icon": "/common/destiny2_content/icons/exemple_couronne.jpg"
-                },
-                "inventory": {
-                    "bucketTypeHash": 3448274439,
-                    "tierTypeHash": 2759499571
-                }
-            },
-            "2": {
-                "hash": 2,
-                "displayProperties": {
-                    "name": "Nourris-toi du Vide",
-                    "description": "Aspect Arcaniste Vide. Une mise à mort avec une capacité Vide accorde Dévoration pendant 10 secondes.",
-                    "icon": ""
-                },
-                "inventory": {}
-            },
-            "3": {
-                "hash": 3,
-                "displayProperties": {
-                    "name": "Écho de Famine",
-                    "description": "En ramassant un Orbe de Puissance ou une Brèche Abyssale : accorde Dévoration pendant 5+2.5 secondes.",
-                    "icon": ""
-                },
-                "inventory": {}
-            },
-            "4": {
-                "hash": 4,
-                "displayProperties": {
-                    "name": "Fragment de test (Ralentissement)",
-                    "description": "Vos capacités Stase infligent Ralentissement aux cibles proches.",
-                    "icon": ""
-                },
-                "inventory": {}
-            }
-        },
-        "en": {
-            "1": {
-                "hash": 1,
-                "displayProperties": {
-                    "name": "Crown of Tempests",
-                    "description": "Exotic Titan/Hunter/Warlock. Arc ability kills grant stacks of Grenade, Melee, and Super regeneration.",
-                    "icon": "/common/destiny2_content/icons/exemple_couronne.jpg"
-                },
-                "inventory": {
-                    "bucketTypeHash": 3448274439,
-                    "tierTypeHash": 2759499571
-                }
-            },
-            "2": {
-                "hash": 2,
-                "displayProperties": {
-                    "name": "Feed the Void",
-                    "description": "Warlock Void aspect. Void ability kill grants Devour for 10 seconds.",
-                    "icon": ""
-                },
-                "inventory": {}
-            },
-            "3": {
-                "hash": 3,
-                "displayProperties": {
-                    "name": "Echo of Starvation",
-                    "description": "On Orb of Power or Void Breach pickup: grants Devour for 5+2.5 seconds.",
-                    "icon": ""
-                },
-                "inventory": {}
-            },
-            "4": {
-                "hash": 4,
-                "displayProperties": {
-                    "name": "Test Fragment (Slow)",
-                    "description": "Your Stasis abilities apply Slow to nearby targets.",
-                    "icon": ""
-                },
-                "inventory": {}
-            }
-        }
+ "_a_propos": "Jeu de donnees FACTICE (mais schema realiste) pour tester le code qui depend du Manifest, sans avoir besoin d'un vrai telechargement (~200 Mo). L'appli reelle continue de telecharger le vrai Manifest depuis Bungie - ce fichier ne sert QUE pour scripts/tester-avec-fixtures.mjs. Structure : table -> id SQLite (deja convert en signe si besoin) -> definition (meme forme JSON que le vrai Manifest).",
+ "DestinyInventoryItemDefinition": {
+  "fr": {
+   "1": {
+    "hash": 1,
+    "displayProperties": {
+     "name": "Couronne des Tempêtes",
+     "description": "Exotique Titan/Chasseur/Arcaniste. Tuer un ennemi avec une capacité Arc accorde des stacks de Grenade, Mêlée et régénération de Super.",
+     "icon": "/common/destiny2_content/icons/exemple_couronne.jpg"
     },
-    "DestinySandboxPerkDefinition": {
-        "fr": {
-            "100": {
-                "hash": 100,
-                "displayProperties": {
-                    "name": "Perk d'artefact d'exemple",
-                    "description": "Les mises à mort à l'arme infligent Électrocution aux ennemis proches."
-                }
-            }
-        },
-        "en": {
-            "100": {
-                "hash": 100,
-                "displayProperties": {
-                    "name": "Example artifact perk",
-                    "description": "Weapon kills inflict Jolt on nearby enemies."
-                }
-            }
-        }
-    },
-    "DestinyStatDefinition": {
-        "fr": {
-            "200": {
-                "hash": 200,
-                "displayProperties": {
-                    "name": "Grenade",
-                    "description": ""
-                }
-            },
-            "201": {
-                "hash": 201,
-                "displayProperties": {
-                    "name": "Mêlée",
-                    "description": ""
-                }
-            }
-        },
-        "en": {
-            "200": {
-                "hash": 200,
-                "displayProperties": {
-                    "name": "Grenade",
-                    "description": ""
-                }
-            },
-            "201": {
-                "hash": 201,
-                "displayProperties": {
-                    "name": "Melee",
-                    "description": ""
-                }
-            }
-        }
+    "inventory": {
+     "bucketTypeHash": 3448274439,
+     "tierTypeHash": 2759499571
     }
+   },
+   "2": {
+    "hash": 2,
+    "displayProperties": {
+     "name": "Nourris-toi du Vide",
+     "description": "Aspect Arcaniste Vide. Une mise à mort avec une capacité Vide accorde Dévoration pendant 10 secondes.",
+     "icon": ""
+    },
+    "inventory": {}
+   },
+   "3": {
+    "hash": 3,
+    "displayProperties": {
+     "name": "Écho de Famine",
+     "description": "En ramassant un Orbe de Puissance ou une Brèche Abyssale : accorde Dévoration pendant 5+2.5 secondes.",
+     "icon": ""
+    },
+    "inventory": {}
+   },
+   "4": {
+    "hash": 4,
+    "displayProperties": {
+     "name": "Fragment de test (Ralentissement)",
+     "description": "Vos capacités Stase infligent Ralentissement aux cibles proches.",
+     "icon": ""
+    },
+    "inventory": {}
+   },
+   "6001": {
+    "hash": 6001,
+    "displayProperties": {
+     "name": "Izanagi — Burden",
+     "icon": "/icons/Izanagi — Burden.png",
+     "description": ""
+    },
+    "itemType": 3,
+    "itemSubType": 0,
+    "itemTypeDisplayName": "Fusil de précision",
+    "lore": 7101,
+    "inventory": {
+     "bucketTypeHash": 1498876634,
+     "tierTypeHash": 2759499571
+    }
+   },
+   "6002": {
+    "hash": 6002,
+    "displayProperties": {
+     "name": "Arme sans lore",
+     "icon": "/icons/Arme sans lore.png",
+     "description": ""
+    },
+    "itemType": 3,
+    "itemSubType": 0,
+    "itemTypeDisplayName": "Fusil à pompe",
+    "inventory": {
+     "bucketTypeHash": 1498876634,
+     "tierTypeHash": 4008398120
+    }
+   },
+   "6003": {
+    "hash": 6003,
+    "displayProperties": {
+     "name": "Arme masquée",
+     "icon": "/icons/Arme masquée.png",
+     "description": ""
+    },
+    "itemType": 3,
+    "itemSubType": 0,
+    "redacted": true,
+    "lore": 7101,
+    "inventory": {
+     "bucketTypeHash": 1498876634
+    }
+   },
+   "6004": {
+    "hash": 6004,
+    "displayProperties": {
+     "name": "Armure factice",
+     "icon": "/icons/Armure factice.png",
+     "description": ""
+    },
+    "itemType": 2,
+    "itemSubType": 0,
+    "lore": 7101,
+    "itemCategoryHashes": [
+     3109687656
+    ],
+    "inventory": {
+     "bucketTypeHash": 3448274439
+    }
+   },
+   "6010": {
+    "hash": 6010,
+    "displayProperties": {
+     "name": "Casque du Siège brisé",
+     "icon": "/icons/Casque du Siège brisé.png",
+     "description": ""
+    },
+    "itemType": 2,
+    "itemSubType": 0,
+    "classType": 0,
+    "lore": 7110,
+    "inventory": {
+     "bucketTypeHash": 3448274439,
+     "tierTypeHash": 4008398120
+    }
+   },
+   "6011": {
+    "hash": 6011,
+    "displayProperties": {
+     "name": "Gants du Siège brisé",
+     "icon": "/icons/Gants du Siège brisé.png",
+     "description": ""
+    },
+    "itemType": 2,
+    "itemSubType": 0,
+    "classType": 0,
+    "lore": 7111,
+    "inventory": {
+     "bucketTypeHash": 3551918588,
+     "tierTypeHash": 4008398120
+    }
+   },
+   "6012": {
+    "hash": 6012,
+    "displayProperties": {
+     "name": "Torse du Siège brisé",
+     "icon": "/icons/Torse du Siège brisé.png",
+     "description": ""
+    },
+    "itemType": 2,
+    "itemSubType": 0,
+    "classType": 0,
+    "lore": 7112,
+    "inventory": {
+     "bucketTypeHash": 14239492,
+     "tierTypeHash": 4008398120
+    }
+   },
+   "6013": {
+    "hash": 6013,
+    "displayProperties": {
+     "name": "Jambes du Siège brisé",
+     "icon": "/icons/Jambes du Siège brisé.png",
+     "description": ""
+    },
+    "itemType": 2,
+    "itemSubType": 0,
+    "classType": 0,
+    "lore": 7113,
+    "inventory": {
+     "bucketTypeHash": 20886954,
+     "tierTypeHash": 4008398120
+    }
+   },
+   "6014": {
+    "hash": 6014,
+    "displayProperties": {
+     "name": "Marque du Siège brisé",
+     "icon": "/icons/Marque du Siège brisé.png",
+     "description": ""
+    },
+    "itemType": 2,
+    "itemSubType": 0,
+    "classType": 0,
+    "lore": 7114,
+    "inventory": {
+     "bucketTypeHash": 1585787867,
+     "tierTypeHash": 4008398120
+    }
+   },
+   "6020": {
+    "hash": 6020,
+    "displayProperties": {
+     "name": "Casque du Chasseur",
+     "icon": "/icons/Casque du Chasseur.png",
+     "description": ""
+    },
+    "itemType": 2,
+    "itemSubType": 0,
+    "classType": 1,
+    "lore": 7120,
+    "inventory": {
+     "bucketTypeHash": 3448274439,
+     "tierTypeHash": 4008398120
+    }
+   },
+   "6021": {
+    "hash": 6021,
+    "displayProperties": {
+     "name": "Marque du Chasseur",
+     "icon": "/icons/Marque du Chasseur.png",
+     "description": ""
+    },
+    "itemType": 2,
+    "itemSubType": 0,
+    "classType": 1,
+    "lore": 7121,
+    "inventory": {
+     "bucketTypeHash": 1585787867,
+     "tierTypeHash": 4008398120
+    }
+   },
+   "6030": {
+    "hash": 6030,
+    "displayProperties": {
+     "name": "Coque de Spectre",
+     "icon": "/icons/Coque de Spectre.png",
+     "description": ""
+    },
+    "itemType": 14,
+    "itemSubType": 0,
+    "itemTypeDisplayName": "Spectre",
+    "lore": 7130
+   },
+   "6031": {
+    "hash": 6031,
+    "displayProperties": {
+     "name": "Vaisseau sans lore",
+     "icon": "/icons/Vaisseau sans lore.png",
+     "description": ""
+    },
+    "itemType": 16,
+    "itemSubType": 0,
+    "itemTypeDisplayName": "Vaisseau"
+   },
+   "6040": {
+    "hash": 6040,
+    "displayProperties": {
+     "name": "Izanagi — Burden (réédition)",
+     "icon": "/icons/izanagi.png",
+     "description": ""
+    },
+    "itemType": 3,
+    "itemSubType": 0,
+    "itemTypeDisplayName": "Fusil de précision",
+    "lore": 7101,
+    "inventory": {
+     "bucketTypeHash": 1498876634,
+     "tierTypeHash": 2759499571
+    }
+   }
+  },
+  "en": {
+   "1": {
+    "hash": 1,
+    "displayProperties": {
+     "name": "Crown of Tempests",
+     "description": "Exotic Titan/Hunter/Warlock. Arc ability kills grant stacks of Grenade, Melee, and Super regeneration.",
+     "icon": "/common/destiny2_content/icons/exemple_couronne.jpg"
+    },
+    "inventory": {
+     "bucketTypeHash": 3448274439,
+     "tierTypeHash": 2759499571
+    }
+   },
+   "2": {
+    "hash": 2,
+    "displayProperties": {
+     "name": "Feed the Void",
+     "description": "Warlock Void aspect. Void ability kill grants Devour for 10 seconds.",
+     "icon": ""
+    },
+    "inventory": {}
+   },
+   "3": {
+    "hash": 3,
+    "displayProperties": {
+     "name": "Echo of Starvation",
+     "description": "On Orb of Power or Void Breach pickup: grants Devour for 5+2.5 seconds.",
+     "icon": ""
+    },
+    "inventory": {}
+   },
+   "4": {
+    "hash": 4,
+    "displayProperties": {
+     "name": "Test Fragment (Slow)",
+     "description": "Your Stasis abilities apply Slow to nearby targets.",
+     "icon": ""
+    },
+    "inventory": {}
+   }
+  }
+ },
+ "DestinySandboxPerkDefinition": {
+  "fr": {
+   "100": {
+    "hash": 100,
+    "displayProperties": {
+     "name": "Perk d'artefact d'exemple",
+     "description": "Les mises à mort à l'arme infligent Électrocution aux ennemis proches."
+    }
+   }
+  },
+  "en": {
+   "100": {
+    "hash": 100,
+    "displayProperties": {
+     "name": "Example artifact perk",
+     "description": "Weapon kills inflict Jolt on nearby enemies."
+    }
+   }
+  }
+ },
+ "DestinyStatDefinition": {
+  "fr": {
+   "200": {
+    "hash": 200,
+    "displayProperties": {
+     "name": "Grenade",
+     "description": ""
+    }
+   },
+   "201": {
+    "hash": 201,
+    "displayProperties": {
+     "name": "Mêlée",
+     "description": ""
+    }
+   }
+  },
+  "en": {
+   "200": {
+    "hash": 200,
+    "displayProperties": {
+     "name": "Grenade",
+     "description": ""
+    }
+   },
+   "201": {
+    "hash": 201,
+    "displayProperties": {
+     "name": "Melee",
+     "description": ""
+    }
+   }
+  }
+ },
+ "DestinyLoreDefinition": {
+  "fr": {
+   "7001": {
+    "hash": 7001,
+    "displayProperties": {
+     "name": "Le Gardien se lève",
+     "description": ""
+    },
+    "body": "Un Gardien se lève, la Tour retient son souffle.",
+    "subtitle": "Chapitre I"
+   },
+   "7002": {
+    "hash": 7002,
+    "displayProperties": {
+     "name": "L'Ombre",
+     "description": ""
+    },
+    "body": "Deuxième page de Légende D2 pour la démonstration de navigation."
+   },
+   "7003": {
+    "hash": 7003,
+    "displayProperties": {
+     "name": "Page sans corps",
+     "description": ""
+    },
+    "body": ""
+   },
+   "7101": {
+    "hash": 7101,
+    "displayProperties": {
+     "name": "Lore d'Izanagi",
+     "description": ""
+    },
+    "body": "Un seul coup, mais un coup parfait."
+   },
+   "7110": {
+    "hash": 7110,
+    "displayProperties": {
+     "name": "Lore casque Titan",
+     "description": ""
+    },
+    "body": "Mini-histoire Titan, première pièce (casque)."
+   },
+   "7111": {
+    "hash": 7111,
+    "displayProperties": {
+     "name": "Lore gants Titan",
+     "description": ""
+    },
+    "body": "Mini-histoire Titan, deuxième pièce (gants)."
+   },
+   "7112": {
+    "hash": 7112,
+    "displayProperties": {
+     "name": "Lore torse Titan",
+     "description": ""
+    },
+    "body": "Mini-histoire Titan, troisième pièce (torse)."
+   },
+   "7113": {
+    "hash": 7113,
+    "displayProperties": {
+     "name": "Lore jambes Titan",
+     "description": ""
+    },
+    "body": "Mini-histoire Titan, quatrième pièce (jambes)."
+   },
+   "7114": {
+    "hash": 7114,
+    "displayProperties": {
+     "name": "Lore marque Titan",
+     "description": ""
+    },
+    "body": "Mini-histoire Titan, cinquième pièce (objet de classe)."
+   },
+   "7120": {
+    "hash": 7120,
+    "displayProperties": {
+     "name": "Lore casque Chasseur",
+     "description": ""
+    },
+    "body": "Mini-histoire Chasseur, casque."
+   },
+   "7121": {
+    "hash": 7121,
+    "displayProperties": {
+     "name": "Lore marque Chasseur",
+     "description": ""
+    },
+    "body": "Mini-histoire Chasseur, objet de classe."
+   },
+   "7130": {
+    "hash": 7130,
+    "displayProperties": {
+     "name": "Lore du Spectre",
+     "description": ""
+    },
+    "body": "Lore du Spectre, affiché quand il existe."
+   }
+  },
+  "en": {
+   "7001": {
+    "hash": 7001,
+    "displayProperties": {
+     "name": "Le Gardien se lève",
+     "description": ""
+    },
+    "body": "Un Gardien se lève, la Tour retient son souffle.",
+    "subtitle": "Chapitre I"
+   },
+   "7002": {
+    "hash": 7002,
+    "displayProperties": {
+     "name": "L'Ombre",
+     "description": ""
+    },
+    "body": "Deuxième page de Légende D2 pour la démonstration de navigation."
+   },
+   "7003": {
+    "hash": 7003,
+    "displayProperties": {
+     "name": "Page sans corps",
+     "description": ""
+    },
+    "body": ""
+   },
+   "7101": {
+    "hash": 7101,
+    "displayProperties": {
+     "name": "Lore d'Izanagi",
+     "description": ""
+    },
+    "body": "Un seul coup, mais un coup parfait."
+   },
+   "7110": {
+    "hash": 7110,
+    "displayProperties": {
+     "name": "Lore casque Titan",
+     "description": ""
+    },
+    "body": "Mini-histoire Titan, première pièce (casque)."
+   },
+   "7111": {
+    "hash": 7111,
+    "displayProperties": {
+     "name": "Lore gants Titan",
+     "description": ""
+    },
+    "body": "Mini-histoire Titan, deuxième pièce (gants)."
+   },
+   "7112": {
+    "hash": 7112,
+    "displayProperties": {
+     "name": "Lore torse Titan",
+     "description": ""
+    },
+    "body": "Mini-histoire Titan, troisième pièce (torse)."
+   },
+   "7113": {
+    "hash": 7113,
+    "displayProperties": {
+     "name": "Lore jambes Titan",
+     "description": ""
+    },
+    "body": "Mini-histoire Titan, quatrième pièce (jambes)."
+   },
+   "7114": {
+    "hash": 7114,
+    "displayProperties": {
+     "name": "Lore marque Titan",
+     "description": ""
+    },
+    "body": "Mini-histoire Titan, cinquième pièce (objet de classe)."
+   },
+   "7120": {
+    "hash": 7120,
+    "displayProperties": {
+     "name": "Lore casque Chasseur",
+     "description": ""
+    },
+    "body": "Mini-histoire Chasseur, casque."
+   },
+   "7121": {
+    "hash": 7121,
+    "displayProperties": {
+     "name": "Lore marque Chasseur",
+     "description": ""
+    },
+    "body": "Mini-histoire Chasseur, objet de classe."
+   },
+   "7130": {
+    "hash": 7130,
+    "displayProperties": {
+     "name": "Lore du Spectre",
+     "description": ""
+    },
+    "body": "Lore du Spectre, affiché quand il existe."
+   }
+  }
+ }
 }
