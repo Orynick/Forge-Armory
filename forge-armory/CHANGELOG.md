@@ -1,3 +1,18 @@
+## 21/10/2026 (branche `draft-legendarium`, suite 7) — RETOURS UTILISATEUR : nav Précédent/Suivant au-dessus/en-dessous de la page + bouton « Lire le Lore » dans la pop-up Détails du Build Analyzer + boutons Carrière/Accomplissements globaux
+
+**Fait** :
+- **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) — la navigation « ← Précédent / Suivant → » est désormais **AU-DESSUS et EN-DESSOUS** de la page de Lore (deux barres centrées `data-nav-haut` / `data-nav-bas`), **PAS DANS** la page (demande de l'utilisateur). Mêmes boutons, mêmes attributs (`data-nav-precedente`/`data-nav-suivante`), même style (palette de l'ère). La barre du bas est placée après le parcours inverse.
+- **`src/components/SelecteurInventaire.tsx`** (⚠️ CHANGÉ) — la pop-up « Détails » du **Build Analyzer** (Mon Inventaire, Coffre, Mon Build) gagne le bouton « 📖 Lire le Lore » : prop `onLireLore?` sur le composant et sur `LigneObjet` (4 usages), composant `BoutonLireLore` rendu en haut de popup, justifié à droite, sous la croix, uniquement si l'objet a un Lore.
+- **`src/pages/DashboardPage.tsx`** (⚠️ CHANGÉ) — `onLireLore={ouvrirLoreDepuisObjet}` passé à `SelecteurInventaire` (même action que les fiches de la Forge : lien profond `item:<hashObjet>` + provenance `origine: "analyseur"`).
+- **`src/pages/DashboardPage.tsx`** (⚠️ CORRIGÉ, retour utilisateur) — les boutons « Carrière » et « Accomplissements » ne s'ouvraient pas hors Build Analyzer : ils étaient rendus dans le bloc Connexion, **masqué** (`display: none`) quand la vue analyseur n'est pas active. `BoutonsVuesCompte` est déplacé **au-dessus du sélecteur de vue** (`SelecteurVues`), une seule fois, visible et cliquable dans **TOUTES** les vues (Load-outs, Forge, Legendarium). Le bug est aussi noté dans le TODO de **main** (§25).
+- **Tests** : `legendarium-page` **33/33** (4 nouveaux : nav `data-nav-haut` avant l'œilleton, `data-nav-bas` après le texte/parcours inverse, 2× les mêmes boutons, barres centrées) ; `cablage-forge` **25/25** (4 nouveaux : `onLireLore` branché sur `SelecteurInventaire` + 4 `LigneObjet`, `BoutonLireLore` rendu dans la popup, `ouvrirLoreDepuisObjet` aiguille vers `bibliotheque`, `BoutonsVuesCompte` global une seule fois avant `SelecteurVues`). `tsc` zéro erreur.
+
+**Version inchangée (0.4.14).**
+
+**⚠️ Reste à investiguer côté utilisateur** : le bouton « Lire le Lore » n'apparaît pas dans la **Forge** (alors que la prop est bien passée par `PageForge` aux 4 fiches) — tester en `npm run dev` avec un objet possédant un Lore (ex. Izanagi's Burden) dans l'Inventaire/Collection de la Forge.
+
+**À tester côté utilisateur** : `npm run dev` → (1) Legendarium : les boutons Précédent/Suivant sont au-dessus et en-dessous de la page, pas dedans ; (2) Build Analyzer → Inventaire/Coffre/Mon Build → Détails d'un objet avec Lore → le bouton « 📖 Lire le Lore » apparaît sous la croix ; (3) dans Load-outs, Forge ou Legendarium, les boutons « Carrière » et « Accomplissements » s'ouvrent bien.
+
 ## 21/10/2026 (branche `draft-legendarium`, suite 6) — ÉTAPE 5 FAITE : bouton « Lire le Lore » dans les 4 fiches Détails + lien profond fiche → Legendarium + retour vers l'objet
 
 **Fait** :

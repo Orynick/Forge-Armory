@@ -70,6 +70,30 @@ ok("zone de lecture : navigation précédent/suivant — « Précédent » désa
 ok("zone de lecture : la navigation est présente même en DERNIÈRE page (Suivant désactivé)",
   /data-nav-suivante=""[^>]*disabled/.test(renderToStaticMarkup(<ZoneLecture section="grimoire" livre={livreGrimoire} page={livreGrimoire.pages[1]} idPrecedente="grimoire:101005" idSuivante={null} onOuvrirPage={() => {}} />)));
 
+// --- ⚠️ AJOUT (21/10/2026, demande de l'utilisateur) : la nav est AU-DESSUS et EN-DESSOUS de la page, PAS DANS ---
+// La barre du haut (`data-nav-haut`) précède l'œilleton/titre/texte ; celle du bas (`data-nav-bas`) les suit (après le parcours inverse).
+{
+  const html = renderToStaticMarkup(<ZoneLecture section="grimoire" livre={livreGrimoire} page={livreGrimoire.pages[0]} idPrecedente="grimoire:9999" idSuivante="grimoire:101010" onOuvrirPage={() => {}} />);
+  const iHaut = html.indexOf('data-nav-haut=""');
+  const iOeilleton = html.indexOf('data-oeilleton=""');
+  const iTexte = html.indexOf('data-texte-lore=""');
+  const iBas = html.indexOf('data-nav-bas=""');
+  const iFin = html.indexOf("</article>");
+  ok("⚠️ nav : une barre de navigation AU-DESSUS de la page (`data-nav-haut`) et une EN-DESSOUS (`data-nav-bas`), PAS DANS le texte",
+    iHaut !== -1 && iBas !== -1 && iHaut < iOeilleton && iBas > iTexte && iBas < iFin, { iHaut, iOeilleton, iTexte, iBas, iFin });
+  ok("⚠️ nav : les DEUX barres portent les mêmes boutons Précédent/Suivant (attributs `data-nav-precedente`/`data-nav-suivante` en double)",
+    (html.match(/data-nav-precedente=""/g) ?? []).length === 2 && (html.match(/data-nav-suivante=""/g) ?? []).length === 2);
+  ok("⚠️ nav : les deux barres sont centrées (justify-content:center), pas étirées aux extrémités de la page",
+    (html.match(/justify-content:center/g) ?? []).length >= 2);
+  // Le texte de Lore n'est PAS entre les deux boutons d'une même barre : la nav du haut est avant l'œilleton, celle du bas après le parcours inverse
+  const htmlAvecPorteurs = renderToStaticMarkup(<ZoneLecture section="objets" livre={livreHologramme} page={page("lore:7101", "Izanagi", "Texte.", { porteurs: [{ hash: 6001, nom: "Izanagi", emplacement: "Fusil" }] })} idPrecedente={null} idSuivante={null} onOuvrirPage={() => {}} />);
+  const iHaut2 = htmlAvecPorteurs.indexOf('data-nav-haut=""');
+  const iInverse = htmlAvecPorteurs.indexOf('data-parcours-inverse=""');
+  const iBas2 = htmlAvecPorteurs.indexOf('data-nav-bas=""');
+  ok("⚠️ nav : la barre du BAS est APRÈS le parcours inverse (hors de la page de Lore)",
+    iHaut2 !== -1 && iInverse !== -1 && iBas2 > iInverse, { iHaut2, iInverse, iBas2 });
+}
+
 // Parcours inverse (objets porteurs)
 const pageAvecPorteurs = page("lore:7101", "Izanagi — Burden", "Texte du lore.", {
   porteurs: [

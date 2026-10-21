@@ -124,6 +124,11 @@ export function ZoneLecture({ section, livre, page, idPrecedente, idSuivante, on
           ← Retour vers {provenance.nomObjet}
         </button>
       )}
+      {/* FR : ⚠️ AJOUT (21/10/2026, demande de l'utilisateur) - barre de navigation AU-DESSUS de la page (la même existe EN-DESSOUS) : Précédent · Suivant, centrée, hors du texte de Lore. / EN: ADDED - navigation bar ABOVE the page (the same exists BELOW): Previous · Next, centered, outside the lore text. */}
+      <div data-nav-haut="" style={{ display: "flex", justifyContent: "center", gap: "0.6rem", marginBottom: "0.9rem" }}>
+        <button data-nav-precedente="" disabled={!idPrecedente} onClick={() => idPrecedente && onOuvrirPage(idPrecedente)} style={styleBoutonNav}>← Précédent</button>
+        <button data-nav-suivante="" disabled={!idSuivante} onClick={() => idSuivante && onOuvrirPage(idSuivante)} style={styleBoutonNav}>Suivant →</button>
+      </div>
       <p data-oeilleton="" style={{ color: ere.oeilleton, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 0.3rem" }}>{livre.titre}</p>
       <h4 style={{ fontFamily: ere.policeTitre, color: ere.couleurTitre, fontWeight: ere.graisseTitre, fontSize: "1.25rem", margin: "0 0 0.2rem" }}>{page.titre}</h4>
       {page.sousTitre && <p style={{ color: ere.oeilleton, fontStyle: "italic", fontSize: "0.9rem", margin: "0 0 0.4rem" }}>{page.sousTitre}</p>}
@@ -137,7 +142,7 @@ export function ZoneLecture({ section, livre, page, idPrecedente, idSuivante, on
           </ul>
         </div>
       )}
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.9rem" }}>
+      <div data-nav-bas="" style={{ display: "flex", justifyContent: "center", gap: "0.6rem", marginTop: "0.9rem" }}>
         <button data-nav-precedente="" disabled={!idPrecedente} onClick={() => idPrecedente && onOuvrirPage(idPrecedente)} style={styleBoutonNav}>← Précédent</button>
         <button data-nav-suivante="" disabled={!idSuivante} onClick={() => idSuivante && onOuvrirPage(idSuivante)} style={styleBoutonNav}>Suivant →</button>
       </div>

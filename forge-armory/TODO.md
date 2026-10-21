@@ -629,7 +629,15 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 - **confidentialité** : le pseudo Bungie est public, mais il part dans tout fichier ou image partagé ; si un utilisateur ne le souhaite pas, prévoir une case « inclure mon pseudo dans les exports » (à décider avec la phase 2, ouverture à des tiers) ;
 - affichage de l'auteur dans le futur onglet « Load-out » (§ 16).
 
-### 25. Legendarium — bibliothèque de Lore en lecture passive (spécification verrouillée le 19/10/2026)
+### 25. Boutons « Carrière » et « Accomplissements » : la pop-up ne s'ouvre pas hors Build Analyzer (21/10/2026)
+
+**Retour de l'utilisateur (21/10/2026, branche `draft-legendarium`)** : les boutons « Carrière » et « Accomplissements » apparaissent PARTOUT (au-dessus du sélecteur de vue), mais en cliquant dessus dans « Load-out », « Forge » ou « Legendarium », **la pop-up ne s'ouvre pas**. Dans « Build Analyzer » (vue par défaut), cela fonctionne.
+
+**Diagnostic** : les boutons étaient rendus dans le bloc « Connexion » (`DashboardPage.tsx`, ligne 516), qui est **masqué** (`display: none`) quand la vue Build Analyzer n'est pas active — les clics sur les autres vues ne pouvaient donc rien déclencher. La modale « Carrière » (`ModaleCarriere`) et le tiroir « Accomplissements » (`PanneauTriomphes`) sont montés HORS des vues (lignes 672-681), donc le problème n'était que le **bouton**, pas la cible.
+
+**Piste de correction (à valider)** : déplacer le rendu de `BoutonsVuesCompte` au-dessus du sélecteur de vue (`SelecteurVues`), hors de tout bloc masqué — ainsi les boutons restent visibles et cliquables dans TOUTES les vues. **⚠️ À valider en `npm run dev`** : vérifier que la mise en page reste correcte (les boutons ne doivent pas décaler le sélecteur de vue ni le bloc Connexion).
+
+### 26. Legendarium — bibliothèque de Lore en lecture passive (spécification verrouillée le 19/10/2026)
 
 🟡 **Important** — chantier en cours sur la branche `draft-legendarium` (repliée sur `main` à jour le 20/10/2026, v0.4.14). La spécification complète (décisions verrouillées, palette, interactions, critères d'acceptation, plan de découpage) est dans `documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md` — **ce document fait foi** ; toute divergence doit être signalée avant codage.
 
@@ -645,9 +653,14 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 
 **✅ Étape 5 FAITE (21/10/2026, bouton « Lire le Lore » + lien profond + retour)** : `src/components/BoutonLireLore.tsx` (composant pur, bouton UNIQUEMENT si l'objet a un Lore lisible, haut de fiche, justifié à droite, sous la croix) ; `aLore(db, itemHash)` dans `modele.ts` (lecture LÉGÈRE, 2 définitions ciblées, AUCUN balayage) ; prop `onLireLore?` dans les 4 fiches Détails (`InventaireArmes`, `InventaireArmures`, `CollectionArmes`, `CollectionArmures`) + remontée `PageForge` → `DashboardPage` ; lien profond fiche → Legendarium (`cibleLegendarium = { pageId: "item:<hashObjet>", provenance }`, bascule de vue interne, état en mémoire, vues d'origine montées) ; `retourDepuisLegendarium()` restaure la vue d'origine. Tests : `legendarium-modele` **50/50** (7 nouveaux `aLore`), `legendarium-page` **29/29** (5 nouveaux bouton), `cablage-forge` **21/21**. `tsc` zéro erreur, `npm run build` strict ✓.
 
-**Reste à faire (étapes 3, 6 du plan de la spécification)** : (3) validation du contenu D2 en interface en `npm run dev` avec un vrai Manifest (la page le rend déjà ; à valider côté utilisateur, y compris le parcours fiche → Legendarium → retour) ; (6) vérification des 9 critères d'acceptation (dont la lecture passive : aucun espion de score, aucun journal réseau d'écriture).
+**⚠️ Retours utilisateur TRAITÉS (21/10/2026, suite 7)** :
+- **Navigation Précédent/Suivant AU-DESSUS et EN-DESSOUS de la page** (pas DANS) : `ZoneLecture` (`Bibliotheque.tsx`) a désormais deux barres centrées (`data-nav-haut` avant l'œilleton, `data-nav-bas` après le parcours inverse), mêmes boutons/attributs. Tests `legendarium-page` **33/33**.
+- **Bouton « Lire le Lore » aussi dans la pop-up Détails du BUILD ANALYZER** (`SelecteurInventaire.tsx` : prop `onLireLore?` sur `LigneObjet` + le composant `BoutonLireLore` sous la croix, passé par `DashboardPage`) ; l'action est la même `ouvrirLoreDepuisObjet` (provenance `origine: "analyseur"`). ⚠️ **L'utilisateur ne le voit pas dans la FORGE** : à investiguer en `npm run dev` (la prop est bien passée par `PageForge` aux 4 fiches ; peut-être un objet sans Lore, ou un cache Manifest absent côté Forge).
+- **Boutons « Carrière » / « Accomplissements » ne s'ouvraient pas hors Build Analyzer** : ils étaient rendus dans le bloc Connexion (masqué `display:none` hors vue analyseur). **Corrigé** : `BoutonsVuesCompte` déplacé au-dessus du sélecteur de vue (`SelecteurVues`), une seule fois, visible dans TOUTES les vues. Le bug est aussi noté dans le TODO de **main** (§25).
 
-**✅ Points à trancher TRANCHÉS (20/10/2026, réponses de l'utilisateur)** : (1) lien profond = lien vers le Legendarium depuis les armes/armures qui ont du Lore — forme `"item:<hashObjet>"` résolue vers la page dédoublonnée `"lore:<hashLore>"` (`idPageDepuisObjet`) ; **bascule de vue interne avec état en mémoire** (pas de route React Router, la persistance est interdite) ; (2) Grimoire D1 : vérification faite — l'endpoint legacy est sur `www.bungie.net`, déjà dans la liste blanche réseau (Electron + CSP, branche draft-sec) : **aucun changement de sécurité** ; repli statique Ishtar Collective prévu (`REPLI_GRIMOIRE_STATIQUE`, vide tant que l'endpoint n'est pas testé en réel — diagnostic `npm run dev` à faire) ; (3) consignes `Bibliotheque.tsx` retenues : objets sans légende masqués par défaut, **rééditions dédoublonnées** (une page par Lore), **exotiques avec les légendaires** (pas de section à part), **NOM DE L'OBJET comme titre de page** pour « Armes et armures » ET « Cosmétiques ».
+**Reste à faire (étapes 3, 6 du plan de la spécification)** : (3) validation du contenu D2 en interface en `npm run dev` avec un vrai Manifest (la page le rend déjà ; à valider côté utilisateur, y compris le parcours fiche → Legendarium → retour, et le bouton « Lire le Lore » dans la Forge) ; (6) vérification des 9 critères d'acceptation (dont la lecture passive : aucun espion de score, aucun journal réseau d'écriture).
+
+---
 
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 

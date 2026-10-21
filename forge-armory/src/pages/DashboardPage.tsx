@@ -512,8 +512,8 @@ export default function DashboardPage() {
         </div>
 
         {erreurTest && <p style={{ color: "#e08080", margin: "0.5rem 0 0" }}>⚠️ {erreurTest}</p>}
-        {/* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur, capture annotée) - « Carrière » (au-dessus) et « Accomplissements » : même taille, alignés, placés entre le titre et le statut (grille `pilier-carte--connexion`), MASQUÉS hors connexion (bloc `connecte &&`). Le composant `BoutonsVuesCompte` porte la taille et le cadre communs. / EN: ⚠️ CHANGED - the two buttons: same size, aligned, between the title and the status; hidden when not connected. */}
-        {connecte && <BoutonsVuesCompte onCarriere={() => setCarriereOuverte(true)} onAccomplissements={() => setTiroirTriomphesOuvert(true)} />}
+        {/* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur, capture annotée) - « Carrière » (au-dessus) et « Accomplissements » : même taille, alignés, DÉPLACÉS au-dessus du sélecteur de vue (voir ligne 533) pour être visibles dans toutes les vues ; MASQUÉS hors connexion. Le composant `BoutonsVuesCompte` porte la taille et le cadre communs. / EN: ⚠️ CHANGED - the two buttons: same size, aligned, between the title and the status; hidden when not connected. */}
+        {/* FR : ⚠️ CHANGÉ (21/10/2026, retour utilisateur) - les boutons « Carrière » et « Accomplissements » ne sont PLUS rendus ici (bloc Connexion) : ils sont montés UNE SEULE FOIS, au-dessus du sélecteur de vue, pour apparaître dans TOUTES les vues. / EN: CHANGED - the two buttons are NOT rendered here anymore: mounted ONCE, above the view selector, to appear in ALL views. */}
 
         {memberships.length > 1 && (
           <p style={{ fontSize: "0.8rem", color: "#b7b3a8", margin: "0.5rem 0 0" }}>
@@ -529,6 +529,9 @@ export default function DashboardPage() {
       EN: ⚠️ ADDED - view selector: Build Analyzer (default) or Library.
       Same pill style as "Contexte du build". */}
       {/* FR : ⚠️ CHANGÉ (06/10/2026, v0.3.5) - NOUVEAUX BOUTONS (fournis par l'utilisateur) et troisième vue « Load-outs » : voir components/SelecteurVues.tsx. / EN: ⚠️ CHANGED - NEW BUTTONS and a third view. */}
+      {/* FR : ⚠️ AJOUT (21/10/2026, retour utilisateur) - les boutons « Carrière » et « Accomplissements » apparaissent PARTOUT (au-dessus du sélecteur de vue), dans TOUTES les vues (Build Analyzer, Load-outs, Forge, Legendarium) : la modale Carrière et le tiroir Accomplissements sont montés HORS des vues (lignes 672-681), donc accessibles de partout. Auparavant, ils n'étaient que dans le bloc Connexion (Build Analyzer seul). / EN: ADDED - the "Career" and "Achievements" buttons appear EVERYWHERE (above the view selector), in ALL views: the modal and the drawer are mounted OUTSIDE the views (lines 672-681), so reachable from anywhere. */}
+      {connecte && <BoutonsVuesCompte onCarriere={() => setCarriereOuverte(true)} onAccomplissements={() => setTiroirTriomphesOuvert(true)} />}
+
       <SelecteurVues vue={vue} onChanger={setVue} />
 
       {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} onLireLore={ouvrirLoreDepuisObjet} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
@@ -574,6 +577,7 @@ export default function DashboardPage() {
         cible={cibleInventaire}
         onEffacerCible={() => setCibleInventaire(null)}
         onOuvrirForge={ouvrirForge}   // ⚠️ AJOUT (14/10/2026, v0.4.9) : bouton « Forge » de la fenêtre Détails (Mon Inventaire et Coffre)
+        onLireLore={ouvrirLoreDepuisObjet}   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : bouton « Lire le Lore » de la popup Détails du Build Analyzer
       />
 
       {/* FR : ⚠️ AJOUT (01/10/2026) - contrôle de l'anti-champion des armes exotiques (dev). / EN: exotic anti-champion check (dev). */}
