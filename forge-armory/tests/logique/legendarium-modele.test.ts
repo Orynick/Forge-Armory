@@ -29,7 +29,7 @@ const T_SAISON = "DestinySeasonDefinition";
 const T_LORE = "DestinyLoreDefinition";
 const BUCKET = { casque: 3448274439, gants: 3551918588, torse: 14239492, jambes: 20886954, marque: 1585787867, cinetique: 1498876634 };
 
-const lore = (titre: string, corps: string, sousTitre?: string) => ({ displayProperties: { name: titre }, body: corps, ...(sousTitre ? { subtitle: sousTitre } : {}) });
+const lore = (titre: string, corps: string, sousTitre?: string) => ({ displayProperties: { name: titre, description: corps }, ...(sousTitre ? { subtitle: sousTitre } : {}) });
 const objet = (nom: string, extra: Record<string, unknown> = {}) => ({ displayProperties: { name: nom, icon: `/icons/${nom}.png`, description: "" }, ...extra });
 
 const { db } = creerFausseDb({
@@ -40,25 +40,25 @@ const { db } = creerFausseDb({
   },
   [T_OBJET]: {
     // Arme avec Lore
-    6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }),
-    6040: objet("Izanagi — Burden (réédition)", { itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }), // ⚠️ rééédition : MÊME Lore 7101
+    6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }),
+    6040: objet("Izanagi — Burden (réédition)", { itemType: 3, itemTypeDisplayName: "Fusil de précision", loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }), // ⚠️ rééédition : MÊME Lore 7101
     // Arme SANS Lore (pas de champ `lore`)
     6002: objet("Arme sans lore", { itemType: 3, itemTypeDisplayName: "Fusil à pompe", inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 4008398120 } }),
     // Arme masquée (redacted) avec un lore : exclue
-    6003: objet("Arme masquée", { itemType: 3, redacted: true, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+    6003: objet("Arme masquée", { itemType: 3, redacted: true, loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
     // Armure factice avec un lore : exclue
-    6004: objet("Armure factice", { itemType: 2, lore: 7101, itemCategoryHashes: [3109687656], inventory: { bucketTypeHash: BUCKET.casque } }),
+    6004: objet("Armure factice", { itemType: 2, loreHash: 7101, itemCategoryHashes: [3109687656], inventory: { bucketTypeHash: BUCKET.casque } }),
     // Ensemble Titan (ordre à vérifier : casque, gants, torse, jambes, marque)
-    6010: objet("Casque du Siège brisé", { itemType: 2, classType: 0, lore: 7110, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
-    6011: objet("Gants du Siège brisé", { itemType: 2, classType: 0, lore: 7111, inventory: { bucketTypeHash: BUCKET.gants, tierTypeHash: 4008398120 } }),
-    6012: objet("Torse du Siège brisé", { itemType: 2, classType: 0, lore: 7112, inventory: { bucketTypeHash: BUCKET.torse, tierTypeHash: 4008398120 } }),
-    6013: objet("Jambes du Siège brisé", { itemType: 2, classType: 0, lore: 7113, inventory: { bucketTypeHash: BUCKET.jambes, tierTypeHash: 4008398120 } }),
-    6014: objet("Marque du Siège brisé", { itemType: 2, classType: 0, lore: 7114, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
+    6010: objet("Casque du Siège brisé", { itemType: 2, classType: 0, loreHash: 7110, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
+    6011: objet("Gants du Siège brisé", { itemType: 2, classType: 0, loreHash: 7111, inventory: { bucketTypeHash: BUCKET.gants, tierTypeHash: 4008398120 } }),
+    6012: objet("Torse du Siège brisé", { itemType: 2, classType: 0, loreHash: 7112, inventory: { bucketTypeHash: BUCKET.torse, tierTypeHash: 4008398120 } }),
+    6013: objet("Jambes du Siège brisé", { itemType: 2, classType: 0, loreHash: 7113, inventory: { bucketTypeHash: BUCKET.jambes, tierTypeHash: 4008398120 } }),
+    6014: objet("Marque du Siège brisé", { itemType: 2, classType: 0, loreHash: 7114, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
     // Ensemble Chasseur (à classer APRÈS le Titan)
-    6020: objet("Casque du Chasseur", { itemType: 2, classType: 1, lore: 7120, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
-    6021: objet("Marque du Chasseur", { itemType: 2, classType: 1, lore: 7121, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
+    6020: objet("Casque du Chasseur", { itemType: 2, classType: 1, loreHash: 7120, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
+    6021: objet("Marque du Chasseur", { itemType: 2, classType: 1, loreHash: 7121, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
     // Cosmétique : Spectre avec Lore
-    6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", lore: 7130 }),
+    6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", loreHash: 7130 }),
     // Cosmétique SANS Lore : exclu des cosmétiques
     6031: objet("Vaisseau sans lore", { itemType: 16, itemTypeDisplayName: "Vaisseau" }),
   },
@@ -84,19 +84,19 @@ const { db: db2 } = creerFausseDb({  [T_SAISON]: {
     7130: lore("Coque de Spectre", "Lore du Spectre, affiché quand il existe."),
   },
   [T_OBJET]: {
-    6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", seasonHash: 9011, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }),
-    6040: objet("Izanagi — Burden (réédition)", { itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }), // ⚠️ rééédition : MÊME Lore 7101
+    6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", seasonHash: 9011, loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }),
+    6040: objet("Izanagi — Burden (réédition)", { itemType: 3, itemTypeDisplayName: "Fusil de précision", loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }), // ⚠️ rééédition : MÊME Lore 7101
     6002: objet("Arme sans lore", { itemType: 3, itemTypeDisplayName: "Fusil à pompe", inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 4008398120 } }),
-    6003: objet("Arme masquée", { itemType: 3, redacted: true, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
-    6004: objet("Armure factice", { itemType: 2, lore: 7101, itemCategoryHashes: [3109687656], inventory: { bucketTypeHash: BUCKET.casque } }),
-    6010: objet("Casque du Siège brisé", { itemType: 2, classType: 0, lore: 7110, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
-    6011: objet("Gants du Siège brisé", { itemType: 2, classType: 0, lore: 7111, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.gants, tierTypeHash: 4008398120 } }),
-    6012: objet("Torse du Siège brisé", { itemType: 2, classType: 0, lore: 7112, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.torse, tierTypeHash: 4008398120 } }),
-    6013: objet("Jambes du Siège brisé", { itemType: 2, classType: 0, lore: 7113, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.jambes, tierTypeHash: 4008398120 } }),
-    6014: objet("Marque du Siège brisé", { itemType: 2, classType: 0, lore: 7114, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
-    236588: objet("Casque du Chasseur", { itemType: 2, classType: 1, lore: 7120, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
-    1399216: objet("Marque du Chasseur", { itemType: 2, classType: 1, lore: 7121, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
-    6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", seasonHash: 9011, lore: 7130 }),
+    6003: objet("Arme masquée", { itemType: 3, redacted: true, loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+    6004: objet("Armure factice", { itemType: 2, loreHash: 7101, itemCategoryHashes: [3109687656], inventory: { bucketTypeHash: BUCKET.casque } }),
+    6010: objet("Casque du Siège brisé", { itemType: 2, classType: 0, loreHash: 7110, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
+    6011: objet("Gants du Siège brisé", { itemType: 2, classType: 0, loreHash: 7111, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.gants, tierTypeHash: 4008398120 } }),
+    6012: objet("Torse du Siège brisé", { itemType: 2, classType: 0, loreHash: 7112, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.torse, tierTypeHash: 4008398120 } }),
+    6013: objet("Jambes du Siège brisé", { itemType: 2, classType: 0, loreHash: 7113, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.jambes, tierTypeHash: 4008398120 } }),
+    6014: objet("Marque du Siège brisé", { itemType: 2, classType: 0, loreHash: 7114, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
+    236588: objet("Casque du Chasseur", { itemType: 2, classType: 1, loreHash: 7120, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
+    1399216: objet("Marque du Chasseur", { itemType: 2, classType: 1, loreHash: 7121, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
+    6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", seasonHash: 9011, loreHash: 7130 }),
     6031: objet("Vaisseau sans lore", { itemType: 16, itemTypeDisplayName: "Vaisseau" }),
   },
 });
@@ -244,10 +244,10 @@ ok("⚠️ trierPagesChrono ne mute pas le tableau d'entrée",
       7130: lore("Coque de Spectre", "Texte du lore du Spectre."),
     },
     [T_OBJET]: {
-      6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
-      6040: objet("Izanagi — Burden (réédition)", { itemType: 3, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
-      6010: objet("Casque du Siège brisé", { itemType: 2, classType: 0, lore: 7110, inventory: { bucketTypeHash: BUCKET.casque } }),
-      6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", lore: 7130 }),
+      6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6040: objet("Izanagi — Burden (réédition)", { itemType: 3, loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6010: objet("Casque du Siège brisé", { itemType: 2, classType: 0, loreHash: 7110, inventory: { bucketTypeHash: BUCKET.casque } }),
+      6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", loreHash: 7130 }),
     },
   });
   requetes.length = 0;
@@ -278,7 +278,7 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
   // Lore SANS corps : pas de page lisible → pas de bouton
   const { db: dbSansCorps } = creerFausseDb({
     [T_LORE]: { 7003: lore("Page sans corps", "") },
-    [T_OBJET]: { 6002: objet("Arme lore vide", { itemType: 3, lore: 7003, inventory: { bucketTypeHash: BUCKET.cinetique } }) },
+    [T_OBJET]: { 6002: objet("Arme lore vide", { itemType: 3, loreHash: 7003, inventory: { bucketTypeHash: BUCKET.cinetique } }) },
   });
   ok("aLore : FAUX quand le Lore existe mais n'a PAS de corps (rien à lire)", aLore(dbSansCorps, 6002) === false);
 }
@@ -287,7 +287,7 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
   const { db: dbCompte, requetes } = creerFausseDb({
     [T_LORE]: { 7101: lore("Izanagi", "Texte du lore d'Izanagi.") },
     [T_OBJET]: {
-      6001: objet("Izanagi — Burden", { itemType: 3, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6001: objet("Izanagi — Burden", { itemType: 3, loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
       6002: objet("Arme sans lore", { itemType: 3, inventory: { bucketTypeHash: BUCKET.cinetique } }),
     },
   });
@@ -310,10 +310,10 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
       7003: lore("Lore vide", ""), // sans corps
     },
     [T_OBJET]: {
-      6001: objet("Izanagi — Burden", { itemType: 3, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6001: objet("Izanagi — Burden", { itemType: 3, loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
       6002: objet("Arme sans lore", { itemType: 3, inventory: { bucketTypeHash: BUCKET.cinetique } }),
-      6003: objet("Arme masquée", { itemType: 3, redacted: true, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
-      6005: objet("Arme lore vide", { itemType: 3, lore: 7003, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6003: objet("Arme masquée", { itemType: 3, redacted: true, loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6005: objet("Arme lore vide", { itemType: 3, loreHash: 7003, inventory: { bucketTypeHash: BUCKET.cinetique } }),
     },
   });
   const d = diagnostiquerLore(dbDiag);
@@ -335,6 +335,44 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
   const d = diagnostiquerLore(dbSansLore);
   ok("diagnostiquerLore : table Lore vide (0 entrée) + 0 objet avec lore → le bouton n'apparaîtrait pas",
     d?.tableLoreExiste === true && d.nbLores === 0 && d.nbObjetsAvecLore === 0 && d.nbObjetsAvecLoreLisible === 0, d);
+}
+
+
+// --- ⚠️ AJOUT (21/10/2026, suite 9, diagnostic réel) : RÉGRESSION — le VRAI Manifest utilise `loreHash` (pas `lore`) et `displayProperties.description` (pas `body`) ---
+// Le diagnostic de l'utilisateur a montré : 3 514 Lores, 0 avec `body`, 38 894 objets, 0 avec `lore`.
+// Ces tests prouvent que le modèle lit BIEN les vrais noms de champs (et garde `lore`/`body` en secours pour les anciennes fixtures).
+{
+  // Structure EXACTE du vrai Manifest Bungie : loreHash sur l'objet, description dans displayProperties du Lore
+  const { db: dbVrai } = creerFausseDb({
+    [T_LORE]: {
+      7101: { displayProperties: { name: "Izanagi", description: "Un seul coup, mais un coup parfait." } }, // PAS de champ `body`
+      7001: { displayProperties: { name: "Le Gardien se lève", description: "Un Gardien se lève." }, subtitle: "Chapitre I" },
+    },
+    [T_OBJET]: {
+      6001: { displayProperties: { name: "Izanagi — Burden", icon: "/i.png", description: "" }, itemType: 3, itemTypeDisplayName: "Fusil de précision", loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }, // `loreHash`, PAS `lore`
+      6002: { displayProperties: { name: "Arme sans lore", icon: "/i.png", description: "" }, itemType: 3, inventory: { bucketTypeHash: BUCKET.cinetique } },
+    },
+  });
+  ok("⚠️ suite 9 : VRAI Manifest (`loreHash` + `displayProperties.description`) — `aLore` détecte le Lore d'Izanagi",
+    aLore(dbVrai, 6001) === true);
+  ok("⚠️ suite 9 : VRAI Manifest — `pageLoreObjet` construit la page (id `lore:7101`, texte depuis `displayProperties.description`)",
+    pageLoreObjet(dbVrai, 6001)?.texte === "Un seul coup, mais un coup parfait." && pageLoreObjet(dbVrai, 6001)?.id === "lore:7101");
+  const livresVrai = livresDeSection(dbVrai, "objets");
+  ok("⚠️ suite 9 : VRAI Manifest — le livre « Lore des armes » contient Izanagi (détection via l'index, champ `loreHash`)",
+    livresVrai.find((l) => l.id === "objets-armes")?.pages.length === 1 && livresVrai.find((l) => l.id === "objets-armes")?.pages[0].titre === "Izanagi — Burden");
+  const livresLegVrai = livresDeSection(dbVrai, "legendes");
+  ok("⚠️ suite 9 : VRAI Manifest — la section Légendes lit le texte depuis `displayProperties.description` (sous-titre `subtitle` conservé)",
+    livresLegVrai[0]?.pages.length === 1 && livresLegVrai[0].pages[0].texte === "Un Gardien se lève." && livresLegVrai[0].pages[0].sousTitre === "Chapitre I");
+  const diagVrai = diagnostiquerLore(dbVrai);
+  ok("⚠️ suite 9 : VRAI Manifest — `diagnostiquerLore` compte 2 Lores dont 2 avec corps, 1 objet avec lore lisible (contre 0/0 avec les anciens noms de champs)",
+    diagVrai?.nbLores === 2 && diagVrai.nbLoresAvecCorps === 2 && diagVrai.nbObjetsAvecLore === 1 && diagVrai.nbObjetsAvecLoreLisible === 1, diagVrai);
+  // SECOURS : l'ancien nom `lore` (champ) reste accepté pour les anciennes fixtures
+  const { db: dbSecours } = creerFausseDb({
+    [T_LORE]: { 7101: { displayProperties: { name: "Izanagi" }, body: "Texte secours." } }, // ancien champ `body`
+    [T_OBJET]: { 6001: { displayProperties: { name: "Izanagi", icon: "/i.png", description: "" }, itemType: 3, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } } }, // ancien champ `lore`
+  });
+  ok("⚠️ suite 9 : SECOURS — l'ancien champ `lore` (objet) et l'ancien champ `body` (Lore) restent acceptés (rétrocompatibilité fixtures)",
+    aLore(dbSecours, 6001) === true && pageLoreObjet(dbSecours, 6001)?.texte === "Texte secours.");
 }
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);

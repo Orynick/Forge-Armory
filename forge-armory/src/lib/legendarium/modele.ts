@@ -13,6 +13,17 @@ import type { LivreLore, ObjetPorteur, PageLore, SectionLegendarium } from "./ty
 const TABLE_OBJETS = "DestinyInventoryItemDefinition";
 const TABLE_LORE = "DestinyLoreDefinition";
 
+/** FR : ⚠️ AJOUT (21/10/2026, suite 9, diagnostic réel) - le hash de Lore d'un objet : dans le VRAI Manifest Bungie, le champ s'appelle **`loreHash`** (le diagnostic du 21/10 a montré 0 objet avec `lore` sur 38 894). `lore` est accepté en secours pour les anciennes fixtures de test. Renvoie `undefined` si l'objet n'a pas de Lore. / EN: ADDED - an item's lore hash: in the REAL Bungie Manifest, the field is **`loreHash`** (the 21/10 diagnostic showed 0 items with `lore` out of 38,894). `lore` is accepted as a fallback for old test fixtures. Returns `undefined` if the item has no lore. */
+function hashLoreDe(def: DestinyItemDefinition): number | undefined {
+  return def.loreHash ?? (def as { lore?: number }).lore;
+}
+
+/** FR : ⚠️ AJOUT (21/10/2026, suite 9, diagnostic réel) - le corps du texte d'un Lore : dans le VRAI Manifest, il vit dans **`displayProperties.description`** (structure standard `DestinyDisplayPropertiesDefinition`), PAS dans un champ `body` (le diagnostic a montré 0 Lore avec `body` sur 3 514). `body` est accepté en secours pour les anciennes fixtures. Renvoie une chaîne vide si absent. / EN: ADDED - a lore's body text: in the REAL Manifest, it lives in **`displayProperties.description`** (standard `DestinyDisplayPropertiesDefinition` structure), NOT in a `body` field (the diagnostic showed 0 lores with `body` out of 3,514). `body` is accepted as a fallback for old fixtures. Returns an empty string if absent. */
+function corpsLore(lore: DestinyLoreDefinition | undefined): string {
+  if (!lore) return "";
+  return (lore.displayProperties?.description ?? lore.body ?? "").trim();
+}
+
 /** FR : ⚠️ AJOUT (20/10/2026, décision utilisateur) - RANG CHRONOLOGIQUE d'un objet : numéro de saison de sortie, résolu dans l'ordre (1) `seasonHash` de l'objet → `DestinySeasonDefinition.seasonNumber` (Manifest, source principale), (2) table DIM `saisonDeLObjet` (hash d'objet → numéro, 57 439 entrées). Jamais estimé : un objet sans saison connue renvoie `undefined`. / EN: chronological rank of an item: release season number, resolved in order (1) the item's `seasonHash` → `DestinySeasonDefinition.seasonNumber` (Manifest, primary source), (2) the DIM table `saisonDeLObjet` (item hash → number, 57,439 entries). Never guessed: an item with no known season returns `undefined`. */
 export function rangChronoObjet(db: Database | null | undefined, itemHash: number): number | undefined {
   // (1) Manifest : seasonHash de l'objet → DestinySeasonDefinition
@@ -99,7 +110,7 @@ function slotArmureObjet(def: DestinyItemDefinition): SlotArmure | undefined {
 
 /** FR : un objet est un porteur de Lore éligible s'il a un nom, n'est ni masqué ni factice, et possède un champ `lore`. / EN: an item is an eligible lore carrier if it has a name, is neither redacted nor a dummy, and has a `lore` field. */
 function estPorteur(def: DestinyItemDefinition): boolean {
-  return Boolean(def.lore) && Boolean(def.displayProperties?.name?.trim()) && !def.redacted && !def.itemCategoryHashes?.includes(CATEGORIE_FACTICE);
+  return hashLoreDe(def) !== undefined && Boolean(def.displayProperties?.name?.trim()) && !def.redacted && !def.itemCategoryHashes?.includes(CATEGORIE_FACTICE);
 }
 
 /** FR : lit un Lore par son hash, sans jamais planter (texte vide si absent). / EN: reads a lore by hash, never throws (empty text if absent). */
@@ -121,18 +132,19 @@ export function pageLoreObjet(db: Database | null | undefined, itemHash: number)
   } catch {
     return undefined;
   }
-  if (!def || !estPorteur(def) || def.lore === undefined) return undefined;
-  const lore = lireLore(db, def.lore);
+  const hashLore = def ? hashLoreDe(def) : undefined;
+  if (!def || !estPorteur(def) || hashLore === undefined) return undefined;
+  const lore = lireLore(db, hashLore);
   const nom = def.displayProperties?.name?.trim() || "Objet sans nom";
-  const texte = lore?.body?.trim();
+  const texte = corpsLore(lore);
   if (!texte) return undefined;
   return {
-    id: `lore:${def.lore}`,
+    id: `lore:${hashLore}`,
     titre: nom,
     sousTitre: lore?.subtitle?.trim() || undefined,
     texte,
-    loreHash: def.lore,
-    porteurs: porteursDeLore(db, def.lore),
+    loreHash: hashLore,
+    porteurs: porteursDeLore(db, hashLore),
     // ⚠️ AJOUT (20/10/2026, décision utilisateur) : rang chronologique (ordre de sortie) — numéro de saison du porteur principal, jamais estimé
     rangChrono: rangChronoObjet(db, itemHash),
     libelleChrono: libelleRangChrono(rangChronoObjet(db, itemHash)),
@@ -153,8 +165,9 @@ export function aLore(db: Database | null | undefined, itemHash: number): boolea
   } catch {
     return false;
   }
-  if (!def || !estPorteur(def) || def.lore === undefined) return false;
-  return Boolean(lireLore(db, def.lore)?.body?.trim());
+  const hashLore = def ? hashLoreDe(def) : undefined;
+  if (!def || !estPorteur(def) || hashLore === undefined) return false;
+  return Boolean(corpsLore(lireLore(db, hashLore)));
 }
 
 /** FR : résultat du diagnostic dev des Lores (étape 5, suite 8) : vérifie, avec le VRAI Manifest de l'utilisateur, si la table `DestinyLoreDefinition` existe et contient des entrées, et si les objets portent un champ `lore`. C'est la seule façon de savoir pourquoi le bouton « Lire le Lore » n'apparaît pas. / EN: result of the dev lore diagnostic (step 5, suite 8): checks, with the user's REAL Manifest, whether the `DestinyLoreDefinition` table exists and has entries, and whether items carry a `lore` field. The only way to know why the "Read the Lore" button doesn't show. */
@@ -163,13 +176,13 @@ export interface DiagnosticLore {
   tableLoreExiste: boolean;
   /** FR : nombre d'entrées dans `DestinyLoreDefinition`. / EN: entry count in `DestinyLoreDefinition`. */
   nbLores: number;
-  /** FR : nombre d'entrées de Lore avec un corps de texte non vide. / EN: lore entries with a non-empty body. */
+  /** FR : nombre d'entrées de Lore avec un corps de texte non vide (lu dans `displayProperties.description`, secours `body`). / EN: lore entries with a non-empty body (read from `displayProperties.description`, fallback `body`). */
   nbLoresAvecCorps: number;
   /** FR : la table `DestinyInventoryItemDefinition` existe-t-elle ? / EN: does the `DestinyInventoryItemDefinition` table exist? */
   tableObjetsExiste: boolean;
   /** FR : nombre total d'objets lus (balayage complet, dev uniquement). / EN: total items read (full scan, dev only). */
   nbObjets: number;
-  /** FR : nombre d'objets portant un champ `lore` (nombre). / EN: items carrying a `lore` field (number). */
+  /** FR : nombre d'objets portant un champ `loreHash` (dans le vrai Manifest ; `lore` accepté en secours). / EN: items carrying a `loreHash` field (in the real Manifest; `lore` accepted as fallback). */
   nbObjetsAvecLore: number;
   /** FR : parmi eux, nombre d'objets éligibles (nommés, non masqués, non factices) dont le Lore a un corps. / EN: among them, eligible items (named, not redacted, not dummy) whose lore has a body. */
   nbObjetsAvecLoreLisible: number;
@@ -187,7 +200,7 @@ export function diagnostiquerLore(db: Database | null | undefined): DiagnosticLo
   try {
     const lores = lireTable<DestinyLoreDefinition>(db, TABLE_LORE);
     nbLores = Object.keys(lores).length;
-    nbLoresAvecCorps = Object.values(lores).filter((l) => l?.body?.trim()).length;
+    nbLoresAvecCorps = Object.values(lores).filter((l) => corpsLore(l)).length;
   } catch (e) {
     tableLoreExiste = false;
     return { tableLoreExiste, nbLores, nbLoresAvecCorps, tableObjetsExiste: true, nbObjets: 0, nbObjetsAvecLore: 0, nbObjetsAvecLoreLisible: 0, exemples: [], erreur: `Table ${TABLE_LORE} absente ou illisible : ${(e as Error).message}` };
@@ -199,11 +212,12 @@ export function diagnostiquerLore(db: Database | null | undefined): DiagnosticLo
     const objets = lireTable<DestinyItemDefinition>(db, TABLE_OBJETS);
     for (const [idSqlite, def] of Object.entries(objets)) {
       nbObjets++;
-      if (def?.lore === undefined) continue;
+      const hashLore = def ? hashLoreDe(def) : undefined;
+      if (hashLore === undefined) continue;
       nbObjetsAvecLore++;
       if (!estPorteur(def)) continue;
-      const lore = lireLore(db, def.lore);
-      if (!lore?.body?.trim()) continue;
+      const lore = lireLore(db, hashLore);
+      if (!corpsLore(lore)) continue;
       nbObjetsAvecLoreLisible++;
       if (exemples.length < 5) {
         const nom = def.displayProperties?.name?.trim();
@@ -272,7 +286,8 @@ function indexPorteurs(db: Database): IndexPorteurs {
     } catch {
       continue;
     }
-    if (!estPorteur(def) || def.lore === undefined) continue;
+    const hashLore = hashLoreDe(def);
+    if (!estPorteur(def) || hashLore === undefined) continue;
     const nom = def.displayProperties?.name?.trim();
     if (!nom) continue;
     const porteur: ObjetPorteur = {
@@ -286,10 +301,10 @@ function indexPorteurs(db: Database): IndexPorteurs {
     const estCosmetique = !estArmure && def.itemType !== 3; // ni arme (itemType 3) ni armure
     if (estCosmetique) index.cosmetiques.push(porteur);
     else index.objets.push(porteur);
-    const groupe = index.parLore.get(def.lore);
+    const groupe = index.parLore.get(hashLore);
     if (groupe) groupe.push(porteur);
-    else index.parLore.set(def.lore, [porteur]);
-    index.loresReferencies.add(def.lore);
+    else index.parLore.set(hashLore, [porteur]);
+    index.loresReferencies.add(hashLore);
   }
   cacheIndexPorteurs.set(db, index);
   return index;
@@ -375,7 +390,7 @@ function loresLegendes(db: Database, loresObjets: Set<number>): Array<{ hash: nu
     } catch {
       continue;
     }
-    if (!lore.body?.trim()) continue;
+    if (!corpsLore(lore)) continue;
     const hash = idSqliteVersHash(ligne.id);
     if (loresObjets.has(hash)) continue; // Lore d'un objet : rangé ailleurs
     pages.push({ hash, lore });
@@ -393,7 +408,7 @@ function livresLegendes(db: Database): LivreLore[] {
       id: `lore:${hash}`,
       titre: lore.displayProperties?.name?.trim() || "Page sans titre",
       sousTitre: lore.subtitle?.trim() || undefined,
-      texte: lore.body!.trim(),
+      texte: corpsLore(lore),
       loreHash: hash,
     });
   }

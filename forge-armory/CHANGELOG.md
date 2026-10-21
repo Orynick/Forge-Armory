@@ -1,3 +1,20 @@
+## 21/10/2026 (branche `draft-legendarium`, suite 9) — CORRECTION suite au diagnostic réel : le vrai Manifest utilise `loreHash` (pas `lore`) et `displayProperties.description` (pas `body`)
+
+**Diagnostic de l'utilisateur (retourné, `data-diagnostic-lore`)** : `{ "tableLoreExiste": true, "nbLores": 3514, "nbLoresAvecCorps": 0, "tableObjetsExiste": true, "nbObjets": 38894, "nbObjetsAvecLore": 0, "nbObjetsAvecLoreLisible": 0 }` — la table `DestinyLoreDefinition` **existe** (3 514 entrées) et la table des objets aussi (38 894), mais **aucun objet ne porte le champ `lore`** et **aucun Lore n'a de champ `body`**. Le modèle lisait les mauvais noms de champs.
+
+**Fait** :
+- **`src/types/manifest.ts`** (⚠️ CHANGÉ) — `DestinyItemDefinition.lore?` → **`loreHash?`** (nom réel du champ Bungie) ; `DestinyLoreDefinition.body?` conservé en **secours** (le vrai texte vit dans `displayProperties.description`, structure standard `DestinyDisplayPropertiesDefinition`).
+- **`src/lib/legendarium/modele.ts`** (⚠️ CHANGÉ) — deux helpers :
+  - `hashLoreDe(def)` : lit **`loreHash`** (secours `lore` pour les anciennes fixtures) ;
+  - `corpsLore(lore)` : lit **`displayProperties.description`** (secours `body`).
+  Toutes les fonctions du modèle (`estPorteur`, `pageLoreObjet`, `aLore`, `indexPorteurs`, `loresLegendes`, `livresLegendes`, `diagnostiquerLore`) passent par ces helpers. **Aucun changement de comportement** côté interface : les pages gardent le même id (`lore:<hash>`), le même titre (nom de l'objet), le même sous-titre (`subtitle`).
+- **Fixtures mises à jour** : `test-fixtures/manifest-mock.json` (12 items `lore` → `loreHash`, 24 Lores `body` → `displayProperties.description`, FR + EN) ; tests `legendarium-modele` et `legendarium-page` (helper `lore()` + items inline).
+- **Tests** : `legendarium-modele` **61/61** (6 nouveaux : **régression suite 9** — structure exacte du vrai Manifest `loreHash` + `displayProperties.description` : `aLore` détecte, `pageLoreObjet` construit, livre « Lore des armes » peuplé, section Légendes lit le texte + sous-titre, `diagnostiquerLore` compte correctement, **rétrocompatibilité** `lore`/`body` conservée) ; `legendarium-page` **33/33** ; `legendarium-fixtures` **18/18** ; `legendarium` **5/5** ; `legendarium-grimoire` **23/23** ; `cablage-forge` **25/25**. `tsc` zéro erreur, `npm run build` strict ✓.
+
+**Version inchangée (0.4.14).**
+
+**À tester côté utilisateur** : `npm run dev` → le bouton « 📖 Lire le Lore » doit apparaître dans les fiches Détails (Inventaire, Coffre, Mon Build, Forge — Collection et Inventaire, armes et armures) sur les objets qui ont un Lore (ex. Izanagi's Burden, la plupart des exotiques). Le panneau « 🔍 Diagnostic Lores D2 » (dev) doit maintenant afficher des compteurs **non nuls** (`nbObjetsAvecLoreLisible > 0`). Le Legendarium doit aussi afficher du contenu dans les sections D2 (Légendes, Lore des armes, Ensembles d'armures, Cosmétiques).
+
 ## 21/10/2026 (branche `draft-legendarium`, suite 8) — ANNULATION du déplacement Carrière/Accomplissements (régression signalée) + diagnostic dev des Lores D2 (bouton « Lire le Lore » absent)
 
 **⚠️ Annulé (régression signalée par l'utilisateur, suite 7)** :

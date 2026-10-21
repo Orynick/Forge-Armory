@@ -68,17 +68,17 @@ export interface DestinyItemDefinition {
   breakerType?: number;
   /** FR : hash vers DestinyBreakerTypeDefinition (même info que breakerType, sous forme de définition avec nom/icône traduits). / EN: hash to DestinyBreakerTypeDefinition (same info as breakerType, as a definition with translated name/icon). */
   breakerTypeHash?: DefinitionHash;
-  /** FR : ⚠️ AJOUT (20/10/2026, chantier Legendarium) - hash vers DestinyLoreDefinition quand l'objet possède un Lore (armes, armures, Spectres, Vaisseaux, Passereaux...). Absent quand l'objet n'a pas de Lore : c'est LE critère d'affichage du bouton « Lire le Lore ». / EN: hash to DestinyLoreDefinition when the item has lore; absent otherwise - this is THE criterion for showing the "Read the Lore" button. */
-  lore?: DefinitionHash;
+  /** FR : ⚠️ CHANGÉ (21/10/2026, suite 9, diagnostic réel) - hash vers DestinyLoreDefinition quand l'objet possède un Lore. Dans le VRAI Manifest Bungie, le champ s'appelle **`loreHash`** (pas `lore` — le diagnostic du 21/10 a montré 0 objet avec `lore` sur 38 894). Absent quand l'objet n'a pas de Lore : c'est LE critère d'affichage du bouton « Lire le Lore ». / EN: CHANGED - hash to DestinyLoreDefinition when the item has lore. In the REAL Bungie Manifest, the field is **`loreHash`** (not `lore` — the 21/10 diagnostic showed 0 items with `lore` out of 38,894). Absent when the item has no lore. */
+  loreHash?: DefinitionHash;
 }
 
 /** DestinyLoreDefinition (pages de Légendes D2 et textes de Lore des objets) */
 export interface DestinyLoreDefinition {
   hash: DefinitionHash;
   displayProperties: DestinyDisplayProperties;
-  /** FR : sous-titre optionnel de la page (ex: nom du chapitre). / EN: optional page subtitle (e.g. chapter name). */
+  /** FR : ⚠️ CHANGÉ (21/10/2026, suite 9, diagnostic réel) - sous-titre optionnel de la page (ex: nom du chapitre). Dans le VRAI Manifest, le sous-titre est dans `subtitle` (champ propre à DestinyLoreDefinition). / EN: CHANGED - optional page subtitle (e.g. chapter name). In the REAL Manifest, the subtitle is in `subtitle` (a field specific to DestinyLoreDefinition). */
   subtitle?: string;
-  /** FR : corps du texte de la page. / EN: body text of the page. */
+  /** FR : ⚠️ CHANGÉ (21/10/2026, suite 9, diagnostic réel) - le corps du texte de la page vit dans **`displayProperties.description`** (structure standard DestinyDisplayPropertiesDefinition), PAS dans un champ `body` — le diagnostic du 21/10 a montré 0 Lore avec `body` sur 3 514. `body` reste accepté en secours pour les anciennes fixtures. / EN: CHANGED - the page body lives in **`displayProperties.description`** (standard DestinyDisplayPropertiesDefinition structure), NOT in a `body` field — the 21/10 diagnostic showed 0 lores with `body` out of 3,514. `body` is still accepted as a fallback for old fixtures. */
   body?: string;
 }
 

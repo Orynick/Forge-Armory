@@ -147,11 +147,11 @@ ok("recherche : plafond à 50 affichés + message « … et N autre(s) » au-del
 const T_OBJET = "DestinyInventoryItemDefinition", T_LORE = "DestinyLoreDefinition";
 const { db } = creerFausseDb({
   [T_LORE]: {
-    7001: { displayProperties: { name: "Le Gardien se lève" }, body: "Un Gardien se lève, la Tour retient son souffle." },
-    7101: { displayProperties: { name: "Izanagi" }, body: "Texte du lore d'Izanagi." },
+    7001: { displayProperties: { name: "Le Gardien se lève", description: "Un Gardien se lève, la Tour retient son souffle." } },
+    7101: { displayProperties: { name: "Izanagi", description: "Texte du lore d'Izanagi." } },
   },
   [T_OBJET]: {
-    6001: { displayProperties: { name: "Izanagi — Burden", icon: "/i.png", description: "" }, itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: 1498876634 } },
+    6001: { displayProperties: { name: "Izanagi — Burden", icon: "/i.png", description: "" }, itemType: 3, itemTypeDisplayName: "Fusil de précision", loreHash: 7101, inventory: { bucketTypeHash: 1498876634 } },
     6002: { displayProperties: { name: "Arme sans lore", icon: "/i.png", description: "" }, itemType: 3, itemTypeDisplayName: "Fusil à pompe", inventory: { bucketTypeHash: 1498876634 } },
   },
 });
@@ -173,13 +173,13 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
   const T_OBJET2 = "DestinyInventoryItemDefinition", T_LORE2 = "DestinyLoreDefinition";
   const { db: dbBouton } = creerFausseDb({
     [T_LORE2]: {
-      7101: { displayProperties: { name: "Izanagi" }, body: "Texte du lore d'Izanagi." },
-      7003: { displayProperties: { name: "Lore vide" }, body: "" },
+      7101: { displayProperties: { name: "Izanagi", description: "Texte du lore d'Izanagi." } },
+      7003: { displayProperties: { name: "Lore vide", description: "" } },
     },
     [T_OBJET2]: {
-      6001: { displayProperties: { name: "Izanagi — Burden", icon: "/i.png", description: "" }, itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: 1498876634 } },
+      6001: { displayProperties: { name: "Izanagi — Burden", icon: "/i.png", description: "" }, itemType: 3, itemTypeDisplayName: "Fusil de précision", loreHash: 7101, inventory: { bucketTypeHash: 1498876634 } },
       6002: { displayProperties: { name: "Arme sans lore", icon: "/i.png", description: "" }, itemType: 3, itemTypeDisplayName: "Fusil à pompe", inventory: { bucketTypeHash: 1498876634 } },
-      6005: { displayProperties: { name: "Arme lore vide", icon: "/i.png", description: "" }, itemType: 3, lore: 7003, inventory: { bucketTypeHash: 1498876634 } },
+      6005: { displayProperties: { name: "Arme lore vide", icon: "/i.png", description: "" }, itemType: 3, loreHash: 7003, inventory: { bucketTypeHash: 1498876634 } },
     },
   });
   const avecLore = renderToStaticMarkup(<BoutonLireLore db={dbBouton as never} itemHash={6001} nomObjet="Izanagi — Burden" onLireLore={(h) => { void h; }} />);
