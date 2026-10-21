@@ -164,9 +164,24 @@ export function objetPorteur(db: Database | null | undefined, itemHash: number):
   };
 }
 
-/** FR : tous les objets porteurs de Lore d'une table, filtrés par section. Section « objets » : armes et armures. Section « cosmétiques » : Spectres, Vaisseaux, Passereaux (et le reste des porteurs non-armure). / EN: all lore-carrying items of a table, filtered by section. Section "objets": weapons and armor. Section "cosmétiques": Ghosts, Ships, Sparrows (and other non-armor carriers). */
-function porteursParSection(db: Database, section: "objets" | "cosmetiques"): ObjetPorteur[] {
-  const porteurs: ObjetPorteur[] = [];
+/** FR : ⚠️ AJOUT (21/10/2026, étape 2) - INDEX des porteurs de Lore, construit en UN SEUL balayage de la table des objets et mis en cache par base (WeakMap) : `porteursDeLore` et les constructeurs de livres le lisent ensuite en O(1). Sans cet index, construire les livres appelait `porteursDeLore` pour CHAQUE porteur, et chaque appel re-balayait la table (~60 000 lignes) — des milliers de balayages, la page figerait. / EN: ⚠️ ADDED - lore-carrier INDEX, built in ONE scan of the items table and cached per database (WeakMap): `porteursDeLore` and the book builders then read it in O(1). Without it, building the books called `porteursDeLore` for EVERY carrier, and each call re-scanned the table (~60,000 rows) — thousands of scans, the page would freeze. */
+interface IndexPorteurs {
+  /** FR : porteurs de la section « objets » (armes + armures). / EN: "objets" section carriers (weapons + armor). */
+  objets: ObjetPorteur[];
+  /** FR : porteurs de la section « cosmétiques » (Spectres, Vaisseaux, Passereaux…). / EN: "cosmétiques" section carriers (Ghosts, Ships, Sparrows…). */
+  cosmetiques: ObjetPorteur[];
+  /** FR : porteurs groupés par hash de Lore (parcours inverse + dédoublonnage). / EN: carriers grouped by lore hash (reverse path + dedup). */
+  parLore: Map<number, ObjetPorteur[]>;
+  /** FR : hashes de Lore référencés par au moins un objet (pour exclure les Lores d'objets de la section « légendes »). / EN: lore hashes referenced by at least one item (to keep item lores out of the "légendes" section). */
+  loresReferencies: Set<number>;
+}
+
+const cacheIndexPorteurs = new WeakMap<Database, IndexPorteurs>();
+
+function indexPorteurs(db: Database): IndexPorteurs {
+  const enCache = cacheIndexPorteurs.get(db);
+  if (enCache) return enCache;
+  const index: IndexPorteurs = { objets: [], cosmetiques: [], parLore: new Map(), loresReferencies: new Set() };
   let lignes: Array<{ id: number; json: string }>;
   try {
     const stmt = db.prepare(`SELECT id, json FROM ${TABLE_OBJETS}`);
@@ -174,7 +189,8 @@ function porteursParSection(db: Database, section: "objets" | "cosmetiques"): Ob
     while (stmt.step()) lignes.push(stmt.getAsObject() as { id: number; json: string });
     stmt.free();
   } catch {
-    return porteurs;
+    cacheIndexPorteurs.set(db, index);
+    return index;
   }
   for (const ligne of lignes) {
     let def: DestinyItemDefinition;
@@ -184,22 +200,26 @@ function porteursParSection(db: Database, section: "objets" | "cosmetiques"): Ob
       continue;
     }
     if (!estPorteur(def) || def.lore === undefined) continue;
-    const slot = BUCKET_HASH_VERS_SLOT[def.inventory?.bucketTypeHash ?? -1];
-    const estArmure = slot !== undefined && SLOTS_ARMURE.includes(slot as SlotArmure);
-    const estCosmetique = !estArmure && def.itemType !== 3; // ni arme (itemType 3) ni armure
-    if (section === "objets" && !estArmure && def.itemType !== 3) continue;
-    if (section === "cosmetiques" && !estCosmetique) continue;
     const nom = def.displayProperties?.name?.trim();
     if (!nom) continue;
-    porteurs.push({
+    const porteur: ObjetPorteur = {
       hash: idSqliteVersHash(ligne.id),
       nom,
       emplacement: emplacementObjet(def),
       classe: classeObjet(def),
       slotArmure: slotArmureObjet(def),
-    });
+    };
+    const estArmure = porteur.slotArmure !== undefined;
+    const estCosmetique = !estArmure && def.itemType !== 3; // ni arme (itemType 3) ni armure
+    if (estCosmetique) index.cosmetiques.push(porteur);
+    else index.objets.push(porteur);
+    const groupe = index.parLore.get(def.lore);
+    if (groupe) groupe.push(porteur);
+    else index.parLore.set(def.lore, [porteur]);
+    index.loresReferencies.add(def.lore);
   }
-  return porteurs;
+  cacheIndexPorteurs.set(db, index);
+  return index;
 }
 
 /** FR : tri des porteurs d'armures selon la RÈGLE VERROUILLÉE : regroupés par classe (Titan, Chasseur, Arcaniste), ordre casque → gants → torse → jambes → objet de classe. / EN: sorts armor carriers by the LOCKED RULE: grouped by class (Titan, Hunter, Warlock), order helmet → gauntlets → chest → legs → class item. */
@@ -217,7 +237,8 @@ export function trierPagesChrono(pages: PageLore[]): PageLore[] {
 
 /** FR : construit les livres de la section « objets » (armes et armures) : un livre « Lore des armes », un livre « Ensembles d'armures » (armures triées par la règle verrouillée). / EN: builds the books of the "objets" (weapons and armor) section: a "Weapon lore" book, an "Armor sets" book (armor sorted by the locked rule). */
 function livresObjets(db: Database): LivreLore[] {
-  const porteurs = porteursParSection(db, "objets");
+  // ⚠️ CHANGÉ (21/10/2026, étape 2) : porteurs lus dans l'INDEX (un seul balayage pour toute la bibliothèque).
+  const porteurs = indexPorteurs(db).objets;
   const armes = porteurs.filter((p) => p.slotArmure === undefined);
   const armures = trierArmuresParEnsemble(porteurs.filter((p) => p.slotArmure !== undefined));
   // ⚠️ CHANGÉ (20/10/2026, décision utilisateur) : DÉDOUBLONNAGE — une page par Lore (les rééditions partagent le même Lore) ; le TITRE de la page est le NOM DE L'OBJET (porteur principal = premier dans l'ordre de lecture).
@@ -245,7 +266,8 @@ function livresObjets(db: Database): LivreLore[] {
 
 /** FR : construit le livre de la section « cosmétiques » (Spectres, Vaisseaux, Passereaux, avec leur Lore quand il existe). / EN: builds the book of the "cosmétiques" (Ghosts, Ships, Sparrows, with their lore when it exists). */
 function livreCosmetiques(db: Database): LivreLore {
-  const porteurs = porteursParSection(db, "cosmetiques");
+  // ⚠️ CHANGÉ (21/10/2026, étape 2) : porteurs lus dans l'INDEX (copie avant tri : l'index ne doit pas être muté).
+  const porteurs = [...indexPorteurs(db).cosmetiques];
   porteurs.sort((a, b) => a.nom.localeCompare(b.nom, "fr") || a.hash - b.hash);
   // ⚠️ CHANGÉ (20/10/2026, décision utilisateur) : DÉDOUBLONNAGE — une page par Lore ; TITRE = NOM DE L'OBJET (porteur principal = premier par ordre alphabétique).
   const vus = new Set<string>();
@@ -290,18 +312,8 @@ function loresLegendes(db: Database, loresObjets: Set<number>): Array<{ hash: nu
 
 /** FR : construit les livres de la section « légendes » (D2) : un livre « Tomes de Légendes » avec les pages de Lore qui ne sont le Lore d'aucun objet (regroupées telles quelles ; éclatable plus tard si le Manifest porte une structure de livres). / EN: builds the books of the "légendes" (D2) section: one "Tomes de Légendes" book with the lore pages that are no item's lore (grouped as-is; splittable later if the Manifest carries a book structure). */
 function livresLegendes(db: Database): LivreLore[] {
-  const loresObjets = new Set<number>();
-  try {
-    const stmt = db.prepare(`SELECT json FROM ${TABLE_OBJETS}`);
-    while (stmt.step()) {
-      const row = stmt.getAsObject() as { json: string };
-      try {
-        const def = JSON.parse(row.json) as DestinyItemDefinition;
-        if (def.lore !== undefined) loresObjets.add(def.lore);
-      } catch { /* ligne illisible : ignorée */ }
-    }
-    stmt.free();
-  } catch { /* table illisible : aucun lore d'objet */ }
+  // ⚠️ CHANGÉ (21/10/2026, étape 2) : les Lores d'objets viennent de l'INDEX des porteurs (même balayage que le reste), pas d'un balayage séparé.
+  const loresObjets = indexPorteurs(db).loresReferencies;
   const pages: PageLore[] = [];
   for (const { hash, lore } of loresLegendes(db, loresObjets)) {
     pages.push({
@@ -382,34 +394,7 @@ export function trouverPage(livresParSection: Partial<Record<SectionLegendarium,
 
 /** FR : les objets porteurs d'un Lore donné (parcours inverse : depuis une page de Lore, voir les objets qui la portent). / EN: the items carrying a given lore (reverse path: from a lore page, see the items that carry it). */
 export function porteursDeLore(db: Database | null | undefined, loreHash: number | undefined): ObjetPorteur[] {
+  // ⚠️ CHANGÉ (21/10/2026, étape 2) : lecture dans l'INDEX (un seul balayage de la table, mis en cache par base) au lieu de re-balayer la table à chaque appel.
   if (!db || loreHash === undefined) return [];
-  let lignes: Array<{ id: number; json: string }>;
-  try {
-    const stmt = db.prepare(`SELECT id, json FROM ${TABLE_OBJETS}`);
-    lignes = [];
-    while (stmt.step()) lignes.push(stmt.getAsObject() as { id: number; json: string });
-    stmt.free();
-  } catch {
-    return [];
-  }
-  const porteurs: ObjetPorteur[] = [];
-  for (const ligne of lignes) {
-    let def: DestinyItemDefinition;
-    try {
-      def = JSON.parse(ligne.json) as DestinyItemDefinition;
-    } catch {
-      continue;
-    }
-    if (def.lore !== loreHash || !estPorteur(def)) continue;
-    const nom = def.displayProperties?.name?.trim();
-    if (!nom) continue;
-    porteurs.push({
-      hash: idSqliteVersHash(ligne.id),
-      nom,
-      emplacement: emplacementObjet(def),
-      classe: classeObjet(def),
-      slotArmure: slotArmureObjet(def),
-    });
-  }
-  return porteurs;
+  return indexPorteurs(db).parLore.get(loreHash) ?? [];
 }

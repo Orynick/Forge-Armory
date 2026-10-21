@@ -31,3 +31,7 @@ NOTES-CONCEPTION.md
 # FR : artefacts du lanceur de tests (esbuild), ne pas versionner
 # EN: test runner build artifacts, must not be committed
 tests/logique/_sortie/
+
+# FR : artefacts de construction des pages de test d'interface (tests/ui/build.mjs), ne pas versionner
+# EN: UI test page build artifacts, must not be committed
+tests/ui/_sortie/

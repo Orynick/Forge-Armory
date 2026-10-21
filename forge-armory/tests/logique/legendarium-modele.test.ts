@@ -230,5 +230,39 @@ ok("⚠️ trierPagesChrono : les pages datées d'abord (rang croissant : 11 pui
 ok("⚠️ trierPagesChrono ne mute pas le tableau d'entrée",
   (pagesMelangees as { id: string }[])[0].id === "lore:7114");
 
+
+// --- ⚠️ AJOUT (21/10/2026, étape 2) : PERFORMANCE — l'index des porteurs = UN SEUL balayage de la table des objets pour TOUTE la bibliothèque ---
+// La fausse base compte les requêtes ; on vérifie que construire les 3 sections D2 + le parcours inverse ne balaie la table qu UNE FOIS.
+{
+  const { db: dbCompte, requetes } = creerFausseDb({
+    [T_LORE]: {
+      7001: lore("Légende seule", "Texte de légende D2."),
+      7101: lore("Izanagi", "Texte du lore d'Izanagi."),
+      7110: lore("Siège brisé — casque", "Texte du lore du casque."),
+      7130: lore("Coque de Spectre", "Texte du lore du Spectre."),
+    },
+    [T_OBJET]: {
+      6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6040: objet("Izanagi — Burden (réédition)", { itemType: 3, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6010: objet("Casque du Siège brisé", { itemType: 2, classType: 0, lore: 7110, inventory: { bucketTypeHash: BUCKET.casque } }),
+      6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", lore: 7130 }),
+    },
+  });
+  requetes.length = 0;
+  livresDeSection(dbCompte, "legendes");
+  livresDeSection(dbCompte, "objets");
+  livresDeSection(dbCompte, "cosmetiques");
+  porteursDeLore(dbCompte, 7101);
+  pageLoreObjet(dbCompte, 6001);
+  const balayages = requetes.filter((q) => /FROM DestinyInventoryItemDefinition\b/.test(q) && !/WHERE/.test(q)).length;
+  ok("⚠️ index des porteurs : les 3 sections D2 + parcours inverse + fiche objet = UN SEUL balayage de la table des objets (pas un par porteur)",
+    balayages === 1, { balayages, requetes });
+  // Le résultat est identique avec l'index (pas de régression fonctionnelle) : Izanagi 6001+6040 dédoublonnés en 1 page (livre « Lore des armes »), le casque est dans « Ensembles d'armures », le Spectre dans les cosmétiques.
+  const livresObj = livresDeSection(dbCompte, "objets");
+  ok("⚠️ index des porteurs : le contenu est le même (Izanagi dédoublonné en 1 page, casque dans « Ensembles d'armures », cosmétique présent)",
+    livresObj.length === 2 && livresObj[0].titre === "Lore des armes" && livresObj[0].pages.length === 1 && livresObj[0].pages[0].titre === "Izanagi — Burden" && livresObj[1].titre === "Ensembles d'armures" && livresObj[1].pages.length === 1 && livresDeSection(dbCompte, "cosmetiques")[0]?.pages.length === 1,
+    livresObj.map((l) => `${l.titre}(${l.pages.length})`));
+}
+
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);
 process.exit(res.every(Boolean) ? 0 : 1);
