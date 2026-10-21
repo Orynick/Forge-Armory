@@ -1,11 +1,11 @@
 # Forge Armory — visuels à intégrer dans l'appli (Destiny 2 Build Analyzer)
 
-73 fichiers (71 SVG + 2 images PNG du logo), SVG au fond transparent, aucune police à charger. Détails, dimensions et catalogue : `docs/charte-graphique.html`.
+77 fichiers (75 SVG + 2 images PNG du logo), SVG au fond transparent, aucune police à charger. Détails, dimensions et catalogue : `docs/charte-graphique.html`.
 
 ## Structure
 ```
 assets/
-  selecteur/         12  Build Analyzer, Legendarium, Load-outs, Collection, Carrière, Accomplissements × repos / sélectionné
+  selecteur/         16  Build Analyzer, Legendarium, Load-outs, Collection, Carrière, Accomplissements, Armes, Armures × repos / sélectionné
                          (viewBox 4316 × 1024 ; Accomplissements : 4897 × 1024, plaque élargie au titre)
   profils/            8  Neutre, PvE Roaming, PvE DPS, PVP × repos / sélectionné            viewBox 3781 × 1024
   blocs-repliables/  14  7 blocs × replié / déplié (losange + / −)                          viewBox 7805 × 1024
@@ -20,7 +20,7 @@ docs/charte-graphique.html
 
 ## Boutons du sélecteur et des menus
 - Avec cristaux (haut et bas) : Build Analyzer, Legendarium, Load-outs, Collection.
-- Sans cristaux, symbole agrandi : Carrière (blason, quartier cyan) et Accomplissements (emblème, yeux cyan).
+- Sans cristaux, symbole agrandi : Carrière (blason, quartier cyan), Accomplissements (emblème, yeux cyan), Armes (épée) et Armures (bouclier à cristal central). Armes et Armures ont la même plaque que Collection.
 - **Accomplissements** a une plaque plus large (4897 au lieu de 4316) car son titre est plus long. À la même hauteur d'affichage, il sera donc plus large que les autres boutons : à trancher (garder tel quel ou élargir tous les boutons du sélecteur à 4897).
 
 ## Logo de l'appli (`marque/`)

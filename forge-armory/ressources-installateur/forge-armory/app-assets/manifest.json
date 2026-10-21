@@ -101,6 +101,54 @@
    "format": "svg"
   },
   {
+   "id": "selecteur.armes.repos",
+   "famille": "selecteur",
+   "label": "Armes",
+   "etat": "repos",
+   "fichier": "assets/selecteur/bouton-armes.svg",
+   "largeur": 4316,
+   "hauteur": 1024,
+   "ratio": 4.2148,
+   "hauteurMinPx": 40,
+   "format": "svg"
+  },
+  {
+   "id": "selecteur.armes.selectionne",
+   "famille": "selecteur",
+   "label": "Armes",
+   "etat": "selectionne",
+   "fichier": "assets/selecteur/bouton-armes-selectionne.svg",
+   "largeur": 4316,
+   "hauteur": 1024,
+   "ratio": 4.2148,
+   "hauteurMinPx": 40,
+   "format": "svg"
+  },
+  {
+   "id": "selecteur.armures.repos",
+   "famille": "selecteur",
+   "label": "Armures",
+   "etat": "repos",
+   "fichier": "assets/selecteur/bouton-armures.svg",
+   "largeur": 4316,
+   "hauteur": 1024,
+   "ratio": 4.2148,
+   "hauteurMinPx": 40,
+   "format": "svg"
+  },
+  {
+   "id": "selecteur.armures.selectionne",
+   "famille": "selecteur",
+   "label": "Armures",
+   "etat": "selectionne",
+   "fichier": "assets/selecteur/bouton-armures-selectionne.svg",
+   "largeur": 4316,
+   "hauteur": 1024,
+   "ratio": 4.2148,
+   "hauteurMinPx": 40,
+   "format": "svg"
+  },
+  {
    "id": "selecteur.carriere.repos",
    "famille": "selecteur",
    "label": "Carrière",
