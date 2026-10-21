@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="fa-icones-icone-connexion-title">
+  <title id="fa-icones-icone-connexion-title">Forge Armory — Connexion À Bungie (icône)</title>
+  <defs>
+    <linearGradient id="fa-icones-icone-connexion-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-connexion-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-connexion-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-connexion-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-connexion-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-icones-icone-connexion-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <mask id="fa-icones-icone-connexion-mLink1" maskUnits="userSpaceOnUse" x="-300" y="-300" width="1700" height="1700"><rect x="-2000" y="-2000" width="5000" height="5000" fill="#fff"/><g clip-path="url(#fa-icones-icone-connexion-lowerHalf)"><rect x="472.0" y="456.0" width="232" height="112" rx="56.0" fill="none" stroke="#000" stroke-width="56"/></g></mask><mask id="fa-icones-icone-connexion-mLink2" maskUnits="userSpaceOnUse" x="-300" y="-300" width="1700" height="1700"><rect x="-2000" y="-2000" width="5000" height="5000" fill="#fff"/><g clip-path="url(#fa-icones-icone-connexion-upperHalf)"><rect x="320.0" y="456.0" width="232" height="112" rx="56.0" fill="none" stroke="#000" stroke-width="56"/></g></mask><clipPath id="fa-icones-icone-connexion-lowerHalf"><rect x="-500" y="512" width="2000" height="1000"/></clipPath><clipPath id="fa-icones-icone-connexion-upperHalf"><rect x="-500" y="-500" width="2000" height="1012"/></clipPath>
+    <linearGradient id="fa-icones-icone-connexion-plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131923"/><stop offset="1" stop-color="#080b11"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-connexion-fadeH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.12" stop-color="#e8ebef" stop-opacity="0.85"/>
+      <stop offset="0.88" stop-color="#e8ebef" stop-opacity="0.85"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-connexion-fadeV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.25" stop-color="#e8ebef" stop-opacity="0.7"/>
+      <stop offset="0.75" stop-color="#e8ebef" stop-opacity="0.7"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-connexion-glowStar" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-icones-icone-connexion-silver)" stroke-width="22"/>
+    <g transform="translate(512 512) scale(1.5) translate(-512 -512)"><g transform="rotate(-45 512 512)">
+      <rect x="320.0" y="456.0" width="232" height="112" rx="56.0" fill="none" stroke="url(#fa-icones-icone-connexion-silver)" stroke-width="34" mask="url(#fa-icones-icone-connexion-mLink1)"/>
+      <g filter="url(#fa-icones-icone-connexion-glowSoft)"><rect x="472.0" y="456.0" width="232" height="112" rx="56.0" fill="none" stroke="url(#fa-icones-icone-connexion-cyanL)" stroke-width="34" mask="url(#fa-icones-icone-connexion-mLink2)"/></g>
+    </g></g>
+    
+  </g>
+</svg>

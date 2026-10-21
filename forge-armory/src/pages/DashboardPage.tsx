@@ -19,6 +19,7 @@ import { BuildDraft, GearPiece, SubclassConfig, poserPieceDansBuild } from "../t
 import PilierCarte from "../components/PilierCarte";
 import BlocContexte from "../components/BlocContexte";
 import PanneauTriomphes from "../components/PanneauTriomphes";
+import ModaleCarriere from "../components/ModaleCarriere";   // ⚠️ AJOUT (20/10/2026, v0.4.14) : vue « Carrière » du compte
 import { recupererProfilTriomphes } from "../lib/bungie/triomphes";
 import { EVENEMENT_SESSION_EXPIREE, redirigerVersAutorisation, deconnecter, etatSession, SessionExpiree, expirerSessionPourTest, estBureau, connecterViaBureau } from "../lib/bungie/oauth";
 import {
@@ -49,6 +50,7 @@ import SelecteurVues, { VueApp } from "../components/SelecteurVues";
 import PageForge from "../components/PageForge";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : onglet Forge
 import { defilerVers } from "../lib/defilerVers";
 import TitreCategorie from "../components/TitreCategorie";
+import BoutonsVuesCompte from "../components/BoutonsVuesCompte";   // ⚠️ CHANGÉ (21/10/2026) : les deux boutons du bloc Connexion (remplace l'import direct de la fonction des visuels)
 import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic";
 import Bibliotheque from "../components/Bibliotheque";
 import { EtatPonderations, lirePonderations, poidsActifsEnFractions } from "../lib/scoring/ponderations";
@@ -70,6 +72,10 @@ export default function DashboardPage() {
   // données ne changent qu'après avoir terminé un donjon, inutile de les
   // recharger à chaque changement d'équipement.
   const [profilTriomphes, setProfilTriomphes] = useState<unknown | null>(null);
+  // FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - vue « CARRIÈRE » du compte (spécification du 14/10/2026) : modale ouverte par le bouton « Carrière » du bloc Connexion (connecté uniquement, sous la coche verte). Aucun appel réseau avant le clic ; aucun état persisté — la modale se ferme et se rouvre sans toucher au reste de l'appli. / EN: ⚠️ ADDED - account "Career" modal state.
+  const [carriereOuverte, setCarriereOuverte] = useState(false);
+  // FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - état d'ouverture du tiroir « Solo sans mourir », délégué ici pour la navigation croisée Carrière ↔ Accomplissements : le bouton « Accomplissements » de la Carrière l'ouvre, et ce tiroir garde un bouton « Carrière » (retour) ; les deux vues conservent leur état. / EN: ⚠️ ADDED - external state of the Accomplishments drawer for the cross-navigation.
+  const [tiroirTriomphesOuvert, setTiroirTriomphesOuvert] = useState<boolean | undefined>(undefined);
   const [db, setDb] = useState<Database | null>(null);
   // FR : ⚠️ AJOUT (06/10/2026) - mode diagnostic (réglable depuis le pied de page, actif aussi dans l'appli installée) : voir lib/modeDiagnostic.ts.
   const modeDiagnostic = useModeDiagnostic();
@@ -393,7 +399,8 @@ export default function DashboardPage() {
       (characters, light levels, vault count) is removed. Characters are
       still LOADED (used by Mon Build and Loadouts), just not shown here. */}
       {/* FR : ⚠️ CHANGÉ (07/10/2026, v0.3.17) - le bloc « Connexion à Bungie » n'est PAS repliable (retour de l'utilisateur sur la 0.3.16) : retour à un bloc fixe (<div> + <h3>) avec la version SANS losange + / − du titre. L'essai de la 0.3.16 (bloc repliable) est abandonné. / EN: ⚠️ CHANGED - this block is NOT collapsible (user feedback): back to a fixed block with the no-diamond title. */}
-      <div className="pilier-carte">
+      {/* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur, capture annotée) - une fois CONNECTÉ, la carte passe en grille (classe `pilier-carte--connexion`, voir index.css) pour que les boutons « Carrière » et « Accomplissements » se placent entre le titre et le statut ; hors connexion, mise en page inchangée. / EN: ⚠️ CHANGED - once connected the card becomes a grid so the two buttons sit between the title and the status. */}
+      <div className={`pilier-carte${connecte ? " pilier-carte--connexion" : ""}`}>
         <h3><TitreCategorie categorie="connexion" /><span>{connecte ? "✅ connecté" : "◯ non connecté"}</span></h3>
         {!connecte && (
           <p style={{ margin: "0 0 0.5rem" }}>Cliquez pour vous connecter — vous serez redirigé vers bungie.net.</p>
@@ -414,7 +421,7 @@ export default function DashboardPage() {
             reprendre — vos builds enregistrés ne sont pas affectés.
           </p>
         )}
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+        <div className="connexion-compte" style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
           {/* FR : nom Bungie si Bungie l'a fourni, sinon nom de plateforme
           du premier compte Destiny (même valeur qu'avant ce changement).
           EN: Bungie name when provided, else the platform name (as before). */}
@@ -494,6 +501,8 @@ export default function DashboardPage() {
         </div>
 
         {erreurTest && <p style={{ color: "#e08080", margin: "0.5rem 0 0" }}>⚠️ {erreurTest}</p>}
+        {/* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur, capture annotée) - « Carrière » (au-dessus) et « Accomplissements » : même taille, alignés, placés entre le titre et le statut (grille `pilier-carte--connexion`), MASQUÉS hors connexion (bloc `connecte &&`). Le composant `BoutonsVuesCompte` porte la taille et le cadre communs. / EN: ⚠️ CHANGED - the two buttons: same size, aligned, between the title and the status; hidden when not connected. */}
+        {connecte && <BoutonsVuesCompte onCarriere={() => setCarriereOuverte(true)} onAccomplissements={() => setTiroirTriomphesOuvert(true)} />}
 
         {memberships.length > 1 && (
           <p style={{ fontSize: "0.8rem", color: "#b7b3a8", margin: "0.5rem 0 0" }}>
@@ -648,7 +657,17 @@ export default function DashboardPage() {
       EN: ⚠️ ADDED - "Solo Flawless" showcase, LEFT sliding panel mirroring
       the loadouts on the right. Also `fixed`, so its JSX position doesn't
       affect where it appears. */}
-      <PanneauTriomphes profil={profilTriomphes} db={db} />
+      {/* FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - vue « Carrière » du compte : modale (même habillage que les fenêtres Détails existantes, choix de la spécification) ouverte par le bouton du bloc Connexion. Aucune persistance : rafraîchie à chaque ouverture. / EN: ⚠️ ADDED - Career modal. */}
+      {carriereOuverte && connecte && memberships[0] && (
+        <ModaleCarriere
+          onFermer={() => setCarriereOuverte(false)}
+          membership={memberships[0]}
+          personnages={personnages}
+          profil={profilTriomphes}
+          onOuvrirAccomplissements={() => setTiroirTriomphesOuvert(true)}
+        />
+      )}
+      <PanneauTriomphes profil={profilTriomphes} db={db} ouvertExterieur={tiroirTriomphesOuvert} onOuvertChange={setTiroirTriomphesOuvert} onOuvrirCarriere={connecte ? () => setCarriereOuverte(true) : undefined} />
 
       <PanneauLoadouts
         objetsPossedes={objetsPossedes}

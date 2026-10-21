@@ -15,9 +15,11 @@ interface Props {
   /** FR : largeur maximale de la boîte, en px. / EN: max box width, px. */
   largeur?: number;
   fermerSurFond?: boolean;
+  /** FR : ⚠️ AJOUT (21/10/2026, demande de l'utilisateur : « le bouton Accomplissements doit être affiché à droite du titre Carrière ») - contenu facultatif placé IMMÉDIATEMENT À DROITE DU TITRE, dans l'en-tête (la croix reste à l'extrême droite). Sans lui, l'en-tête est EXACTEMENT celui d'avant : les autres fenêtres ne changent pas. / EN: ⚠️ ADDED - optional content right after the title, in the header. */
+  apresTitre?: ReactNode;
 }
 
-export default function Modale({ titre, onFermer, children, largeur = 420, fermerSurFond = false }: Props) {
+export default function Modale({ titre, onFermer, children, largeur = 420, fermerSurFond = false, apresTitre }: Props) {
   useEffect(() => {
     const surTouche = (e: globalThis.KeyboardEvent) => {
       if (e.key === "Escape") onFermer();
@@ -55,8 +57,15 @@ export default function Modale({ titre, onFermer, children, largeur = 420, ferme
           padding: "1rem 1.25rem",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.6rem" }}>
-          <strong style={{ fontSize: "0.95rem" }}>{titre}</strong>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: apresTitre ? "center" : "flex-start", gap: "0.5rem", marginBottom: "0.6rem" }}>
+          {apresTitre ? (
+            <div data-entete-titre="" style={{ display: "flex", alignItems: "center", gap: "0.9rem", flexWrap: "wrap", minWidth: 0 }}>
+              <strong style={{ fontSize: "0.95rem" }}>{titre}</strong>
+              {apresTitre}
+            </div>
+          ) : (
+            <strong style={{ fontSize: "0.95rem" }}>{titre}</strong>
+          )}
           <button onClick={onFermer} title="Fermer (Échap)" style={{ background: "none", border: "none", color: "#7d7a70", cursor: "pointer", fontSize: "1rem" }}>
             ✕
           </button>
