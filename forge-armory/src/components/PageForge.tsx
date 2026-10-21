@@ -32,7 +32,7 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
   // FR : ⚠️ AJOUT (15/10/2026, v0.4.12) - la vue Inventaire a deux parties : Armes (par défaut) et Armures. La partie Armures n'est montée qu'à sa première ouverture, puis reste montée (cachée) : son inventaire chargé est gardé quand on revient aux armes. Une arrivée depuis un bouton « Forge » (arme possédée) ramène aux armes. / EN: ⚠️ ADDED - the Inventory view has two parts, Weapons (default) and Armor; Armor mounts on first open and then stays mounted.
   const [objet, setObjet] = useState<"armes" | "armures">("armes");
   const [armuresMontees, setArmuresMontees] = useState(false);
-  // FR : ⚠️ AJOUT (16/10/2026, v0.4.12) - la vue Collection a aussi deux parties, Armes (par défaut) et Armures ; la partie Armures n'est montée qu'à sa première ouverture (sa lecture du Manifest est longue) puis reste montée (cachée). Attributs distincts de ceux de l'Inventaire (`data-objet-collection`). / EN: ⚠️ ADDED - the Collection view has two parts too; Armor mounts on first open, then stays mounted.
+  // FR : ⚠️ AJOUT (16/10/2026, v0.4.12) puis ⚠️ CORRIGÉ (21/10/2026) - la vue Collection a aussi deux parties, Armes (par défaut) et Armures ; la partie Armures n'est montée qu'à sa première ouverture (sa lecture du Manifest est longue) puis reste montée (cachée). La partie se choisit UNIQUEMENT par les boutons logo de la barre (les anciens attributs `data-objet-collection` des pills ont été retirés avec les pills). / EN: ADDED then FIXED - the Collection view has two parts too; Armor mounts on first open, then stays mounted; the part is chosen only by the logo buttons of the bar.
   const [objetCollection, setObjetCollection] = useState<"armes" | "armures">("armes");
   const [collectionArmuresMontee, setCollectionArmuresMontee] = useState(false);
   // FR : ⚠️ CHANGÉ (16/10/2026, v0.4.12) - une arrivée depuis un bouton « Forge » ouvre la partie qui correspond à la PIÈCE : Armes pour une arme, Armures pour une armure (qui est alors montée tout de suite). Chaque partie ne reçoit que SA cible : une armure ne doit jamais s'ouvrir dans la fenêtre des armes. / EN: ⚠️ CHANGED - arriving from a "Forge" button opens the part matching the piece.
@@ -56,7 +56,7 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
           <span>Vous venez de la fenêtre « Détails » de « {cible.piece.nom} ».</span>
         </div>
       )}
-      {/* FR : ⚠️ CHANGÉ (19/10/2026, retour de test de la 0.4.12 : « mettre les boutons Armes et Armures à droite du bouton Inventaire ; prévoir un séparateur entre les deux paires de boutons ; utiliser les logos présents dans Forge Armory app assets v5 ») - UNE SEULE BARRE : la paire Collection / Inventaire (boutons stylisés, inchangés), un SÉPARATEUR vertical, puis la paire ARMES / ARMURES (logos v5 `icones.armes` : l'épée, `icones.armures` : le bouclier, entourés comme les boutons du sélécteur) qui AIGUILLE la vue ET la partie : Armes → vue active avec objets armes ; Armures → idem armures. L'état reste PAR vue (comportement conservé : rien ne se recharge quand on change). Les attributs `data-objet` / `data-objet-collection` sont inchangés : les tests continuent de fonctionner ; le bouton logo porte en plus `data-objet-logo`. / EN: ONE bar: the styled pair, a separator, then the Armes/Armures pair with the v5 logos; it sets BOTH the view and the part. */}
+      {/* FR : ⚠️ CHANGÉ (19/10/2026, retour de test de la 0.4.12 : « mettre les boutons Armes et Armures à droite du bouton Inventaire ; prévoir un séparateur entre les deux paires de boutons ; utiliser les logos présents dans Forge Armory app assets v5 ») - UNE SEULE BARRE : la paire Collection / Inventaire (boutons stylisés, inchangés), un SÉPARATEUR vertical, puis la paire ARMES / ARMURES (logos v5 `icones.armes` : l'épée, `icones.armures` : le bouclier, entourés comme les boutons du sélécteur) qui AIGUILLE la vue ET la partie : Armes → vue active avec objets armes ; Armures → idem armures. L'état reste PAR vue (comportement conservé : rien ne se recharge quand on change). ⚠️ CORRIGÉ (21/10/2026, régression signalée par l'utilisateur : les anciens boutons « pills » des panneaux n'avaient PAS été retirés — chaque partie apparaissait DEUX FOIS) : la barre est le SEUL sélecteur de la partie ; les attributs `data-objet` / `data-objet-collection` des pills ont été RETIRÉS des panneaux, le bouton logo porte `data-objet-logo` (les tests UI cliquent ces boutons). / EN: FIXED - the bar is the ONLY part selector; the pills' attributes are removed from the panels; the logo button carries `data-objet-logo`. */}
       <div role="tablist" aria-label="Vues de la Forge" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem 0.75rem", marginBottom: "0.8rem" }}>
         <BoutonSousMenu identifiant="collection" libelle="Collection" actif={vue === "collection"} onClick={() => setVue("collection")} />
         <BoutonSousMenu identifiant="inventaire" libelle="Inventaire" actif={vue === "inventaire"} onClick={() => setVue("inventaire")} />
@@ -70,12 +70,8 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
           </button>
         ))}
       </div>
+      {/* FR : ⚠️ CORRIGÉ (21/10/2026, régression signalée par l'utilisateur sur le zip de main) - la barre unique du 19/10 AVAIT AJOUTÉ les boutons logo Armes/Armures SANS RETIRER les anciens boutons « pills » des panneaux : chaque partie apparaissait DEUX FOIS (les pills, entourés en rouge sur la capture de l'utilisateur). Les pills sont RETIRÉS des deux panneaux ; le choix de la partie se fait UNIQUEMENT par les boutons logo de la barre (`data-objet-logo`, à droite du séparateur). Les tests qui cliquaient les pills (`data-objet` / `data-objet-collection`) cliquent maintenant les boutons logo. / EN: FIXED - the pills are removed from both panels; the part is chosen only by the logo buttons in the bar. */}
       <div role="tabpanel" aria-label="Collection" hidden={vue !== "collection"}>
-        <div role="group" aria-label="Type d'objet de la collection" data-choix-objet-collection="" style={{ display: "flex", gap: "0.5rem", margin: "0 0 0.7rem" }}>
-          {(["armes", "armures"] as const).map((o) => (
-            <button key={o} type="button" aria-pressed={objetCollection === o} data-objet-collection={o} onClick={() => { setObjetCollection(o); if (o === "armures") setCollectionArmuresMontee(true); }} style={{ fontSize: "0.85rem", padding: "0.3rem 0.9rem", borderRadius: 999, cursor: "pointer", color: "#e8e6df", background: objetCollection === o ? "#1b2233" : "#12151c", border: `1px solid ${objetCollection === o ? "#7aa2f7" : "#3a3f4b"}` }}>{o === "armes" ? "Armes" : "Armures"}</button>
-          ))}
-        </div>
         <div hidden={objetCollection !== "armes"}>
           <CollectionArmes db={db} membership={membership} />
         </div>
@@ -87,11 +83,6 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
       </div>
       {/* FR : ⚠️ CHANGÉ (13/10/2026, v0.4.6) - la vue Inventaire existe : tes armes possédées, leur roll réel et la simulation locale des perks et du mod (voir `InventaireArmes.tsx`). Le panneau reste MONTÉ (caché quand on est sur « Collection ») : l'inventaire chargé, la recherche et la fenêtre ouverte ne sont pas perdus en changeant de vue. / EN: ⚠️ CHANGED - the Inventory view now exists. */}
       <div role="tabpanel" aria-label="Inventaire" hidden={vue !== "inventaire"}>
-        <div role="group" aria-label="Type d'objet" data-choix-objet="" style={{ display: "flex", gap: "0.5rem", margin: "0 0 0.7rem" }}>
-          {(["armes", "armures"] as const).map((o) => (
-            <button key={o} type="button" aria-pressed={objet === o} data-objet={o} onClick={() => { setObjet(o); if (o === "armures") setArmuresMontees(true); }} style={{ fontSize: "0.85rem", padding: "0.3rem 0.9rem", borderRadius: 999, cursor: "pointer", color: "#e8e6df", background: objet === o ? "#1b2233" : "#12151c", border: `1px solid ${objet === o ? "#7aa2f7" : "#3a3f4b"}` }}>{o === "armes" ? "Armes" : "Armures"}</button>
-          ))}
-        </div>
         <div hidden={objet !== "armes"}>
           <InventaireArmes db={db} membership={membership} cible={cibleArmure ? null : cible} onAjouterAuBuild={onAjouterAuBuild} idsDansBuild={idsDansBuild} onRetour={onRetour} libelleRetour={cible ? LIBELLES_ORIGINE[cible.origine] : undefined} />
         </div>

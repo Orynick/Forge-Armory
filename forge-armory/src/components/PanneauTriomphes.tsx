@@ -1,4 +1,5 @@
 import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
+import { urlVisuel } from "../lib/visuelsForge";   // ⚠️ AJOUT (20/10/2026, v0.4.14) : bouton « Carrière » du tiroir (navigation croisée)
 // FR : Vitrine « Solo sans mourir » — panneau glissant à GAUCHE, miroir de
 // PanneauLoadouts (à droite). Uniquement une vitrine : aucun lien avec le
 // scoring, c'est un affichage d'accomplissements (demande explicite de
@@ -31,6 +32,11 @@ interface Props {
   profil: unknown | null;
   /** FR : ⚠️ AJOUT (24/08/2026) - nécessaire pour le diagnostic ponctuel de définition de triomphe (idée d'emblèmes en tableau de chasse). / EN: ⚠️ ADDED - needed for the one-off triumph definition diagnostic. */
   db?: Database | null;
+  /** FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - navigation croisée Carrière ↔ Accomplissements (spécification du 14/10/2026) : le bouton « Accomplissements » de la vue Carrière ouvre ce tiroir SANS le fermer au retour. `ouvertExterieur`/`onOuvertChange` délèguent l'ouverture à DashboardPage ; sans eux le tiroir garde son comportement interne d'origine. / EN: ⚠️ ADDED - cross-navigation Career ↔ Accomplishments: external open control. */
+  ouvertExterieur?: boolean;
+  onOuvertChange?: (ouvert: boolean) => void;
+  /** FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - navigation croisée Carrière ↔ Accomplissements : bouton « Carrière » (retour) affiché dans ce tiroir quand la prop est fournie. / EN: cross-navigation back-to-Career button. */
+  onOuvrirCarriere?: () => void;
 }
 
 /** FR : crâne stylisé, dessiné pour l'appli (aucune image tierce copiée). / EN: stylised skull, drawn for the app (no third-party image copied). */
@@ -71,8 +77,11 @@ interface ProfilAvecRecordsBruts {
   };
 }
 
-export default function PanneauTriomphes({ profil, db }: Props) {
-  const [ouvert, setOuvert] = useState(false);
+export default function PanneauTriomphes({ profil, db, ouvertExterieur, onOuvertChange, onOuvrirCarriere }: Props) {
+  // FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - `ouvertExterieur` (navigation croisée depuis la Carrière) l'emporte sur l'état interne ; sans prop, comportement d'origine inchangé. / EN: external open state wins when provided.
+  const [ouvertInterne, setOuvertInterne] = useState(false);
+  const ouvert = ouvertExterieur ?? ouvertInterne;
+  const setOuvert = onOuvertChange ?? setOuvertInterne;
   const [triomphes, setTriomphes] = useState<EtatTriomphe[]>([]);
   // FR : ⚠️ AJOUT (24/08/2026) - diagnostic (mode dev) pour le bug signalé :
   // "Flèche de la vigie" affiché en gris alors que l'utilisateur a le
@@ -139,12 +148,28 @@ export default function PanneauTriomphes({ profil, db }: Props) {
           <IconeCrane taille={18} />
           Solo sans mourir
         </strong>
-        <button
-          onClick={() => setOuvert(false)}
-          style={{ background: "none", border: "none", color: "#7d7a70", cursor: "pointer", fontSize: "1rem" }}
-        >
-          ✕
-        </button>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+          {/* FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - navigation croisée : bouton « Carrière » (retour) exigée par la spécification ; les deux vues conservent leur état. / EN: cross-navigation Career button. */}
+          {onOuvrirCarriere && (
+            <button
+              type="button"
+              className="bouton-vue"
+              aria-label="Carrière"
+              title="Voir les statistiques d’usage de votre compte (lecture seule)"
+              onClick={onOuvrirCarriere}
+              style={{ "--hauteur-bouton": "1.75rem" } as React.CSSProperties}
+            >
+              <img className="bouton-vue__repos" src={urlVisuel("selecteur.carriere.repos")} alt="" draggable={false} />
+              <img className="bouton-vue__actif" src={urlVisuel("selecteur.carriere.selectionne")} alt="" draggable={false} />
+            </button>
+          )}
+          <button
+            onClick={() => setOuvert(false)}
+            style={{ background: "none", border: "none", color: "#7d7a70", cursor: "pointer", fontSize: "1rem" }}
+          >
+            ✕
+          </button>
+        </span>
       </div>
 
       {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.etatBrutTriomphes && profil != null && (

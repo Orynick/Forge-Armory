@@ -4,7 +4,7 @@
 //     node scripts/retoucher-visuels.mjs            applique les retouches (idempotent : une seconde exécution ne change plus rien)
 //     node scripts/retoucher-visuels.mjs --verifier ne modifie rien ; code de sortie 1 si une retouche manque
 //     node scripts/retoucher-visuels.mjs --racine <dossier>   travaille sur une autre copie du projet (utilisé par les tests)
-// Quatre retouches, toutes demandées ou justifiées par les retours de l'utilisateur des 07 et 08/10/2026 (détail : documentation/identite-visuelle/RETOUCHES-VISUELS.md) :
+// Cinq retouches, toutes demandées ou justifiées par les retours de l'utilisateur des 07 et 08/10/2026 (détail : documentation/identite-visuelle/RETOUCHES-VISUELS.md) :
 //   1. SOULIGNAGE des titres : le trait argenté sous le texte fait 8 unités d'épaisseur sur un cadre de 1024, soit environ 0,3 px à 40 px de haut et 0,4 px à 56 px : plus fin qu'un pixel, il est à peine visible
 //      (luminosité mesurée : 66 à 70 sur 255) et sa visibilité dépend du décalage vertical du bloc à l'écran, alors que le cristal, lui, se voit. Porté à 20 unités (≥ 0,8 px dès 41,6 px de haut), pointes comprises.
 //   2. CARTE « Doctrine élémentaire » (pilier 1) : son icône reprend les PROPORTIONS de celle du bloc « Doctrine et Élément » (même agrandissement ×1,4 autour du centre du cercle) et ses six billes bleues sont agrandies un peu
@@ -17,6 +17,9 @@
 //      « 3. Armes et Armures » devient « 2. Armes et Armures », MÊMES logos. Le texte des titres étant dessiné en tracés, on le recompose avec les lettres DÉJÀ dessinées dans les titres de l'utilisateur (outil : glyphes-titres.mjs ; lettres et
 //      écarts mesurés dans ses propres fichiers) ; le soulignage est recalculé à la nouvelle largeur et le titre recentré. Les nouveaux fichiers portent le bon numéro dans leur nom (`titre-3-artefact.svg` affiche « 3. ») ; les trois
 //      anciens fichiers, devenus trompeurs, sont supprimés de `public/assets/` (ils restent dans l'archive d'origine). Sans cette étape les lettres seraient à redessiner par l'utilisateur.
+//   5. BOUTON « CARRIÈRE » À LA LARGEUR D'« ACCOMPLISSEMENTS » (21/10/2026, demande de l'utilisateur : « les deux boutons doivent être alignés et à la même taille » dans le bloc Connexion) : les deux fichiers n'ont pas le même cadre (Carrière 4316 x 1024, Accomplissements 4897 x 1024, parce que ACCOMPLISSEMENTS est un titre plus long) ; à même hauteur, ils n'ont donc pas la même largeur,
+//      et dans un cadre commun l'un des deux est réduit (l'anneau d'Accomplissements était 12 % plus petit que celui de Carrière). On fabrique donc `bouton-carriere-large.svg` et `bouton-carriere-large-selectionne.svg` (4897 x 1024) à partir des fichiers de Carrière, SANS toucher aux originaux (utilisés ailleurs) : la plaque et les filets sont ALLONGÉS de 580,9 / 581 unités,
+//      le titre, son soulignage et son étoile sont recentrés (décalage de 290,5), l'anneau et le symbole ne changent pas, les identifiants sont préfixés `fa-selecteur-bouton-carriere-large-`. GARDE-FOU : la plaque obtenue doit être IDENTIQUE, chiffre pour chiffre, à celle d'Accomplissements (même largeur) ; sinon l'outil s'arrête.
 // EN: ⚠️ ADDED - retouches applied to public/assets (never to the original archive); idempotent; re-run after replacing artwork. (1) thicker underline (sub-pixel before), (2) card 1 icon proportions and bigger beads,
 // (3) static (no +/- diamond) versions for Connexion and Manifest.
 
@@ -128,6 +131,68 @@ function retoucherCarte1(svg) {
   return svg.replace(/<mask id="[^"]*-mHex"[\s\S]*?<\/mask>/, (masque) => masque.replaceAll('r="42"', 'r="47"'));
 }
 
+/** 5. Bouton « Carrière » élargi à la largeur d'« Accomplissements » (cadre 4897 x 1024). */
+const LARGEUR_ETROITE = 4316, LARGEUR_LARGE = 4897;
+const DELTA_PLAQUE = 580.9, DELTA_FILETS = 581, DELTA_TEXTE = 290.5;   // mesurés : plaque d'Accomplissements - plaque de Carrière ; la moitié sert à recentrer titre, soulignage et étoile
+const arrondir = (v) => String(Math.round(v * 1e6) / 1e6);
+
+/** Rôle de chaque nombre d'un tracé en coordonnées ABSOLUES (M L C Q A H V Z) : `true` si c'est une abscisse. L'arc `A` compte 7 nombres (rx ry rotation grand-arc balayage x y) : seule son extrémité x (le 6e) est une abscisse. */
+function estAbscisse(cmd, k) {
+  if (cmd === "H") return true;
+  if (cmd === "V") return false;
+  if (cmd === "A") return k % 7 === 5;
+  return k % 2 === 0;
+}
+/** Réécrit un tracé en remplaçant ses abscisses par `decaler(x)` (ou en les laissant telles quelles si `decaler` renvoie null), sans toucher aux séparateurs ni aux autres nombres. */
+function decalerTrace(d, decaler) {
+  let cmd = null, k = 0;
+  return d.replace(/[A-Za-z]|-?\d+(?:\.\d+)?(?:e-?\d+)?/g, (j) => {
+    if (/[A-Za-z]/.test(j)) {
+      if (!"MLCQAZHV".includes(j)) throw new Error(`commande de tracé non prise en charge : ${j}`);
+      cmd = j; k = 0; return j;
+    }
+    const x = estAbscisse(cmd, k++);
+    if (!x) return j;
+    const nouveau = decaler(parseFloat(j));
+    return nouveau === null ? j : arrondir(nouveau);
+  });
+}
+function bornesX(d) { const xs = []; decalerTrace(d, (x) => { xs.push(x); return null; }); return [Math.min(...xs), Math.max(...xs)]; }
+function plaques(svg) {
+  return [...svg.matchAll(/<path d="([^"]+)"/g)].map((m) => m[1]).filter((d) => { const [a, b] = bornesX(d); return a < 1100 && b > 4000; });
+}
+function elargirBouton(svg) {
+  if (!svg.includes(`viewBox="0 0 ${LARGEUR_ETROITE} 1024"`)) throw new Error("Carrière : le cadre attendu (4316 x 1024) est introuvable");
+  svg = svg.replace(`viewBox="0 0 ${LARGEUR_ETROITE} 1024"`, `viewBox="0 0 ${LARGEUR_LARGE} 1024"`).replaceAll(`width="${LARGEUR_ETROITE}"`, `width="${LARGEUR_LARGE}"`);
+  const filets = svg.match(/<rect x="1010" y="(?:220|800)" width="3134" height="4"/g) || [];
+  if (filets.length !== 2) throw new Error(`Carrière : 2 filets flottants attendus, ${filets.length} trouvés`);
+  svg = svg.replaceAll('width="3134" height="4"', `width="${3134 + DELTA_FILETS}" height="4"`);
+  let nbPlaque = 0, nbTexte = 0;
+  svg = svg.replace(/<path d="([^"]+)"/g, (tout, d) => {
+    const [a, b] = bornesX(d);
+    if (a < 1100 && b > 4000) { nbPlaque++; return `<path d="${decalerTrace(d, (x) => (x > 2158 ? x + DELTA_PLAQUE : null))}"`; }   // plaque : seul le côté droit s'allonge
+    if (a >= 1100) { nbTexte++; return `<path d="${decalerTrace(d, (x) => x + DELTA_TEXTE)}"`; }                                            // titre, soulignage, étoile : recentrés
+    return tout;                                                                                                                              // anneau et symbole : inchangés
+  });
+  if (nbPlaque !== 3) throw new Error(`Carrière : 3 tracés de plaque attendus, ${nbPlaque} trouvés`);
+  if (nbTexte < 4) throw new Error(`Carrière : au moins 4 tracés de titre/soulignage/étoile attendus, ${nbTexte} trouvés`);
+  return svg.replaceAll("fa-selecteur-bouton-carriere-", "fa-selecteur-bouton-carriere-large-");
+}
+function elargirCarriere() {
+  for (const etat of ["", "-selectionne"]) {
+    const source = path.join(ASSETS, "selecteur", `bouton-carriere${etat}.svg`);
+    const modele = path.join(ASSETS, "selecteur", `bouton-accomplissements${etat}.svg`);
+    const cible = path.join(ASSETS, "selecteur", `bouton-carriere-large${etat}.svg`);
+    if (!fs.existsSync(source)) { console.error(`Source introuvable : ${source}`); process.exitCode = 1; continue; }
+    const nouveau = elargirBouton(fs.readFileSync(source, "utf-8"));
+    if (fs.existsSync(modele)) {   // GARDE-FOU : la plaque élargie doit être IDENTIQUE à celle d'Accomplissements (même largeur)
+      const attendu = JSON.stringify(plaques(fs.readFileSync(modele, "utf-8"))), obtenu = JSON.stringify(plaques(nouveau));
+      if (attendu !== obtenu) throw new Error(`Carrière élargie${etat} : la plaque n'est pas celle d'Accomplissements (le dessin des boutons a changé : revoir la retouche 5)`);
+    }
+    ecrire(cible, nouveau, fs.existsSync(cible) ? fs.readFileSync(cible, "utf-8") : "", "bouton « Carrière » élargi à la largeur d'« Accomplissements »");
+  }
+}
+
 if (!fs.existsSync(ASSETS)) { console.error(`Dossier introuvable : ${ASSETS}`); process.exit(2); }
 importerVersionFixe("connexion");
 importerVersionFixe("manifest");
@@ -148,6 +213,7 @@ for (const famille of ["blocs-repliables", "titres"]) {
     }
   }
 }
+elargirCarriere();
 console.log(changements.length ? changements.join("\n") : "Aucune retouche à appliquer : tout est déjà à jour.");
 console.log(`${changements.length} retouche(s) ${verifier ? "manquante(s)" : "appliquée(s)"}.`);
 if (verifier && changements.length > 0) process.exitCode = 1;
