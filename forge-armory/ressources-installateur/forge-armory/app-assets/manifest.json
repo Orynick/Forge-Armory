@@ -197,6 +197,30 @@
    "format": "svg"
   },
   {
+   "id": "selecteur.optimisation.repos",
+   "famille": "selecteur",
+   "label": "Optimisation",
+   "etat": "repos",
+   "fichier": "assets/selecteur/bouton-optimisation.svg",
+   "largeur": 4316,
+   "hauteur": 1024,
+   "ratio": 4.2148,
+   "hauteurMinPx": 40,
+   "format": "svg"
+  },
+  {
+   "id": "selecteur.optimisation.selectionne",
+   "famille": "selecteur",
+   "label": "Optimisation",
+   "etat": "selectionne",
+   "fichier": "assets/selecteur/bouton-optimisation-selectionne.svg",
+   "largeur": 4316,
+   "hauteur": 1024,
+   "ratio": 4.2148,
+   "hauteurMinPx": 40,
+   "format": "svg"
+  },
+  {
    "id": "icones.carriere",
    "famille": "icones",
    "label": "Carrière",
@@ -846,6 +870,30 @@
    "label": "statistiques",
    "etat": null,
    "fichier": "assets/icones/icone-statistiques.svg",
+   "largeur": 1024,
+   "hauteur": 1024,
+   "ratio": 1.0,
+   "hauteurMinPx": 24,
+   "format": "svg"
+  },
+  {
+   "id": "icones.optimisation",
+   "famille": "icones",
+   "label": "Optimisation",
+   "etat": null,
+   "fichier": "assets/icones/icone-optimisation.svg",
+   "largeur": 1024,
+   "hauteur": 1024,
+   "ratio": 1.0,
+   "hauteurMinPx": 24,
+   "format": "svg"
+  },
+  {
+   "id": "icones.optimisation.selectionne",
+   "famille": "icones",
+   "label": "Optimisation (sélectionné)",
+   "etat": "selectionne",
+   "fichier": "assets/icones/icone-optimisation-selectionne.svg",
    "largeur": 1024,
    "hauteur": 1024,
    "ratio": 1.0,
