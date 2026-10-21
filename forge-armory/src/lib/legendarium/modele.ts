@@ -7,10 +7,38 @@ import { CATEGORIE_FACTICE } from "../manifest/search";
 import type { DestinyItemDefinition, DestinyLoreDefinition } from "../../types/manifest";
 import type { SlotArmure } from "../../types/build";
 import type { ClasseArmure } from "../manifest/catalogueArmures";
+import { saisonDeLObjet, saisonParNumero } from "../../data/saisons";
 import type { LivreLore, ObjetPorteur, PageLore, SectionLegendarium } from "./types";
 
 const TABLE_OBJETS = "DestinyInventoryItemDefinition";
 const TABLE_LORE = "DestinyLoreDefinition";
+
+/** FR : ⚠️ AJOUT (20/10/2026, décision utilisateur) - RANG CHRONOLOGIQUE d'un objet : numéro de saison de sortie, résolu dans l'ordre (1) `seasonHash` de l'objet → `DestinySeasonDefinition.seasonNumber` (Manifest, source principale), (2) table DIM `saisonDeLObjet` (hash d'objet → numéro, 57 439 entrées). Jamais estimé : un objet sans saison connue renvoie `undefined`. / EN: chronological rank of an item: release season number, resolved in order (1) the item's `seasonHash` → `DestinySeasonDefinition.seasonNumber` (Manifest, primary source), (2) the DIM table `saisonDeLObjet` (item hash → number, 57,439 entries). Never guessed: an item with no known season returns `undefined`. */
+export function rangChronoObjet(db: Database | null | undefined, itemHash: number): number | undefined {
+  // (1) Manifest : seasonHash de l'objet → DestinySeasonDefinition
+  if (db) {
+    try {
+      const def = obtenirDefinition<{ seasonHash?: number }>(db, TABLE_OBJETS, itemHash);
+      const hashSaison = def?.seasonHash;
+      if (hashSaison !== undefined) {
+        try {
+          const s = obtenirDefinition<{ seasonNumber?: number }>(db, "DestinySeasonDefinition", hashSaison);
+          if (typeof s?.seasonNumber === "number") return s.seasonNumber;
+        } catch { /* table des saisons absente : on tente la table DIM */ }
+      }
+    } catch { /* objet illisible : on tente la table DIM */ }
+  }
+  // (2) Table DIM : hash d'objet → numéro de saison
+  return saisonDeLObjet(itemHash);
+}
+
+/** FR : ⚠️ AJOUT (20/10/2026) - libellé chronologique d'un rang (ex: « Saison 12 · Ombres du Cauchemar »), ou undefined. Le nom vient de la table des saisons (`saisonParNumero`, dérivée de d2-additional-info) : le Manifest n'est pas consulté ici (le rang suffit). / EN: chronological label of a rank (e.g. "Season 12 · Shadowkeep"), or undefined. The name comes from the seasons table (`saisonParNumero`, derived from d2-additional-info). */
+export function libelleRangChrono(rang: number | undefined): string | undefined {
+  if (rang === undefined) return undefined;
+  const s = saisonParNumero(rang);
+  const nom = s?.nomCourt ?? s?.nom ?? `Saison ${rang}`;
+  return s?.extension ? `${nom} · ${s.extension}` : nom;
+}
 
 const SLOTS_ARMURE: readonly SlotArmure[] = ["casque", "gants", "torse", "jambes", "marque"];
 
@@ -105,6 +133,9 @@ export function pageLoreObjet(db: Database | null | undefined, itemHash: number)
     texte,
     loreHash: def.lore,
     porteurs: porteursDeLore(db, def.lore),
+    // ⚠️ AJOUT (20/10/2026, décision utilisateur) : rang chronologique (ordre de sortie) — numéro de saison du porteur principal, jamais estimé
+    rangChrono: rangChronoObjet(db, itemHash),
+    libelleChrono: libelleRangChrono(rangChronoObjet(db, itemHash)),
   };
 }
 
@@ -178,6 +209,12 @@ export function trierArmuresParEnsemble(p: ObjetPorteur[]): ObjetPorteur[] {
   return [...p].sort((a, b) => rangClasse(a.classe) - rangClasse(b.classe) || rangSlot(a.slotArmure) - rangSlot(b.slotArmure) || a.nom.localeCompare(b.nom, "fr"));
 }
 
+/** FR : ⚠️ AJOUT (20/10/2026, décision utilisateur) - TRI CHRONOLOGIQUE des pages (ordre de sortie des extensions/saisons, PAR DÉFAUT dans la bibliothèque) : les pages DATÉES d'abord, par `rangChrono` croissant (numéro de saison), puis les pages NON DATÉES (rang inconnu) par titre. La règle des ensembles d'armures (classe → casque → gants → torse → jambes → objet de classe) reste le classement PAR DÉFAUT de la section « objets » : le tri chronologique s'applique aux AUTRES livres (armes, cosmétiques) et peut être proposé comme vue alternative. Jamais estimé : une page sans rang connu n'est pas datée. / EN: chronological sort of pages (release order of extensions/seasons, DEFAULT in the library): dated pages first, by ascending `rangChrono` (season number), then undated pages by title. The armor-set rule (class → helmet → gauntlets → chest → legs → class item) stays the DEFAULT sorting of the "objets" section: the chronological sort applies to the OTHER books (weapons, cosmetics) and can be offered as an alternative view. Never guessed: a page with no known rank is not dated. */
+export function trierPagesChrono(pages: PageLore[]): PageLore[] {
+  const rang = (p: PageLore) => (p.rangChrono === undefined ? Number.POSITIVE_INFINITY : p.rangChrono);
+  return [...pages].sort((a, b) => rang(a) - rang(b) || a.titre.localeCompare(b.titre, "fr") || a.id.localeCompare(b.id));
+}
+
 /** FR : construit les livres de la section « objets » (armes et armures) : un livre « Lore des armes », un livre « Ensembles d'armures » (armures triées par la règle verrouillée). / EN: builds the books of the "objets" (weapons and armor) section: a "Weapon lore" book, an "Armor sets" book (armor sorted by the locked rule). */
 function livresObjets(db: Database): LivreLore[] {
   const porteurs = porteursParSection(db, "objets");
@@ -200,7 +237,8 @@ function livresObjets(db: Database): LivreLore[] {
     }
     return pages;
   };
-  const livreArmes: LivreLore = { id: "objets-armes", titre: "Lore des armes", pages: dedup(armes) };
+  // ⚠️ AJOUT (20/10/2026, décision utilisateur) : le livre « Lore des armes » est classé PAR ORDRE CHRONOLOGIQUE (sortie des extensions/saisons) ; le livre « Ensembles d'armures » garde la RÈGLE VERROUILLÉE (classe → casque → gants → torse → jambes → objet de classe) : la mini-histoire de chaque classe se lit dans cet ordre.
+  const livreArmes: LivreLore = { id: "objets-armes", titre: "Lore des armes", pages: trierPagesChrono(dedup(armes)) };
   const livreArmures: LivreLore = { id: "objets-armures", titre: "Ensembles d'armures", pages: dedup(armures) };
   return [livreArmes, livreArmures].filter((l) => l.pages.length > 0);
 }
@@ -219,7 +257,8 @@ function livreCosmetiques(db: Database): LivreLore {
     const principal = page.porteurs?.find((x) => x.hash === p.hash) ?? page.porteurs?.[0];
     pages.push(principal ? { ...page, titre: principal.nom } : page);
   }
-  return { id: "cosmetiques", titre: "Spectres, Vaisseaux, Passereaux", pages };
+  // ⚠️ AJOUT (20/10/2026, décision utilisateur) : classement PAR ORDRE CHRONOLOGIQUE (sortie des extensions/saisons)
+  return { id: "cosmetiques", titre: "Spectres, Vaisseaux, Passereaux", pages: trierPagesChrono(pages) };
 }
 
 /** FR : une entrée DestinyLoreDefinition est une page de LÉGENDE (livre de Lore D2) quand elle n'est le Lore d'AUCUN objet du Manifest ; le Lore d'un objet (armes, armures, cosmétiques) est rangé dans les sections « objets » / « cosmétiques », jamais ici. C'est la séparation qui tient la promesse « comme en jeu » (les Légendes forment leurs propres livres). / EN: a DestinyLoreDefinition entry is a LEGENDS page (a D2 lore book) when it is the lore of NO item in the Manifest; an item's lore (weapons, armor, cosmetics) goes to the "objets"/"cosmétiques" sections, never here. This is what keeps the "like in game" promise (Legends form their own books). */

@@ -55,7 +55,8 @@
     "inventory": {
      "bucketTypeHash": 1498876634,
      "tierTypeHash": 2759499571
-    }
+    },
+    "seasonHash": 9011
    },
    "6002": {
     "hash": 6002,
@@ -118,7 +119,8 @@
     "inventory": {
      "bucketTypeHash": 3448274439,
      "tierTypeHash": 4008398120
-    }
+    },
+    "seasonHash": 9012
    },
    "6011": {
     "hash": 6011,
@@ -134,7 +136,8 @@
     "inventory": {
      "bucketTypeHash": 3551918588,
      "tierTypeHash": 4008398120
-    }
+    },
+    "seasonHash": 9012
    },
    "6012": {
     "hash": 6012,
@@ -150,7 +153,8 @@
     "inventory": {
      "bucketTypeHash": 14239492,
      "tierTypeHash": 4008398120
-    }
+    },
+    "seasonHash": 9012
    },
    "6013": {
     "hash": 6013,
@@ -166,7 +170,8 @@
     "inventory": {
      "bucketTypeHash": 20886954,
      "tierTypeHash": 4008398120
-    }
+    },
+    "seasonHash": 9012
    },
    "6014": {
     "hash": 6014,
@@ -182,39 +187,8 @@
     "inventory": {
      "bucketTypeHash": 1585787867,
      "tierTypeHash": 4008398120
-    }
-   },
-   "6020": {
-    "hash": 6020,
-    "displayProperties": {
-     "name": "Casque du Chasseur",
-     "icon": "/icons/Casque du Chasseur.png",
-     "description": ""
     },
-    "itemType": 2,
-    "itemSubType": 0,
-    "classType": 1,
-    "lore": 7120,
-    "inventory": {
-     "bucketTypeHash": 3448274439,
-     "tierTypeHash": 4008398120
-    }
-   },
-   "6021": {
-    "hash": 6021,
-    "displayProperties": {
-     "name": "Marque du Chasseur",
-     "icon": "/icons/Marque du Chasseur.png",
-     "description": ""
-    },
-    "itemType": 2,
-    "itemSubType": 0,
-    "classType": 1,
-    "lore": 7121,
-    "inventory": {
-     "bucketTypeHash": 1585787867,
-     "tierTypeHash": 4008398120
-    }
+    "seasonHash": 9012
    },
    "6030": {
     "hash": 6030,
@@ -226,7 +200,8 @@
     "itemType": 14,
     "itemSubType": 0,
     "itemTypeDisplayName": "Spectre",
-    "lore": 7130
+    "lore": 7130,
+    "seasonHash": 9011
    },
    "6031": {
     "hash": 6031,
@@ -253,6 +228,39 @@
     "inventory": {
      "bucketTypeHash": 1498876634,
      "tierTypeHash": 2759499571
+    },
+    "seasonHash": 9011
+   },
+   "236588": {
+    "hash": 236588,
+    "displayProperties": {
+     "name": "Casque du Chasseur",
+     "icon": "/icons/Casque du Chasseur.png",
+     "description": ""
+    },
+    "itemType": 2,
+    "itemSubType": 0,
+    "classType": 1,
+    "lore": 7120,
+    "inventory": {
+     "bucketTypeHash": 3448274439,
+     "tierTypeHash": 4008398120
+    }
+   },
+   "1399216": {
+    "hash": 1399216,
+    "displayProperties": {
+     "name": "Marque du Chasseur",
+     "icon": "/icons/Marque du Chasseur.png",
+     "description": ""
+    },
+    "itemType": 2,
+    "itemSubType": 0,
+    "classType": 1,
+    "lore": 7121,
+    "inventory": {
+     "bucketTypeHash": 1585787867,
+     "tierTypeHash": 4008398120
     }
    }
   },
@@ -549,6 +557,44 @@
      "description": ""
     },
     "body": "Lore du Spectre, affiché quand il existe."
+   }
+  }
+ },
+ "DestinySeasonDefinition": {
+  "fr": {
+   "9011": {
+    "hash": 9011,
+    "displayProperties": {
+     "name": "Saison de la Chasseresse",
+     "description": ""
+    },
+    "seasonNumber": 11
+   },
+   "9012": {
+    "hash": 9012,
+    "displayProperties": {
+     "name": "Ombres du Cauchemar",
+     "description": ""
+    },
+    "seasonNumber": 12
+   }
+  },
+  "en": {
+   "9011": {
+    "hash": 9011,
+    "displayProperties": {
+     "name": "Season of the Hunt",
+     "description": ""
+    },
+    "seasonNumber": 11
+   },
+   "9012": {
+    "hash": 9012,
+    "displayProperties": {
+     "name": "Shadowkeep",
+     "description": ""
+    },
+    "seasonNumber": 12
    }
   }
  }

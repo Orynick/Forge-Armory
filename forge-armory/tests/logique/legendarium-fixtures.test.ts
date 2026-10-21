@@ -6,6 +6,8 @@ import {
   trouverPage,
   pageLoreObjet,
   porteursDeLore,
+  rangChronoObjet,
+  trierPagesChrono,
 } from "../../src/lib/legendarium/modele";
 import { hashVersIdSqlite } from "../../src/lib/manifest/download";
 
@@ -79,6 +81,20 @@ ok("fixture : ⚠️ DÉDOUBLONNAGE — la réédition d'Izanagi (même Lore 710
 const porteurs = porteursDeLore(db, 7101);
 ok("fixture : le parcours inverse du Lore 7101 retrouve Izanagi ET sa réédition (masquée et factice exclues)",
   porteurs.length === 2 && porteurs.some((x) => x.hash === 6001) && porteurs.some((x) => x.hash === 6040), porteurs.map((x) => x.hash));
+
+// --- ⚠️ Tri chronologique contre les fixtures (décision utilisateur) ---
+ok("fixture : rang chrono — Izanagi (seasonHash 9011) = saison 11 via le Manifest",
+  rangChronoObjet(db, 6001) === 11, rangChronoObjet(db, 6001));
+ok("fixture : rang chrono — set Titan (seasonHash 9012) = saison 12 via le Manifest",
+  rangChronoObjet(db, 6010) === 12, rangChronoObjet(db, 6010));
+ok("fixture : rang chrono — SECOURS table DIM — Casque du Chasseur (hash 236588, sans seasonHash) = saison 11",
+  rangChronoObjet(db, 236588) === 11, rangChronoObjet(db, 236588));
+ok("fixture : rang chrono — SECOURS table DIM — Marque du Chasseur (hash 1399216, sans seasonHash) = saison 12",
+  rangChronoObjet(db, 1399216) === 12, rangChronoObjet(db, 1399216));
+ok("fixture : la page du livre « Lore des armes » porte rangChrono = 11 (Izanagi)",
+  livreArmes?.pages[0].rangChrono === 11, livreArmes?.pages[0].rangChrono);
+ok("fixture : trierPagesChrono classe le livre cosmétiques (Spectre, saison 11) avant une page non datée",
+  JSON.stringify(trierPagesChrono([{ id: "lore:zzz", titre: "Zzz sans date", texte: "x" }, ...(livresCosm[0]?.pages ?? [])] as never[]).map((p) => p.id)) === JSON.stringify(["lore:7130", "lore:zzz"]));
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);
 process.exit(res.every(Boolean) ? 0 : 1);

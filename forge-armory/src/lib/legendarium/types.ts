@@ -22,6 +22,10 @@ export interface PageLore {
   loreHash?: DefinitionHash;
   /** FR : ⚠️ AJOUT (20/10/2026, décision utilisateur) - objets portant ce Lore (rééditions comprises), pour le parcours inverse depuis la page. Vide pour les Légendes D2 et le Grimoire D1. / EN: items carrying this lore (reissues included), for the reverse path from the page. Empty for D2 Legends and the D1 Grimoire. */
   porteurs?: ObjetPorteur[];
+  /** FR : ⚠️ AJOUT (20/10/2026, décision utilisateur) - rang chronologique de la page pour le classement par défaut (ordre de sortie des extensions/saisons) : numéro de saison (1 = Red War, 28 = Renegades) quand il est connu, sinon `undefined` (la page est alors classée APRÈS les pages datées, par titre). Jamais estimé. / EN: chronological rank of the page for the default sorting (release order of extensions/seasons): season number (1 = Red War, 28 = Renegades) when known, else `undefined` (the page is then sorted AFTER dated pages, by title). Never guessed. */
+  rangChrono?: number;
+  /** FR : ⚠️ AJOUT (20/10/2026) - nom de la saison/extension de sortie, pour l'affichage (ex: « Saison 12 · Ombres du Cauchemar »). / EN: display name of the release season/DLC (e.g. "Season 12 · Shadowkeep"). */
+  libelleChrono?: string;
 }
 
 /** FR : un livre = un groupe de pages (livre du Grimoire D1, livre de Légendes D2, « Lore des armes », « Ensembles d'armures », « Spectres, Vaisseaux, Passereaux »). / EN: a book = a group of pages (a D1 Grimoire book, a D2 Legends book, "Weapon lore", "Armor sets", "Ghosts, Ships, Sparrows"). */

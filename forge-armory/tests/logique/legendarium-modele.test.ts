@@ -12,6 +12,9 @@ import {
   idPageDepuisObjet,
   porteursDeLore,
   trierArmuresParEnsemble,
+  trierPagesChrono,
+  rangChronoObjet,
+  libelleRangChrono,
   libelleSlot,
 } from "../../src/lib/legendarium/modele";
 import { ereDeSection, PALETTE, PALETTE_PRINCIPALE, PALETTE_REPLI } from "../../src/lib/legendarium/palette";
@@ -20,6 +23,7 @@ const res: boolean[] = [];
 const ok = (nom: string, cond: unknown, detail?: unknown) => { res.push(!!cond); console.log(cond ? "✅" : "❌", nom); if (!cond && detail !== undefined) console.log("   détail :", JSON.stringify(detail).slice(0, 500)); };
 
 const T_OBJET = "DestinyInventoryItemDefinition";
+const T_SAISON = "DestinySeasonDefinition";
 const T_LORE = "DestinyLoreDefinition";
 const BUCKET = { casque: 3448274439, gants: 3551918588, torse: 14239492, jambes: 20886954, marque: 1585787867, cinetique: 1498876634 };
 
@@ -60,7 +64,10 @@ const { db } = creerFausseDb({
 
 // Lores des objets (table séparée pour lisibilité)
 // (la fausse base accepte plusieurs tables ; on recrée avec les lores d'objets ajoutés)
-const { db: db2 } = creerFausseDb({
+const { db: db2 } = creerFausseDb({  [T_SAISON]: {
+    9011: { displayProperties: { name: "Saison de la Chasseresse" }, seasonNumber: 11 },
+    9012: { displayProperties: { name: "Ombres du Cauchemar" }, seasonNumber: 12 },
+  },
   [T_LORE]: {
     7001: lore("Le Gardien se lève", "Un Gardien se lève, la Tour retient son souffle.", "Chapitre I"),
     7002: lore("L'Ombre", "Deuxième page de Légende D2 pour la démonstration de navigation."),
@@ -75,19 +82,19 @@ const { db: db2 } = creerFausseDb({
     7130: lore("Coque de Spectre", "Lore du Spectre, affiché quand il existe."),
   },
   [T_OBJET]: {
-    6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }),
+    6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", seasonHash: 9011, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }),
     6040: objet("Izanagi — Burden (réédition)", { itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 2759499571 } }), // ⚠️ rééédition : MÊME Lore 7101
     6002: objet("Arme sans lore", { itemType: 3, itemTypeDisplayName: "Fusil à pompe", inventory: { bucketTypeHash: BUCKET.cinetique, tierTypeHash: 4008398120 } }),
     6003: objet("Arme masquée", { itemType: 3, redacted: true, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
     6004: objet("Armure factice", { itemType: 2, lore: 7101, itemCategoryHashes: [3109687656], inventory: { bucketTypeHash: BUCKET.casque } }),
-    6010: objet("Casque du Siège brisé", { itemType: 2, classType: 0, lore: 7110, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
-    6011: objet("Gants du Siège brisé", { itemType: 2, classType: 0, lore: 7111, inventory: { bucketTypeHash: BUCKET.gants, tierTypeHash: 4008398120 } }),
-    6012: objet("Torse du Siège brisé", { itemType: 2, classType: 0, lore: 7112, inventory: { bucketTypeHash: BUCKET.torse, tierTypeHash: 4008398120 } }),
-    6013: objet("Jambes du Siège brisé", { itemType: 2, classType: 0, lore: 7113, inventory: { bucketTypeHash: BUCKET.jambes, tierTypeHash: 4008398120 } }),
-    6014: objet("Marque du Siège brisé", { itemType: 2, classType: 0, lore: 7114, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
-    6020: objet("Casque du Chasseur", { itemType: 2, classType: 1, lore: 7120, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
-    6021: objet("Marque du Chasseur", { itemType: 2, classType: 1, lore: 7121, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
-    6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", lore: 7130 }),
+    6010: objet("Casque du Siège brisé", { itemType: 2, classType: 0, lore: 7110, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
+    6011: objet("Gants du Siège brisé", { itemType: 2, classType: 0, lore: 7111, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.gants, tierTypeHash: 4008398120 } }),
+    6012: objet("Torse du Siège brisé", { itemType: 2, classType: 0, lore: 7112, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.torse, tierTypeHash: 4008398120 } }),
+    6013: objet("Jambes du Siège brisé", { itemType: 2, classType: 0, lore: 7113, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.jambes, tierTypeHash: 4008398120 } }),
+    6014: objet("Marque du Siège brisé", { itemType: 2, classType: 0, lore: 7114, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
+    236588: objet("Casque du Chasseur", { itemType: 2, classType: 1, lore: 7120, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
+    1399216: objet("Marque du Chasseur", { itemType: 2, classType: 1, lore: 7121, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
+    6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", seasonHash: 9011, lore: 7130 }),
     6031: objet("Vaisseau sans lore", { itemType: 16, itemTypeDisplayName: "Vaisseau" }),
   },
 });
@@ -143,12 +150,12 @@ ok("libellé des emplacements : « marque » s'appelle « Objet de classe »", l
 
 // Tri direct (fonction pure)
 const melange = [
-  { hash: 6021, nom: "Marque du Chasseur", emplacement: "Objet de classe · Chasseur", classe: "chasseur" as const, slotArmure: "marque" as const },
+  { hash: 1399216, nom: "Marque du Chasseur", emplacement: "Objet de classe · Chasseur", classe: "chasseur" as const, slotArmure: "marque" as const },
   { hash: 6013, nom: "Jambes du Siège brisé", emplacement: "Jambes · Titan", classe: "titan" as const, slotArmure: "jambes" as const },
   { hash: 6010, nom: "Casque du Siège brisé", emplacement: "Casque · Titan", classe: "titan" as const, slotArmure: "casque" as const },
 ];
 ok("le tri par ensemble reclasse un mélange (classe d'abord, puis slot)",
-  JSON.stringify(trierArmuresParEnsemble(melange).map((p) => p.hash)) === JSON.stringify([6010, 6013, 6021]), trierArmuresParEnsemble(melange).map((p) => p.hash));
+  JSON.stringify(trierArmuresParEnsemble(melange).map((p) => p.hash)) === JSON.stringify([6010, 6013, 1399216]), trierArmuresParEnsemble(melange).map((p) => p.hash));
 
 // --- Cosmétiques ---
 const livresCosm = livresDeSection(db2, "cosmetiques");
@@ -191,6 +198,37 @@ const porteursTitan = porteursDeLore(db2, 7110);
 ok("le parcours inverse sur le Lore du casque Titan porte le classe et l'emplacement (pour la règle des ensembles)",
   porteursTitan.length === 1 && porteursTitan[0].classe === "titan" && porteursTitan[0].slotArmure === "casque" && porteursTitan[0].emplacement === "Casque · Titan", porteursTitan[0]);
 ok("un Lore sans porteur ne retourne rien, sans erreur", porteursDeLore(db2, 424242).length === 0 && porteursDeLore(null, 7101).length === 0 && porteursDeLore(db2, undefined).length === 0);
+
+// --- ⚠️ Tri chronologique (décision utilisateur : ordre de sortie par défaut) ---
+ok("rangChronoObjet : saison 11 via le Manifest (seasonHash → DestinySeasonDefinition) pour Izanagi",
+  rangChronoObjet(db2, 6001) === 11, rangChronoObjet(db2, 6001));
+ok("rangChronoObjet : saison 12 via le Manifest pour le set Titan (casque)",
+  rangChronoObjet(db2, 6010) === 12, rangChronoObjet(db2, 6010));
+ok("rangChronoObjet : SECOURS table DIM — le Casque du Chasseur (hash 236588, SANS seasonHash) est daté saison 11",
+  rangChronoObjet(db2, 236588) === 11, rangChronoObjet(db2, 236588));
+ok("rangChronoObjet : SECOURS table DIM — la Marque du Chasseur (hash 1399216, SANS seasonHash) est datée saison 12",
+  rangChronoObjet(db2, 1399216) === 12, rangChronoObjet(db2, 1399216));
+ok("rangChronoObjet : un objet inconnu n'est JAMAIS daté (undefined)",
+  rangChronoObjet(db2, 999999) === undefined && rangChronoObjet(null, 6001) === undefined);
+ok("libelleRangChrono : « nom court · extension » quand connu (saison 12 = Ombres du Cauchemar · Ombres du Cauchemar via seasons.json)",
+  libelleRangChrono(12) !== undefined && libelleRangChrono(undefined) === undefined, libelleRangChrono(12));
+
+// Le livre des armes : Izanagi (saison 11) doit porter rangChrono = 11
+ok("la page du livre « Lore des armes » porte le rang chronologique de son porteur (Izanagi = 11)",
+  livreArmes?.pages[0].rangChrono === 11, livreArmes?.pages[0].rangChrono);
+
+// Tri chrono d'un livre mixte : saison 11 d'abord, puis 12, puis non datées par titre
+const pagesMelangees = [
+  { id: "lore:7114", titre: "Marque du Siège brisé", texte: "x", rangChrono: 12 },
+  { id: "lore:7101", titre: "Izanagi — Burden", texte: "x", rangChrono: 11 },
+  { id: "lore:9999", titre: "Page sans date", texte: "x" }, // non datée
+  { id: "lore:7110", titre: "Casque du Siège brisé", texte: "x", rangChrono: 12 },
+] as never[];
+const triées = trierPagesChrono(pagesMelangees);
+ok("⚠️ trierPagesChrono : les pages datées d'abord (rang croissant : 11 puis 12, à égalité par titre), les non datées EN DERNIER par titre",
+  JSON.stringify(triées.map((p) => p.id)) === JSON.stringify(["lore:7101", "lore:7110", "lore:7114", "lore:9999"]), triées.map((p) => p.id));
+ok("⚠️ trierPagesChrono ne mute pas le tableau d'entrée",
+  (pagesMelangees as { id: string }[])[0].id === "lore:7114");
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);
 process.exit(res.every(Boolean) ? 0 : 1);
