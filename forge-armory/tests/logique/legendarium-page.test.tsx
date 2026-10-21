@@ -1,6 +1,7 @@
 // FR : ⚠️ AJOUT (21/10/2026, chantier Legendarium, étape 2) - test de la PAGE Legendarium (`src/components/Bibliotheque.tsx`) : les trois zones de la spécification verrouillée §4 (bandeau titre + recherche + indicateur de cache ; colonne sections → livres ; zone de lecture avec précédent/suivant), la palette « Parchemin / Hologramme » verrouillée §5 (D1 parchemin, D2 hologramme), le parcours inverse (objets porteurs), le bouton de retour vers l'objet (provenance), la recherche par mots-clés (résultats cliquables). Rendu STATIQUE (renderToStaticMarkup, comme les autres tests UI du projet) : pas de jsdom, pas de clics — on teste la STRUCTURE rendue et les sous-composants exportés. L'état interactif (clics, navigation) est testé en Playwright côté utilisateur. EN: test of the Legendarium PAGE: the three locked zones (spec §4), the locked palette (§5), the reverse path, the back-to-item button, the keyword search results. Static render only.
 import { renderToStaticMarkup } from "react-dom/server";
 import Bibliotheque, { BandeauLegendarium, ColonneSections, ResultatsRecherche, ZoneLecture } from "../../src/components/Bibliotheque";
+import BoutonLireLore from "../../src/components/BoutonLireLore";   // ⚠️ AJOUT (21/10/2026, étape 5) : bouton « Lire le Lore » des fiches Détails
 import { creerFausseDb } from "./fixtures/fauxManifest";
 import type { LivreLore, PageLore } from "../../src/lib/legendarium/types";
 import type { ResultatRechercheLore } from "../../src/lib/legendarium/modele";
@@ -139,6 +140,35 @@ ok("page avec Manifest : les 4 sections restent dans l'ordre verrouillé (le Gri
   JSON.stringify([...pageAvecDb.matchAll(/data-section="([^"]+)"/g)].map((m) => m[1])) === JSON.stringify(["grimoire", "legendes", "objets", "cosmetiques"]));
 ok("page complète : aucun résidu de l'ancien panneau « en construction »",
   !pageSansDb.includes("en construction") && !pageAvecDb.includes("en construction"));
+
+
+// --- ⚠️ AJOUT (21/10/2026, étape 5) : Bouton « Lire le Lore » des fiches Détails (spécification §6) ---
+// Rendu STATIQUE : le composant est PUR (pas d'état, pas d'effet) — on vérifie qu'il rend le bouton UNIQUEMENT si l'objet a un Lore (via `aLore`, lecture légère),
+// avec la ligne justifiée à droite (`data-ligne-lire-lore`), l'attribut `data-item-hash` pour le lien profond, et le libellé « Lire le Lore ».
+{
+  const T_OBJET2 = "DestinyInventoryItemDefinition", T_LORE2 = "DestinyLoreDefinition";
+  const { db: dbBouton } = creerFausseDb({
+    [T_LORE2]: {
+      7101: { displayProperties: { name: "Izanagi" }, body: "Texte du lore d'Izanagi." },
+      7003: { displayProperties: { name: "Lore vide" }, body: "" },
+    },
+    [T_OBJET2]: {
+      6001: { displayProperties: { name: "Izanagi — Burden", icon: "/i.png", description: "" }, itemType: 3, itemTypeDisplayName: "Fusil de précision", lore: 7101, inventory: { bucketTypeHash: 1498876634 } },
+      6002: { displayProperties: { name: "Arme sans lore", icon: "/i.png", description: "" }, itemType: 3, itemTypeDisplayName: "Fusil à pompe", inventory: { bucketTypeHash: 1498876634 } },
+      6005: { displayProperties: { name: "Arme lore vide", icon: "/i.png", description: "" }, itemType: 3, lore: 7003, inventory: { bucketTypeHash: 1498876634 } },
+    },
+  });
+  const avecLore = renderToStaticMarkup(<BoutonLireLore db={dbBouton as never} itemHash={6001} nomObjet="Izanagi — Burden" onLireLore={(h) => { void h; }} />);
+  ok("bouton : objet AVEC Lore → la ligne justifiée à droite + le bouton « 📖 Lire le Lore » avec `data-item-hash` et l'infobulle du nom",
+    avecLore.includes('data-ligne-lire-lore=""') && avecLore.includes("justify-content:flex-end") && avecLore.includes('data-bouton-lire-lore=""') && avecLore.includes('data-item-hash="6001"') && avecLore.includes("Lire le Lore") && avecLore.includes("Izanagi — Burden"), avecLore.slice(0, 400));
+  const sansLore = renderToStaticMarkup(<BoutonLireLore db={dbBouton as never} itemHash={6002} nomObjet="Arme sans lore" onLireLore={() => {}} />);
+  ok("bouton : objet SANS Lore → RIEN n'est rendu (pas de bouton, pas de ligne vide)", sansLore === "", sansLore.slice(0, 200));
+  const loreVide = renderToStaticMarkup(<BoutonLireLore db={dbBouton as never} itemHash={6005} nomObjet="Arme lore vide" onLireLore={() => {}} />);
+  ok("bouton : Lore SANS corps → RIEN n'est rendu (rien à lire)", loreVide === "", loreVide.slice(0, 200));
+  const sansDb = renderToStaticMarkup(<BoutonLireLore db={null} itemHash={6001} nomObjet="Izanagi — Burden" onLireLore={() => {}} />);
+  ok("bouton : sans Manifest → RIEN n'est rendu, sans erreur", sansDb === "", sansDb.slice(0, 200));
+  ok("bouton : la prop `onLireLore` est acceptée (signature `(itemHash, nomObjet)`)", typeof BoutonLireLore === "function");
+}
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);
 process.exit(res.every(Boolean) ? 0 : 1);

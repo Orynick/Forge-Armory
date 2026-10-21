@@ -16,6 +16,7 @@ import {
   rangChronoObjet,
   libelleRangChrono,
   libelleSlot,
+  aLore,
 } from "../../src/lib/legendarium/modele";
 import { ereDeSection, PALETTE, PALETTE_PRINCIPALE, PALETTE_REPLI } from "../../src/lib/legendarium/palette";
 
@@ -262,6 +263,40 @@ ok("⚠️ trierPagesChrono ne mute pas le tableau d'entrée",
   ok("⚠️ index des porteurs : le contenu est le même (Izanagi dédoublonné en 1 page, casque dans « Ensembles d'armures », cosmétique présent)",
     livresObj.length === 2 && livresObj[0].titre === "Lore des armes" && livresObj[0].pages.length === 1 && livresObj[0].pages[0].titre === "Izanagi — Burden" && livresObj[1].titre === "Ensembles d'armures" && livresObj[1].pages.length === 1 && livresDeSection(dbCompte, "cosmetiques")[0]?.pages.length === 1,
     livresObj.map((l) => `${l.titre}(${l.pages.length})`));
+}
+
+
+// --- ⚠️ AJOUT (21/10/2026, étape 5) : `aLore` — lecture LÉGÈRE pour le bouton « Lire le Lore » ---
+// Le bouton est rendu à chaque ouverture de fiche Détails : `aLore` ne fait QUE 2 lectures ciblées (définition de l'objet, définition du Lore), AUCUN balayage de la table des objets.
+ok("aLore : VRAI pour Izanagi (6001, lore 7101 avec corps)", aLore(db2, 6001) === true);
+ok("aLore : FAUX pour l'arme sans lore (6002)", aLore(db2, 6002) === false);
+ok("aLore : FAUX pour l'arme masquée (6003, redacted, même avec un lore)", aLore(db2, 6003) === false);
+ok("aLore : FAUX pour l'armure factice (6004, catégorie factice, même avec un lore)", aLore(db2, 6004) === false);
+ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) === false && aLore(db2, 999999) === false);
+{
+  // Lore SANS corps : pas de page lisible → pas de bouton
+  const { db: dbSansCorps } = creerFausseDb({
+    [T_LORE]: { 7003: lore("Page sans corps", "") },
+    [T_OBJET]: { 6002: objet("Arme lore vide", { itemType: 3, lore: 7003, inventory: { bucketTypeHash: BUCKET.cinetique } }) },
+  });
+  ok("aLore : FAUX quand le Lore existe mais n'a PAS de corps (rien à lire)", aLore(dbSansCorps, 6002) === false);
+}
+{
+  // PERFORMANCE : `aLore` ne balaie JAMAIS la table des objets (que des `WHERE id = ?`)
+  const { db: dbCompte, requetes } = creerFausseDb({
+    [T_LORE]: { 7101: lore("Izanagi", "Texte du lore d'Izanagi.") },
+    [T_OBJET]: {
+      6001: objet("Izanagi — Burden", { itemType: 3, lore: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      6002: objet("Arme sans lore", { itemType: 3, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+    },
+  });
+  requetes.length = 0;
+  aLore(dbCompte, 6001);
+  aLore(dbCompte, 6002);
+  aLore(dbCompte, 999999);
+  const balayages = requetes.filter((q) => /FROM DestinyInventoryItemDefinition\b/.test(q) && !/WHERE/.test(q)).length;
+  ok("⚠️ aLore : 3 appels = AUCUN balayage de la table des objets (lectures ciblées `WHERE id = ?` uniquement)",
+    balayages === 0, { balayages, requetes });
 }
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);

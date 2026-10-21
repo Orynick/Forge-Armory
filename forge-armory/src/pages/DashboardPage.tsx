@@ -53,6 +53,7 @@ import TitreCategorie from "../components/TitreCategorie";
 import BoutonsVuesCompte from "../components/BoutonsVuesCompte";   // ⚠️ CHANGÉ (21/10/2026) : les deux boutons du bloc Connexion (remplace l'import direct de la fonction des visuels)
 import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic";
 import Bibliotheque from "../components/Bibliotheque";
+import type { ProvenanceObjet } from "../lib/legendarium/types";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : provenance transitoire (fiche Détails → page de Lore)
 import { EtatPonderations, lirePonderations, poidsActifsEnFractions } from "../lib/scoring/ponderations";
 
 export default function DashboardPage() {
@@ -197,6 +198,17 @@ export default function DashboardPage() {
   function retourDepuisForge() {
     setVue(cibleForge?.origine ?? "analyseur");
     setCibleForge(null);
+  }
+  // FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - LIEN PROFOND fiche Détails → Legendarium (spécification §6, piste (a) retenue : bascule de vue interne avec état en mémoire, PAS de route React Router, aucune persistance). `cibleLegendarium` mémorise la page cible (forme `item:<hashObjet>`, résolue par `trouverPage` côté Bibliotheque) et la provenance (bouton de retour vers l'objet). Les vues d'origine restent MONTÉES (cachées) : le retour retrouve tout tel quel.
+  const [cibleLegendarium, setCibleLegendarium] = useState<{ pageId: string; provenance: ProvenanceObjet } | null>(null);
+  function ouvrirLoreDepuisObjet(itemHash: number, nomObjet: string) {
+    setCibleLegendarium({ pageId: `item:${itemHash}`, provenance: { itemHash, nomObjet, origine: vue === "forge" ? "forge" : vue === "loadouts" ? "loadouts" : "analyseur" } });
+    setVue("bibliotheque");
+    window.scrollTo({ top: 0 });
+  }
+  function retourDepuisLegendarium() {
+    setVue(cibleLegendarium?.provenance.origine ?? "analyseur");
+    setCibleLegendarium(null);
   }
   // FR : ⚠️ AJOUT (07/10/2026, v0.3.7) - après « Charger » dans l'onglet « Load-outs », la page revient au Build Analyzer ET amène le bloc « Mon Build » à l'écran : sans cela, l'utilisateur se retrouvait en haut d'une longue
   // page, loin du build chargé, et croyait à un bug. Le compteur déclenche l'effet ci-dessous à chaque chargement (même si c'est le même build deux fois de suite).
@@ -519,8 +531,8 @@ export default function DashboardPage() {
       {/* FR : ⚠️ CHANGÉ (06/10/2026, v0.3.5) - NOUVEAUX BOUTONS (fournis par l'utilisateur) et troisième vue « Load-outs » : voir components/SelecteurVues.tsx. / EN: ⚠️ CHANGED - NEW BUTTONS and a third view. */}
       <SelecteurVues vue={vue} onChanger={setVue} />
 
-      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
-      {vue === "bibliotheque" && <Bibliotheque db={db} />}
+      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} onLireLore={ouvrirLoreDepuisObjet} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
+      {vue === "bibliotheque" && <Bibliotheque db={db} pageCible={cibleLegendarium?.pageId} provenance={cibleLegendarium?.provenance} onRetourObjet={cibleLegendarium ? retourDepuisLegendarium : undefined} />}   {/* ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : lien profond fiche Détails → page de Lore + retour vers l'objet */}
 
       {/* FR : ⚠️ AJOUT (06/10/2026, v0.3.5) - vue « Load-outs » : le MÊME panneau que le tiroir, en pleine page (mode « page »). Le tiroir, lui, est masqué avec la vue Build Analyzer (qui reste montée) : les deux se tiennent
       à jour par l'événement du stockage. « Charger » ramène au Build Analyzer pour montrer le build chargé.

@@ -144,6 +144,19 @@ export function idPageDepuisObjet(db: Database | null | undefined, itemHash: num
   return pageLoreObjet(db, itemHash)?.id;
 }
 
+/** FR : ⚠️ AJOUT (21/10/2026, étape 5) - version LÉGÈRE de « l'objet a-t-il une page de Lore ? » pour le BOUTON « Lire le Lore » des fiches Détails : 2 lectures ciblées (définition de l'objet, définition du Lore), AUCUN balayage de la table (contrairement à `pageLoreObjet`, qui embarque les porteurs via l'index). Appelée à chaque rendu de fiche ouverte : elle doit rester bon marché. / EN: ⚠️ ADDED - LIGHTWEIGHT "does this item have a lore page?" for the "Read the Lore" button of Details sheets: 2 targeted reads (item definition, lore definition), NO table scan (unlike `pageLoreObjet`, which embeds carriers via the index). Called on every open-sheet render: it must stay cheap. */
+export function aLore(db: Database | null | undefined, itemHash: number): boolean {
+  if (!db) return false;
+  let def: DestinyItemDefinition | undefined;
+  try {
+    def = obtenirDefinition<DestinyItemDefinition>(db, TABLE_OBJETS, itemHash);
+  } catch {
+    return false;
+  }
+  if (!def || !estPorteur(def) || def.lore === undefined) return false;
+  return Boolean(lireLore(db, def.lore)?.body?.trim());
+}
+
 /** FR : l'objet porteur d'une page de Lore, pour le parcours inverse (depuis la page, voir l'objet). / EN: the carrier item of a lore page, for the reverse path (from the page, see the item). */
 export function objetPorteur(db: Database | null | undefined, itemHash: number): ObjetPorteur | undefined {
   if (!db) return undefined;
