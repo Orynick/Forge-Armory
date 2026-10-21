@@ -16,6 +16,8 @@ export interface DestinyItemDefinition {
   displayProperties: DestinyDisplayProperties;
   itemType: number;
   itemSubType: number;
+  /** FR : ⚠️ AJOUT (20/10/2026, chantier Legendarium) - objet masqué par Bungie (ne doit pas être affiché). / EN: item redacted by Bungie (must not be displayed). */
+  redacted?: boolean;
   /** FR : texte lisible de la catégorie (ex: "Aspect", "Fragment", "Fusil à pompe") - utilisé pour le filtre de recherche. / EN: readable category text (e.g. "Aspect", "Fragment", "Shotgun") - used for the search filter. */
   itemTypeDisplayName?: string;
   /** FR : lien vers l'entrée DestinyCollectibleDefinition (source d'obtention), absent pour beaucoup d'objets. / EN: link to the DestinyCollectibleDefinition entry (obtain source), absent for many items. */
@@ -66,6 +68,18 @@ export interface DestinyItemDefinition {
   breakerType?: number;
   /** FR : hash vers DestinyBreakerTypeDefinition (même info que breakerType, sous forme de définition avec nom/icône traduits). / EN: hash to DestinyBreakerTypeDefinition (same info as breakerType, as a definition with translated name/icon). */
   breakerTypeHash?: DefinitionHash;
+  /** FR : ⚠️ AJOUT (20/10/2026, chantier Legendarium) - hash vers DestinyLoreDefinition quand l'objet possède un Lore (armes, armures, Spectres, Vaisseaux, Passereaux...). Absent quand l'objet n'a pas de Lore : c'est LE critère d'affichage du bouton « Lire le Lore ». / EN: hash to DestinyLoreDefinition when the item has lore; absent otherwise - this is THE criterion for showing the "Read the Lore" button. */
+  lore?: DefinitionHash;
+}
+
+/** DestinyLoreDefinition (pages de Légendes D2 et textes de Lore des objets) */
+export interface DestinyLoreDefinition {
+  hash: DefinitionHash;
+  displayProperties: DestinyDisplayProperties;
+  /** FR : sous-titre optionnel de la page (ex: nom du chapitre). / EN: optional page subtitle (e.g. chapter name). */
+  subtitle?: string;
+  /** FR : corps du texte de la page. / EN: body text of the page. */
+  body?: string;
 }
 
 /** DestinyStatDefinition (Santé, Mêlée, Grenade, Super, Classe, Arme, Armes) */
