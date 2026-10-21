@@ -97,9 +97,18 @@ ok("réponse valide → livres de l'API (thèmes aplatis, livres vides ignorés)
   livresApi.length === 1 && livresApi[0].titre === "Livre API" && livresApi[0].pages[0].id === "grimoire:900", livresApi.map((l) => l.titre));
 
 // fetch réponse valide mais sans aucune carte avec texte → repli
+// ⚠️ CHANGÉ (20/10/2026) : c'est le COMPORTEMENT RÉEL de l'API D1 (HTTP 200, clé OK, 0 livre/0 carte — diagnostic utilisateur) : le repli est désormais PEUPLÉ.
 const reponseVide = { ok: true, json: async () => ({ Response: { themeCollection: [{ books: [{ bookName: "Vide", cards: [] }] }] } }) };
 livresRepli = await avecFetch(async () => reponseVide, lireGrimoire);
-ok("réponse valide mais sans contenu → repli statique", livresRepli === REPLI_GRIMOIRE_STATIQUE);
+ok("réponse valide mais sans contenu (le cas RÉEL de l'API D1, 20/10/2026) → repli statique PEUPLÉ",
+  livresRepli === REPLI_GRIMOIRE_STATIQUE && livresRepli.length === 6 && livresRepli.reduce((n, l) => n + l.pages.length, 0) === 834,
+  { livres: livresRepli.length, cartes: livresRepli.reduce((n, l) => n + l.pages.length, 0) });
+
+// fetch HTTP 200 avec themeCollection VIDE (forme exacte du diagnostic utilisateur : ok, 0 livre, 0 carte)
+const reponse200Vide = { ok: true, json: async () => ({ Response: { themeCollection: [] } }) };
+livresRepli = await avecFetch(async () => reponse200Vide, lireGrimoire);
+ok("HTTP 200 avec themeCollection vide (diagnostic utilisateur exact) → repli statique peuplé",
+  livresRepli === REPLI_GRIMOIRE_STATIQUE && livresRepli.length === 6);
 
 // --- Diagnostic (20/10/2026) : distinguer « pas de clé » de « clé refusée par Bungie pour le D1 » ---
 // Sans clé : le diagnostic dit clairement qu'il n'y a pas de clé (le navigateur de l'utilisateur, sans en-tête, obtenait ApiKeyMissingFromRequest)
@@ -117,13 +126,35 @@ ok("diagnostic clé refusée : statut HTTP + message Bungie rapportés (pour dis
 
 // Clé acceptée : livres + cartes comptés
 const diagOk = await avecFetch(async () => reponseValide, () => diagnostiquerGrimoire());
-ok("diagnostic clé acceptée : livres et cartes comptés",
-  diagOk.ok === true && diagOk.livres === 1 && diagOk.cartes === 1, diagOk);
+ok("diagnostic clé acceptée : livres et cartes comptés, contenuVide faux",
+  diagOk.ok === true && diagOk.livres === 1 && diagOk.cartes === 1 && diagOk.contenuVide === false, diagOk);
+
+// ⚠️ AJOUT (20/10/2026) : le cas RÉEL — HTTP 200, clé acceptée, MAIS 0 livre / 0 carte (l'API D1 ne sert plus de contenu) : marqueur contenuVide + compteurs du repli
+const diagVide = await avecFetch(async () => reponse200Vide, () => diagnostiquerGrimoire());
+ok("diagnostic API vide (200, clé OK, 0 livre/0 carte — constat utilisateur) : contenuVide marqué, repli compté",
+  diagVide.ok === true && diagVide.contenuVide === true && diagVide.livres === 0 && diagVide.cartes === 0 && diagVide.repliLivres === 6 && diagVide.repliCartes === 834, diagVide);
 
 // Réseau coupé : erreur réseau rapportée, sans exception
 const diagReseau = await avecFetch(async () => { throw new Error("réseau coupé"); }, () => diagnostiquerGrimoire());
 ok("diagnostic réseau coupé : erreur rapportée, sans exception",
   diagReseau.erreur === "réseau coupé", diagReseau);
+
+// --- Repli statique PEUPLÉ (20/10/2026 : l'API D1 ne sert plus de contenu — le repli embarque 6 livres / 834 cartes FR) ---
+ok("le repli statique est peuplé : 6 livres, DANS L'ORDRE OFFICIEL du Grimoire (Gardiens → Inventaire → Alliés → Ennemis → Lieux → Activités)",
+  REPLI_GRIMOIRE_STATIQUE.length === 6 && REPLI_GRIMOIRE_STATIQUE.map((l) => l.titre).join("|") === "Gardiens|Inventaire|Alliés|Ennemis|Lieux|Activités",
+  REPLI_GRIMOIRE_STATIQUE.map((l) => l.titre));
+const pagesRepli = REPLI_GRIMOIRE_STATIQUE.flatMap((l) => l.pages);
+ok("le repli statique contient 834 cartes, toutes avec un texte non vide",
+  pagesRepli.length === 834 && pagesRepli.every((p) => p.texte.trim().length > 0));
+const idsRepli = pagesRepli.map((p) => p.id);
+ok("les identifiants de pages du repli sont uniques et au format « grimoire:<idCarte> »",
+  new Set(idsRepli).size === idsRepli.length && idsRepli.every((id) => /^grimoire:\d+$/.test(id)));
+ok("le repli est nettoyé : aucun résidu HTML ni entité dans les titres et textes",
+  pagesRepli.every((p) => !/<\/?(b|i|u|br|p|div)[ >]|&#\d+;|&amp;|&quot;/.test(p.titre + p.texte + (p.sousTitre ?? ""))));
+ok("chaque page du repli porte son chapitre en sous-titre (structure thèmes → pages → cartes préservée)",
+  pagesRepli.every((p) => typeof p.sousTitre === "string" && p.sousTitre.trim().length > 0));
+ok("le repli est en LECTURE SEULE : sa forme ne change pas entre deux lectures",
+  JSON.stringify(REPLI_GRIMOIRE_STATIQUE) === JSON.stringify(REPLI_GRIMOIRE_STATIQUE));
 
 (bungieConfig as { apiKey: string }).apiKey = cleOriginale;
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);

@@ -1,5 +1,6 @@
 // FR : ⚠️ AJOUT (20/10/2026, chantier Legendarium, branche draft-legendarium) - GRIMOIRE D1 : lecture de l'endpoint legacy Bungie `https://www.bungie.net/d1/Platform/Destiny/Vanguard/Grimoire/Definition/` (en-tête `X-API-Key` obligatoire), EN REPLI d'un jeu de données statique issu d'Ishtar Collective si l'API ne convient pas. ⚠️ DÉCISION DE L'UTILISATEUR (20/10/2026) : « À toi de vérifier » — CONSTAT : la liste blanche réseau de l'appli (Electron `electron/main.cjs` HOTES_AUTORISES + CSP `connect-src` de `vite.config.ts`, branche draft-sec fusionnée dans main) N'AUTORISE QUE `https://www.bungie.net`, `https://api.destinyitemmanager.com` et `https://api.github.com`. L'endpoint D1 vit SUR `https://www.bungie.net/d1/...` : même hôte, DONC autorisé par la liste blanche existante (aucune modification de sécurité requise). ⚠️ NON VÉRIFIÉ en conditions réelles (pas d'accès réseau depuis cet environnement) : (1) que l'endpoint D1 réponde encore (Bungie a réduit le D1 legacy) ; (2) le format exact de la réponse (livres → cartes). Le module est écrit en LECTURE SEULE avec un repli statique prévu ; un diagnostic en `npm run dev` confirmera. / EN: D1 Grimoire: reads the legacy Bungie endpoint (same host as the whitelist — no security change needed), with a static Ishtar Collective fallback. Read-only.
 import { BUNGIE_ROOT, bungieConfig } from "../bungie/config";
+import { REPLI_GRIMOIRE } from "../../data/grimoire-d1";
 import type { LivreLore, PageLore } from "./types";
 
 const ENDPOINT_GRIMOIRE = `${BUNGIE_ROOT}/d1/Platform/Destiny/Vanguard/Grimoire/Definition/`;
@@ -21,8 +22,8 @@ interface LivreGrimoire {
   cards?: CarteGrimoire[];
 }
 
-/** FR : jeu de données statique de REPLI (Ishtar Collective) — structure identique à ce que produit `lireGrimoire`, pour que l'interface ne voie aucune différence. Vide au départ : à alimenter si l'API legacy ne convient pas (décision de repli, spécification §2). / EN: static FALLBACK dataset (Ishtar Collective) — same shape as `lireGrimoire`'s output, so the UI sees no difference. Empty for now: to fill if the legacy API does not work out (fallback decision, spec §2). */
-export const REPLI_GRIMOIRE_STATIQUE: LivreLore[] = [];
+/** FR : ⚠️ CHANGÉ (20/10/2026) - jeu de données statique de REPLI, ALIMENTÉ : le diagnostic de l'utilisateur montre que l'API legacy D1 répond HTTP 200 mais SANS CONTENU (0 livre, 0 carte — Bungie a retiré le Grimoire de l'API D1). Le repli embarque 6 livres / 834 cartes en français (définitions D1 officielles de Bungie via The Grimoire Archive, voir `src/data/grimoire-d1.ts` et `scripts/generer-repli-grimoire.mjs`). Structure identique à ce que produit `lireGrimoire`, pour que l'interface ne voie aucune différence. / EN: ⚠️ CHANGED - FALLBACK dataset, NOW POPULATED: the user's diagnostic showed the D1 legacy API answers HTTP 200 but EMPTY (0 books, 0 cards — Bungie removed the Grimoire from the D1 API). The fallback embeds 6 books / 834 French cards (Bungie's official D1 definitions via The Grimoire Archive, see `src/data/grimoire-d1.ts` and `scripts/generer-repli-grimoire.mjs`). Same shape as `lireGrimoire`'s output, so the UI sees no difference. */
+export const REPLI_GRIMOIRE_STATIQUE: LivreLore[] = [...REPLI_GRIMOIRE];
 
 /** FR : convertit la réponse de l'API legacy en livres du Legendarium (livre → cartes). Tolérant : un livre sans carte ou une carte sans texte est écarté. / EN: converts the legacy API response into Legendarium books (book → cards). Tolerant: a book without cards or a card without text is dropped. */
 export function convertirGrimoire(livres: LivreGrimoire[]): LivreLore[] {
@@ -55,11 +56,21 @@ export interface DiagnosticGrimoire {
   erreurBungie?: string;
   livres?: number;
   cartes?: number;
+  /** FR : ⚠️ AJOUT (20/10/2026) - VRAI quand l'API répond 200 avec une clé acceptée mais SANS contenu (0 livre / 0 carte) : c'est le constat réel de l'utilisateur, Bungie a retiré le Grimoire de l'API D1 → le repli statique prend le relais. / EN: ⚠️ ADDED - TRUE when the API answers 200 with an accepted key but NO content (0 books / 0 cards): the user's actual finding, Bungie removed the Grimoire from the D1 API → the static fallback takes over. */
+  contenuVide?: boolean;
+  /** FR : nombre de livres/cartes du REPLI statique embarqué (pour que le diagnostic montre ce que l'utilisateur verra). / EN: books/cards count of the embedded STATIC fallback (so the diagnostic shows what the user will see). */
+  repliLivres?: number;
+  repliCartes?: number;
   erreur?: string;
 }
 
 export async function diagnostiquerGrimoire(): Promise<DiagnosticGrimoire> {
-  const base: DiagnosticGrimoire = { url: ENDPOINT_GRIMOIRE, clePresente: Boolean(bungieConfig.apiKey) };
+  const base: DiagnosticGrimoire = {
+    url: ENDPOINT_GRIMOIRE,
+    clePresente: Boolean(bungieConfig.apiKey),
+    repliLivres: REPLI_GRIMOIRE_STATIQUE.length,
+    repliCartes: REPLI_GRIMOIRE_STATIQUE.reduce((n, l) => n + l.pages.length, 0),
+  };
   if (!bungieConfig.apiKey) return { ...base, erreur: "Aucune clé API (VITE_BUNGIE_API_KEY absente du .env.local)" };
   try {
     const reponse = await fetch(ENDPOINT_GRIMOIRE, { headers: { "X-API-Key": bungieConfig.apiKey } });
@@ -74,6 +85,8 @@ export async function diagnostiquerGrimoire(): Promise<DiagnosticGrimoire> {
     const livres = (data?.Response?.themeCollection?.flatMap((theme: { books?: LivreGrimoire[] }) => theme?.books ?? []) ?? []) as LivreGrimoire[];
     base.livres = livres.length;
     base.cartes = livres.reduce((n, l) => n + (l.cards?.length ?? 0), 0);
+    // ⚠️ AJOUT (20/10/2026) : HTTP 200 + clé acceptée mais 0 livre / 0 carte = l'API D1 ne sert PLUS de contenu Grimoire (constat réel). Marqueur explicite pour le diagnostic.
+    base.contenuVide = base.livres === 0 && base.cartes === 0;
     return base;
   } catch (e) {
     return { ...base, erreur: (e as Error).message };
@@ -90,6 +103,7 @@ export async function lireGrimoire(): Promise<LivreLore[]> {
     const livres = data?.Response?.themeCollection?.flatMap((theme: { books?: LivreGrimoire[] }) => theme?.books ?? []) as LivreGrimoire[] | undefined;
     if (!Array.isArray(livres)) return REPLI_GRIMOIRE_STATIQUE;
     const convertis = convertirGrimoire(livres);
+    // ⚠️ CHANGÉ (20/10/2026) : un HTTP 200 SANS contenu (0 livre/0 carte, ou aucune carte avec texte) retombe sur le repli statique — c'est le comportement RÉEL de l'API D1 aujourd'hui (diagnostic utilisateur).
     return convertis.length > 0 ? convertis : REPLI_GRIMOIRE_STATIQUE;
   } catch {
     return REPLI_GRIMOIRE_STATIQUE;
