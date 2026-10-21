@@ -20,27 +20,18 @@
 // Analyzer view's search block; the Library only reports whether it's ready.
 
 import { Database } from "sql.js";
-
-interface Props {
-  db: Database | null;
-}
-
+import { useEffect, useState } from "react";
+import { diagnostiquerGrimoire, DiagnosticGrimoire } from "../lib/legendarium/grimoire";
+interface Props {  db: Database | null;}
 export default function Bibliotheque({ db }: Props) {
-  return (
-    <div className="pilier-carte">
-      <h3>
-        <span>Legendarium</span>   {/* ⚠️ CHANGÉ (13/10/2026, v0.4.4) : s'appelait « Bibliothèque » */}
-        <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "#7d7a70" }}>en construction</span>
-      </h3>
-      <p style={{ margin: "0 0 0.5rem", fontSize: "0.9rem", maxWidth: "65ch" }}>
-        Ici, vous pourrez lire les légendes de Destiny 2 : les livres de lore, et celles des armes, des armures,
-        des coques de Spectre et des vaisseaux. Le Grimoire de Destiny 1 viendra plus tard.
-      </p>
-      <p style={{ margin: 0, fontSize: "0.8rem", color: db ? "#7fd88f" : "#e0c080" }}>
-        {db
-          ? "✅ Manifest chargé : le Legendarium aura tout ce qu'il lui faut."
-          : "⚠️ Manifest pas encore chargé. Chargez-le depuis Build Analyzer, dans le bloc « Recherche dans le Manifest »."}
-      </p>
-    </div>
-  );
+  // FR : ⚠️ AJOUT (20/10/2026, chantier Legendarium) - DIAGNOSTIC du Grimoire D1 (mode développement uniquement) : l'utilisateur a testé l'endpoint depuis son NAVIGATEUR (sans en-tête X-API-Key) et obtenait « ApiKeyMissingFromRequest ». Ce diagnostic refait l'appel AVEC la clé de l'appli pour distinguer « pas de clé dans .env.local » de « clé refusée par Bungie pour le D1 legacy » — la réponse décide API legacy ou repli statique (Ishtar Collective). Le panneau « en construction » reste en place tant que la bibliothèque n'est pas branchée (étape 2 du plan).
+  const [diag, setDiag] = useState<DiagnosticGrimoire | null>(null);
+  const [diagOuvert, setDiagOuvert] = useState(false);
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    let annule = false;
+    diagnostiquerGrimoire().then((d) => { if (!annule) setDiag(d); });
+    return () => { annule = true; };
+  }, []);
+  return (    <div className="pilier-carte">      <h3>        <span>Legendarium</span>   {/* ⚠️ CHANGÉ (13/10/2026, v0.4.4) : s'appelait « Bibliothèque » */}        <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "#7d7a70" }}>en construction</span>      </h3>      <p style={{ margin: "0 0 0.5rem", fontSize: "0.9rem", maxWidth: "65ch" }}>        Ici, vous pourrez lire les légendes de Destiny 2 : les livres de lore, et celles des armes, des armures,        des coques de Spectre et des vaisseaux. Le Grimoire de Destiny 1 viendra plus tard.      </p>      <p style={{ margin: 0, fontSize: "0.8rem", color: db ? "#7fd88f" : "#e0c080" }}>        {db          ? "✅ Manifest chargé : le Legendarium aura tout ce qu'il lui faut."          : "⚠️ Manifest pas encore chargé. Chargez-le depuis Build Analyzer, dans le bloc « Recherche dans le Manifest »."}      </p>      {import.meta.env.DEV && diag && (        <details data-diagnostic-grimoire="" style={{ marginTop: "0.5rem", fontSize: "0.75rem", color: "#7d7a70" }} open={diagOuvert} onToggle={(e) => setDiagOuvert((e.target as HTMLDetailsElement).open)}>          <summary style={{ cursor: "pointer" }}>🔍 Diagnostic Grimoire D1 (dev, à copier à Claude) — {diag.ok ? `✅ ${diag.livres} livre(s), ${diag.cartes} carte(s)` : diag.erreurBungie ? `❌ ${diag.erreurBungie}` : diag.erreur ? `❌ ${diag.erreur}` : diag.clePresente ? `⏳ HTTP ${diag.statutHttp}` : "❌ aucune clé"}</summary>          <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.68rem" }}>{JSON.stringify(diag, null, 2)}</pre>        </details>      )}    </div>  );
 }

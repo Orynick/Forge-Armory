@@ -1,5 +1,5 @@
 // FR : ⚠️ AJOUT (20/10/2026, chantier Legendarium, branche draft-legendarium) - test du GRIMOIRE D1 (`lib/legendarium/grimoire.ts`) : conversion API legacy → livres (livre → cartes), tolérance (livre sans carte, carte sans texte), et REPLI statique en cas d'échec réseau (jamais d'erreur, jamais de blocage). ⚠️ Le test ne touche PAS le réseau : `fetch` est remplacé par un bouchon. La disponibilité RÉELLE de l'endpoint D1 n'est PAS vérifiée ici (voir le diagnostic en `npm run dev`). EN: tests the D1 Grimoire conversion and the static fallback on fetch failure. No real network: fetch is stubbed.
-import { convertirGrimoire, lireGrimoire, REPLI_GRIMOIRE_STATIQUE } from "../../src/lib/legendarium/grimoire";
+import { convertirGrimoire, lireGrimoire, diagnostiquerGrimoire, REPLI_GRIMOIRE_STATIQUE } from "../../src/lib/legendarium/grimoire";
 import type { LivreLore } from "../../src/lib/legendarium/types";
 
 const res: boolean[] = [];
@@ -100,6 +100,30 @@ ok("réponse valide → livres de l'API (thèmes aplatis, livres vides ignorés)
 const reponseVide = { ok: true, json: async () => ({ Response: { themeCollection: [{ books: [{ bookName: "Vide", cards: [] }] }] } }) };
 livresRepli = await avecFetch(async () => reponseVide, lireGrimoire);
 ok("réponse valide mais sans contenu → repli statique", livresRepli === REPLI_GRIMOIRE_STATIQUE);
+
+// --- Diagnostic (20/10/2026) : distinguer « pas de clé » de « clé refusée par Bungie pour le D1 » ---
+// Sans clé : le diagnostic dit clairement qu'il n'y a pas de clé (le navigateur de l'utilisateur, sans en-tête, obtenait ApiKeyMissingFromRequest)
+(bungieConfig as { apiKey: string }).apiKey = "";
+const diagSansCle = await diagnostiquerGrimoire();
+ok("diagnostic sans clé : dit « aucune clé » sans appeler le réseau",
+  diagSansCle.clePresente === false && diagSansCle.erreur !== undefined && diagSansCle.statutHttp === undefined, diagSansCle);
+(bungieConfig as { apiKey: string }).apiKey = CLE_TEST;
+
+// Clé refusée (401/2102 ApiKeyMissingFromRequest ou ApiKeyInvalid) : statut + message Bungie rapportés
+const reponseRefusee = { ok: false, status: 401, json: async () => ({ ErrorCode: 2102, ErrorStatus: "ApiKeyMissingFromRequest", Message: "Please add valid X-API-Key header to request." }) };
+const diagRefuse = await avecFetch(async () => reponseRefusee, () => diagnostiquerGrimoire());
+ok("diagnostic clé refusée : statut HTTP + message Bungie rapportés (pour distinguer « clé absente » de « clé refusée »)",
+  diagRefuse.clePresente === true && diagRefuse.statutHttp === 401 && diagRefuse.erreurBungie?.includes("ApiKeyMissingFromRequest") === true, diagRefuse);
+
+// Clé acceptée : livres + cartes comptés
+const diagOk = await avecFetch(async () => reponseValide, () => diagnostiquerGrimoire());
+ok("diagnostic clé acceptée : livres et cartes comptés",
+  diagOk.ok === true && diagOk.livres === 1 && diagOk.cartes === 1, diagOk);
+
+// Réseau coupé : erreur réseau rapportée, sans exception
+const diagReseau = await avecFetch(async () => { throw new Error("réseau coupé"); }, () => diagnostiquerGrimoire());
+ok("diagnostic réseau coupé : erreur rapportée, sans exception",
+  diagReseau.erreur === "réseau coupé", diagReseau);
 
 (bungieConfig as { apiKey: string }).apiKey = cleOriginale;
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);

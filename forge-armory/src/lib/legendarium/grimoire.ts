@@ -46,7 +46,41 @@ export function convertirGrimoire(livres: LivreGrimoire[]): LivreLore[] {
   return resultat;
 }
 
-/** FR : lit le Grimoire D1 depuis l'API legacy Bungie (en-tête `X-API-Key`). En cas d'échec (réseau, 404, réponse invalide, clé absente) : RENVOIE LE REPLI STATIQUE (jamais d'erreur, jamais de blocage — lecture passive). / EN: reads the D1 Grimoire from the legacy Bungie API (X-API-Key header). On any failure (network, 404, invalid response, missing key): RETURNS THE STATIC FALLBACK (never throws, never blocks — passive reading). */
+/** FR : ⚠️ AJOUT (20/10/2026) - diagnostic du Grimoire D1 (mode développement), pour figer la question « l'endpoint legacy accepte-t-il NOTRE clé ? » sur des données réelles. L'utilisateur a testé l'URL depuis son NAVIGATEUR (sans en-tête) : Bungie répond `ApiKeyMissingFromRequest` (ErrorCode 2102) — l'endpoint existe. Ce diagnostic refait l'appel AVEC la clé de l'appli et rapporte le statut HTTP + le premier message d'erreur Bungie, pour distinguer « clé absente » (pas de `.env.local`) de « clé refusée par Bungie pour le D1 » (repli statique à alimenter). / EN: dev diagnostic for the D1 Grimoire: replays the call WITH the app's key and reports the HTTP status + Bungie's first error message, to tell "no key configured" apart from "key rejected by Bungie for D1". */
+export interface DiagnosticGrimoire {
+  url: string;
+  clePresente: boolean;
+  statutHttp?: number;
+  ok?: boolean;
+  erreurBungie?: string;
+  livres?: number;
+  cartes?: number;
+  erreur?: string;
+}
+
+export async function diagnostiquerGrimoire(): Promise<DiagnosticGrimoire> {
+  const base: DiagnosticGrimoire = { url: ENDPOINT_GRIMOIRE, clePresente: Boolean(bungieConfig.apiKey) };
+  if (!bungieConfig.apiKey) return { ...base, erreur: "Aucune clé API (VITE_BUNGIE_API_KEY absente du .env.local)" };
+  try {
+    const reponse = await fetch(ENDPOINT_GRIMOIRE, { headers: { "X-API-Key": bungieConfig.apiKey } });
+    base.statutHttp = reponse.status;
+    base.ok = reponse.ok;
+    const data = await reponse.json().catch(() => undefined);
+    if (!reponse.ok) {
+      const e = data as { ErrorStatus?: string; Message?: string; ErrorCode?: number } | undefined;
+      base.erreurBungie = e?.ErrorStatus ? `${e.ErrorStatus}${e.ErrorCode !== undefined ? ` (code ${e.ErrorCode})` : ""}${e.Message ? ` — ${e.Message}` : ""}` : `HTTP ${reponse.status}`;
+      return base;
+    }
+    const livres = (data?.Response?.themeCollection?.flatMap((theme: { books?: LivreGrimoire[] }) => theme?.books ?? []) ?? []) as LivreGrimoire[];
+    base.livres = livres.length;
+    base.cartes = livres.reduce((n, l) => n + (l.cards?.length ?? 0), 0);
+    return base;
+  } catch (e) {
+    return { ...base, erreur: (e as Error).message };
+  }
+}
+
+/** FR : lit le Grimoire D1 depuis l'API legacy Bungie (en-tête `X-API-Key`). En cas d'échec (réseau, 404, réponse invalide, clé absente ou refusée) : RENVOIE LE REPLI STATIQUE (jamais d'erreur, jamais de blocage — lecture passive). / EN: reads the D1 Grimoire from the legacy Bungie API (X-API-Key header). On any failure (network, 404, invalid response, missing or rejected key): RETURNS THE STATIC FALLBACK (never throws, never blocks — passive reading). */
 export async function lireGrimoire(): Promise<LivreLore[]> {
   if (!bungieConfig.apiKey) return REPLI_GRIMOIRE_STATIQUE;
   try {
