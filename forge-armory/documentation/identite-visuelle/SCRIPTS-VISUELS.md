@@ -29,7 +29,7 @@ qui dit *à quoi doivent ressembler* les visuels ; ce document dit *comment on l
 | `scripts/ajouter-cristal-logo-titre.py` | Ajoute le **cristal dans le « O » de FORGE** de l'image du titre | `logo-titre/logo-forge-armory-texte-sans-cristal.png` | `public/logo-forge-armory-texte.png` | `python3 scripts/ajouter-cristal-logo-titre.py` | Pillow, numpy, scipy | `tests/ui/logo-titre.py` |
 | `scripts/generer-titre-svg.py` | **Vectorise le titre** (FORGE ARMORY, ligne à étoile, sous-titre) en SVG, cristal de FORGE compris | `identite-forge-armory-source.png` | `ressources-installateur/forge-armory/logo-titre/forge-armory-titre.svg` | `python3 scripts/generer-titre-svg.py [--sortie <fichier>]` | Pillow, numpy, OpenCV, scikit-image | `tests/ui/titre-svg.py` |
 | `scripts/glyphes-titres.mjs` | **Bibliothèque de lettres** : extrait, déplace et recompose les lettres des titres SVG, recalcule le soulignage | un titre SVG (tracés) | (module importé par les autres outils) | — | Node | `tests/logique/visuels.test.ts` |
-| `scripts/retoucher-visuels.mjs` | Applique **quatre retouches** aux visuels livrés (soulignage, icône de la carte 1, titres sans losange, renumérotation des cartes) | `app-assets/` (archive) | `public/assets/` | `node scripts/retoucher-visuels.mjs [--verifier] [--racine <dossier>]` | Node | `tests/logique/reproductibilite-visuels.test.ts` |
+| `scripts/retoucher-visuels.mjs` | Applique **cinq retouches** aux visuels livrés (soulignage, icône de la carte 1, titres sans losange, renumérotation des cartes, **bouton Carrière élargi**) | `app-assets/` (archive) | `public/assets/` | `node scripts/retoucher-visuels.mjs [--verifier] [--racine <dossier>]` | Node | `tests/logique/reproductibilite-visuels.test.ts` |
 | `scripts/generer-propositions-solo-forge.mjs` | Compose de **nouveaux boutons et titres** conformes à la charte (Forge, Inventaire, Solo sans mourir) | ébauches de l'utilisateur + lettres existantes | boutons (repos / sélectionné), titres, icônes | `node scripts/generer-propositions-solo-forge.mjs --sortie <dossier>` | Node | `reproductibilite-visuels.test.ts`, `legendarium.test.ts` |
 | `scripts/generer-logos-export.mjs` | Génère le module des **logos intégrés** à l'export infographique | `public/assets/icones/*.svg` | `src/data/forge/logosExport.ts` | `node scripts/generer-logos-export.mjs [--verifier]` | Node | `tests/logique/export-fiche.test.ts` |
 | `scripts/tracer-icone-faconnee.py` | Vectorise l'**icône « arme façonnée »** du jeu (un quadrant, puis miroir) | `icone-faconnee/source-icone-du-jeu.jpg` | `src/data/forge/iconeFaconnee.ts`, `icone-faconnee.svg` | `python3 scripts/tracer-icone-faconnee.py` | numpy, OpenCV, scikit-image | `tests/logique/icone-faconnee.test.ts` |
@@ -168,6 +168,10 @@ l'auteur des visuels. Détail et justification : [RETOUCHES-VISUELS.md](RETOUCHE
 3. **Connexion et Manifest** sans losange « + / − » (ce ne sont pas des blocs repliables).
 4. **Renumérotation des cartes du Scoring** (le texte est recomposé avec les lettres existantes ;
    soulignage recalculé, titre recentré).
+5. **Bouton « Carrière » élargi à la largeur d'« Accomplissements »** (cadre 4897 × 1024 au lieu de 4316 × 1024),
+   pour que les deux boutons du bloc Connexion aient exactement la même taille. Fichiers fabriqués :
+   `bouton-carriere-large(.svg | -selectionne.svg)`, les originaux restent intacts. Garde-fou : la plaque obtenue doit
+   être identique à celle d'Accomplissements.
 
 Options : `--verifier` (ne modifie rien ; code de sortie 1 si une retouche manque),
 `--racine <dossier>` (travaille sur une autre copie ; utilisé par les tests). Le test vérifie que
@@ -234,6 +238,7 @@ identifiants, déclarer le fichier (catalogue du kit ou `forgeAssetsComplement.t
 - **Image de saison** : le filigrane de Bungie contient une **bande sombre translucide** derrière
   le symbole (bord net à 25,9 % de la largeur, symbole de 5,7 % à 20,3 % × 3,8 % à 19,3 %) ;
   l'afficher à part exige un cadrage serré et un mélange « écran » (`IconeSaison.tsx`).
+- **Cadres de boutons différents** : `.bouton-vue` impose le cadre 4316 / 1024. Un fichier plus large (Accomplissements, 4897) y est **réduit** pour tenir (anneau 12 % plus petit) : deux boutons de cadres différents ne peuvent jamais avoir la même taille. Solution retenue : élargir le plus étroit (retouche 5) et utiliser le modificateur `bouton-vue--large` ; ne jamais étirer un SVG (le rond de l'anneau deviendrait une ellipse).
 - **Un test qui plante n'est pas un test qui échoue** : écrire les contrôles pour qu'une absence
   soit un échec franc.
 
@@ -243,6 +248,8 @@ identifiants, déclarer le fichier (catalogue du kit ou `forgeAssetsComplement.t
 |---|---|
 | `tests/logique/visuels.test.ts` | Lettres : extraction, formes identiques d'un fichier à l'autre, recomposition des textes existants, soulignage |
 | `tests/logique/reproductibilite-visuels.test.ts` | Le projet livré = ce que produisent `retoucher-visuels.mjs` et le générateur, **octet pour octet** ; seconde exécution sans effet |
+| `tests/logique/carriere-large.test.ts` | Bouton Carrière élargi : cadre 4897 × 1024 et catalogue ; originaux intacts ; plaque identique à celle d'Accomplissements ; titre décalé d'exactement 290,5 ; anneau et symbole inchangés ; identifiants préfixés et résolus |
+| `tests/ui/connexion-boutons.py` | Bloc Connexion : mêmes taille et cadre pour les deux boutons (mesurés sur les pixels), alignés, entre le titre et « connecté », masqués hors connexion, repli en fenêtre étroite, clics, câblage dans `DashboardPage` |
 | `tests/logique/export-fiche.test.ts` | Le module des logos d'export est à jour |
 | `tests/logique/icone-faconnee.test.ts` | Fidélité de l'icône façonnée (> 97 %) |
 | `tests/ui/logo-titre.py` | Titre PNG : seul le cristal a changé, identique à celui d'ARMORY, centré ; chaîne du générateur |
