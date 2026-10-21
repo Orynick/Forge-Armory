@@ -256,6 +256,10 @@ export async function listerObjetsPossedes(
     // sockets (already fetched for perks). We sum the `investmentStats` of
     // EVERY active armor plug to reconstruct the real total.
     const stats: Partial<Record<StatKey, number>> = {};
+    // FR : masterwork RÉEL de l'exemplaire, lu dans la boucle sur les plugs ci-dessous (déclaré ici pour être visible lors de la construction de la pièce). / EN: the instance's REAL masterwork, read in the plug loop below (declared here to be visible when building the piece).
+    let estMasterworkReel = false;
+    // FR : stats INTRINSÈQUES de l'exemplaire (plugs `armor_stats` uniquement, sans mods ni masterwork) - sert à l'optimiseur : la règle du masterwork (+5) classe les « trois plus basses » sur ces stats intrinsèques, pas sur le total. / EN: the instance's INTRINSIC stats (`armor_stats` plugs only, no mods/masterwork) - used by the optimizer: the masterwork rule (+5) ranks the "three lowest" on these intrinsic stats, not on the total.
+    let statsIntrinsequesMesurees: Partial<Record<StatKey, number>> | undefined;
     if (estArmure) {
       if (!item.itemInstanceId) {
         armureSansInstanceId++;
@@ -303,6 +307,7 @@ export async function listerObjetsPossedes(
           >(db, "DestinyInventoryItemDefinition", plugHash);
           const categorie = defPlug?.plug?.plugCategoryIdentifier ?? "";
           const estMasterwork = categorie.includes(CATEGORIE_MASTERWORK);
+          if (estMasterwork) estMasterworkReel = true;
           const estIntrinseque = categorie === CATEGORIE_INTRINSEQUE;
 
           for (const investissement of defPlug?.investmentStats ?? []) {
@@ -326,6 +331,7 @@ export async function listerObjetsPossedes(
         // En cas d'égalité, l'ordre canonique des stats départage — c'est le
         // comportement observé sur les deux pièces diagnostiquées (Santé,
         // Mêlée, Grenade puis Super, Classe, Armes).
+        statsIntrinsequesMesurees = { ...intrinseques };
         const ordreCanonique: StatKey[] = ["sante", "melee", "grenade", "super", "classe", "arme"];
         const troisPlusBasses = [...ordreCanonique]
           .sort((a, b) => (intrinseques[a] ?? 0) - (intrinseques[b] ?? 0))
@@ -379,6 +385,10 @@ export async function listerObjetsPossedes(
       ...(item.itemInstanceId ? { plugsDisponiblesParColonne: extrairePlugsDisponibles(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),   // ⚠️ CHANGÉ (15/10/2026, v0.4.12) : lus aussi pour les ARMURES (Forge des armures : mods disponibles sur l'exemplaire)
       // FR : ⚠️ AJOUT (19/10/2026, branche test) - PALIER de l'exemplaire (composant 300) ; absent de la réponse = pas de champ (on n'affirme rien). / EN: instance gear tier (component 300); absent from the response = no field.
       ...(item.itemInstanceId ? { gearTier: extraireGearTier(gearTierParInstance[item.itemInstanceId]) } : {}),
+      // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - masterwork RÉEL de l'exemplaire (lu avec les stats, même boucle sur les plugs). Sert à l'optimiseur (option « supposer masterwork »). Armure possédée uniquement. / EN: the instance's REAL masterwork (read with the stats, same plug loop). Used by the optimizer ("assume masterwork" option). Owned armor only.
+      ...(estArmure && item.itemInstanceId ? { estMasterwork: estMasterworkReel } : {}),
+      // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - stats intrinsèques de l'exemplaire (voir déclaration plus haut). Sert à l'optimiseur (règle du masterwork). / EN: the instance's intrinsic stats (see declaration above). Used by the optimizer (masterwork rule).
+      ...(estArmure && item.itemInstanceId && statsIntrinsequesMesurees ? { statsIntrinseques: statsIntrinsequesMesurees } : {}),
       isExotic: def.inventory?.tierTypeHash === TIER_TYPE_HASH_EXOTIQUE,
       classeRequise,
       elementArme,

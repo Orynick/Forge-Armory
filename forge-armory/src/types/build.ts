@@ -135,6 +135,16 @@ export interface GearPiece {
    * EN: gear tier of this owned instance, from profile component 300; decides which enhanced-perk version applies to it (Forge TODO open point #2). undefined = absent/not read. Value meaning to be confirmed on real instances.
    */
   gearTier?: number;
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - l'exemplaire est RÉELLEMENT masterwork (un plug de la catégorie `armor.masterworks` est actif sur la pièce). Lu à la lecture de l'inventaire, en même temps que les stats. Sert à l'optimiseur : l'option « supposer masterwork » n'applique son bonus HYPOTHÉTIQUE qu'aux pièces qui ne le sont PAS (évite le double comptage, les stats lues incluent déjà le bonus réel). `undefined` = donnée non lue (pièce ajoutée depuis la recherche, non possédée).
+   * EN: the instance is REALLY masterworked (an `armor.masterworks` plug is active on the piece). Read with the stats at inventory time. Used by the optimizer: the "assume masterwork" option only applies its HYPOTHETICAL bonus to pieces that are NOT (avoids double counting; read stats already include the real bonus). undefined = not read (search-added, not owned).
+   */
+  estMasterwork?: boolean;
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - stats INTRINSÈQUES de l'exemplaire (plugs `armor_stats` du Manifest, SANS mods ni masterwork). La règle du masterwork (+5) classe les « trois plus basses » sur CES stats, pas sur le total (comportement observé en jeu, voir lib/bungie/inventaire.ts). Sert à l'optimiseur (option « supposer masterwork »). `undefined` = non lu. Armure possédée uniquement.
+   * EN: the instance's INTRINSIC stats (`armor_stats` plugs, WITHOUT mods or masterwork). The masterwork rule (+5) ranks the "three lowest" on THESE stats, not on the total (in-game behaviour, see lib/bungie/inventaire.ts). Used by the optimizer ("assume masterwork" option). undefined = not read. Owned armor only.
+   */
+  statsIntrinseques?: Partial<StatBlock>;
 }
 
 export interface BuildDraft {
