@@ -1,3 +1,16 @@
+## 22/10/2026 (branche `draft-legendarium`, suite 15) — RECHERCHE AVANCÉE : GUILLEMETS (PHRASE EXACTE), `+` (OBLIGATOIRE), `-` (EXCLU), CASE « Aa » (RESPECTER LA CASSE)
+
+**Demande de l'utilisateur (avant test de la suite 14)** : « pour la recherche, il faudrait pouvoir utiliser **les guillemets, + et -, ainsi que respecter la casse** ».
+
+**Fait** :
+- **`src/lib/legendarium/modele.ts`** (⚠️ CHANGÉ) —
+  - Nouveau `RequeteRecherche` (`termes`, `exactes`, `obligatoires`, `exclus`) + **`parserRecherche(requete)`** : analyse caractère par caractère. Les guillemets `"…"` (ou `« … »`) donnent une **phrase exacte** (sous-chaîne contiguë, tous les guillemets fermés requis) ; un guillemet non fermé est toléré (la phrase court jusqu'à la fin) ; `+terme` = **terme obligatoire** (ET) ; `+"phrase"` = **phrase exacte obligatoire** ; `-terme` / `-"phrase"` = **exclu** (la page est rejetée si présente).
+  - **`correspondRecherche(haystack, requete, respecterCasse)`** : les exclusions rejettent d'abord ; les obligatoires + exactes sont TOUTES requises ; les termes libres ne forment un OU (au moins un) **que s'il n'y a ni obligatoire ni exacte** (comportement type Google) ; une requête avec UNIQUEMENT des exclusions remonte toutes les pages qui ne les contiennent pas.
+  - **`rechercherPages(livresParSection, motCle, options?: { respecterCasse?: boolean })`** : le `respecterCasse: true` rend la recherche **sensible à la casse** (majuscules/minuscules ; les accents restent ignorés — é = e — via la normalisation NFD dans les deux modes). Par défaut (`false`) : comportement historique (insensible à la casse, accents ignorés).
+- **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) — nouvelle **case « Aa »** (`data-respecter-casse`) dans le bandeau, à droite du champ de recherche (title « Respecter la casse »), **décochée par défaut** ; état `respecterCasse` EN MÉMOIRE uniquement (lecture passive), passé à `rechercherPages` via le `useMemo` des résultats.
+- **Tests** : `legendarium-modele` **107/107** (11 nouveaux suite 15 : découpage du parser, guillemet non fermé, phrase exacte `"casque raid"` vs OU libre, exclusion `-donjon`, `+casque +raid` = ET, `+casque +a`, casse par défaut vs `respecterCasse: true`, `CASQUE` vs `Casque`, requête uniquement-exclue) ; `legendarium-page` **66/66** (2 nouveaux : case « Aa » présente et décochée par défaut, cochée quand actif) ; `legendarium-fixtures` **19/19** ; `legendarium-grimoire` **23/23** ; `legendarium` **5/5**. `tsc` 0 erreur, `npm run build` strict ✓, batterie logique 34/34 suites au vert (les 16 « interface · » Playwright ne tournent pas dans le bac à sable).
+
+
 ## 22/10/2026 (branche `draft-legendarium`, suite 14) — CORRECTION MALENTENDU : HIÉRARCHIE ARMURES = CLASSE → ENSEMBLE → PIÈCES ; COSMÉTIQUES « AUTRES » CLASSÉS PAR CLASSE (icônes)
 
 **Remarque de l'utilisateur (malentendu sur la suite 13)** : (1) pour les **ensembles d'armures**, la hiérarchie demandée est **Classe (Titan/Chasseur/Arcaniste, icône) → nom de l'ensemble → noms de pièces, clic direct** — la suite 13 faisait Ensemble → Classe → pièces (inversé) ; (2) pour **Cosmétiques et utilitaires → Autres**, les éléments concernent des **doctrines de classes** (Brise-soleil, Grâce survoltée, Lame de l'aube, Voie abyssale…) : les classer **par classe de personnage, avec icône**.

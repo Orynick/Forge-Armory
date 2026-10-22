@@ -784,25 +784,124 @@ export interface ResultatRechercheLore {
   categorie?: string;
 }
 
-export function rechercherPages(livresParSection: Partial<Record<SectionLegendarium, LivreLore[]>>, motCle: string): ResultatRechercheLore[] {
-  const cle = normaliser(motCle.trim());
-  if (!cle) return [];
+/** FR : ⚠️ AJOUT (22/10/2026, suite 15, demande utilisateur) - une REQUÊTE DE RECHERCHE PARSÉE : supporte les guillemets (expression exacte), le `+` (terme obligatoire) et le `-` (terme exclu). / EN: ADDED - a PARSED SEARCH QUERY: supports quotes (exact phrase), `+` (required term) and `-` (excluded term). */
+export interface RequeteRecherche {
+  /** FR : termes libres (sans opérateur) : la page correspond si ELLE CONTIENT AU MOINS UN de ces termes (OU). / EN: free terms (no operator): the page matches if it contains AT LEAST ONE of them (OR). */
+  termes: string[];
+  /** FR : expressions exactes entre guillemets (`"..."` ou `« ... »`) : la page doit contenir CHAQUE expression, telle quelle (sous-chaîne). / EN: exact phrases in quotes (`"..."` or `« ... »`): the page must contain EACH phrase, as-is (substring). */
+  exactes: string[];
+  /** FR : termes obligatoires (préfixés `+`) : la page doit contenir CHACUN (ET). / EN: required terms (prefixed `+`): the page must contain EACH (AND). */
+  obligatoires: string[];
+  /** FR : termes exclus (préfixés `-`) : la page NE DOIT PAS contenir (rejetée si présent). / EN: excluded terms (prefixed `-`): the page must NOT contain them (rejected if present). */
+  exclus: string[];
+}
+
+/** FR : ⚠️ AJOUT (22/10/2026, suite 15) - PARSE la requête de recherche : découpe en termes libres / expressions exactes (`"..."`, `« ... »`) / obligatoires (`+mot`) / exclus (`-mot`). Un `+` ou `-` collé à un guillemet (`+"phrase"`, `-"phrase"`) s'applique à l'expression exacte. Les guillemets non fermés sont tolérés (considérés jusqu'à la fin). / EN: ADDED - PARSES the search query: splits into free terms / exact phrases (`"..."`, `« ... »`) / required (`+term`) / excluded (`-term`). A `+` or `-` glued to a quote (`+"phrase"`, `-"phrase"`) applies to the exact phrase. Unclosed quotes are tolerated (considered up to the end). */
+export function parserRecherche(requete: string): RequeteRecherche {
+  const termes: string[] = [];
+  const exactes: string[] = [];
+  const obligatoires: string[] = [];
+  const exclus: string[] = [];
+  // Découpe en respectant les guillemets : un segment entre guillemets est une expression exacte
+  const segments: { texte: string; exact: boolean; prefixe: string }[] = [];
+  let courant = "";
+  let dansGuillemets = false;
+  let guillemet = "";
+  const vider = () => {
+    const t = courant.trim();
+    if (t) segments.push({ texte: t, exact: dansGuillemets, prefixe: prefixeEnAttente });
+    courant = "";
+    prefixeEnAttente = "";
+  };
+  const GUILLEMET_DOUBLE = String.fromCharCode(34); // " — échappé pour éviter de casser la chaîne englobante
+  let prefixeEnAttente = ""; // préfixe + ou - rencontré juste avant un guillemet ouvrant
+  for (const car of requete) {
+    if (!dansGuillemets && (car === GUILLEMET_DOUBLE || car === "«")) {
+      // Un préfixe + ou - collé juste avant le guillemet s'applique à l'expression exacte
+      const t = courant.trim();
+      if (t === "+" || t === "-") { prefixeEnAttente = t; courant = ""; }
+      else if (t) vider();
+      dansGuillemets = true;
+      guillemet = car === GUILLEMET_DOUBLE ? GUILLEMET_DOUBLE : "»";
+      continue;
+    }
+    if (dansGuillemets && car === guillemet) {
+      vider();
+      dansGuillemets = false;
+      guillemet = "";
+      continue;
+    }
+    if (!dansGuillemets && car === " ") {
+      vider();
+      continue;
+    }
+    courant += car;
+  }
+  vider(); // dernier segment (guillemet non fermé toléré : considéré comme exact)
+  for (const s of segments) {
+    // Préfixe + ou - (collé au terme, ou capturé juste avant un guillemet ouvrant)
+    let texte = s.texte;
+    let prefixe = s.prefixe;
+    if (!prefixe && texte.length > 1 && (texte[0] === "+" || texte[0] === "-")) {
+      prefixe = texte[0];
+      texte = texte.slice(1);
+    }
+    if (!texte) continue;
+    if (prefixe === "+") (s.exact ? exactes : obligatoires).push(texte);
+    else if (prefixe === "-") exclus.push(texte); // `-"phrase"` exclut la phrase (sous-chaîne)
+    else if (s.exact) exactes.push(texte);
+    else termes.push(texte);
+  }
+  return { termes, exactes, obligatoires, exclus };
+}
+
+/** FR : ⚠️ AJOUT (22/10/2026, suite 15) - la requête est-elle VIDE (aucun terme de recherche) ? / EN: ADDED - is the query EMPTY (no search term)? */
+function requeteVide(r: RequeteRecherche): boolean {
+  return r.termes.length === 0 && r.exactes.length === 0 && r.obligatoires.length === 0 && r.exclus.length === 0;
+}
+
+/** FR : ⚠️ AJOUT (22/10/2026, suite 15) - une page correspond-elle à la requête parsée ? Règles : (1) chaque terme EXCLU (`-`) rejette la page si présent ; (2) chaque terme OBLIGATOIRE (`+`) et chaque EXPRESSION EXACTE (guillemets) doit être présent ; (3) si des termes libres existent, AU MOINS UN doit être présent (OU) — sauf si des obligatoires/exactes existent déjà (auquel cas les libres sont ignorés, comme Google). Si la requête n'a QUE des exclus, une page sans les exclus correspond. `respecterCasse` : quand VRAI, la comparaison respecte la casse (accents toujours normalisés) ; quand FAUX (défaut), tout est en minuscules. / EN: ADDED - does a page match the parsed query? Rules: (1) each EXCLUDED term (`-`) rejects the page if present; (2) each REQUIRED term (`+`) and each EXACT PHRASE (quotes) must be present; (3) if free terms exist, AT LEAST ONE must be present (OR) — unless required/exact terms already exist (then free terms are ignored, like Google). If the query has ONLY exclusions, a page without them matches. `respecterCasse`: when TRUE, comparison is case-sensitive (accents still normalized); when FALSE (default), everything is lowercased. */
+function correspondRecherche(haystackBrut: string, requete: RequeteRecherche, respecterCasse: boolean): boolean {
+  // ⚠️ AJOUT (22/10/2026, suite 15) : `respecterCasse` VRAIMENT appliqué — les accents sont TOUJOURS normalisés (NFD), mais la CASSE est conservée quand demandé (sinon tout en minuscules, comportement historique).
+  const prep = (t: string) => (respecterCasse ? t.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : normaliser(t));
+  const haystack = prep(haystackBrut);
+  // Exclusions d'abord : présent = rejet
+  for (const e of requete.exclus) {
+    if (haystack.includes(prep(e))) return false;
+  }
+  // Obligatoires + exactes : tous doivent être présents
+  for (const o of requete.obligatoires) {
+    if (!haystack.includes(prep(o))) return false;
+  }
+  for (const e of requete.exactes) {
+    if (!haystack.includes(prep(e))) return false;
+  }
+  // Termes libres : OU (au moins un), seulement s'il n'y a ni obligatoires ni exactes
+  if (requete.termes.length > 0 && requete.obligatoires.length === 0 && requete.exactes.length === 0) {
+    if (!requete.termes.some((t) => haystack.includes(prep(t)))) return false;
+  }
+  return true;
+}
+
+/** FR : ⚠️ CHANGÉ (22/10/2026, suite 15, demande utilisateur) - RECHERCHE AVANCÉE : la requête supporte les guillemets (`"phrase exacte"` / `« phrase »`), le `+` (terme obligatoire) et le `-` (terme exclu). Le deuxième paramètre `options.respecterCasse` active la sensibilité à la casse (défaut FAUX = insensible, comportement historique). Sans opérateur, les termes libres gardent le comportement OU (au moins un). La correspondance se fait sur le TITRE, le SOUS-TITRE et le TEXTE de chaque page, PLUS le titre du livre / la catégorie / les noms de sous-groupes (classes, ensembles) : si le LIVRE correspond, TOUTES ses pages sont remontées (la recherche cible un livre, pas une page isolée). / EN: CHANGED - ADVANCED SEARCH: the query supports quotes (`"exact phrase"` / `« phrase »`), `+` (required term) and `-` (excluded term). The second parameter `options.respecterCasse` enables case-sensitivity (default FALSE = case-insensitive, historical behavior). Without operators, free terms keep the OR behavior (at least one). Matching runs on each page's TITLE, SUBTITLE and TEXT, PLUS the book's title / category / sub-group names (classes, sets): if the BOOK matches, ALL its pages are returned (the search targets a book, not a lone page). */
+export function rechercherPages(livresParSection: Partial<Record<SectionLegendarium, LivreLore[]>>, motCle: string, options?: { respecterCasse?: boolean }): ResultatRechercheLore[] {
+  const requete = parserRecherche(motCle.trim());
+  if (requeteVide(requete)) return [];
+  const respecterCasse = options?.respecterCasse === true;
   const resultats: ResultatRechercheLore[] = [];
   for (const section of SECTIONS) {
     const livres = livresParSection[section.id] ?? [];
     for (const livre of livres) {
       // ⚠️ AJOUT (21/10/2026, suite 10) : la catégorie du livre est cherchée aussi (ex: « lumière » retrouve « La Lumière »)
-      // ⚠️ AJOUT (22/10/2026, suite 14) : les noms des SOUS-GROUPES repliables (classes, ensembles) sont cherchés aussi (ex: « raid A » retrouve les pages de l'ensemble « Armure du raid A » dans le livre « Ensembles d'armures »).
+      // ⚠️ AJOUT (22/10/2026, suite 14) : les noms des SOUS-GROUPES repliables (classes, ensembles) sont cherchés aussi.
       const sousGroupes = (livre.groupesPages ?? []).flatMap((g) => [g.classe ? libelleClasse(g.classe) : "", ...(g.ensembles ?? []).map((e) => e.titre)]);
-      const haystackLivre = normaliser(`${livre.titre} ${livre.categorie ?? ""} ${sousGroupes.join(" ")}`);
-      const livreMatch = haystackLivre.includes(cle);
-      // ⚠️ AJOUT (22/10/2026, suite 14) : un livre correspond aussi si CHAQUE MOT de la requête est trouvé dans le livre OU dans l'une de ses pages (ex: « raid A » = « raid » ET « a », tous deux dans « Armure du raid A ») — sans ce ET multi-mots, une requête ne trouvait que les livres dont le titre contient TOUTE la chaîne.
-      const motsCle = cle.split(/\s+/).filter(Boolean);
-      const textePages = livre.pages.map((p) => normaliser(`${p.titre} ${p.sousTitre ?? ""} ${p.texte}`)).join(" ");
-      const livreMatchMots = motsCle.length > 1 && motsCle.every((m) => haystackLivre.includes(m) || textePages.includes(m));
+      const haystackLivre = `${livre.titre} ${livre.categorie ?? ""} ${sousGroupes.join(" ")}`;
+      const livreMatch = correspondRecherche(haystackLivre, requete, respecterCasse);
       for (const page of livre.pages) {
-        const haystack = normaliser(`${page.titre} ${page.sousTitre ?? ""} ${page.texte}`);
-        if (haystack.includes(cle) || livreMatch || livreMatchMots) resultats.push({ section: section.id, livre, page, categorie: livre.categorie });
+        const haystack = `${page.titre} ${page.sousTitre ?? ""} ${page.texte}`;
+        if (correspondRecherche(haystack, requete, respecterCasse) || livreMatch) {
+          resultats.push({ section: section.id, livre, page, categorie: livre.categorie });
+        }
       }
     }
   }

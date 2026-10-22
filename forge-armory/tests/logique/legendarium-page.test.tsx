@@ -23,15 +23,25 @@ const livreHologramme = livre("legendes", "Tomes de Légendes", [
 const resultat = (section: ResultatRechercheLore["section"], livreCible: LivreLore, pageCible: PageLore): ResultatRechercheLore => ({ section, livre: livreCible, page: pageCible });
 
 // --- Bandeau (zone 1, spécification §4) ---
-const bandeau = renderToStaticMarkup(<BandeauLegendarium motCle="" onChangerMotCle={() => {}} dbPresent={true} nbResultats={0} />);
+const bandeau = renderToStaticMarkup(<BandeauLegendarium motCle="" onChangerMotCle={() => {}} dbPresent={true} nbResultats={0} respecterCasse={false} onChangerRespecterCasse={() => {}} />);
 ok("bandeau : titre « Legendarium » + champ de recherche accessible (aria-label) + indicateur de cache chargé",
   bandeau.includes("Legendarium") && bandeau.includes('aria-label="Rechercher dans le Lore"') && bandeau.includes("Manifest chargé"), bandeau.slice(0, 300));
-const bandeauSansDb = renderToStaticMarkup(<BandeauLegendarium motCle="" onChangerMotCle={() => {}} dbPresent={false} nbResultats={0} />);
+const bandeauSansDb = renderToStaticMarkup(<BandeauLegendarium motCle="" onChangerMotCle={() => {}} dbPresent={false} nbResultats={0} respecterCasse={false} onChangerRespecterCasse={() => {}} />);
 ok("bandeau : sans Manifest, l'indicateur le dit (et le champ de recherche reste accessible)",
   bandeauSansDb.includes("Manifest pas encore chargé") && bandeauSansDb.includes('aria-label="Rechercher dans le Lore"'));
-const bandeauAvecRecherche = renderToStaticMarkup(<BandeauLegendarium motCle="voyageur" onChangerMotCle={() => {}} dbPresent={true} nbResultats={12} />);
+const bandeauAvecRecherche = renderToStaticMarkup(<BandeauLegendarium motCle="voyageur" onChangerMotCle={() => {}} dbPresent={true} nbResultats={12} respecterCasse={false} onChangerRespecterCasse={() => {}} />);
 ok("bandeau : pendant une recherche, le compteur de résultats s'affiche",
   bandeauAvecRecherche.includes("12") && bandeauAvecRecherche.includes("résultat(s)") && bandeauAvecRecherche.includes('value="voyageur"'));
+
+// ⚠️ AJOUT (22/10/2026, suite 15) : case « Aa » = respecter la casse (recherche avancée : guillemets, +, -).
+const bandeauCasseDefaut = renderToStaticMarkup(<BandeauLegendarium motCle="" onChangerMotCle={() => {}} dbPresent={true} nbResultats={0} respecterCasse={false} onChangerRespecterCasse={() => {}} />);
+const inputCasseDefaut = bandeauCasseDefaut.match(/<input[^>]*data-respecter-casse[^>]*>/)?.[0] ?? "";
+ok("bandeau : la case « Aa » (respecter la casse) est présente, DÉCOCHÉE par défaut",
+  inputCasseDefaut !== "" && inputCasseDefaut.includes('type="checkbox"') && !inputCasseDefaut.includes("checked"), inputCasseDefaut);
+const bandeauCasseCochee = renderToStaticMarkup(<BandeauLegendarium motCle="Casque" onChangerMotCle={() => {}} dbPresent={true} nbResultats={0} respecterCasse={true} onChangerRespecterCasse={() => {}} />);
+const inputCasseCochee = bandeauCasseCochee.match(/<input[^>]*data-respecter-casse[^>]*>/)?.[0] ?? "";
+ok("bandeau : la case « Aa » reflète l'état « respecter la casse » (cochée quand actif)",
+  inputCasseCochee.includes("checked"), inputCasseCochee);
 
 // --- Colonne latérale (zone 2, spécification §4) ---
 const colonne = renderToStaticMarkup(

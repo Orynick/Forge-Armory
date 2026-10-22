@@ -25,7 +25,8 @@ interface Props {
 }
 
 /** FR : bandeau supérieur (spécification §4 zone 1) : titre, recherche par mots-clés (toujours accessible), indicateur de cache. / EN: top banner (spec §4 zone 1): title, keyword search (always available), cache indicator. */
-export function BandeauLegendarium({ motCle, onChangerMotCle, dbPresent, nbResultats }: { motCle: string; onChangerMotCle: (m: string) => void; dbPresent: boolean; nbResultats: number }) {
+// FR : ⚠️ CHANGÉ (22/10/2026, suite 15) - la recherche accepte les guillemets (phrase exacte), + (terme obligatoire), - (terme exclu) ; la case « Aa » active le RESPECT DE LA CASSE (désactivé par défaut = comportement historique insensible à la casse). / EN: CHANGED - search supports quotes (exact phrase), + (required term), - (excluded term); the "Aa" checkbox enables CASE SENSITIVITY (off by default = historical case-insensitive behavior).
+export function BandeauLegendarium({ motCle, onChangerMotCle, dbPresent, nbResultats, respecterCasse, onChangerRespecterCasse }: { motCle: string; onChangerMotCle: (m: string) => void; dbPresent: boolean; nbResultats: number; respecterCasse: boolean; onChangerRespecterCasse: (v: boolean) => void }) {
   return (
     <header data-bandeau-legendarium="">
       <h3><span>Legendarium</span></h3>
@@ -38,6 +39,11 @@ export function BandeauLegendarium({ motCle, onChangerMotCle, dbPresent, nbResul
           onChange={(e) => onChangerMotCle(e.target.value)}
           style={{ flex: "1 1 16rem", minWidth: "12rem", padding: "0.3rem 0.5rem", fontSize: "0.9rem", background: "#1a1a1a", color: "#e8e4d8", border: "1px solid #4a463c", borderRadius: "4px" }}
         />
+        {/* ⚠️ AJOUT (22/10/2026, suite 15) : case « Aa » = respecter la casse (recherche avancée : guillemets, +, -). EN MEMOIRE uniquement. */}
+        <label title="Respecter la casse (Aa) — sinon la recherche ignore majuscules/minuscules" style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.8rem", color: "#9a968a", cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" }}>
+          <input type="checkbox" data-respecter-casse="" checked={respecterCasse} onChange={(e) => onChangerRespecterCasse(e.target.checked)} />
+          <span style={{ fontWeight: 600 }}>Aa</span>
+        </label>
         {motCle.trim() !== "" && <span style={{ fontSize: "0.8rem", color: "#7d7a70" }}>{nbResultats} résultat(s)</span>}
       </div>
       <p style={{ margin: "0.4rem 0 0.6rem", fontSize: "0.8rem", color: dbPresent ? "#7fd88f" : "#e0c080" }}>
@@ -517,6 +523,8 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
   const [section, setSection] = useState<SectionLegendarium>("grimoire");
   const [pageId, setPageId] = useState<string | null>(null);
   const [motCle, setMotCle] = useState("");
+  // FR : ⚠️ AJOUT (22/10/2026, suite 15) - « Aa » = respecter la casse pour la recherche (état EN MEMOIRE uniquement, lecture passive). Désactivé par défaut = comportement historique. / EN: ADDED - "Aa" = case-sensitive search (in-memory state only, passive reading). Off by default = historical behavior.
+  const [respecterCasse, setRespecterCasse] = useState(false);
   const [livresGrimoire, setLivresGrimoire] = useState<LivreLore[] | null>(null);
   // FR : ⚠️ AJOUT (20/10/2026) - diagnostic dev du Grimoire D1. ⚠️ RÉSULTAT (21/10/2026) : HTTP 200, clé acceptée, 0 livre / 0 carte — Bungie ne sert plus de contenu Grimoire via l'API D1 ; le repli statique embarqué prend le relais. Le module est importé dynamiquement (le JSON de 930 Ko reste hors du bundle principal en production : ce bloc est du code mort en build).
   const [diag, setDiag] = useState<DiagnosticGrimoire | null>(null);
@@ -592,7 +600,8 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
   const indexPage = pageActive ? ordre.indexOf(pageActive.id) : -1;
   const idPrecedente = indexPage > 0 ? ordre[indexPage - 1] : null;
   const idSuivante = indexPage >= 0 && indexPage < ordre.length - 1 ? ordre[indexPage + 1] : null;
-  const resultats = useMemo(() => (motCle.trim() !== "" ? rechercherPages(livresParSection, motCle) : []), [livresParSection, motCle]);
+  // FR : ⚠️ CHANGÉ (22/10/2026, suite 15) - la recherche passe l'option « respecter la casse » (case « Aa » du bandeau).
+  const resultats = useMemo(() => (motCle.trim() !== "" ? rechercherPages(livresParSection, motCle, { respecterCasse }) : []), [livresParSection, motCle, respecterCasse]);
 
   const changerSection = (s: SectionLegendarium) => {
     setSection(s);
@@ -608,7 +617,7 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
 
   return (
     <div className="pilier-carte" data-vue-legendarium="">
-      <BandeauLegendarium motCle={motCle} onChangerMotCle={setMotCle} dbPresent={Boolean(db)} nbResultats={resultats.length} />
+      <BandeauLegendarium motCle={motCle} onChangerMotCle={setMotCle} dbPresent={Boolean(db)} nbResultats={resultats.length} respecterCasse={respecterCasse} onChangerRespecterCasse={setRespecterCasse} />
       <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap", alignItems: "flex-start" }}>
         <ColonneSections section={section} livres={livresSection} categories={categoriesLegendes} pageId={pageId} grimoireEnChargement={livresGrimoire === null} onChangerSection={changerSection} onOuvrirLivre={ouvrirLivre} onOuvrirPage={ouvrirPage} />
         <div style={{ flex: "1 1 30rem", minWidth: "min(100%, 22rem)" }}>

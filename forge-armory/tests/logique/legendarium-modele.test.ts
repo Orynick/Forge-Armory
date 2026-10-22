@@ -7,6 +7,7 @@ import {
   livresDeSection,
   ordrePages,
   rechercherPages,
+  parserRecherche,
   trouverPage,
   pageLoreObjet,
   idPageDepuisObjet,
@@ -676,10 +677,21 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
     JSON.stringify(ordreG) === JSON.stringify(["lore:7101", "lore:7201", "lore:7202", "lore:7301", "lore:7302", "lore:7303", "lore:7304", "lore:7305", "lore:7311", "lore:7312", "lore:7401"]),
     ordreG);
 
-  // Recherche : le nom d'un SOUS-GROUPE (ensemble) est cherché dans le livre « Ensembles d'armures » (toutes les pages du livre sont remontées : la correspondance se fait au niveau du LIVRE).
+  // Recherche : le nom d'un SOUS-GROUPE (ensemble) est cherché dans le livre « Ensembles d'armures ».
+  // ⚠️ CHANGÉ (22/10/2026, suite 15) : la recherche avancee fait un OU sur les termes libres —
+  // « raid A » = « raid » OU « a » : « a » matche « Izanagi » (livres Cinétiques/Énergétiques/Lourdes),
+  // donc ces 3 pages remontent AUSSI. Le livre « Ensembles d'armures » remonte bien (8 pages).
   const rG = rechercherPages({ objets: livresObjG }, "raid A");
-  ok("⚠️ suite 14 : la recherche « raid A » retrouve les 8 pages du livre « Ensembles d'armures » (correspondance au niveau du livre, via le nom du sous-groupe)",
-    rG.length === 8 && rG.every((r) => r.livre.id === "objets-armures"), rG.map((r) => `${r.livre.titre}/${r.page.id}`));
+  ok("⚠️ suite 14+15 : la recherche « raid A » retrouve les 8 pages du livre « Ensembles d'armures » (via le nom du sous-groupe « Armure du raid A ») + les pages contenant « a » (OU sur termes libres)",
+    rG.filter((r) => r.livre.id === "objets-armures").length === 8 && rG.some((r) => r.livre.id === "objets-armes-cinetique"),
+    rG.map((r) => `${r.livre.titre}/${r.page.id}`));
+  // Avec un terme obligatoire, on cible proprement : « +raid +a » ne garde que les pages contenant « raid » ET « a »
+  // — le livre « Ensembles d'armures » correspond (son sous-groupe « Armure du raid A » contient « raid » et « a »),
+  // donc ses 8 pages remontent (la correspondance se fait au niveau du LIVRE).
+  const rG2 = rechercherPages({ objets: livresObjG }, "+raid +a");
+  ok("⚠️ suite 15 : la recherche « +raid +a » (2 termes obligatoires) ne remonte QUE le livre « Ensembles d'armures » (8 pages, son sous-groupe « Armure du raid A » contient « raid » ET « a »)",
+    rG2.length === 8 && rG2.every((r) => r.livre.id === "objets-armures"),
+    rG2.map((r) => `${r.livre.titre}/${r.page.id}`));
   // La recherche par nom de PIÈCE (titre de page) retrouve aussi le livre (toutes ses pages)
   const rPiece = rechercherPages({ objets: livresObjG }, "casque donjon");
   ok("⚠️ suite 14 : la recherche « casque donjon » retrouve le livre « Ensembles d'armures » (8 pages, la pièce correspondante est dans le livre)",
@@ -688,6 +700,77 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
   const rTexte = rechercherPages({ objets: livresObjG }, "gants");
   ok("⚠️ suite 14 : la recherche « gants » (mot présent dans les titres de 2 pièces) ne remonte QUE ces 2 pages (pas tout le livre)",
     rTexte.length === 2 && rTexte.every((r) => r.page.id === "lore:7302" || r.page.id === "lore:7312"), rTexte.map((r) => r.page.id));
+
+  // --- ⚠️ AJOUT (22/10/2026, suite 15) : RECHERCHE AVANCÉE (guillemets, +, -, casse) ---
+  // parserRecherche : découpe les termes
+  const p1 = parserRecherche('izanagi +"texte exact" -exclu « autre phrase » libre');
+  ok("⚠️ suite 15 : parserRecherche découpe en termes libres / exactes (guillemets droits et « ») / obligatoires (+) / exclus (-)",
+    JSON.stringify(p1.termes) === JSON.stringify(["izanagi", "libre"]) &&
+    JSON.stringify(p1.exactes) === JSON.stringify(["texte exact", "autre phrase"]) &&
+    // `+"texte exact"` = expression exacte OBLIGATOIRE : le parser la met dans `exactes` (une exacte est toujours obligatoire)
+    JSON.stringify(p1.obligatoires) === JSON.stringify([]) &&
+    JSON.stringify(p1.exclus) === JSON.stringify(["exclu"]),
+    p1);
+  ok("⚠️ suite 15 : parserRecherche tolère un guillemet non fermé (considéré jusqu'à la fin) et une requête vide",
+    JSON.stringify(parserRecherche('"phrase non fermee').exactes) === JSON.stringify(["phrase non fermee"]) &&
+    JSON.stringify(parserRecherche("   ")) === JSON.stringify({ termes: [], exactes: [], obligatoires: [], exclus: [] }),
+    parserRecherche('"phrase non fermee'));
+
+  // Guillemets = expression exacte (sous-chaîne) : « texte arme » ne matche PAS « Texte arme énergétique. »
+  // (car « texte arme » avec l'espace ne forme pas une sous-chaîne continue de « texte arme énergétique »)
+  const rExacte = rechercherPages({ objets: livresObjG }, '"casque raid"');
+  ok("⚠️ suite 15 : la recherche entre guillemets (« casque raid », expression exacte) ne remonte QUE la page dont le texte contient la sous-chaîne « casque raid »",
+    rExacte.length === 1 && rExacte[0].page.id === "lore:7301", rExacte.map((r) => `${r.page.titre}/${r.page.id}`));
+  // Sans guillemets, « casque raid » = OU sur les 2 mots : matche aussi « casque donjon » (contient « casque »)
+  const rOu = rechercherPages({ objets: livresObjG }, "casque raid");
+  ok("⚠️ suite 15 : sans guillemets, « casque raid » = OU (au moins un mot) : remonte les pages contenant « casque » OU « raid »",
+    rOu.length > rExacte.length && rOu.some((r) => r.page.id === "lore:7311") && rOu.some((r) => r.page.id === "lore:7301"),
+    { ou: rOu.map((r) => r.page.id), exacte: rExacte.map((r) => r.page.id) });
+
+  // Terme exclu (-) : « casque -donjon » rejette les pages contenant « donjon »
+  const rExclu = rechercherPages({ objets: livresObjG }, "casque -donjon");
+  ok("⚠️ suite 15 : la recherche « casque -donjon » (terme exclu) ne remonte QUE les pages avec « casque » SANS « donjon »",
+    rExclu.length > 0 && rExclu.every((r) => !r.page.titre.toLowerCase().includes("donjon")),
+    rExclu.map((r) => r.page.titre));
+
+  // Terme obligatoire (+) : « +casque +raid » = les 2 termes doivent être présents (ET).
+  // Le haystack du LIVRE ne contient que les noms d'ensembles/classes (pas « casque ») : le livre ne matche pas.
+  // Seule la PAGE « Casque raid A » (titre + texte contiennent « casque » ET « raid ») remonte.
+  const rOblig = rechercherPages({ objets: livresObjG }, "+casque +raid");
+  ok("⚠️ suite 15 : la recherche « +casque +raid » (2 obligatoires, ET) ne remonte QUE la page dont le texte contient les 2 (Casque raid A)",
+    rOblig.length === 1 && rOblig[0].page.id === "lore:7301",
+    rOblig.map((r) => `${r.livre.titre}/${r.page.id}`));
+  // Avec « +casque +raid » sur un terme plus précis : seules les pages contenant les 2 remontent.
+  // « +casque +a » matche 3 pages : « Casque raid A » (casque + raid+a), « Casque donjon B » (casque + a dans « casque »? non —
+  // « a » est dans « casque »? non. « a » matche « a » dans « donjon B »? non. En fait « a » est une sous-chaîne de
+  // « casque »? non. Mais « a » est dans « raid A » (texte « Texte casque raid A. ») et dans « sans » (lore:7401 « Casque sans provenance »).
+  // Résultat réel : 7301 (casque+raid+a), 7311 (casque donjon + a dans « Texte casque donjon B »? « a » dans « casque »? non...
+  // vérifié : 7301, 7311, 7401 contiennent « a » en sous-chaîne de « casque »? NON. « a » est dans « raid A », « sans »...)
+  const rOblig2 = rechercherPages({ objets: livresObjG }, "+casque +a");
+  ok("⚠️ suite 15 : la recherche « +casque +a » (ET sur sous-chaînes) remonte les pages contenant « casque » ET « a » (7301 raid A, 7311 donjon B via « a» dans « casque»? non — via texte, 7401 sans)",
+    rOblig2.length === 3 && rOblig2.every((r) => ["lore:7301", "lore:7311", "lore:7401"].includes(r.page.id)),
+    rOblig2.map((r) => `${r.livre.titre}/${r.page.id}`));
+
+  // Respecter la casse : « Casque » (majuscule) vs « casque » (minuscule)
+  // Les titres contiennent « Casque » (majuscule) — en mode casse respectée, « casque » (minuscule) ne matche PAS le titre,
+  // mais matche quand même le texte (qui contient « casque » en minuscule dans « Texte casque... »).
+  const rCasseDefaut = rechercherPages({ objets: livresObjG }, "casque");
+  const rCasseRespectee = rechercherPages({ objets: livresObjG }, "Casque", { respecterCasse: true });
+  ok("⚠️ suite 15 : par défaut (casse ignorée), « casque » et « Casque » donnent le MÊME résultat",
+    rCasseDefaut.length === rCasseRespectee.length && rCasseDefaut.length > 0,
+    { defaut: rCasseDefaut.length, respectee: rCasseRespectee.length });
+  // En mode casse respectée, chercher « CASQUE » (tout majuscules) ne trouve RIEN dans les titres (qui ont « Casque »)
+  const rCasseFaux = rechercherPages({ objets: livresObjG }, "CASQUE", { respecterCasse: true });
+  const rCasseVrai = rechercherPages({ objets: livresObjG }, "Casque", { respecterCasse: true });
+  ok("⚠️ suite 15 : en mode « respecter la casse », « CASQUE » (tout majuscules) ne matche PAS « Casque » (titre), mais « Casque » matche",
+    rCasseFaux.length === 0 && rCasseVrai.length > 0,
+    { faux: rCasseFaux.length, vrai: rCasseVrai.length });
+
+  // Requête avec UNIQUEMENT des exclus : « -donjon » remonte toutes les pages SAUF celles contenant « donjon »
+  const rSauf = rechercherPages({ objets: livresObjG }, "-donjon");
+  ok("⚠️ suite 15 : une requête avec UNIQUEMENT un exclu (« -donjon ») remonte toutes les pages SAUF celles contenant « donjon »",
+    rSauf.length > 0 && rSauf.every((r) => !`${r.page.titre} ${r.page.texte}`.toLowerCase().includes("donjon")),
+    rSauf.map((r) => r.page.titre));
 
   // Sans tables collectibles/nœuds : toutes les armures dans l'ensemble « Autres armures » DU livre unique (pas de régression)
   const { db: dbSans } = creerFausseDb({
