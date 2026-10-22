@@ -13,6 +13,7 @@ import type { DiagnosticGrimoire } from "../lib/legendarium/grimoire"; // ⚠️
 import type { CategorieLore, GroupeClassePages, LivreLore, PageLore, ProvenanceObjet, SectionLegendarium } from "../lib/legendarium/types";
 import { urlIcone } from "../lib/manifest/search";   // ⚠️ AJOUT (21/10/2026, suite 10) : URL complète des couvertures de livres (chemin relatif Bungie → https://www.bungie.net…)
 import IconeClasse, { LIBELLES as LIBELLES_CLASSE } from "./icones/IconeClasse";   // ⚠️ AJOUT (22/10/2026, suite 13) : icône locale de classe (repli si le Manifest n'en porte pas)
+import { rendreExportLore, telechargerExport } from "../lib/legendarium/exportImage";   // ⚠️ AJOUT (22/10/2026, bonus Legendarium) : export infographique (JPEG/PNG) de la page de Lore
 
 interface Props {
   db: Database | null;
@@ -429,7 +430,7 @@ export function ColonneSections({ section, livres, categories, pageId, grimoireE
 }
 
 /** FR : zone de lecture centrale (spécification §4 zone 3) : œilleton du livre, titre de la page, sous-titre, libellé chronologique, texte, parcours inverse (objets porteurs), navigation précédent/suivant, bouton de retour vers l'objet (si provenance). Palette verrouillée appliquée ici. / EN: central reading zone (spec §4 zone 3): book eyebrow, page title, subtitle, chronological label, text, reverse path (carrier items), previous/next navigation, back-to-item button (if origin). The locked palette is applied here. */
-export function ZoneLecture({ section, livre, page, idPrecedente, idSuivante, onOuvrirPage, provenance, onRetourObjet, indexPage, totalPages }: {
+export function ZoneLecture({ section, livre, page, idPrecedente, idSuivante, onOuvrirPage, provenance, onRetourObjet, indexPage, totalPages, avecExport = false }: {
   section: SectionLegendarium;
   livre: LivreLore;
   page: PageLore;
@@ -438,23 +439,59 @@ export function ZoneLecture({ section, livre, page, idPrecedente, idSuivante, on
   onOuvrirPage: (id: string) => void;
   provenance?: ProvenanceObjet;
   onRetourObjet?: () => void;
+  /** FR : ⚠️ AJOUT (22/10/2026, bonus Legendarium) - active le bouton d'export infographique (JPEG/PNG) en haut à droite de la page. / EN: ADDED - enables the infographic export (JPEG/PNG) button at the top right of the page. */
+  avecExport?: boolean;
   /** FR : ⚠️ AJOUT (22/10/2026, suite 13, remarque utilisateur) - position de la page DANS LE LIVRE (0-based) et nombre total de pages du livre, pour le compteur « page X/Y » affiché au niveau du titre du livre (œilleton), justifié à droite. `undefined` = pas de compteur (ex: page hors livre). / EN: ADDED - the page's POSITION IN THE BOOK (0-based) and the book's total page count, for the "page X/Y" counter shown at the book title (eyebrow), justified right. `undefined` = no counter (e.g. page outside a book). */
   indexPage?: number;
   totalPages?: number;
 }) {
   const ere = PALETTE[ereDeSection(section)];
   const styleBoutonNav: React.CSSProperties = { background: "none", border: `1px solid ${ere.bordure}`, borderRadius: "4px", color: ere.couleurTitre, cursor: "pointer", padding: "0.3rem 0.8rem", fontSize: "0.85rem" };
+  // FR : ⚠️ AJOUT (22/10/2026, bonus Legendarium) - export infographique : état « en cours » (le rendu canvas + le chargement des images prennent quelques centaines de ms) et gestionnaire du clic. Aucun état persistant (mémoire uniquement). / EN: ADDED - infographic export: "in progress" state (canvas rendering + image loading take a few hundred ms) and click handler. No persisted state (memory only).
+  const [exportEnCours, setExportEnCours] = useState(false);
+  const [exportErreur, setExportErreur] = useState<string | null>(null);
+  const gererExport = async () => {
+    setExportErreur(null);
+    setExportEnCours(true);
+    try {
+      const resultat = await rendreExportLore({ section, livre, page, indexPage });
+      telechargerExport(resultat, "png");
+    } catch (e) {
+      setExportErreur((e as Error).message || "Export impossible");
+    } finally {
+      setExportEnCours(false);
+    }
+  };
   return (
     <article
       data-zone-lecture=""
       data-ere={ereDeSection(section)}
       style={{ backgroundColor: ere.fondPage, border: `1px solid ${ere.bordure}`, boxShadow: ere.lueur ?? "none", borderRadius: "6px", padding: "1rem 1.2rem" }}
     >
-      {provenance && onRetourObjet && (
-        <button data-retour-objet="" onClick={onRetourObjet} style={{ ...styleBoutonNav, marginBottom: "0.6rem", fontSize: "0.8rem" }}>
-          ← Retour vers {provenance.nomObjet}
-        </button>
-      )}
+      {/* FR : ⚠️ AJOUT (22/10/2026, bonus Legendarium) - ligne d'actions EN HAUT DE LA PAGE : le bouton de retour (s'il y a une provenance) à GAUCHE, et le bouton d'EXPORT INFOGRAPHIQUE (JPEG/PNG) à DROITE (« en haut à droite de la page », demande de l'utilisateur). / EN: ADDED - action row at the TOP of the page: the back button (if origin) on the LEFT, and the INFOGRAPHIC EXPORT (JPEG/PNG) button on the RIGHT ("at the top right of the page", user request). */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.6rem", marginBottom: "0.6rem" }}>
+        <span>
+          {provenance && onRetourObjet && (
+            <button data-retour-objet="" onClick={onRetourObjet} style={{ ...styleBoutonNav, fontSize: "0.8rem" }}>
+              ← Retour vers {provenance.nomObjet}
+            </button>
+          )}
+        </span>
+        {avecExport && (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+            {exportErreur && <span role="alert" style={{ fontSize: "0.75rem", color: "#e08080" }}>{exportErreur}</span>}
+            <button
+              data-export-image=""
+              onClick={gererExport}
+              disabled={exportEnCours}
+              title="Exporter cette page de Lore en image (PNG) — filigrane Forge Armory + crédit Bungie"
+              style={{ ...styleBoutonNav, fontSize: "0.8rem" }}
+            >
+              {exportEnCours ? "Export…" : "⭳ Exporter en image"}
+            </button>
+          </span>
+        )}
+      </div>
       {/* FR : ⚠️ AJOUT (21/10/2026, demande de l'utilisateur) - barre de navigation AU-DESSUS de la page (la même existe EN-DESSOUS) : Précédent · Suivant, centrée, hors du texte de Lore. / EN: ADDED - navigation bar ABOVE the page (the same exists BELOW): Previous · Next, centered, outside the lore text. */}
       <div data-nav-haut="" style={{ display: "flex", justifyContent: "center", gap: "0.6rem", marginBottom: "0.9rem" }}>
         <button data-nav-precedente="" disabled={!idPrecedente} onClick={() => idPrecedente && onOuvrirPage(idPrecedente)} style={styleBoutonNav}>← Précédent</button>
@@ -624,7 +661,7 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
           {rechercheActive ? (
             <ResultatsRecherche motCle={motCle} resultats={resultats} onOuvrir={ouvrirResultat} />
           ) : pageActive && livreActif ? (
-            <ZoneLecture section={section} livre={livreActif} page={pageActive} idPrecedente={idPrecedente} idSuivante={idSuivante} onOuvrirPage={ouvrirPage} provenance={provenance} onRetourObjet={onRetourObjet} indexPage={indexPageLivre >= 0 ? indexPageLivre : undefined} totalPages={livreActif.pages.length} />
+            <ZoneLecture section={section} livre={livreActif} page={pageActive} idPrecedente={idPrecedente} idSuivante={idSuivante} onOuvrirPage={ouvrirPage} provenance={provenance} onRetourObjet={onRetourObjet} indexPage={indexPageLivre >= 0 ? indexPageLivre : undefined} totalPages={livreActif.pages.length} avecExport={true} />
           ) : (
             <div data-accueil-legendarium="" style={{ padding: "1rem", color: "#7d7a70", fontSize: "0.9rem" }}>
               <p style={{ margin: "0 0 0.3rem" }}>Bienvenue dans le Legendarium.</p>

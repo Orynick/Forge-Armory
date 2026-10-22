@@ -131,6 +131,20 @@ ok("bouton de retour : affiché quand la page a été atteinte depuis une fiche 
 ok("bouton de retour : absent sans provenance",
   !zoneSansPorteurs.includes('data-retour-objet=""'));
 
+// ⚠️ AJOUT (22/10/2026, bonus Legendarium) : export infographique (JPEG/PNG) de la page de Lore.
+const zoneExport = renderToStaticMarkup(
+  <ZoneLecture section="legendes" livre={livreHologramme} page={livreHologramme.pages[0]} idPrecedente={null} idSuivante={null} onOuvrirPage={() => {}} avecExport={true} />
+);
+ok("export image : le bouton « Exporter en image » est affiché EN HAUT À DROITE de la page quand `avecExport` est vrai",
+  zoneExport.includes('data-export-image=""') && zoneExport.includes("Exporter en image"));
+ok("export image : le bouton est ABSENT par défaut (avecExport non fourni) — pas de bouton fantôme dans les autres rendus",
+  !zoneSansPorteurs.includes('data-export-image=""') && !zoneD1.includes('data-export-image=""'));
+const zoneExportEtRetour = renderToStaticMarkup(
+  <ZoneLecture section="objets" livre={livre("objets-armes", "Lore des armes", [pageAvecPorteurs])} page={pageAvecPorteurs} idPrecedente={null} idSuivante={null} onOuvrirPage={() => {}} provenance={{ itemHash: 6001, nomObjet: "Izanagi — Burden", origine: "analyseur" }} onRetourObjet={() => {}} avecExport={true} />
+);
+ok("export image : avec une provenance, le bouton de retour reste À GAUCHE et l'export À DROITE (dans le DOM : retour avant export)",
+  zoneExportEtRetour.indexOf('data-retour-objet=""') !== -1 && zoneExportEtRetour.indexOf('data-export-image=""') > zoneExportEtRetour.indexOf('data-retour-objet=""'));
+
 // Libellé chronologique (classement par défaut, décision utilisateur 20/10)
 const zoneChrono = renderToStaticMarkup(
   <ZoneLecture section="objets" livre={livre("objets-armes", "Lore des armes", [page("lore:7101", "Izanagi — Burden", "Texte.", { rangChrono: 11, libelleChrono: "Saison 11 · L'Œil du printemps" })])} page={page("lore:7101", "Izanagi — Burden", "Texte.", { rangChrono: 11, libelleChrono: "Saison 11 · L'Œil du printemps" })} idPrecedente={null} idSuivante={null} onOuvrirPage={() => {}} />
