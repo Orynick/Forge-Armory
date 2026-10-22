@@ -22,6 +22,8 @@
 
 **Validé sur le VRAI Manifest FR** : 4 catégories / 108 livres / 1 076 pages
 
+**Propagation** : le changement de version 0.4.14 → 0.5.0 a été répercuté sur les branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `test`.
+
 ---
 
 ## 22/10/2026 — LIVRAISON : branche `draft-legendarium` (Legendarium complet + bonus export infographique) mergée dans `main`
