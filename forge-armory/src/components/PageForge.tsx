@@ -24,9 +24,11 @@ interface Props {
   onRetour?: () => void;
   onAjouterAuBuild?: (piece: GearPiece) => void;
   idsDansBuild?: ReadonlySet<string>;
+  /** FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - clic du bouton « Lire le Lore » d'une fiche Détails : aiguille vers le Legendarium (remonté à DashboardPage). / EN: ⚠️ ADDED - "Read the Lore" click from a Details sheet: routes to the Legendarium (lifted to DashboardPage). */
+  onLireLore?: (itemHash: number, nomObjet: string) => void;
 }
 
-export default function PageForge({ db, membership = null, cible = null, onRetour, onAjouterAuBuild, idsDansBuild }: Props) {
+export default function PageForge({ db, membership = null, cible = null, onRetour, onAjouterAuBuild, idsDansBuild, onLireLore }: Props) {
   const [vue, setVue] = useState<"collection" | "inventaire">("collection");
   useEffect(() => { if (cible) setVue("inventaire"); }, [cible?.demande]);   // eslint-disable-line react-hooks/exhaustive-deps
   // FR : ⚠️ AJOUT (15/10/2026, v0.4.12) - la vue Inventaire a deux parties : Armes (par défaut) et Armures. La partie Armures n'est montée qu'à sa première ouverture, puis reste montée (cachée) : son inventaire chargé est gardé quand on revient aux armes. Une arrivée depuis un bouton « Forge » (arme possédée) ramène aux armes. / EN: ⚠️ ADDED - the Inventory view has two parts, Weapons (default) and Armor; Armor mounts on first open and then stays mounted.
@@ -73,22 +75,22 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
       {/* FR : ⚠️ CORRIGÉ (21/10/2026, régression signalée par l'utilisateur sur le zip de main) - la barre unique du 19/10 AVAIT AJOUTÉ les boutons logo Armes/Armures SANS RETIRER les anciens boutons « pills » des panneaux : chaque partie apparaissait DEUX FOIS (les pills, entourés en rouge sur la capture de l'utilisateur). Les pills sont RETIRÉS des deux panneaux ; le choix de la partie se fait UNIQUEMENT par les boutons logo de la barre (`data-objet-logo`, à droite du séparateur). Les tests qui cliquaient les pills (`data-objet` / `data-objet-collection`) cliquent maintenant les boutons logo. / EN: FIXED - the pills are removed from both panels; the part is chosen only by the logo buttons in the bar. */}
       <div role="tabpanel" aria-label="Collection" hidden={vue !== "collection"}>
         <div hidden={objetCollection !== "armes"}>
-          <CollectionArmes db={db} membership={membership} />
+          <CollectionArmes db={db} membership={membership} onLireLore={onLireLore} />
         </div>
         {collectionArmuresMontee && (
           <div hidden={objetCollection !== "armures"}>
-            <CollectionArmures db={db} membership={membership} />
+            <CollectionArmures db={db} membership={membership} onLireLore={onLireLore} />
           </div>
         )}
       </div>
       {/* FR : ⚠️ CHANGÉ (13/10/2026, v0.4.6) - la vue Inventaire existe : tes armes possédées, leur roll réel et la simulation locale des perks et du mod (voir `InventaireArmes.tsx`). Le panneau reste MONTÉ (caché quand on est sur « Collection ») : l'inventaire chargé, la recherche et la fenêtre ouverte ne sont pas perdus en changeant de vue. / EN: ⚠️ CHANGED - the Inventory view now exists. */}
       <div role="tabpanel" aria-label="Inventaire" hidden={vue !== "inventaire"}>
         <div hidden={objet !== "armes"}>
-          <InventaireArmes db={db} membership={membership} cible={cibleArmure ? null : cible} onAjouterAuBuild={onAjouterAuBuild} idsDansBuild={idsDansBuild} onRetour={onRetour} libelleRetour={cible ? LIBELLES_ORIGINE[cible.origine] : undefined} />
+          <InventaireArmes db={db} membership={membership} cible={cibleArmure ? null : cible} onAjouterAuBuild={onAjouterAuBuild} idsDansBuild={idsDansBuild} onRetour={onRetour} libelleRetour={cible ? LIBELLES_ORIGINE[cible.origine] : undefined} onLireLore={onLireLore} />
         </div>
         {armuresMontees && (
           <div hidden={objet !== "armures"}>
-            <InventaireArmures db={db} membership={membership} cible={cibleArmure ? cible : null} onRetour={onRetour} libelleRetour={cible ? LIBELLES_ORIGINE[cible.origine] : undefined} />
+            <InventaireArmures db={db} membership={membership} cible={cibleArmure ? cible : null} onRetour={onRetour} libelleRetour={cible ? LIBELLES_ORIGINE[cible.origine] : undefined} onLireLore={onLireLore} />
           </div>
         )}
       </div>
