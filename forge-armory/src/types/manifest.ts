@@ -82,6 +82,33 @@ export interface DestinyLoreDefinition {
   body?: string;
 }
 
+/** FR : ⚠️ AJOUT (21/10/2026, suite 10, chantier Legendarium) - nœud de l'arbre de présentation (Collections/Triomphes), qui porte LA STRUCTURE DES LIVRES de Lore D2 : Triomphes → Légendes → catégorie (ex: « La Lumière ») → livre (ex: « La Frontière sans foi ni loi », avec sa couverture en `displayProperties.icon`) → records (les pages). Vérifié sur le VRAI Manifest FR (21/10/2026) : racine « Légendes » = 4077680549 (scope 0), 4 catégories, 109 livres, 1 085 loreHash distincts. / EN: presentation tree node — this carries the D2 LORE BOOK STRUCTURE: Triumphs → Legends → category → book (with its cover in `displayProperties.icon`) → records (the pages). Verified on the REAL FR Manifest (2026-10-21). */
+export interface DestinyPresentationNodeDefinition {
+  hash: DefinitionHash;
+  displayProperties: DestinyDisplayProperties;
+  /** FR : 0 = profil, 1 = compte. La racine « Légendes » de l'onglet Lore est en scope 0. / EN: 0 = profile, 1 = account. The Lore tab's "Legends" root is scope 0. */
+  scope?: number;
+  children?: {
+    presentationNodes?: Array<{ presentationNodeHash: DefinitionHash; nodeDisplayPriority?: number }>;
+    records?: Array<{ recordHash: DefinitionHash; nodeDisplayPriority?: number }>;
+    collectibles?: Array<{ collectibleHash: DefinitionHash; nodeDisplayPriority?: number }>;
+  };
+  parentNodeHashes?: DefinitionHash[];
+  redacted?: boolean;
+  blacklisted?: boolean;
+}
+
+/** FR : ⚠️ AJOUT (21/10/2026, suite 10, chantier Legendarium) - un record (page d'un livre de Lore) : le champ clé est **`loreHash`** (lien vers DestinyLoreDefinition), vérifié sur le VRAI Manifest FR. / EN: a record (a lore book's page): the key field is **`loreHash`** (link to DestinyLoreDefinition), verified on the REAL FR Manifest. */
+export interface DestinyRecordDefinition {
+  hash: DefinitionHash;
+  displayProperties: DestinyDisplayProperties;
+  /** FR : lien vers la page de Lore, quand le record en a une (1 085 records sur 1 104 dans les livres, au 21/10/2026). / EN: link to the lore page, when the record has one (1,085 of 1,104 records in the books, on 2026-10-21). */
+  loreHash?: DefinitionHash;
+  recordTypeName?: string;
+  redacted?: boolean;
+  blacklisted?: boolean;
+}
+
 /** DestinyStatDefinition (Santé, Mêlée, Grenade, Super, Classe, Arme, Armes) */
 export interface DestinyStatDefinition {
   hash: DefinitionHash;

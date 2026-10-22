@@ -1,9 +1,9 @@
 // FR : ⚠️ AJOUT (21/10/2026, chantier Legendarium, étape 2) - test de la PAGE Legendarium (`src/components/Bibliotheque.tsx`) : les trois zones de la spécification verrouillée §4 (bandeau titre + recherche + indicateur de cache ; colonne sections → livres ; zone de lecture avec précédent/suivant), la palette « Parchemin / Hologramme » verrouillée §5 (D1 parchemin, D2 hologramme), le parcours inverse (objets porteurs), le bouton de retour vers l'objet (provenance), la recherche par mots-clés (résultats cliquables). Rendu STATIQUE (renderToStaticMarkup, comme les autres tests UI du projet) : pas de jsdom, pas de clics — on teste la STRUCTURE rendue et les sous-composants exportés. L'état interactif (clics, navigation) est testé en Playwright côté utilisateur. EN: test of the Legendarium PAGE: the three locked zones (spec §4), the locked palette (§5), the reverse path, the back-to-item button, the keyword search results. Static render only.
 import { renderToStaticMarkup } from "react-dom/server";
-import Bibliotheque, { BandeauLegendarium, ColonneSections, ResultatsRecherche, ZoneLecture } from "../../src/components/Bibliotheque";
+import Bibliotheque, { ArbreCategories, BandeauLegendarium, ColonneSections, ResultatsRecherche, ZoneLecture } from "../../src/components/Bibliotheque";   // ⚠️ AJOUT (21/10/2026, suite 10) : ArbreCategories (hiérarchie catégorie → livre → pages)
 import BoutonLireLore from "../../src/components/BoutonLireLore";   // ⚠️ AJOUT (21/10/2026, étape 5) : bouton « Lire le Lore » des fiches Détails
 import { creerFausseDb } from "./fixtures/fauxManifest";
-import type { LivreLore, PageLore } from "../../src/lib/legendarium/types";
+import type { CategorieLore, LivreLore, PageLore } from "../../src/lib/legendarium/types";
 import type { ResultatRechercheLore } from "../../src/lib/legendarium/modele";
 
 const res: boolean[] = [];
@@ -192,6 +192,83 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
   const sansDb = renderToStaticMarkup(<BoutonLireLore db={null} itemHash={6001} nomObjet="Izanagi — Burden" onLireLore={() => {}} />);
   ok("bouton : sans Manifest → RIEN n'est rendu, sans erreur", sansDb === "", sansDb.slice(0, 200));
   ok("bouton : la prop `onLireLore` est acceptée (signature `(itemHash, nomObjet)`)", typeof BoutonLireLore === "function");
+}
+
+
+// --- ⚠️ AJOUT (21/10/2026, suite 10) : NAVIGATION PAR LIVRES (hiérarchie en jeu : catégorie → livre → pages, couvertures) ---
+// Rendu STATIQUE du sous-composant ArbreCategories + de ColonneSections avec la prop `categories`.
+{
+  const catLumiere: CategorieLore = {
+    hash: 100,
+    titre: "La Lumière",
+    icone: "/icons/lumiere.png",
+    livres: [
+      livre("legendes-livre:1000", "La Frontière sans foi ni loi", [
+        page("lore:8001", "Ces terres maudites", "Texte de la première page."),
+        page("lore:8002", "Par cette langue, soyez damnés", "Texte de la deuxième page."),
+      ]),
+      livre("legendes-livre:1001", "Histoires de Spectres", [
+        page("lore:8003", "Une histoire de Spectre", "Texte du Spectre."),
+      ]),
+    ],
+  };
+  // couverture sur le premier livre, pas sur le second
+  catLumiere.livres[0].couvertureUrl = "https://www.bungie.net/icons/frontiere.png";
+  catLumiere.livres[0].categorie = "La Lumière";
+  catLumiere.livres[1].categorie = "La Lumière";
+  const cattenebres: CategorieLore = {
+    hash: 200,
+    titre: "Les Ténèbres",
+    livres: [livre("legendes-livre:2000", "Légendes des oubliés, Vol.\u00a01", [page("lore:8005", "Europe \u2013 1", "Lore de l'item.")])],
+  };
+  cattenebres.livres[0].categorie = "Les Ténèbres";
+
+  const arbre = renderToStaticMarkup(<ArbreCategories categories={[catLumiere, cattenebres]} pageId="lore:8001" onOuvrirLivre={() => {}} />);
+  ok("⚠️ suite 10 : l'arbre rend les catégories dans l'ordre (data-categorie), avec leurs titres en tête de section",
+    arbre.includes('data-categorie="100"') && arbre.includes('data-categorie="200"') && arbre.indexOf("La Lumière") < arbre.indexOf("Les Ténèbres") && arbre.includes('data-categorie-titre=""'), arbre.slice(0, 300));
+  ok("⚠️ suite 10 : l'icône de catégorie est rendue (URL complète Bungie) quand présente",
+    arbre.includes('src="https://www.bungie.net/icons/lumiere.png"'), arbre.slice(0, 500));
+  ok("⚠️ suite 10 : chaque livre est une tuile cliquable (data-livre) avec son compteur de pages (« 2 pages » / « 1 page »)",
+    (arbre.match(/data-livre="legendes-livre:\d+"/g) ?? []).length === 3 && arbre.includes("2 pages") && arbre.includes("1 page"), (arbre.match(/data-livre="[^"]+"/g) ?? []).join(","));
+  ok("⚠️ suite 10 : le livre AVEC couverture rend une image (data-couverture-livre, URL Bungie) ; le livre SANS couverture rend un carré-titre (data-couverture-absente, pas d'image cassée)",
+    arbre.includes('data-couverture-livre=""') && arbre.includes('src="https://www.bungie.net/icons/frontiere.png"') && arbre.includes('data-couverture-absente=""') && arbre.includes("Histoires de Spectres"));
+  ok("⚠️ suite 10 : la tuile du livre contenant la page active est marquée (aria-current page)",
+    arbre.includes('data-livre="legendes-livre:1000"') && arbre.includes('aria-current="page"'), arbre.slice(0, 400));
+
+  // ColonneSections avec categories : la section legendes active affiche l'arbre (pas la liste plate)
+  const colonneHierarchie = renderToStaticMarkup(
+    <ColonneSections section="legendes" livres={[catLumiere.livres[0]]} categories={[catLumiere, cattenebres]} pageId="lore:8001" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+  );
+  ok("⚠️ suite 10 : ColonneSections — la section « legendes » active affiche L'ARBRE (data-arbre-categories), pas la liste plate (data-livres absent)",
+    colonneHierarchie.includes('data-arbre-categories=""') && !colonneHierarchie.includes('data-livres=""'), colonneHierarchie.slice(0, 400));
+  ok("⚠️ suite 10 : ColonneSections — les 4 sections restent dans l'ordre verrouillé même avec l'arbre",
+    JSON.stringify([...colonneHierarchie.matchAll(/data-section="([^"]+)"/g)].map((m) => m[1])) === JSON.stringify(["grimoire", "legendes", "objets", "cosmetiques"]));
+
+  // ColonneSections SANS categories (repli Manifest vieilli) : retombe sur la liste plate
+  const colonnePlate = renderToStaticMarkup(
+    <ColonneSections section="legendes" livres={[catLumiere.livres[0]]} pageId="lore:8001" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+  );
+  ok("⚠️ suite 10 : ColonneSections — SANS categories (repli), la section « legendes » retombe sur la LISTE PLATE (data-livres, pas d'arbre)",
+    colonnePlate.includes('data-livres=""') && !colonnePlate.includes('data-arbre-categories=""'), colonnePlate.slice(0, 400));
+
+  // ZoneLecture : œilleton avec catégorie + couverture en haut de page
+  const livreAvecCat = livre("legendes-livre:1000", "La Frontière sans foi ni loi", [page("lore:8001", "Ces terres maudites", "Texte.")]);
+  livreAvecCat.couvertureUrl = "https://www.bungie.net/icons/frontiere.png";
+  livreAvecCat.categorie = "La Lumière";
+  const zoneLivre = renderToStaticMarkup(<ZoneLecture section="legendes" livre={livreAvecCat} page={livreAvecCat.pages[0]} idPrecedente={null} idSuivante={null} onOuvrirPage={() => {}} />);
+  ok("⚠️ suite 10 : zone de lecture — l'œilleton affiche « catégorie · livre » (La Lumière · La Frontière sans foi ni loi)",
+    texte(zoneLivre).includes("La Lumière · La Frontière sans foi ni loi"), texte(zoneLivre).slice(0, 300));
+  ok("⚠️ suite 10 : zone de lecture — la COUVERTURE du livre est affichée EN HAUT de la page (data-couverture-page, avant le titre)",
+    zoneLivre.includes('data-couverture-page=""') && zoneLivre.indexOf('data-couverture-page=""') < zoneLivre.indexOf("Ces terres maudites") && zoneLivre.indexOf('data-couverture-page=""') > zoneLivre.indexOf('data-nav-haut=""'), zoneLivre.slice(0, 600));
+  // Sans couverture ni catégorie : rien ne change (livres des autres sections)
+  const zoneSans = renderToStaticMarkup(<ZoneLecture section="objets" livre={livre("objets-armes", "Lore des armes", [page("lore:7101", "Izanagi", "Texte.")])} page={page("lore:7101", "Izanagi", "Texte.")} idPrecedente={null} idSuivante={null} onOuvrirPage={() => {}} />);
+  ok("⚠️ suite 10 : zone de lecture — un livre sans catégorie/couverture (section objets) n'affiche NI œilleton double NI couverture (inchangé)",
+    !zoneSans.includes('data-couverture-page=""') && texte(zoneSans).includes("Lore des armes") && !texte(zoneSans).includes("Lore des armes · Lore des armes"));
+
+  // Résultats de recherche : la catégorie s'affiche
+  const resCat = renderToStaticMarkup(<ResultatsRecherche motCle="frontière" resultats={[resultat("legendes", livreAvecCat, livreAvecCat.pages[0])]} onOuvrir={() => {}} />);
+  ok("⚠️ suite 10 : recherche — le résultat affiche la catégorie (Légendes D2 · La Lumière · La Frontière sans foi ni loi)",
+    texte(resCat).includes("Légendes D2 · La Lumière · La Frontière sans foi ni loi"), texte(resCat));
 }
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);

@@ -33,6 +33,22 @@ export interface LivreLore {
   id: string;
   titre: string;
   pages: PageLore[];
+  /** FR : ⚠️ AJOUT (21/10/2026, suite 10) - URL de la COUVERTURE du livre (illustration), quand le Manifest en porte une (livres de Légendes D2 : `displayProperties.icon` du nœud de présentation). Absente pour le Grimoire D1 et les sections objets/cosmétiques. / EN: ADDED - the book's COVER URL (illustration), when the Manifest carries one (D2 Legends books: the presentation node's `displayProperties.icon`). Absent for the D1 Grimoire and the objets/cosmétiques sections. */
+  couvertureUrl?: string;
+  /** FR : ⚠️ AJOUT (21/10/2026, suite 10) - nom de la CATÉGORIE parente (livres de Légendes D2 uniquement, ex: « La Lumière ») : affiché dans l'œilleton de la zone de lecture et dans les résultats de recherche. Absente ailleurs. / EN: ADDED - the PARENT CATEGORY's name (D2 Legends books only, e.g. "The Light"): shown in the reading zone's eyebrow and in search results. Absent elsewhere. */
+  categorie?: string;
+}
+
+/** FR : ⚠️ AJOUT (21/10/2026, suite 10) - une CATÉGORIE de Légendes D2 (niveau intermédiaire de l'arbre de présentation, ex: « La Lumière », « Les Ténèbres ») : regroupe les livres, dans l'ordre du Manifest. / EN: ADDED - a D2 Legends CATEGORY (intermediate level of the presentation tree, e.g. "The Light", "The Darkness"): groups the books, in Manifest order. */
+export interface CategorieLore {
+  /** FR : hash du nœud de présentation de la catégorie (identifiant stable). / EN: presentation node hash of the category (stable id). */
+  hash: number;
+  /** FR : nom de la catégorie (ex: « La Lumière »). / EN: category name (e.g. "The Light"). */
+  titre: string;
+  /** FR : icône de la catégorie (chemin relatif Bungie), si le Manifest en porte une. / EN: category icon (Bungie relative path), when the Manifest carries one. */
+  icone?: string;
+  /** FR : les livres de la catégorie, DANS L'ORDRE DU MANIFEST (ordre de l'onglet Lore en jeu). / EN: the category's books, IN MANIFEST ORDER (the in-game Lore tab order). */
+  livres: LivreLore[];
 }
 
 /** FR : un objet porteur d'un Lore (pour le parcours inverse : depuis une page de Lore, voir les objets qui la portent). / EN: an item carrying a lore (for the reverse path: from a lore page, see the items that carry it). */

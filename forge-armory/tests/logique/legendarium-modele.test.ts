@@ -18,6 +18,7 @@ import {
   libelleSlot,
   aLore,
   diagnostiquerLore,
+  categoriesDeLegendes,
 } from "../../src/lib/legendarium/modele";
 import { ereDeSection, PALETTE, PALETTE_PRINCIPALE, PALETTE_REPLI } from "../../src/lib/legendarium/palette";
 
@@ -373,6 +374,118 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
   });
   ok("⚠️ suite 9 : SECOURS — l'ancien champ `lore` (objet) et l'ancien champ `body` (Lore) restent acceptés (rétrocompatibilité fixtures)",
     aLore(dbSecours, 6001) === true && pageLoreObjet(dbSecours, 6001)?.texte === "Texte secours.");
+}
+
+
+// --- ⚠️ AJOUT (21/10/2026, suite 10) : NAVIGATION PAR LIVRES (hiérarchie en jeu : catégorie → livre → pages) ---
+// Structure fidèle au VRAI Manifest FR vérifié le 21/10/2026 : racine « Légendes » = 4077680549 (scope 0),
+// 2 catégories, livres avec couvertures (displayProperties.icon), pages = records avec loreHash.
+{
+  const T_NOEUD = "DestinyPresentationNodeDefinition", T_RECORD = "DestinyRecordDefinition";
+  const noeud = (nom: string, extra: Record<string, unknown> = {}) => ({
+    displayProperties: { name: nom, description: "", ...(extra.icon ? { icon: extra.icon } : {}) },
+    ...extra,
+  });
+  const { db: dbLivres } = creerFausseDb({
+    [T_NOEUD]: {
+      // Racine « Légendes » (hash réel, scope 0)
+      4077680549: noeud("Légendes", { scope: 0, children: { presentationNodes: [{ presentationNodeHash: 100 }, { presentationNodeHash: 200 }] } }),
+      // Catégorie « La Lumière » avec icône
+      100: noeud("La Lumière", { scope: 0, icon: "/icons/lumiere.png", children: { presentationNodes: [{ presentationNodeHash: 1000 }, { presentationNodeHash: 1001 }] } }),
+      // Catégorie « Les Ténèbres » (sans icône)
+      200: noeud("Les Ténèbres", { scope: 0, children: { presentationNodes: [{ presentationNodeHash: 2000 }] } }),
+      // Livre « La Frontière sans foi ni loi » (2 pages) AVEC couverture
+      1000: noeud("La Frontière sans foi ni loi", { scope: 0, icon: "/icons/frontiere.png", children: { presentationNodes: [], records: [{ recordHash: 5001 }, { recordHash: 5002 }] } }),
+      // Livre « Histoires de Spectres » (1 page) SANS couverture
+      1001: noeud("Histoires de Spectres", { scope: 0, children: { presentationNodes: [], records: [{ recordHash: 5003 }] } }),
+      // Livre masqué (redacted) : exclu
+      1002: noeud("Livre secret", { scope: 0, redacted: true, children: { presentationNodes: [], records: [{ recordHash: 5004 }] } }),
+      // Livre dans la catégorie 2 (1 page, lore porté par un OBJET — garde la page + le parcours inverse)
+      2000: noeud("Légendes des oubliés, Vol.\u00a01", { scope: 0, icon: "/icons/oublies.png", children: { presentationNodes: [], records: [{ recordHash: 5005 }] } }),
+    },
+    [T_RECORD]: {
+      5001: { displayProperties: { name: "Ces terres maudites", description: "" }, loreHash: 8001, hash: 5001 },
+      5002: { displayProperties: { name: "Par cette langue", description: "" }, loreHash: 8002, hash: 5002 },
+      5003: { displayProperties: { name: "Une histoire de Spectre", description: "" }, loreHash: 8003, hash: 5003 },
+      5004: { displayProperties: { name: "Page secrète", description: "" }, loreHash: 8004, hash: 5004 }, // livre masqué : la page ne doit pas apparaître
+      5005: { displayProperties: { name: "Europe \u2013 1", description: "" }, loreHash: 8005, hash: 5005 }, // lore porté par l'item 6050
+    },
+    [T_LORE]: {
+      8001: lore("Ces terres maudites", "Texte de la première page du livre.", ""),
+      8002: lore("Par cette langue, soyez damnés", "Texte de la deuxième page.", ""),
+      8003: lore("Une histoire de Spectre", "Texte du Spectre.", ""),
+      8004: lore("Page secrète", "Ne doit pas être lisible.", ""),
+      8005: lore("Europe \u2013 1", "Lore de l'item Europe \u2013 1.", ""),
+      8006: lore("Lore sans corps", "", ""), // lore sans corps : page exclue
+    },
+    [T_OBJET]: {
+      // Item portant le lore 8005 (comme « Europe \u2013 1 » dans le vrai Manifest)
+      6050: objet("Europe \u2013 1", { itemType: 20, itemTypeDisplayName: "Livre", loreHash: 8005 }),
+    },
+  });
+  // Un record supplémentaire dans le livre 1000, sans loreHash (page sans texte : exclue)
+  (dbLivres as unknown as { __defs?: unknown });
+
+  const cats = categoriesDeLegendes(dbLivres);
+  ok("⚠️ suite 10 : la hiérarchie rend 2 catégories, DANS L'ORDRE DU MANIFEST (La Lumière, Les Ténèbres)",
+    cats.length === 2 && cats[0].titre === "La Lumière" && cats[1].titre === "Les Ténèbres", cats.map((c) => c.titre));
+  ok("⚠️ suite 10 : la catégorie porte son icône (chemin relatif) quand le Manifest en a une",
+    cats[0].icone === "/icons/lumiere.png" && cats[1].icone === undefined, cats.map((c) => c.icone));
+  const livresLumiere = cats[0].livres;
+  ok("⚠️ suite 10 : la catégorie « La Lumière » rend 2 livres (le livre masqué est EXCLU)",
+    livresLumiere.length === 2 && livresLumiere[0].titre === "La Frontière sans foi ni loi" && livresLumiere[1].titre === "Histoires de Spectres", livresLumiere.map((l) => l.titre));
+  const livreFrontiere = livresLumiere[0];
+  ok("⚠️ suite 10 : le livre « La Frontière sans foi ni loi » a 2 pages, DANS L'ORDRE DU MANIFEST (Ces terres maudites, puis Par cette langue, soyez damnés)",
+    livreFrontiere.pages.length === 2 && livreFrontiere.pages[0].titre === "Ces terres maudites" && livreFrontiere.pages[1].titre === "Par cette langue, soyez damnés", livreFrontiere.pages.map((p) => p.titre));
+  ok("⚠️ suite 10 : les pages ont l'identifiant stable « lore:<hash> », le texte du Lore, et PAS de doublon de titre",
+    livreFrontiere.pages[0].id === "lore:8001" && livreFrontiere.pages[0].texte === "Texte de la première page du livre." && livreFrontiere.pages[0].loreHash === 8001);
+  ok("⚠️ suite 10 : le livre porte sa COUVERTURE (URL complète Bungie) et sa catégorie",
+    livreFrontiere.couvertureUrl === "https://www.bungie.net/icons/frontiere.png" && livreFrontiere.categorie === "La Lumière", livreFrontiere.couvertureUrl);
+  ok("⚠️ suite 10 : un livre SANS icône n'a PAS de couverture (pas d'image cassée)",
+    livresLumiere[1].couvertureUrl === undefined && livresLumiere[1].categorie === "La Lumière", livresLumiere[1].couvertureUrl);
+  // Le lore 8005 est porté par l'item 6050 : la page GARDÉE dans le livre + parcours inverse
+  const pageEurope = cats[1].livres[0].pages[0];
+  ok("⚠️ suite 10 : un lore porté par un OBJET garde sa page dans le livre (Europe \u2013 1)",
+    pageEurope.id === "lore:8005" && pageEurope.titre === "Europe \u2013 1", pageEurope.id);
+  ok("⚠️ suite 10 : ... ET son parcours inverse (l'item 6050 est listé comme porteur)",
+    pageEurope.porteurs?.length === 1 && pageEurope.porteurs[0].hash === 6050 && pageEurope.porteurs[0].nom === "Europe \u2013 1", pageEurope.porteurs);
+  // livresDeSection aplatie la hiérarchie (pour la zone de lecture + ordre précédent/suivant)
+  const livresLegLivres = livresDeSection(dbLivres, "legendes");
+  ok("⚠️ suite 10 : `livresDeSection(legendes)` aplatie la hiérarchie en 3 livres (2 + 1), dans l'ordre catégorie → livre",
+    livresLegLivres.length === 3 && livresLegLivres[0].id === "legendes-livre:1000" && livresLegLivres[2].id === "legendes-livre:2000", livresLegLivres.map((l) => l.id));
+  ok("⚠️ suite 10 : l'ordre de lecture aplati enchaîne catégorie par catégorie, livre par livre, page par page",
+    JSON.stringify(ordrePages(livresLegLivres)) === JSON.stringify(["lore:8001", "lore:8002", "lore:8003", "lore:8005"]), ordrePages(livresLegLivres));
+  // Le lien profond retrouve une page de livre
+  const cibleLivre = trouverPage({ legendes: livresLegLivres }, "lore:8001", dbLivres);
+  ok("⚠️ suite 10 : le lien profond retrouve une page de livre (« lore:8001 » → livre « La Frontière sans foi ni loi »)",
+    cibleLivre?.livre.id === "legendes-livre:1000" && cibleLivre.page.titre === "Ces terres maudites", cibleLivre?.page.id);
+  // Recherche : la catégorie et le livre sont cherchés aussi
+  const rLumiere = rechercherPages({ legendes: livresLegLivres }, "lumière");
+  ok("⚠️ suite 10 : la recherche retrouve les pages d'une catégorie par son nom (« lumière → La Lumière », 3 pages)",
+    rLumiere.length === 3 && rLumiere.every((r) => r.categorie === "La Lumière"), rLumiere.map((r) => r.page.id));
+  const rFrontiere = rechercherPages({ legendes: livresLegLivres }, "frontière");
+  ok("⚠️ suite 10 : la recherche retrouve les pages d'un livre par son nom (« frontière », 2 pages)",
+    rFrontiere.length === 2 && rFrontiere.every((r) => r.livre.id === "legendes-livre:1000"), rFrontiere.map((r) => r.page.id));
+
+  // REPLI : sans arbre de présentation, retombe sur l'ancien comportement (livre plat « Tomes de Légendes »)
+  const { db: dbSansArbre } = creerFausseDb({
+    [T_LORE]: {
+      7001: lore("Le Gardien se lève", "Un Gardien se lève.", "Chapitre I"),
+      7002: lore("L'Ombre", "Deuxième page."),
+    },
+    [T_OBJET]: {
+      6001: objet("Izanagi \u2014 Burden", { itemType: 3, loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+    },
+    [T_LORE + "2"]: {}, // table bidon pour éviter toute confusion
+  });
+  const catsVides = categoriesDeLegendes(dbSansArbre);
+  ok("⚠️ suite 10 : REPLI — sans arbre de présentation, `categoriesDeLegendes` renvoie une liste VIDE",
+    catsVides.length === 0, catsVides.length);
+  const livresRepli = livresDeSection(dbSansArbre, "legendes");
+  ok("⚠️ suite 10 : REPLI — sans arbre, la section retombe sur le livre plat « Tomes de Légendes » (pages non référencées par des objets, triées par titre)",
+    livresRepli.length === 1 && livresRepli[0].id === "legendes" && livresRepli[0].titre === "Tomes de Légendes" && livresRepli[0].pages.length === 2 && livresRepli[0].pages[0].titre === "L'Ombre" && livresRepli[0].pages[1].titre === "Le Gardien se lève", livresRepli.map((l) => [l.id, l.pages.map((p) => p.titre)]));
+  ok("⚠️ suite 10 : sans Manifest, `categoriesDeLegendes` renvoie une liste vide sans erreur",
+    categoriesDeLegendes(null).length === 0);
 }
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);

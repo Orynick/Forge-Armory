@@ -4,14 +4,20 @@ import { obtenirDefinition, lireTable, idSqliteVersHash } from "../manifest/down
 import { normaliser } from "../manifest/search";
 import { BUCKET_HASH_VERS_SLOT, CLASS_TYPE_VERS_CLASSE } from "../../data/constantesManifest";
 import { CATEGORIE_FACTICE } from "../manifest/search";
-import type { DestinyItemDefinition, DestinyLoreDefinition } from "../../types/manifest";
+import type { DestinyItemDefinition, DestinyLoreDefinition, DestinyPresentationNodeDefinition, DestinyRecordDefinition } from "../../types/manifest";
 import type { SlotArmure } from "../../types/build";
 import type { ClasseArmure } from "../manifest/catalogueArmures";
 import { saisonDeLObjet, saisonParNumero } from "../../data/saisons";
-import type { LivreLore, ObjetPorteur, PageLore, SectionLegendarium } from "./types";
+import { urlIcone } from "../manifest/search";
+import type { CategorieLore, LivreLore, ObjetPorteur, PageLore, SectionLegendarium } from "./types";
 
 const TABLE_OBJETS = "DestinyInventoryItemDefinition";
 const TABLE_LORE = "DestinyLoreDefinition";
+/** FR : ⚠️ AJOUT (21/10/2026, suite 10) - tables de l'arbre de présentation (structure des livres de Lore D2). / EN: presentation-tree tables (the D2 lore book structure). */
+const TABLE_NOEUDS = "DestinyPresentationNodeDefinition";
+const TABLE_RECORDS = "DestinyRecordDefinition";
+/** FR : hash du nœud racine « Légendes » de l'onglet Lore (scope 0), vérifié sur le VRAI Manifest FR du 21/10/2026 : ses 4 enfants sont les catégories (L'Avant-garde, La Lumière, Crépuscule et aube, Les Ténèbres), leurs enfants les livres (109), leurs records les pages. / EN: hash of the Lore tab's "Legends" root node (scope 0), verified on the REAL FR Manifest of 2026-10-21: its 4 children are the categories, their children the books (109), their records the pages. */
+export const HASH_RACINE_LEGENDES = 4077680549;
 
 /** FR : ⚠️ AJOUT (21/10/2026, suite 9, diagnostic réel) - le hash de Lore d'un objet : dans le VRAI Manifest Bungie, le champ s'appelle **`loreHash`** (le diagnostic du 21/10 a montré 0 objet avec `lore` sur 38 894). `lore` est accepté en secours pour les anciennes fixtures de test. Renvoie `undefined` si l'objet n'a pas de Lore. / EN: ADDED - an item's lore hash: in the REAL Bungie Manifest, the field is **`loreHash`** (the 21/10 diagnostic showed 0 items with `lore` out of 38,894). `lore` is accepted as a fallback for old test fixtures. Returns `undefined` if the item has no lore. */
 function hashLoreDe(def: DestinyItemDefinition): number | undefined {
@@ -371,6 +377,90 @@ function livreCosmetiques(db: Database): LivreLore {
   return { id: "cosmetiques", titre: "Spectres, Vaisseaux, Passereaux", pages: trierPagesChrono(pages) };
 }
 
+/** FR : ⚠️ AJOUT (21/10/2026, suite 10) - lit TOUS les nœuds de présentation en UNE requête, indexés par hash (signé → non signé via `idSqliteVersHash`). Renvoie une Map vide si la table est absente (Manifest vieilli). / EN: ADDED - reads ALL presentation nodes in ONE query, indexed by hash. Returns an empty Map if the table is absent (old Manifest). */
+function lireNoeudsPresentation(db: Database): Map<number, DestinyPresentationNodeDefinition> {
+  const noeuds = new Map<number, DestinyPresentationNodeDefinition>();
+  let lignes: Array<{ id: number; json: string }>;
+  try {
+    const stmt = db.prepare(`SELECT id, json FROM ${TABLE_NOEUDS}`);
+    lignes = [];
+    while (stmt.step()) lignes.push(stmt.getAsObject() as { id: number; json: string });
+    stmt.free();
+  } catch {
+    return noeuds;
+  }
+  for (const ligne of lignes) {
+    try {
+      const def = JSON.parse(ligne.json) as DestinyPresentationNodeDefinition;
+      // ⚠️ CHANGÉ (21/10/2026, suite 10) : le hash vient de la COLONNE `id` (toujours présent dans le SQLite),
+      // pas du champ `hash` du JSON (les vieilles fixtures de test peuvent ne pas le porter).
+      noeuds.set(idSqliteVersHash(ligne.id), def);
+    } catch {
+      continue;
+    }
+  }
+  return noeuds;
+}
+
+/** FR : ⚠️ AJOUT (21/10/2026, suite 10) - lit un record (page d'un livre) par son hash, sans jamais planter. / EN: ADDED - reads a record (a book's page) by hash, never throws. */
+function lireRecord(db: Database, recordHash: number): DestinyRecordDefinition | undefined {
+  try {
+    return obtenirDefinition<DestinyRecordDefinition>(db, TABLE_RECORDS, recordHash);
+  } catch {
+    return undefined;
+  }
+}
+
+/** FR : ⚠️ AJOUT (21/10/2026, suite 10) - LA STRUCTURE DES LIVRES de Lore D2, telle qu'en jeu : l'arbre `DestinyPresentationNodeDefinition` depuis la racine « Légendes » (hash 4077680549, scope 0) : catégorie → livre → pages (records avec `loreHash`). Une page = un record avec un `loreHash` dont le Lore a un corps ; TITRE = NOM DU LORE (égal au nom du record en jeu, vérifié sur le vrai Manifest). Les lores portés par des objets (109, ex: « Europe – 1 » sur l'item « Europe – 1 ») gardent leur page ici ET leur parcours inverse (porteurs). REPLI : si l'arbre est absent ou vide (Manifest vieilli), retombe sur l'ancien comportement (un livre « Tomes de Légendes », pages non référencées par des objets, triées par titre). Vérifié sur le VRAI Manifest FR du 21/10/2026 : 4 catégories, 109 livres, 1 085 pages. / EN: ADDED - the D2 LORE BOOK STRUCTURE, as in game: the `DestinyPresentationNodeDefinition` tree from the "Legends" root (hash 4077680549, scope 0): category → book → pages (records with `loreHash`). A page = a record with a `loreHash` whose lore has a body; TITLE = the LORE's NAME (equal to the record's name in game, verified on the real Manifest). Lores carried by items (109, e.g. "Europe – 1" on the item "Europe – 1") keep their page here AND their reverse path (carriers). FALLBACK: if the tree is absent or empty (old Manifest), falls back to the old behavior (one "Tomes de Légendes" book, pages not referenced by items, sorted by title). Verified on the REAL FR Manifest of 2026-10-21: 4 categories, 109 books, 1,085 pages. */
+function categoriesLegendes(db: Database): CategorieLore[] {
+  const noeuds = lireNoeudsPresentation(db);
+  const racine = noeuds.get(HASH_RACINE_LEGENDES);
+  if (!racine) return [];
+  const categories: CategorieLore[] = [];
+  for (const enfant of racine.children?.presentationNodes ?? []) {
+    const noeudCat = noeuds.get(enfant.presentationNodeHash);
+    if (!noeudCat || noeudCat.redacted || noeudCat.blacklisted) continue;
+    const titreCat = noeudCat.displayProperties?.name?.trim();
+    if (!titreCat) continue;
+    const livres: LivreLore[] = [];
+    for (const enfantLivre of noeudCat.children?.presentationNodes ?? []) {
+      const noeudLivre = noeuds.get(enfantLivre.presentationNodeHash);
+      if (!noeudLivre || noeudLivre.redacted || noeudLivre.blacklisted) continue;
+      const titreLivre = noeudLivre.displayProperties?.name?.trim();
+      if (!titreLivre) continue;
+      const pages: PageLore[] = [];
+      for (const enfantRecord of noeudLivre.children?.records ?? []) {
+        const record = lireRecord(db, enfantRecord.recordHash);
+        const hashLore = record?.loreHash;
+        if (!record || record.redacted || record.blacklisted || hashLore === undefined) continue;
+        const lore = lireLore(db, hashLore);
+        const texte = corpsLore(lore);
+        if (!texte) continue; // 17 lores sans corps sur le vrai Manifest : pages vides, exclues
+        pages.push({
+          id: `lore:${hashLore}`,
+          titre: lore?.displayProperties?.name?.trim() || record.displayProperties?.name?.trim() || "Page sans titre",
+          sousTitre: lore?.subtitle?.trim() || undefined,
+          texte,
+          loreHash: hashLore,
+          // ⚠️ AJOUT (21/10/2026, suite 10) : les 109 lores portés par des objets gardent leur parcours inverse
+          porteurs: porteursDeLore(db, hashLore),
+        });
+      }
+      if (pages.length === 0) continue;
+      livres.push({
+        id: `legendes-livre:${enfantLivre.presentationNodeHash}`,
+        titre: titreLivre,
+        pages,
+        couvertureUrl: urlIcone(noeudLivre.displayProperties?.icon),
+        categorie: titreCat,
+      });
+    }
+    if (livres.length === 0) continue;
+    categories.push({ hash: enfant.presentationNodeHash, titre: titreCat, icone: noeudCat.displayProperties?.icon, livres });
+  }
+  return categories;
+}
+
 /** FR : une entrée DestinyLoreDefinition est une page de LÉGENDE (livre de Lore D2) quand elle n'est le Lore d'AUCUN objet du Manifest ; le Lore d'un objet (armes, armures, cosmétiques) est rangé dans les sections « objets » / « cosmétiques », jamais ici. C'est la séparation qui tient la promesse « comme en jeu » (les Légendes forment leurs propres livres). / EN: a DestinyLoreDefinition entry is a LEGENDS page (a D2 lore book) when it is the lore of NO item in the Manifest; an item's lore (weapons, armor, cosmetics) goes to the "objets"/"cosmétiques" sections, never here. This is what keeps the "like in game" promise (Legends form their own books). */
 function loresLegendes(db: Database, loresObjets: Set<number>): Array<{ hash: number; lore: DestinyLoreDefinition }> {
   let lignes: Array<{ id: number; json: string }>;
@@ -398,9 +488,11 @@ function loresLegendes(db: Database, loresObjets: Set<number>): Array<{ hash: nu
   return pages;
 }
 
-/** FR : construit les livres de la section « légendes » (D2) : un livre « Tomes de Légendes » avec les pages de Lore qui ne sont le Lore d'aucun objet (regroupées telles quelles ; éclatable plus tard si le Manifest porte une structure de livres). / EN: builds the books of the "légendes" (D2) section: one "Tomes de Légendes" book with the lore pages that are no item's lore (grouped as-is; splittable later if the Manifest carries a book structure). */
+/** FR : ⚠️ CHANGÉ (21/10/2026, suite 10) - construit les livres de la section « légendes » (D2) : la hiérarchie EN JEU (catégorie → livre → pages, couvertures) lue dans l'arbre de présentation, aplatie en livres pour la colonne latérale (la hiérarchie complète est exposée via `categoriesDeLegendes`). Si l'arbre est absent (Manifest vieilli), REPLI : un livre « Tomes de Légendes » avec les pages non référencées par des objets, triées par titre (comportement d'avant la suite 10). / EN: CHANGED - builds the "légendes" (D2) section's books: the IN-GAME hierarchy (category → book → pages, covers) read from the presentation tree, flattened to books for the sidebar (the full hierarchy is exposed via `categoriesDeLegendes`). If the tree is absent (old Manifest), FALLBACK: one "Tomes de Légendes" book with pages not referenced by items, sorted by title (pre-suite-10 behavior). */
 function livresLegendes(db: Database): LivreLore[] {
-  // ⚠️ CHANGÉ (21/10/2026, étape 2) : les Lores d'objets viennent de l'INDEX des porteurs (même balayage que le reste), pas d'un balayage séparé.
+  const categories = categoriesLegendes(db);
+  if (categories.length > 0) return categories.flatMap((c) => c.livres);
+  // Repli (Manifest sans arbre de présentation) : comportement d'avant la suite 10
   const loresObjets = indexPorteurs(db).loresReferencies;
   const pages: PageLore[] = [];
   for (const { hash, lore } of loresLegendes(db, loresObjets)) {
@@ -414,6 +506,16 @@ function livresLegendes(db: Database): LivreLore[] {
   }
   pages.sort((a, b) => a.titre.localeCompare(b.titre, "fr"));
   return pages.length > 0 ? [{ id: "legendes", titre: "Tomes de Légendes", pages }] : [];
+}
+
+/** FR : ⚠️ AJOUT (21/10/2026, suite 10) - la hiérarchie complète catégorie → livre → pages de la section « légendes » (pour la colonne latérale 3 niveaux). Vide si l'arbre de présentation est absent (la colonne retombe alors sur la liste plate de livres). / EN: ADDED - the full category → book → pages hierarchy of the "légendes" section (for the 3-level sidebar). Empty if the presentation tree is absent (the sidebar then falls back to the flat book list). */
+export function categoriesDeLegendes(db: Database | null | undefined): CategorieLore[] {
+  if (!db) return [];
+  try {
+    return categoriesLegendes(db);
+  } catch {
+    return [];
+  }
 }
 
 /** FR : les livres d'une section du Manifest D2 (les sections « grimoire » est D1, hors Manifest D2). / EN: the books of a D2 Manifest section ("grimoire" is D1, outside the D2 Manifest). */
@@ -438,6 +540,8 @@ export interface ResultatRechercheLore {
   section: SectionLegendarium;
   livre: LivreLore;
   page: PageLore;
+  /** FR : ⚠️ AJOUT (21/10/2026, suite 10) - nom de la catégorie du livre (section « légendes » avec hiérarchie), pour l'affichage du résultat. / EN: ADDED - the book's category name ("légendes" section with hierarchy), for the result display. */
+  categorie?: string;
 }
 
 export function rechercherPages(livresParSection: Partial<Record<SectionLegendarium, LivreLore[]>>, motCle: string): ResultatRechercheLore[] {
@@ -447,9 +551,12 @@ export function rechercherPages(livresParSection: Partial<Record<SectionLegendar
   for (const section of SECTIONS) {
     const livres = livresParSection[section.id] ?? [];
     for (const livre of livres) {
+      // ⚠️ AJOUT (21/10/2026, suite 10) : la catégorie du livre est cherchée aussi (ex: « lumière » retrouve « La Lumière »)
+      const haystackLivre = normaliser(`${livre.titre} ${livre.categorie ?? ""}`);
+      const livreMatch = haystackLivre.includes(cle);
       for (const page of livre.pages) {
         const haystack = normaliser(`${page.titre} ${page.sousTitre ?? ""} ${page.texte}`);
-        if (haystack.includes(cle)) resultats.push({ section: section.id, livre, page });
+        if (haystack.includes(cle) || livreMatch) resultats.push({ section: section.id, livre, page, categorie: livre.categorie });
       }
     }
   }

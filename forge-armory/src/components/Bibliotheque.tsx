@@ -5,12 +5,13 @@
 
 import { Database } from "sql.js";
 import { useEffect, useMemo, useState } from "react";
-import { SECTIONS, livresDeSection, ordrePages, rechercherPages, trouverPage } from "../lib/legendarium/modele";
+import { SECTIONS, categoriesDeLegendes, livresDeSection, ordrePages, rechercherPages, trouverPage } from "../lib/legendarium/modele";
 import type { DiagnosticLore } from "../lib/legendarium/modele";   // ⚠️ AJOUT (21/10/2026, suite 8) : type du diagnostic dev des Lores (bouton « Lire le Lore » absent)
 import type { ResultatRechercheLore } from "../lib/legendarium/modele";
 import { PALETTE, ereDeSection } from "../lib/legendarium/palette";
 import type { DiagnosticGrimoire } from "../lib/legendarium/grimoire"; // ⚠️ type uniquement : le module (et son JSON de 930 Ko) est importé dynamiquement plus bas
-import type { LivreLore, PageLore, ProvenanceObjet, SectionLegendarium } from "../lib/legendarium/types";
+import type { CategorieLore, LivreLore, PageLore, ProvenanceObjet, SectionLegendarium } from "../lib/legendarium/types";
+import { urlIcone } from "../lib/manifest/search";   // ⚠️ AJOUT (21/10/2026, suite 10) : URL complète des couvertures de livres (chemin relatif Bungie → https://www.bungie.net…)
 
 interface Props {
   db: Database | null;
@@ -47,10 +48,56 @@ export function BandeauLegendarium({ motCle, onChangerMotCle, dbPresent, nbResul
   );
 }
 
+/** FR : ⚠️ AJOUT (21/10/2026, suite 10) - hiérarchie EN JEU de la section « Légendes D2 » : catégorie → livre (avec sa COUVERTURE d'illustration et son nombre de pages) → pages. C'est la navigation de l'onglet Lore du jeu : la grille de couvertures de livres (à gauche) et les pages du livre ouvert. Les livres SANS couverture gardent un carré avec le titre (pas d'image cassée). / EN: ADDED - the IN-GAME hierarchy of the "Légendes D2" section: category → book (with its COVER illustration and page count) → pages. This is the game's Lore tab navigation: the book cover grid (left) and the open book's pages. Books WITHOUT a cover get a tile with the title (no broken image). */
+export function ArbreCategories({ categories, pageId, onOuvrirLivre }: {
+  categories: CategorieLore[];
+  pageId: string | null;
+  onOuvrirLivre: (l: LivreLore) => void;
+}) {
+  return (
+    <div data-arbre-categories="">
+      {categories.map((cat) => (
+        <section key={cat.hash} data-categorie={cat.hash} style={{ marginBottom: "0.7rem" }}>
+          <h4 data-categorie-titre="" style={{ margin: "0 0 0.3rem", fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9a968a", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            {cat.icone && <img src={urlIcone(cat.icone)} alt="" width={14} height={14} style={{ borderRadius: "2px" }} />}
+            {cat.titre}
+          </h4>
+          <ul data-livres-categorie="" style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(6.5rem, 1fr))", gap: "0.45rem" }}>
+            {cat.livres.map((l) => {
+              const active = l.pages.some((p) => p.id === pageId);
+              return (
+                <li key={l.id}>
+                  <button
+                    data-livre={l.id}
+                    aria-current={active ? "page" : undefined}
+                    onClick={() => onOuvrirLivre(l)}
+                    title={`${l.titre} — ${l.pages.length} page(s)`}
+                    style={{ display: "block", width: "100%", background: "none", border: active ? "1px solid #e8e4d8" : "1px solid #4a463c", borderRadius: "4px", cursor: "pointer", padding: 0, overflow: "hidden", color: active ? "#e8e4d8" : "#9a968a", textAlign: "center" }}
+                  >
+                    {l.couvertureUrl ? (
+                      <img data-couverture-livre="" src={l.couvertureUrl} alt={l.titre} width={104} height={58} style={{ display: "block", width: "100%", height: "auto", aspectRatio: "16 / 9", objectFit: "cover" }} loading="lazy" />
+                    ) : (
+                      <span data-couverture-absente="" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", aspectRatio: "16 / 9", fontSize: "0.68rem", padding: "0.25rem", background: "#1a1a1a" }}>{l.titre}</span>
+                    )}
+                    <span style={{ display: "block", fontSize: "0.72rem", padding: "0.2rem 0.25rem", lineHeight: 1.15 }}>{l.titre}</span>
+                    <span style={{ display: "block", fontSize: "0.65rem", color: "#7d7a70", paddingBottom: "0.25rem" }}>{l.pages.length} page{l.pages.length > 1 ? "s" : ""}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}
+
 /** FR : colonne latérale gauche (spécification §4 zone 2) : fil des quatre sections, puis les livres de la section active. / EN: left sidebar (spec §4 zone 2): the four sections, then the active section's books. */
-export function ColonneSections({ section, livres, pageId, grimoireEnChargement, onChangerSection, onOuvrirLivre }: {
+export function ColonneSections({ section, livres, categories, pageId, grimoireEnChargement, onChangerSection, onOuvrirLivre }: {
   section: SectionLegendarium;
   livres: LivreLore[];
+  /** FR : ⚠️ AJOUT (21/10/2026, suite 10) - hiérarchie catégorie → livre de la section « légendes » (liste vide = retombe sur la liste plate de livres, ex: repli Manifest vieilli). / EN: ADDED - the category → book hierarchy of the "légendes" section (empty = falls back to the flat book list, e.g. old Manifest fallback). */
+  categories?: CategorieLore[];
   pageId: string | null;
   grimoireEnChargement: boolean;
   onChangerSection: (s: SectionLegendarium) => void;
@@ -74,6 +121,11 @@ export function ColonneSections({ section, livres, pageId, grimoireEnChargement,
               {active && (
                 grimoireEnChargement && s.id === "grimoire" ? (
                   <p style={{ margin: "0.2rem 0 0", paddingLeft: "0.8rem", fontSize: "0.8rem", color: "#7d7a70" }}>Chargement du Grimoire…</p>
+                ) : s.id === "legendes" && categories && categories.length > 0 ? (
+                  // ⚠️ AJOUT (21/10/2026, suite 10) : hiérarchie EN JEU catégorie → livre (couvertures) → pages
+                  <div style={{ margin: "0.2rem 0 0", paddingLeft: "0.8rem" }}>
+                    <ArbreCategories categories={categories} pageId={pageId} onOuvrirLivre={onOuvrirLivre} />
+                  </div>
                 ) : livres.length > 0 ? (
                   <ul data-livres="" style={{ listStyle: "none", margin: "0.2rem 0 0", paddingLeft: "0.8rem" }}>
                     {livres.map((l) => (
@@ -130,7 +182,12 @@ export function ZoneLecture({ section, livre, page, idPrecedente, idSuivante, on
         <button data-nav-precedente="" disabled={!idPrecedente} onClick={() => idPrecedente && onOuvrirPage(idPrecedente)} style={styleBoutonNav}>← Précédent</button>
         <button data-nav-suivante="" disabled={!idSuivante} onClick={() => idSuivante && onOuvrirPage(idSuivante)} style={styleBoutonNav}>Suivant →</button>
       </div>
-      <p data-oeilleton="" style={{ color: ere.oeilleton, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 0.3rem" }}>{livre.titre}</p>
+      {/* FR : ⚠️ AJOUT (21/10/2026, suite 10) - quand le livre a une catégorie (section Légendes D2, hiérarchie en jeu), l'œilleton l'affiche : « La Lumière · La Frontière sans foi ni loi ». / EN: ADDED - when the book has a category (D2 Légendes section, in-game hierarchy), the eyebrow shows it: "The Light · The Forsaken Shore". */}
+      <p data-oeilleton="" style={{ color: ere.oeilleton, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 0.3rem" }}>{livre.categorie ? `${livre.categorie} · ${livre.titre}` : livre.titre}</p>
+      {/* FR : ⚠️ AJOUT (21/10/2026, suite 10) - COUVERTURE du livre (illustration, comme l'écran d'ouverture d'un livre en jeu), affichée EN HAUT de la page quand le Manifest en porte une. / EN: ADDED - the book's COVER (illustration, like a book's opening screen in game), shown at the TOP of the page when the Manifest carries one. */}
+      {livre.couvertureUrl && (
+        <img data-couverture-page="" src={livre.couvertureUrl} alt={livre.titre} style={{ display: "block", width: "100%", maxHeight: "16rem", objectFit: "cover", borderRadius: "4px", margin: "0 0 0.7rem" }} loading="lazy" />
+      )}
       <h4 style={{ fontFamily: ere.policeTitre, color: ere.couleurTitre, fontWeight: ere.graisseTitre, fontSize: "1.25rem", margin: "0 0 0.2rem" }}>{page.titre}</h4>
       {page.sousTitre && <p style={{ color: ere.oeilleton, fontStyle: "italic", fontSize: "0.9rem", margin: "0 0 0.4rem" }}>{page.sousTitre}</p>}
       {page.libelleChrono && <p style={{ color: ere.oeilleton, fontSize: "0.75rem", margin: "0 0 0.6rem" }}>{page.libelleChrono}</p>}
@@ -164,7 +221,7 @@ export function ResultatsRecherche({ motCle, resultats, onOuvrir }: { motCle: st
           <li key={`${r.section}:${r.page.id}`} style={{ marginBottom: "0.3rem" }}>
             <button onClick={() => onOuvrir(r)} style={{ background: "none", border: "1px solid #4a463c", borderRadius: "4px", color: "#e8e4d8", cursor: "pointer", padding: "0.35rem 0.6rem", textAlign: "left", width: "100%" }}>
               <span style={{ display: "block", fontSize: "0.95rem" }}>{r.page.titre}</span>
-              <span style={{ display: "block", fontSize: "0.75rem", color: "#9a968a" }}>{SECTIONS.find((s) => s.id === r.section)?.libelle} · {r.livre.titre}{r.page.sousTitre ? ` · ${r.page.sousTitre}` : ""}</span>
+              <span style={{ display: "block", fontSize: "0.75rem", color: "#9a968a" }}>{SECTIONS.find((s) => s.id === r.section)?.libelle} · {(r.categorie ?? r.livre.categorie) ? `${r.categorie ?? r.livre.categorie} · ` : ""}{r.livre.titre}{r.page.sousTitre ? ` · ${r.page.sousTitre}` : ""}</span>
             </button>
           </li>
         ))}
@@ -220,6 +277,8 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
       cosmetiques: livresDeSection(db, "cosmetiques"),
     };
   }, [db]);
+  // FR : ⚠️ AJOUT (21/10/2026, suite 10) - hiérarchie catégorie → livre → pages de la section « légendes » (navigation en jeu, avec couvertures). Vide si l'arbre de présentation est absent : la colonne retombe alors sur la liste plate.
+  const categoriesLegendes = useMemo(() => (db ? categoriesDeLegendes(db) : []), [db]);
   const livresParSection = useMemo(() => ({ grimoire: livresGrimoire ?? [], ...livresD2 }), [livresGrimoire, livresD2]);
   const livresSection = useMemo(() => (livresParSection[section] ?? []).filter((l) => l.pages.length > 0), [livresParSection, section]);
 
@@ -270,7 +329,7 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
     <div className="pilier-carte" data-vue-legendarium="">
       <BandeauLegendarium motCle={motCle} onChangerMotCle={setMotCle} dbPresent={Boolean(db)} nbResultats={resultats.length} />
       <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap", alignItems: "flex-start" }}>
-        <ColonneSections section={section} livres={livresSection} pageId={pageId} grimoireEnChargement={livresGrimoire === null} onChangerSection={changerSection} onOuvrirLivre={ouvrirLivre} />
+        <ColonneSections section={section} livres={livresSection} categories={categoriesLegendes} pageId={pageId} grimoireEnChargement={livresGrimoire === null} onChangerSection={changerSection} onOuvrirLivre={ouvrirLivre} />
         <div style={{ flex: "1 1 30rem", minWidth: "min(100%, 22rem)" }}>
           {rechercheActive ? (
             <ResultatsRecherche motCle={motCle} resultats={resultats} onOuvrir={ouvrirResultat} />
