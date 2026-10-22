@@ -1,3 +1,26 @@
+## 21/10/2026 (suite 5) — CI GitHub Actions : tsc + build strict + batterie logique automatisées
+
+Le dépôt n'avait **aucun** workflow (vérifié : 0 workflow GitHub Actions, aucun check sur les PR) : toutes les vérifications étaient manuelles. Ajout d'une CI qui rejoue la routine à chaque push et chaque PR :
+
+- **`.github/workflows/ci.yml`** : job `logique` sur `ubuntu-latest`, Node 22, cache npm sur le lockfile :
+  1. `npm ci` (installation reproductible)
+  2. `npx tsc -b` (compilateur strict)
+  3. `npm run build` (build strict complet)
+  4. `npm run test:logique` (les 30 suites, 430 contrôles)
+- **`scripts/test-logique.mjs`** (nouveau) + **`npm run test:logique`** : lanceur qui rejoue **toutes** les suites de `tests/logique/` une par une via le lanceur existant (`lancer.mjs`, esbuild + Node), affiche un ✅/❌ par suite avec son bilan, nettoie `_sortie/`, et sort en code 1 si UNE suite échoue (les autres continuent). Utilisable en local comme en CI.
+- **Non couvert par la CI** : les tests d'interface Playwright (`tests/ui/*.py`) — ils ont besoin d'un navigateur, ils restent à rejouer manuellement (même limite que les sandbox précédentes, documentée dans les entrées du 21/10).
+
+**Vérifié** : `npm run test:logique` en local → 30/30 suites, 430/430 contrôles, exit 0 ; avec une casse volontaire dans `icones.test.tsx` → 29/30, exit 1, la ligne en échec affichée (garde-fou exercé) ; `tsc -b` zéro erreur ; `npm run build` strict ✓ ; YAML du workflow validé. **À noter** : la CI ne démarre qu'au prochain push de cette branche — le premier run confirmera le workflow en conditions réelles. La protection de branche n'a pas pu être vérifiée via l'API (403, droits insuffisants) : si `main` est protégée avec « require status checks », il faudra ajouter le check `logique` dans les checks requis (Settings → Branches).
+
+## 21/10/2026 (suite 4) — batterie logique AU VERT : `icones` 11/11 et `reproductibilite-visuels` 7/7
+
+Les deux derniers échecs de la batterie de logique sont corrigés ; les 30 suites passent (aucun échec).
+
+- **`icones` 10/11 → 11/11 (test obsolète, code inchangé)** : le snapshot `tests/logique/instantanes/icones.json` attendait un `<link rel="preload">` devant l'icône d'élément officielle — un tag qu'aucun commit du dépôt n'a jamais émis (vérifié sur tout l'historique). Le rendu actuel (`<img>` seul, `src/components/icones/IconeElement.tsx`) est correct ; un `<link rel="preload">` émis dans le corps serait de toute façon déplacé (le preload appartient au `<head>`). Le snapshot est régénéré depuis le rendu actuel : seule l'entrée `element:officielle` change (le `<link>` disparaît), les 9 autres entrées sont identiques octet pour octet — le partage des tracés n'avait donc bien rien changé, comme le test l'attendait.
+- **`reproductibilite-visuels` 6/7 → 7/7 (intégration des visuels « Optimisation »)** : le commit `406b2cf` (« Ajout icone optimisation ») avait livré les 4 SVG dans l'archive de référence (`ressources-installateur/forge-armory/app-assets/`) et son catalogue, mais pas côté appli. Intégration faite : les 4 fichiers copiés dans `public/assets/` (identiques octet pour octet à l'archive, sha256 vérifiés) et catalogue `src/data/forge/forgeAssets.ts` repris tel quel depuis `forgeAssets.ts` de l'archive (77 → 81 actifs ; les deux fichiers sont désormais identiques octet pour octet, comme à l'intégration v7). Les entrées `selecteur.optimisation.*` (4316 × 1024) et `icones.optimisation[.selectionne]` (1024 × 1024) suivent l'ordre du `manifest.json`. Aucun composant ne consomme encore ces visuels : « Optimisation » sera branché plus tard, les fichiers sont prêts.
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓ ; batterie logique complète **30/30 suites, 100 % des contrôles** (`icones` 11/11, `reproductibilite-visuels` 7/7, `visuels` 20/20, `legendarium` 5/5, `teinte-icones` 14/14, et les 25 autres inchangées). **Non rejoué ici** : les tests d'interface Playwright (pas de navigateur dans cette sandbox — même limite documentée dans les entrées précédentes).
+
 ## 21/10/2026 (suite 3) — RÉGRESSION CORRIGÉE : barre de la Forge (boutons Armes/Armures en double, Collection/Inventaire vides)
 
 **Retour de l'utilisateur** (capture du zip de la branche main) : « Les boutons Armes et Armures apparaissent deux fois (ceux que j'ai entourés de rouge ne devraient pas être là). De plus ils sont vides, sans logo. Les boutons Collection et Inventaire sont absents, il n'y a que leur encart. C'est une vraie régression ! »
