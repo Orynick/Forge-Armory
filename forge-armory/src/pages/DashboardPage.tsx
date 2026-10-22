@@ -53,6 +53,7 @@ import TitreCategorie from "../components/TitreCategorie";
 import BoutonsVuesCompte from "../components/BoutonsVuesCompte";   // ⚠️ CHANGÉ (21/10/2026) : les deux boutons du bloc Connexion (remplace l'import direct de la fonction des visuels)
 import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic";
 import Bibliotheque from "../components/Bibliotheque";
+import type { ProvenanceObjet } from "../lib/legendarium/types";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : provenance transitoire (fiche Détails → page de Lore)
 import { EtatPonderations, lirePonderations, poidsActifsEnFractions } from "../lib/scoring/ponderations";
 
 export default function DashboardPage() {
@@ -198,6 +199,17 @@ export default function DashboardPage() {
   function retourDepuisForge() {
     setVue(cibleForge?.origine ?? "analyseur");
     setCibleForge(null);
+  }
+  // FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - LIEN PROFOND fiche Détails → Legendarium (spécification §6, piste (a) retenue : bascule de vue interne avec état en mémoire, PAS de route React Router, aucune persistance). `cibleLegendarium` mémorise la page cible (forme `item:<hashObjet>`, résolue par `trouverPage` côté Bibliotheque) et la provenance (bouton de retour vers l'objet). Les vues d'origine restent MONTÉES (cachées) : le retour retrouve tout tel quel.
+  const [cibleLegendarium, setCibleLegendarium] = useState<{ pageId: string; provenance: ProvenanceObjet } | null>(null);
+  function ouvrirLoreDepuisObjet(itemHash: number, nomObjet: string) {
+    setCibleLegendarium({ pageId: `item:${itemHash}`, provenance: { itemHash, nomObjet, origine: vue === "forge" ? "forge" : vue === "loadouts" ? "loadouts" : "analyseur" } });
+    setVue("bibliotheque");
+    window.scrollTo({ top: 0 });
+  }
+  function retourDepuisLegendarium() {
+    setVue(cibleLegendarium?.provenance.origine ?? "analyseur");
+    setCibleLegendarium(null);
   }
   // FR : ⚠️ AJOUT (07/10/2026, v0.3.7) - après « Charger » dans l'onglet « Load-outs », la page revient au Build Analyzer ET amène le bloc « Mon Build » à l'écran : sans cela, l'utilisateur se retrouvait en haut d'une longue
   // page, loin du build chargé, et croyait à un bug. Le compteur déclenche l'effet ci-dessous à chaque chargement (même si c'est le même build deux fois de suite).
@@ -501,7 +513,7 @@ export default function DashboardPage() {
         </div>
 
         {erreurTest && <p style={{ color: "#e08080", margin: "0.5rem 0 0" }}>⚠️ {erreurTest}</p>}
-        {/* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur, capture annotée) - « Carrière » (au-dessus) et « Accomplissements » : même taille, alignés, placés entre le titre et le statut (grille `pilier-carte--connexion`), MASQUÉS hors connexion (bloc `connecte &&`). Le composant `BoutonsVuesCompte` porte la taille et le cadre communs. / EN: ⚠️ CHANGED - the two buttons: same size, aligned, between the title and the status; hidden when not connected. */}
+        {/* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur, capture annotée) - « Carrière » (au-dessus) et « Accomplissements » : même taille, alignés, placés entre le titre et le statut (grille `pilier-carte--connexion`), MASQUÉS hors connexion (bloc `connecte &&`). Le composant `BoutonsVuesCompte` porte la taille et le cadre communs. ⚠️ 21/10 (suite 8) : le déplacement hors du bloc Connexion (testé en suite 7) est ANNULÉ — régression signalée par l'utilisateur ; le bug « pop-up qui ne s'ouvre pas hors Build Analyzer » est à traiter séparément (TODO main §25). / EN: CHANGED - the two buttons: same size, aligned, between the title and the status; hidden when not connected. The move outside the Connection block (tried in suite 7) is REVERTED - user-reported regression. */}
         {connecte && <BoutonsVuesCompte onCarriere={() => setCarriereOuverte(true)} onAccomplissements={() => setTiroirTriomphesOuvert(true)} />}
 
         {memberships.length > 1 && (
@@ -520,8 +532,8 @@ export default function DashboardPage() {
       {/* FR : ⚠️ CHANGÉ (06/10/2026, v0.3.5) - NOUVEAUX BOUTONS (fournis par l'utilisateur) et troisième vue « Load-outs » : voir components/SelecteurVues.tsx. / EN: ⚠️ CHANGED - NEW BUTTONS and a third view. */}
       <SelecteurVues vue={vue} onChanger={setVue} />
 
-      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
-      {vue === "bibliotheque" && <Bibliotheque db={db} />}
+      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} onLireLore={ouvrirLoreDepuisObjet} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
+      {vue === "bibliotheque" && <Bibliotheque db={db} pageCible={cibleLegendarium?.pageId} provenance={cibleLegendarium?.provenance} onRetourObjet={cibleLegendarium ? retourDepuisLegendarium : undefined} />}   {/* ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : lien profond fiche Détails → page de Lore + retour vers l'objet */}
 
       {/* FR : ⚠️ AJOUT (06/10/2026, v0.3.5) - vue « Load-outs » : le MÊME panneau que le tiroir, en pleine page (mode « page »). Le tiroir, lui, est masqué avec la vue Build Analyzer (qui reste montée) : les deux se tiennent
       à jour par l'événement du stockage. « Charger » ramène au Build Analyzer pour montrer le build chargé.
@@ -563,6 +575,7 @@ export default function DashboardPage() {
         cible={cibleInventaire}
         onEffacerCible={() => setCibleInventaire(null)}
         onOuvrirForge={ouvrirForge}   // ⚠️ AJOUT (14/10/2026, v0.4.9) : bouton « Forge » de la fenêtre Détails (Mon Inventaire et Coffre)
+        onLireLore={ouvrirLoreDepuisObjet}   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : bouton « Lire le Lore » de la popup Détails du Build Analyzer
       />
 
       {/* FR : ⚠️ AJOUT (01/10/2026) - contrôle de l'anti-champion des armes exotiques (dev). / EN: exotic anti-champion check (dev). */}

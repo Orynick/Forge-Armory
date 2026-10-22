@@ -53,6 +53,11 @@ const FILIGRANE_VERS_SAISON: Record<number, number> = {
   // FR : ⚠️ CHANGÉ (19/10/2026, second retour de test : les chemins de filigrane du Manifest de l'utilisateur sont en HEXA, la jointure par le chemin ne matched jamais) - la jointure est désormais PAR LE HASH DE L'OBJET (la table de DIM elle-même, seasons_unfiltered : 57 439 objets).
   ok("SAISON PAR OBJET : le hash de l'objet filigrane 4772275 (l'ancienne clé de test) résout toujours la saison 12 — la table objet est un SUR-ENSEMBLE de l'ancienne table filigrane", saisonDeLObjet(4772275) === 12, saisonDeLObjet(4772275));
   ok("un hash absent de la table ou undefined : aucune saison (undefined, jamais estimée)", saisonDeLObjet(999999999) === undefined && saisonDeLObjet(undefined) === undefined);
+  // ⚠️ AJOUT (22/10/2026, suite 11 Legendarium, validation VRAI Manifest) : le JSON de DIM stocke les hashes en NON SIGNÉ, le Manifest en SIGNÉ — les deux formes doivent résoudre.
+  ok("⚠️ suite 11 : un hash NÉGATIF (signé 32 bits, ex: -2147005609 = Grèves de l'hymne triomphal) résout via sa forme non signée (2147961687 → saison 28)",
+    saisonDeLObjet(-2147005609) === 28, saisonDeLObjet(-2147005609));
+  ok("⚠️ suite 11 : un hash POSITIF résout directement (ex: 236588 → saison 11)", saisonDeLObjet(236588) === 11, saisonDeLObjet(236588));
+  ok("⚠️ suite 11 : un hash négatif ABSENT de la table reste undefined (jamais estimé)", saisonDeLObjet(-999999999) === undefined, saisonDeLObjet(-999999999));
 
   console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);
   process.exit(res.every(Boolean) ? 0 : 1);
