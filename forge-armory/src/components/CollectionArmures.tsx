@@ -2,6 +2,7 @@
 // Une fenêtre par armure : son ENSEMBLE et ses bonus (Armor 3.0), puis ses EMPLACEMENTS lus dans la définition du modèle (archétype, amélioration… avec tous les plugs possibles et leurs bonus de statistiques). Les emplacements de MODS (listes très longues) et COSMÉTIQUES sont repliés par défaut (cases à cocher). ⚠️ Structure réelle des armures non vérifiée sur le Manifest de l'utilisateur : voir le diagnostic en `npm run dev`. EN: ⚠️ ADDED - the game's armors (Manifest) with their sockets and possible plugs, greyed when never obtained; read-only.
 import { useEffect, useMemo, useState } from "react";
 import type { Database } from "sql.js";
+import BoutonLireLore from "./BoutonLireLore";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : bouton « Lire le Lore » (fiche → page de Lore)
 import type { DestinyMembership } from "../lib/bungie/api";
 import { construireCatalogueArmures, filtrerArmures, valeursDistinctesArmures, FILTRES_ARMURES_PAR_DEFAUT, ArmureCatalogue, FiltresArmures } from "../lib/manifest/catalogueArmures";
 import { lireCollections, classerObtention, ObtenusParCollectible } from "../lib/bungie/collections";
@@ -22,9 +23,14 @@ const signe = (n: number) => (n > 0 ? `+${n}` : `−${Math.abs(n)}`);
 /** FR : « Santé +17 · Classe +12 » : les bonus de statistiques d'un plug, dans l'ordre habituel des six statistiques. / EN: a plug's stat bonuses. */
 const texteStats = (p: PlugArmure) => ORDRE_STATS.filter((k) => p.stats[k]).map((k) => `${LIBELLES_STAT[k]} ${signe(p.stats[k] as number)}`).join(" · ");
 
-interface Props { db: Database | null; membership: DestinyMembership | null }
+interface Props {
+  db: Database | null;
+  membership: DestinyMembership | null;
+  /** FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - clic du bouton « Lire le Lore » (fiche Détails → Legendarium). / EN: ⚠️ ADDED - "Read the Lore" click (Details sheet → Legendarium). */
+  onLireLore?: (itemHash: number, nomObjet: string) => void;
+}
 
-export default function CollectionArmures({ db, membership }: Props) {
+export default function CollectionArmures({ db, membership, onLireLore }: Props) {
   const [armures, setArmures] = useState<ArmureCatalogue[] | null>(null);
   const [lues, setLues] = useState(0);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -129,6 +135,8 @@ export default function CollectionArmures({ db, membership }: Props) {
               </span>
               <button onClick={() => { setOuverte(null); setDiagnostic(null); }} aria-label="Fermer">✕</button>
             </div>
+            {/* FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - « Lire le Lore » : EN HAUT DE FICHE, JUSTIFIÉ À DROITE, SOUS LA CROIX (spécification §6), affiché UNIQUEMENT si l'objet a un Lore. / EN: ⚠️ ADDED - "Read the Lore": top of sheet, right-justified, under the close cross (spec §6), shown ONLY if the item has a lore. */}
+            {onLireLore && <BoutonLireLore db={db} itemHash={ouverte.hash} nomObjet={ouverte.nom ?? ""} onLireLore={onLireLore} />}
             <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0.2rem 0 0.4rem" }}>{[LIBELLES_SLOT[ouverte.slot], ouverte.classe ? CLASSES[ouverte.classe] : "", ouverte.estExotique ? "Exotique" : ouverte.rarete, obtentionDe(ouverte) === "jamais" ? "jamais obtenue" : obtentionDe(ouverte) === "obtenu" ? "obtenue" : ""].filter(Boolean).join(" · ")} — consultation : rien n'est simulé ni modifié.</p>
             {bonus && (
               <div data-bonus-ensemble="" style={{ margin: "0 0 0.7rem", padding: "0.4rem 0.6rem", border: "1px solid #2b3040", borderRadius: 8, background: "#0f1218" }}>

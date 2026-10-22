@@ -27,6 +27,7 @@ import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 
 import { ordonnerColonnesPourAffichage, libelleColonne } from "../lib/manifest/colonnesArme";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : règles de tri et d'étiquette partagées avec la Forge
 import TitreRepliable from "./TitreRepliable";
+import BoutonLireLore from "./BoutonLireLore";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : bouton « Lire le Lore » de la popup Détails (Build Analyzer)
 import { useState, useMemo, useEffect, useRef } from "react";
 import { defilerVers } from "../lib/defilerVers";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : « Aller à »
 import { surlignerVerbesConnus, IconeElementArme, IconeMunitionArme } from "./RenduTextePerk";
@@ -97,6 +98,8 @@ interface Props {
   onObjetsCharges?: (objets: GearPiece[] | null) => void;
   /** FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - bouton « Forge » de la fenêtre Détails d'une ARME possédée : envoie l'arme à la vue Inventaire de la Forge (absent : pas de bouton). / EN: ⚠️ ADDED - "Forge" button of a weapon's Details window. */
   onOuvrirForge?: (piece: GearPiece) => void;
+  /** FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - clic du bouton « Lire le Lore » de la popup Détails : aiguille vers le Legendarium (remonté à DashboardPage). / EN: ADDED - "Read the Lore" click from the Details popup: routes to the Legendarium (lifted to DashboardPage). */
+  onLireLore?: (itemHash: number, nomObjet: string) => void;
   /** FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - voir `CibleInventaire`. `onEffacerCible` retire le filtre (bouton du bandeau, ou « Réinitialiser les filtres »). / EN: see CibleInventaire. */
   cible?: CibleInventaire | null;
   onEffacerCible?: () => void;
@@ -235,6 +238,7 @@ function LigneObjet({
   onTransferer,
   transfertBloque = false,
   onOuvrirForge,
+  onLireLore,
 }: {
   piece: GearPiece;
   db: Database;
@@ -246,6 +250,8 @@ function LigneObjet({
   transfertBloque?: boolean;
   /** FR : ⚠️ AJOUT (v0.4.9) - bouton « Forge » de la fenêtre Détails (armes possédées seulement). / EN: Forge button of the Details window. */
   onOuvrirForge?: (p: GearPiece) => void;
+  /** FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - bouton « Lire le Lore » de la popup Détails (haut de popup, justifié à droite, sous la croix) : aiguille vers le Legendarium. Absent : pas de bouton. / EN: ADDED - "Read the Lore" button of the Details popup (top, right-justified, under the cross): routes to the Legendarium. */
+  onLireLore?: (itemHash: number, nomObjet: string) => void;
 }) {
   // FR : ⚠️ AJOUT (03/08/2026) - panneau "Détails" dépliable, pour l'instant
   // limité aux armes (demande explicite de l'utilisateur) : montre le roll
@@ -544,6 +550,8 @@ function LigneObjet({
                 ✕
               </button>
             </div>
+            {/* FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - « Lire le Lore » : EN HAUT DE POPUP, JUSTIFIÉ À DROITE, SOUS LA CROIX (spécification §6), affiché UNIQUEMENT si l'objet a un Lore. / EN: ADDED - "Read the Lore": top of popup, right-justified, under the close cross (spec §6), shown ONLY if the item has a lore. */}
+            {onLireLore && <BoutonLireLore db={db} itemHash={piece.itemHash} nomObjet={piece.nom ?? ""} onLireLore={onLireLore} />}
             {/* FR : ⚠️ AJOUT (04/08/2026) - bonus de Set complets dans la
             popup "Détails" des armures (avec leurs descriptions), demande
             de l'utilisateur. Placé EN HAUT : c'est l'information la plus
@@ -670,7 +678,7 @@ function trierEtGrouperAvecVides(pieces: GearPiece[]): Array<{ slot: SlotArme | 
   return ORDRE_SLOTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) }));
 }
 
-export default function SelecteurInventaire({ membership, db, onAjouterObjet, onObjetsCharges, cible, onEffacerCible, onOuvrirForge }: Props) {
+export default function SelecteurInventaire({ membership, db, onAjouterObjet, onObjetsCharges, cible, onEffacerCible, onOuvrirForge, onLireLore }: Props) {
   const [objets, setObjets] = useState<GearPiece[] | null>(null);
   // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - « Aller à » : à chaque demande, on ouvre le bloc s'il est replié puis on l'amène à l'écran. Petit délai pour que la page ait fini de se réorganiser (sections ouvertes) avant le défilement. / EN: open the block and scroll to it.
   const refBloc = useRef<HTMLDetailsElement>(null);
@@ -1167,7 +1175,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           ) : (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                               {g.items.map((p) => (
-                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} />
+                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
                               ))}
                             </ul>
                           )}
@@ -1186,7 +1194,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           ) : (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                               {g.items.map((p) => (
-                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} />
+                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
                               ))}
                             </ul>
                           )}
@@ -1341,7 +1349,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                       }}
                     >
                       {g.items.map((p) => (
-                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} />
+                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
                       ))}
                     </ul>
                   </details>
@@ -1385,7 +1393,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           }}
                         >
                           {g.items.map((p) => (
-                            <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} afficherStats onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} />
+                            <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} afficherStats onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
                           ))}
                         </ul>
                       </div>
