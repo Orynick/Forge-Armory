@@ -1,3 +1,17 @@
+## 21/10/2026 (suite 5) — CI GitHub Actions : tsc + build strict + batterie logique automatisées
+
+Le dépôt n'avait **aucun** workflow (vérifié : 0 workflow GitHub Actions, aucun check sur les PR) : toutes les vérifications étaient manuelles. Ajout d'une CI qui rejoue la routine à chaque push et chaque PR :
+
+- **`.github/workflows/ci.yml`** : job `logique` sur `ubuntu-latest`, Node 22, cache npm sur le lockfile :
+  1. `npm ci` (installation reproductible)
+  2. `npx tsc -b` (compilateur strict)
+  3. `npm run build` (build strict complet)
+  4. `npm run test:logique` (les 30 suites, 430 contrôles)
+- **`scripts/test-logique.mjs`** (nouveau) + **`npm run test:logique`** : lanceur qui rejoue **toutes** les suites de `tests/logique/` une par une via le lanceur existant (`lancer.mjs`, esbuild + Node), affiche un ✅/❌ par suite avec son bilan, nettoie `_sortie/`, et sort en code 1 si UNE suite échoue (les autres continuent). Utilisable en local comme en CI.
+- **Non couvert par la CI** : les tests d'interface Playwright (`tests/ui/*.py`) — ils ont besoin d'un navigateur, ils restent à rejouer manuellement (même limite que les sandbox précédentes, documentée dans les entrées du 21/10).
+
+**Vérifié** : `npm run test:logique` en local → 30/30 suites, 430/430 contrôles, exit 0 ; avec une casse volontaire dans `icones.test.tsx` → 29/30, exit 1, la ligne en échec affichée (garde-fou exercé) ; `tsc -b` zéro erreur ; `npm run build` strict ✓ ; YAML du workflow validé. **À noter** : la CI ne démarre qu'au prochain push de cette branche — le premier run confirmera le workflow en conditions réelles. La protection de branche n'a pas pu être vérifiée via l'API (403, droits insuffisants) : si `main` est protégée avec « require status checks », il faudra ajouter le check `logique` dans les checks requis (Settings → Branches).
+
 ## 21/10/2026 (suite 4) — batterie logique AU VERT : `icones` 11/11 et `reproductibilite-visuels` 7/7
 
 Les deux derniers échecs de la batterie de logique sont corrigés ; les 30 suites passent (aucun échec).
