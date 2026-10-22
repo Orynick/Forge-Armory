@@ -58,13 +58,20 @@ ok("fixture : les Légendes forment un livre avec 2 pages (la page sans corps et
   livresLegendes.length === 1 && livresLegendes[0].pages.length === 2 && livresLegendes[0].pages.every((p) => /^lore:70\d\d$/.test(p.id)), livresLegendes[0]?.pages.map((p) => p.id));
 
 const livresObjets = livresDeSection(db, "objets");
-// ⚠️ CHANGÉ (22/10/2026, suite 12) : livre Cinétiques (REPLIABLE DE NOMS « listePages », sans groupe) + livre « Autres armures » (groupe « Ensembles d'armures » ; pas de collectibles dans les fixtures projet)
-const livreArmures = livresObjets.find((l) => l.id === "objets-armures-autres");
+// ⚠️ CHANGÉ (22/10/2026, suite 14) : livre Cinétiques (REPLIABLE DE NOMS « listePages », sans groupe) + UN SEUL livre « Ensembles d'armures » (repliable de CLASSES ; pas de collectibles dans les fixtures projet → un seul ensemble « Autres armures »)
+const livreArmures = livresObjets.find((l) => l.id === "objets-armures");
 const livreArmes = livresObjets.find((l) => l.id === "objets-armes-cinetique");
 ok("fixture : un livre « Cinétiques » en REPLIABLE DE NOMS (`listePages`, sans groupe) avec l'arme exotique (seule porteuse d'armes)",
   livreArmes?.listePages === true && livreArmes.groupe === undefined && livreArmes?.pages.length === 1 && livreArmes.pages[0].id === "lore:7101", livresObjets.map((l) => `${l.groupe ?? "listePages"}/${l.titre}`));
-ok("fixture : RÈGLE VERROUILLÉE respectée — Titan (casque→gants→torse→jambes→marque) puis Chasseur (casque→marque), dans le livre « Autres armures »",
-  livreArmures?.groupe === "Ensembles d'armures" && JSON.stringify(livreArmures?.pages.map((p) => p.id)) === JSON.stringify(["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114", "lore:7120", "lore:7121"]), livreArmures?.pages.map((p) => p.id));
+ok("fixture : RÈGLE VERROUILLÉE respectée — Titan (casque→gants→torse→jambes→marque) puis Chasseur (casque→marque), dans le livre « Ensembles d'armures » (ordre verrouillé global)",
+  livreArmures?.titre === "Ensembles d'armures" && JSON.stringify(livreArmures?.pages.map((p) => p.id)) === JSON.stringify(["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114", "lore:7120", "lore:7121"]), livreArmures?.pages.map((p) => p.id));
+ok("fixture : suite 14 — le livre « Ensembles d'armures » porte `groupesPages` = 2 classes (Titan 5 pièces, Chasseur 2 pièces), chaque groupe a `ensembles` = 1 sous-groupe « Autres armures » (pas de collectibles dans les fixtures projet)",
+  livreArmures?.groupesPages?.length === 2 &&
+  livreArmures.groupesPages[0].classe === "titan" && livreArmures.groupesPages[0].ensembles?.length === 1 && livreArmures.groupesPages[0].ensembles[0].titre === "Autres armures" &&
+  JSON.stringify(livreArmures.groupesPages[0].ensembles[0].pages.map((p) => p.id)) === JSON.stringify(["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114"]) &&
+  livreArmures.groupesPages[1].classe === "chasseur" && livreArmures.groupesPages[1].ensembles?.length === 1 &&
+  JSON.stringify(livreArmures.groupesPages[1].ensembles[0].pages.map((p) => p.id)) === JSON.stringify(["lore:7120", "lore:7121"]),
+  livreArmures?.groupesPages?.map((g) => `${g.classe}→${g.ensembles?.map((e) => `${e.titre}(${e.pages.length})`).join(",")}`));
 
 const livresCosm = livresDeSection(db, "cosmetiques");
 ok("fixture : le Spectre est listé dans le livre « Spectres » en REPLIABLE DE NOMS (`listePages`, sans groupe ; itemType 24 ; le Vaisseau sans Lore est exclu)",

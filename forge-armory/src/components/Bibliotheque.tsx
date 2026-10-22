@@ -10,10 +10,9 @@ import type { DiagnosticLore } from "../lib/legendarium/modele";   // ⚠️ AJO
 import type { ResultatRechercheLore } from "../lib/legendarium/modele";
 import { PALETTE, ereDeSection } from "../lib/legendarium/palette";
 import type { DiagnosticGrimoire } from "../lib/legendarium/grimoire"; // ⚠️ type uniquement : le module (et son JSON de 930 Ko) est importé dynamiquement plus bas
-import type { CategorieLore, LivreLore, PageLore, ProvenanceObjet, SectionLegendarium } from "../lib/legendarium/types";
+import type { CategorieLore, GroupeClassePages, LivreLore, PageLore, ProvenanceObjet, SectionLegendarium } from "../lib/legendarium/types";
 import { urlIcone } from "../lib/manifest/search";   // ⚠️ AJOUT (21/10/2026, suite 10) : URL complète des couvertures de livres (chemin relatif Bungie → https://www.bungie.net…)
 import IconeClasse, { LIBELLES as LIBELLES_CLASSE } from "./icones/IconeClasse";   // ⚠️ AJOUT (22/10/2026, suite 13) : icône locale de classe (repli si le Manifest n'en porte pas)
-import type { ClasseArmure } from "../lib/manifest/catalogueArmures";   // ⚠️ AJOUT (22/10/2026, suite 13)
 
 interface Props {
   db: Database | null;
@@ -123,13 +122,11 @@ function LigneLivre({ titre, nbPages, actif, onClick, dataAttr }: {
 }
 
 /** FR : ⚠️ AJOUT (22/10/2026, suite 11) - un GROUPE REPLIABLE de livres (dans la colonne latérale) : un titre cliquable (déplier/replier) + la liste des livres quand il est ouvert. REPLIÉ PAR DÉFAUT. Utilisé pour la section « Armes et Armures » (« Ensembles d'armures » → un livre par ensemble). ⚠️ CHANGÉ (22/10/2026, suite 12) : chaque livre est rendu par `LigneLivre` (compteur de pages justifié à droite sur une ligne). / EN: ADDED - a COLLAPSIBLE group of books (in the sidebar): a clickable title (expand/collapse) + the book list when open. COLLAPSED BY DEFAULT. Used for the "Armes et Armures" section ("Ensembles d'armures" → one book per set). CHANGED - each book is rendered by `LigneLivre` (page count justified to the right on one line). */
-function GroupeLivres({ groupe, livres, pageId, onOuvrirLivre, onOuvrirPage }: {
+function GroupeLivres({ groupe, livres, pageId, onOuvrirLivre }: {
   groupe: string;
   livres: LivreLore[];
   pageId: string | null;
   onOuvrirLivre: (l: LivreLore) => void;
-  /** FR : ⚠️ AJOUT (22/10/2026, suite 13) - ouvre une PAGE directement (niveau 3 : pièces d'un ensemble, classées). / EN: ADDED - opens a PAGE directly (level 3: set pieces, by class). */
-  onOuvrirPage: (id: string) => void;
 }) {
   // FR : replié par défaut (état en mémoire uniquement, lecture passive).
   const [ouvert, setOuvert] = useState(false);
@@ -150,12 +147,7 @@ function GroupeLivres({ groupe, livres, pageId, onOuvrirLivre, onOuvrirPage }: {
         <ul data-livres="" style={{ listStyle: "none", margin: "0.2rem 0 0.4rem", padding: 0, paddingLeft: "1rem" }}>
           {livres.map((l) => (
             <li key={l.id}>
-              {/* ⚠️ AJOUT (22/10/2026, suite 13) : un livre avec `groupesPages` (ensemble d'armures) s'ouvre en DEUX NIVEAUX repliables (Ensemble → Classe → pièces) ; sinon LigneLivre classique. */}
-              {l.groupesPages && l.groupesPages.length > 0 ? (
-                <LivreAvecGroupes livre={l} pageId={pageId} onOuvrirPage={onOuvrirPage} />
-              ) : (
-                <LigneLivre titre={l.titre} nbPages={l.pages.length} actif={l.pages.some((p) => p.id === pageId)} onClick={() => onOuvrirLivre(l)} dataAttr={{ "data-livre": l.id }} />
-              )}
+              <LigneLivre titre={l.titre} nbPages={l.pages.length} actif={l.pages.some((p) => p.id === pageId)} onClick={() => onOuvrirLivre(l)} dataAttr={{ "data-livre": l.id }} />
             </li>
           ))}
         </ul>
@@ -164,13 +156,13 @@ function GroupeLivres({ groupe, livres, pageId, onOuvrirLivre, onOuvrirPage }: {
   );
 }
 
-/** FR : ⚠️ AJOUT (22/10/2026, suite 13, remarque utilisateur) - un livre d'ENSEMBLE D'ARMURES avec un SECOND NIVEAU REPLIABLE PAR CLASSE : niveau 1 = le livre (l'ensemble, replié par défaut, compteur justifié à droite) ; niveau 2 = la CLASSE (Titan/Chasseur/Arcaniste, dans l'ordre verrouillé, avec icône Manifest quand disponible sinon icône locale `IconeClasse`, repliée par défaut) ; niveau 3 = la liste des NOMS DE PIÈCES (casque, gants…), chaque nom ouvre DIRECTEMENT la page de Lore. Chemin : Ensemble → Classe → sélection de la page à lire. / EN: ADDED - an ARMOR SET book with a SECOND COLLAPSIBLE LEVEL BY CLASS: level 1 = the book (the set, collapsed by default, count justified right); level 2 = the CLASS (Titan/Hunter/Warlock, locked order, Manifest icon when available else local `IconeClasse`, collapsed by default); level 3 = the list of PIECE NAMES (helmet, gauntlets…), each name opens the lore page DIRECTLY. Path: Set → Class → pick the page to read. */
+/** FR : ⚠️ CHANGÉ (22/10/2026, suite 14, correction d'un malentendu) - un livre affiché comme un REPLIABLE DE CLASSES (`livre.groupesPages`) : niveau 1 = le livre (replié par défaut, compteur de pages justifié à droite) ; niveau 2 = la CLASSE (Titan/Chasseur/Arcaniste, dans l'ordre verrouillé, avec icône Manifest quand disponible sinon icône locale `IconeClasse`, repliée par défaut) ; niveau 3 = SOIT un sous-niveau repliable PAR ENSEMBLE (nom de l'ensemble → liste des noms de pièces, clic direct — hiérarchie ARMURES : Classe → Ensemble → pièces), SOIT directement la liste des NOMS D'OBJETS (clic direct — hiérarchie cosmétiques « Autres » : Classe → noms). Le groupe sans classe (« Sans classe ») n'a ni icône ni libellé de classe. / EN: CHANGED - a book shown as a COLLAPSIBLE BY CLASS (`livre.groupesPages`): level 1 = the book (collapsed by default, page count justified right); level 2 = the CLASS (Titan/Hunter/Warlock, locked order, Manifest icon when available else local `IconeClasse`, collapsed by default); level 3 = EITHER a sub-level collapsible BY SET (set name → list of piece names, direct click — ARMOR hierarchy: Class → Set → pieces), OR directly the list of ITEM NAMES (direct click — cosmetics "Other" hierarchy: Class → names). The classless group ("Sans classe") has neither icon nor class label. */
 function LivreAvecGroupes({ livre, pageId, onOuvrirPage }: {
   livre: LivreLore;
   pageId: string | null;
   onOuvrirPage: (id: string) => void;
 }) {
-  // FR : les DEUX niveaux sont repliés par défaut (état en mémoire uniquement, lecture passive).
+  // FR : replié par défaut (état en mémoire uniquement, lecture passive).
   const [ouvert, setOuvert] = useState(false);
   const groupes = livre.groupesPages ?? [];
   return (
@@ -189,8 +181,8 @@ function LivreAvecGroupes({ livre, pageId, onOuvrirPage }: {
       </button>
       {ouvert && (
         <div data-classes="" style={{ paddingLeft: "1rem" }}>
-          {groupes.map((g) => (
-            <GroupeClasse key={g.classe} groupe={g} pageId={pageId} onOuvrirPage={onOuvrirPage} />
+          {groupes.map((g, i) => (
+            <GroupeClasse key={g.classe ?? `sans-${i}`} groupe={g} pageId={pageId} onOuvrirPage={onOuvrirPage} />
           ))}
         </div>
       )}
@@ -198,15 +190,16 @@ function LivreAvecGroupes({ livre, pageId, onOuvrirPage }: {
   );
 }
 
-/** FR : ⚠️ AJOUT (22/10/2026, suite 13, remarque utilisateur) - un groupe de pages d'une CLASSE (niveau 2 repliable, replié par défaut) : titre = icône de classe (Manifest `urlIcone`, repli icône locale `IconeClasse` 14px) + libellé (Titan/Chasseur/Arcaniste) + compteur de pièces justifié à droite ; contenu = la liste des noms de pièces (niveau 3, clic direct vers la page de Lore). / EN: ADDED - a group of one CLASS's pages (level-2 collapsible, collapsed by default): title = class icon (Manifest `urlIcone`, fallback local `IconeClasse` 14px) + label (Titan/Hunter/Warlock) + piece count justified right; content = the list of piece names (level 3, direct click to the lore page). */
+/** FR : ⚠️ CHANGÉ (22/10/2026, suite 14, correction d'un malentendu) - un groupe de pages d'une CLASSE (niveau 2 repliable, replié par défaut) : titre = icône de classe (Manifest, repli icône locale `IconeClasse` 14px) + libellé (Titan/Chasseur/Arcaniste) + compteur justifié à droite ; contenu = SOIT des SOUS-GROUPES repliables PAR ENSEMBLE (`groupe.ensembles`, niveau 3 : nom d'ensemble → noms de pièces, clic direct), SOIT directement la liste des NOMS (`groupe.pages`, clic direct). Sans classe (`groupe.classe` absent) : titre « Sans classe », sans icône. / EN: CHANGED - a group of one CLASS's pages (level-2 collapsible, collapsed by default): title = class icon (Manifest, fallback local `IconeClasse` 14px) + label (Titan/Hunter/Warlock) + count justified right; content = EITHER SUB-GROUPS collapsible BY SET (`groupe.ensembles`, level 3: set name → piece names, direct click), OR directly the list of NAMES (`groupe.pages`, direct click). Classless (`groupe.classe` absent): title "Sans classe", no icon. */
 function GroupeClasse({ groupe, pageId, onOuvrirPage }: {
-  groupe: { classe: ClasseArmure; icône?: string; pages: PageLore[] };
+  groupe: GroupeClassePages;
   pageId: string | null;
   onOuvrirPage: (id: string) => void;
 }) {
   const [ouvert, setOuvert] = useState(false);
+  const nbPages = (groupe.ensembles ?? []).reduce((n, e) => n + e.pages.length, 0) + (groupe.pages ?? []).length;
   return (
-    <section data-classe={groupe.classe} style={{ marginBottom: "0.1rem" }}>
+    <section data-classe={groupe.classe ?? "sans"} style={{ marginBottom: "0.1rem" }}>
       <button
         data-classe-titre=""
         aria-expanded={ouvert}
@@ -214,17 +207,65 @@ function GroupeClasse({ groupe, pageId, onOuvrirPage }: {
         style={{ margin: 0, fontSize: "0.78rem", fontWeight: 600, color: "#9a968a", display: "flex", alignItems: "center", gap: "0.3rem", background: "none", border: "none", cursor: "pointer", padding: "0.1rem 0", textAlign: "left", width: "100%" }}
       >
         <span aria-hidden="true" style={{ fontSize: "0.6rem", width: "0.7rem", display: "inline-block", flexShrink: 0 }}>{ouvert ? "▾" : "▸"}</span>
-        {groupe.icône ? (
-          <img src={urlIcone(groupe.icône)} alt="" width={14} height={14} style={{ borderRadius: "2px", flexShrink: 0 }} />
-        ) : (
-          <IconeClasse classe={groupe.classe} taille={14} />
+        {groupe.classe && (
+          groupe.icône ? (
+            <img src={urlIcone(groupe.icône)} alt="" width={14} height={14} style={{ borderRadius: "2px", flexShrink: 0 }} />
+          ) : (
+            <IconeClasse classe={groupe.classe} taille={14} />
+          )
         )}
-        <span style={{ flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{LIBELLES_CLASSE[groupe.classe]}</span>
-        <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: "0.66rem", color: "#7d7a70", whiteSpace: "nowrap" }}>{groupe.pages.length} pièce{groupe.pages.length > 1 ? "s" : ""}</span>
+        <span style={{ flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{groupe.classe ? LIBELLES_CLASSE[groupe.classe] : "Sans classe"}</span>
+        <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: "0.66rem", color: "#7d7a70", whiteSpace: "nowrap" }}>{nbPages} page{nbPages > 1 ? "s" : ""}</span>
+      </button>
+      {ouvert && (
+        <div style={{ paddingLeft: "1rem" }}>
+          {/* ⚠️ AJOUT (22/10/2026, suite 14) : quand le groupe porte `ensembles`, un TROISIÈME niveau repliable par NOM D'ENSEMBLE (hiérarchie Classe → Ensemble → pièces) ; sinon la liste directe des noms (Classe → noms). */}
+          {groupe.ensembles && groupe.ensembles.length > 0 ? (
+            <ul data-livres="" style={{ listStyle: "none", margin: "0.1rem 0 0.3rem", padding: 0 }}>
+              {groupe.ensembles.map((e) => (
+                <li key={e.titre}>
+                  <SousGroupeEnsemble ensemble={e} pageId={pageId} onOuvrirPage={onOuvrirPage} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <ul data-livres="" style={{ listStyle: "none", margin: "0.1rem 0 0.3rem", padding: 0 }}>
+              {(groupe.pages ?? []).map((p) => (
+                <li key={p.id}>
+                  <LigneLivre titre={p.titre} nbPages={1} actif={p.id === pageId} onClick={() => onOuvrirPage(p.id)} dataAttr={{ "data-page": p.id }} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** FR : ⚠️ AJOUT (22/10/2026, suite 14, correction d'un malentendu) - un SOUS-GROUPE repliable par NOM D'ENSEMBLE (niveau 3 de la hiérarchie armures : Classe → Ensemble → pièces) : titre = nom de l'ensemble + compteur de pièces justifié à droite, replié par défaut ; contenu = la liste des NOMS DE PIÈCES (casque, gants…), chaque nom ouvre DIRECTEMENT la page de Lore. / EN: ADDED - a SUB-GROUP collapsible by SET NAME (level 3 of the armor hierarchy: Class → Set → pieces): title = the set's name + piece count justified right, collapsed by default; content = the list of PIECE NAMES (helmet, gauntlets…), each name opens the lore page DIRECTLY. */
+function SousGroupeEnsemble({ ensemble, pageId, onOuvrirPage }: {
+  ensemble: { titre: string; pages: PageLore[] };
+  pageId: string | null;
+  onOuvrirPage: (id: string) => void;
+}) {
+  const [ouvert, setOuvert] = useState(false);
+  return (
+    <section data-ensemble={ensemble.titre} style={{ marginBottom: "0.1rem" }}>
+      <button
+        data-ensemble-titre=""
+        aria-expanded={ouvert}
+        onClick={() => setOuvert((o) => !o)}
+        title={`${ensemble.titre} — ${ensemble.pages.length} pièce${ensemble.pages.length > 1 ? "s" : ""}`}
+        style={{ margin: 0, fontSize: "0.76rem", fontWeight: 500, color: "#9a968a", display: "flex", alignItems: "center", gap: "0.3rem", background: "none", border: "none", cursor: "pointer", padding: "0.1rem 0", textAlign: "left", width: "100%" }}
+      >
+        <span aria-hidden="true" style={{ fontSize: "0.55rem", width: "0.7rem", display: "inline-block", flexShrink: 0 }}>{ouvert ? "▾" : "▸"}</span>
+        <span style={{ flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ensemble.titre}</span>
+        <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: "0.64rem", color: "#7d7a70", whiteSpace: "nowrap" }}>{ensemble.pages.length} pièce{ensemble.pages.length > 1 ? "s" : ""}</span>
       </button>
       {ouvert && (
         <ul data-livres="" style={{ listStyle: "none", margin: "0.1rem 0 0.3rem", padding: 0, paddingLeft: "1rem" }}>
-          {groupe.pages.map((p) => (
+          {ensemble.pages.map((p) => (
             <li key={p.id}>
               <LigneLivre titre={p.titre} nbPages={1} actif={p.id === pageId} onClick={() => onOuvrirPage(p.id)} dataAttr={{ "data-page": p.id }} />
             </li>
@@ -234,6 +275,7 @@ function GroupeClasse({ groupe, pageId, onOuvrirPage }: {
     </section>
   );
 }
+
 
 /** FR : ⚠️ AJOUT (22/10/2026, suite 12, remarque utilisateur) - un livre affiché comme un REPLIABLE DE NOMS D'OBJETS (`livre.listePages === true`) : le titre du livre (le type : « Cinétiques », « Spectres »…) est cliquable (déplier/replier, REPLIÉ PAR DÉFAUT), et quand il est ouvert, la liste affiche le NOM DE CHAQUE PAGE (objet porteur) — chaque nom ouvre DIRECTEMENT la page de Lore de cet objet (plus besoin d'ouvrir le livre puis de chercher la bonne page). Le compteur total de pages est justifié à droite du titre. / EN: ADDED - a book shown as a COLLAPSIBLE LIST OF ITEM NAMES (`livre.listePages === true`): the book's title (the type: "Kinetic", "Ghosts"…) is clickable (expand/collapse, COLLAPSED BY DEFAULT), and when open, the list shows EACH PAGE'S NAME (carrier item) — each name opens THAT item's lore page DIRECTLY (no need to open the book then look for the right page). The total page count is justified to the right of the title. */
 function GroupePages({ livre, pageId, onOuvrirPage }: {
@@ -268,18 +310,23 @@ function GroupePages({ livre, pageId, onOuvrirPage }: {
   );
 }
 
-/** FR : ⚠️ CHANGÉ (22/10/2026, suite 12) - la liste des livres d'une section, DANS L'ORDRE DU MODÈLE : (1) un livre `listePages` (armes/cosmétiques par type) devient un REPLIABLE DE NOMS D'OBJETS (`GroupePages`, replié par défaut) ; (2) les livres portant un `groupe` (ex: « Ensembles d'armures ») sont regroupés dans un repliable (`GroupeLivres`, replié par défaut), l'ordre des groupes = ordre d'apparition ; (3) les livres sans groupe ni listePages (Grimoire D1) restent une LISTE PLATE. ⚠️ LIGNE UNIQUE : chaque livre est rendu par `LigneLivre` (titre + compteur de pages justifié à droite sur UNE ligne). / EN: CHANGED - a section's book list, IN MODEL ORDER: (1) a `listePages` book (weapons/cosmetics by type) becomes a COLLAPSIBLE LIST OF ITEM NAMES (`GroupePages`, collapsed by default); (2) books carrying a `groupe` (e.g. "Ensembles d'armures") are grouped in a collapsible (`GroupeLivres`, collapsed by default), group order = order of appearance; (3) books with neither (D1 Grimoire) stay a FLAT LIST. ONE LINE: each book is rendered by `LigneLivre` (title + page count justified to the right on ONE line). */
+/** FR : ⚠️ CHANGÉ (22/10/2026, suite 14, correction d'un malentendu) - la liste des livres d'une section, DANS L'ORDRE DU MODÈLE : (1) un livre `groupesPages` (armures « Ensembles d'armures », cosmétiques « Autres ») devient un REPLIABLE DE CLASSES (`LivreAvecGroupes`, replié par défaut : Classe → [Ensemble →] noms, clic direct) ; (2) un livre `listePages` (armes/cosmétiques par type) devient un REPLIABLE DE NOMS D'OBJETS (`GroupePages`, replié par défaut) ; (3) les livres portant un `groupe` (repli Grimoire D1 ou autre) sont regroupés dans un repliable (`GroupeLivres`, replié par défaut) ; (4) les livres sans groupe ni marqueurs (Grimoire D1) restent une LISTE PLATE. / EN: CHANGED - a section's book list, IN MODEL ORDER: (1) a `groupesPages` book (armor "Ensembles d'armures", cosmetics "Autres") becomes a COLLAPSIBLE BY CLASS (`LivreAvecGroupes`, collapsed by default: Class → [Set →] names, direct click); (2) a `listePages` book (weapons/cosmetics by type) becomes a COLLAPSIBLE LIST OF ITEM NAMES (`GroupePages`, collapsed by default); (3) books carrying a `groupe` are grouped in a collapsible (`GroupeLivres`, collapsed by default); (4) books with neither (D1 Grimoire) stay a FLAT LIST. */
 function ListeLivresGroupee({ livres, pageId, onOuvrirLivre, onOuvrirPage }: {
   livres: LivreLore[];
   pageId: string | null;
   onOuvrirLivre: (l: LivreLore) => void;
-  /** FR : ⚠️ AJOUT (22/10/2026, suite 12) - ouvre une PAGE directement (utilisé par les repliables de noms d'objets). / EN: ADDED - opens a PAGE directly (used by the item-name collapsibles). */
+  /** FR : ouvre une PAGE directement (utilisé par les repliables de noms d'objets et les repliables de classes). / EN: opens a PAGE directly (used by the item-name and by-class collapsibles). */
   onOuvrirPage: (id: string) => void;
 }) {
-  // Regrouper en préservant l'ordre d'apparition : repliables de pages, groupes de livres, livres seuls (liste plate)
-  const blocs: { genre: "pages" | "groupe" | "plat"; nom: string; livres: LivreLore[] }[] = [];
+  // Regrouper en préservant l'ordre d'apparition : repliables de classes, repliables de pages, groupes de livres, livres seuls (liste plate)
+  const blocs: { genre: "classes" | "pages" | "groupe" | "plat"; nom: string; livres: LivreLore[] }[] = [];
   const indexParNom = new Map<string, number>();
   for (const l of livres) {
+    // ⚠️ AJOUT (22/10/2026, suite 14) : un livre avec `groupesPages` = son propre repliable de CLASSES (titre = nom du livre, ex: « Ensembles d'armures », « Autres »).
+    if (l.groupesPages && l.groupesPages.length > 0) {
+      blocs.push({ genre: "classes", nom: l.titre, livres: [l] });
+      continue;
+    }
     if (l.listePages) {
       // ⚠️ AJOUT (22/10/2026, suite 12) : livre « liste de pages » = son propre repliable de noms (titre = type)
       blocs.push({ genre: "pages", nom: l.titre, livres: [l] });
@@ -302,10 +349,12 @@ function ListeLivresGroupee({ livres, pageId, onOuvrirLivre, onOuvrirPage }: {
   return (
     <div data-liste-livres="">
       {blocs.map((b, i) =>
-        b.genre === "pages" ? (
+        b.genre === "classes" ? (
+          <LivreAvecGroupes key={`classes-${b.livres[0].id}`} livre={b.livres[0]} pageId={pageId} onOuvrirPage={onOuvrirPage} />
+        ) : b.genre === "pages" ? (
           <GroupePages key={`pages-${b.livres[0].id}`} livre={b.livres[0]} pageId={pageId} onOuvrirPage={onOuvrirPage} />
         ) : b.genre === "groupe" ? (
-          <GroupeLivres key={b.nom} groupe={b.nom} livres={b.livres} pageId={pageId} onOuvrirLivre={onOuvrirLivre} onOuvrirPage={onOuvrirPage} />
+          <GroupeLivres key={b.nom} groupe={b.nom} livres={b.livres} pageId={pageId} onOuvrirLivre={onOuvrirLivre} />
         ) : (
           <ul key={`sans-groupe-${i}`} data-livres="" style={{ listStyle: "none", margin: "0.2rem 0 0.4rem", padding: 0 }}>
             {b.livres.map((l) => (

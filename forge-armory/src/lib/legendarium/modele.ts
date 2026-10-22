@@ -9,7 +9,7 @@ import type { SlotArmure } from "../../types/build";
 import type { ClasseArmure } from "../manifest/catalogueArmures";
 import { saisonDeLObjet, saisonParNumero } from "../../data/saisons";
 import { urlIcone } from "../manifest/search";
-import type { CategorieLore, LivreLore, ObjetPorteur, PageLore, SectionLegendarium } from "./types";
+import type { CategorieLore, GroupeClassePages, LivreLore, ObjetPorteur, PageLore, SectionLegendarium } from "./types";
 
 const TABLE_OBJETS = "DestinyInventoryItemDefinition";
 const TABLE_LORE = "DestinyLoreDefinition";
@@ -413,25 +413,68 @@ function iconesClasses(db: Database): Map<ClasseArmure, string | undefined> {
   return index;
 }
 
-/** FR : ⚠️ AJOUT (22/10/2026, suite 13, remarque utilisateur) - découpe les PAGES DÉDUPLIQUÉES d'un ensemble en GROUPES PAR CLASSE, dans l'ordre verrouillé ORDRE_CLASSES (Titan → Chasseur → Arcaniste) : chaque groupe porte la classe, l'icône Manifest (quand disponible) et SES PAGES (les pages dédupliquées correspondant aux pièces de cette classe, dans l'ordre verrouillé des slots). Sert au second niveau repliable de la colonne latérale (Ensemble → Classe → pièces). / EN: ADDED - splits an armor set's DEDUPLICATED pages into GROUPS BY CLASS, in the locked ORDRE_CLASSES order (Titan → Hunter → Warlock): each group carries the class, the Manifest icon (when available) and ITS PAGES (the deduplicated pages matching this class's pieces, in the locked slot order). Used for the sidebar's second collapsible level (Set → Class → pieces). */
-function groupesParClasse(db: Database, pagesDedup: PageLore[]): { classe: ClasseArmure; icône?: string; pages: PageLore[] }[] {
+/** FR : ⚠️ CHANGÉ (22/10/2026, suite 14, correction d'un malentendu) - classe d'une PAGE DÉDUPLIQUÉE, lue sur le LORE (via n'importe quel porteur de la page) : une page = un Lore, mais PLUSIEURS items partagent ce Lore (rééditions) — la classe se lit donc sur un porteur, pas sur un hash d'item particulier (sinon un ensemble avec rééditions perdait des pièces). Renvoie `undefined` si aucun porteur n'a de classe (cosmétiques, armes). / EN: CHANGED - the class of a DEDUPLICATED page, read on the LORE (via any carrier of the page): one page = one lore, but SEVERAL items share this lore (reissues) — the class is read on a carrier, not on a particular item hash (otherwise a set with reissues lost pieces). Returns `undefined` if no carrier has a class (cosmetics, weapons). */
+function classeDePage(p: PageLore): ClasseArmure | undefined {
+  return p.porteurs?.find((x) => x.classe !== undefined)?.classe;
+}
+
+/** FR : ⚠️ AJOUT (22/10/2026, suite 14, correction d'un malentendu) - découpe les PAGES DÉDUPLIQUÉES d'un ENSEMBLE D'ARMURES en GROUPES PAR CLASSE (Titan → Chasseur → Arcaniste, ordre verrouillé), puis en SOUS-GROUPES PAR ENSEMBLE (un sous-groupe repliable par nom d'ensemble, dans l'ordre chronologique de sortie des ensembles). C'est la hiérarchie demandée : Classe → Ensemble → noms de pièces (clic direct). Chaque groupe porte la classe et l'icône Manifest (quand disponible). / EN: ADDED - splits an ARMOR SET's DEDUPLICATED pages into GROUPS BY CLASS (Titan → Hunter → Warlock, locked order), then into SUB-GROUPS BY SET (one collapsible sub-group per set name, in the sets' release-season order). This is the requested hierarchy: Class → Set → piece names (direct click). Each group carries the class and the Manifest icon (when available). */
+function groupesArmuresParClasse(db: Database, pagesDedup: PageLore[], parEnsemble: Map<string, PageLore[]>): GroupeClassePages[] {
   const icones = iconesClasses(db);
-  // ⚠️ CHANGÉ (22/10/2026, suite 13, validation VRAI Manifest) : une PAGE = un LORE (dédupliqué), mais PLUSIEURS ITEMS partagent ce Lore (rééditions : même nom, même classe, même slot, même loreHash, collectibleHash différent ou absent). La classe se lit donc sur le LORE (via n'importe quel porteur de la page), pas sur le hash d'un item particulier. Sinon un ensemble avec rééditions perdait des pièces (ex: « Armure de Rull » : 5 pages mais seulement 3 groupes Titan car les rééditions sans collectible n'étaient pas dans la map par hash).
   const classeParPage = new Map<string, ClasseArmure>();
   for (const p of pagesDedup) {
-    const porteur = p.porteurs?.[0];
-    if (porteur?.classe) classeParPage.set(p.id, porteur.classe);
+    const c = classeDePage(p);
+    if (c) classeParPage.set(p.id, c);
   }
-  const groupes: { classe: ClasseArmure; icône?: string; pages: PageLore[] }[] = [];
+  // Nom d'ensemble d'une page = son livre d'origine (reconstruit depuis parEnsemble : nom → pages)
+  const ensembleParPage = new Map<string, string>();
+  for (const [nom, pagesEns] of parEnsemble) for (const p of pagesEns) ensembleParPage.set(p.id, nom);
+  const groupes: GroupeClassePages[] = [];
   for (const classe of ORDRE_CLASSES) {
-    // Les pages de cette classe, DANS L'ORDRE DU LIVRE (ordre verrouillé : la page hérite la position de ses porteurs)
+    // Ensembles de cette classe, par saison de sortie (rang chrono du premier porteur daté), puis nom
+    const nomsEnsembles = [...new Set([...ensembleParPage.entries()].filter(([id]) => classeParPage.get(id) === classe).map(([, nom]) => nom))];
+    if (nomsEnsembles.length === 0) continue;
+    const rangEnsemble = (nom: string) => {
+      const pagesEns = parEnsemble.get(nom) ?? [];
+      const rangs = pagesEns.map((p) => p.rangChrono).filter((r): r is number => r !== undefined);
+      return rangs.length > 0 ? Math.min(...rangs) : Number.POSITIVE_INFINITY;
+    };
+    nomsEnsembles.sort((a, b) => rangEnsemble(a) - rangEnsemble(b) || a.localeCompare(b, "fr"));
+    const ensembles = nomsEnsembles.map((nom) => {
+      // Pièces de cet ensemble pour cette classe, DANS L'ORDRE DU LIVRE (ordre verrouillé des slots)
+      const pagesClasse = (parEnsemble.get(nom) ?? []).filter((p) => classeParPage.get(p.id) === classe);
+      return { titre: nom, pages: pagesClasse };
+    }).filter((e) => e.pages.length > 0);
+    const icône = icones.get(classe);
+    groupes.push(icône ? { classe, icône, ensembles } : { classe, ensembles });
+  }
+  return groupes;
+}
+
+/** FR : ⚠️ AJOUT (22/10/2026, suite 14, correction d'un malentendu) - découpe les PAGES DÉDUPLIQUÉES d'un livre « Autres » cosmétiques (doctrines de classes : Brise-soleil, Grâce survoltée, Lame de l'aube, Voie abyssale…) en GROUPES PAR CLASSE (Titan → Chasseur → Arcaniste, ordre verrouillé), chaque groupe portant directement la liste des PAGES (noms d'objets, clic direct) dans l'ordre chronologique. Hiérarchie : Classe → noms. Les cosmétiques SANS classe connue (artefacts, ornements sans classType) vont dans un groupe spécial « Sans classe », APRÈS les 3 classes. / EN: ADDED - splits a cosmetics "Other" book's DEDUPLICATED pages (class subclasses: Brise-soleil, Grâce survoltée, Lame de l'aube, Voie abyssale…) into GROUPS BY CLASS (Titan → Hunter → Warlock, locked order), each group carrying directly the list of PAGES (item names, direct click) chronologically. Hierarchy: Class → names. Cosmetics with NO known class (artifacts, ornaments without classType) go into a special "No class" group, AFTER the 3 classes. */
+function groupesCosmetiquesParClasse(db: Database, pagesDedup: PageLore[]): GroupeClassePages[] {
+  const icones = iconesClasses(db);
+  const classeParPage = new Map<string, ClasseArmure>();
+  const sansClasse: PageLore[] = [];
+  for (const p of pagesDedup) {
+    const c = classeDePage(p);
+    if (c) classeParPage.set(p.id, c);
+    else sansClasse.push(p);
+  }
+  const groupes: GroupeClassePages[] = [];
+  for (const classe of ORDRE_CLASSES) {
     const pagesClasse = pagesDedup.filter((p) => classeParPage.get(p.id) === classe);
     if (pagesClasse.length === 0) continue;
     const icône = icones.get(classe);
     groupes.push(icône ? { classe, icône, pages: pagesClasse } : { classe, pages: pagesClasse });
   }
+  // Cosmétiques sans classe connue : groupe « Sans classe » en dernier (pas d'icône, pas de classe verrouillée)
+  if (sansClasse.length > 0) {
+    groupes.push({ pages: sansClasse });
+  }
   return groupes;
 }
+
 
 /** FR : ⚠️ AJOUT (22/10/2026, suite 11) - PROVENANCE d'une armure = nom de son ENSEMBLE (nœud parent du collectible, ex: « Armure de Sekris » pour une armure du raid Léviathan). Résolution : `def.collectibleHash` → collectible → `parentNodeHashes[0]` → nœud → nom. Renvoie `undefined` si l'armure n'a pas de collectible ou si la chaîne est rompue (l'armure part alors dans le groupe « Autres armures »). / EN: an armor piece's PROVENANCE = its SET's name (the collectible's parent node, e.g. \"Armure de Sekris\" for a Leviathan raid armor piece). Resolution: `def.collectibleHash` → collectible → `parentNodeHashes[0]` → node → name. Returns `undefined` if the armor has no collectible or the chain is broken (the armor then goes to the \"Other armor\" group). */
 function provenanceArmure(db: Database, def: DestinyItemDefinition): string | undefined {
@@ -461,7 +504,7 @@ function dedupPages(db: Database, liste: ObjetPorteur[]): PageLore[] {
   return pages;
 }
 
-/** FR : ⚠️ CHANGÉ (22/10/2026, suite 13, remarques utilisateur) - construit les livres de la section « objets » : les ARMES forment des livres « liste de pages » (un par type : Cinétiques, Énergétiques, Lourdes, puis « Autres armes » si besoin) — la colonne latérale affiche chaque livre comme un REPLIABLE (replié par défaut) listant le NOM DE CHAQUE ARME (clic direct vers la page de son Lore), pages par ordre chronologique. Les ARMURES restent dans un groupe repliable « Ensembles d'armures » avec UN LIVRE PAR ENSEMBLE (provenance = nœud parent du collectible, ex: « Armure de Sekris »), les ensembles ordonnés par ordre chronologique de sortie des saisons, les pièces d'un ensemble dans l'ordre verrouillé (classe → casque → gants → torse → jambes → marque), avec un SECOND NIVEAU REPLIABLE PAR CLASSE (Titan/Chasseur/Arcaniste, icône Manifest) dans la colonne latérale (`groupesPages`). Les armures SANS provenance connue vont dans un livre « Autres armures » (ordre verrouillé). / EN: CHANGED - builds the "objets" section's books: WEAPONS become "pages-list" books (one per type: Kinetic, Energy, Heavy, then "Other weapons" if needed) — the sidebar shows each book as a COLLAPSIBLE group (collapsed by default) listing EACH WEAPON'S NAME (direct click to its lore page), pages chronologically. ARMOR stays in a collapsible "Ensembles d'armures" group with ONE BOOK PER SET (provenance = the collectible's parent node, e.g. "Armure de Sekris"), sets ordered by release season, pieces within a set in the locked order (class → helmet → gauntlets → chest → legs → class item), with a SECOND COLLAPSIBLE LEVEL BY CLASS (Titan/Hunter/Warlock, Manifest icon) in the sidebar (`groupesPages`). Armor WITHOUT known provenance goes to an "Autres armures" book (locked order). */
+/** FR : ⚠️ CHANGÉ (22/10/2026, suite 14, correction d'un malentendu) - construit les livres de la section « objets » : les ARMES forment des livres « liste de pages » (un par type : Cinétiques, Énergétiques, Lourdes, puis « Autres armes » si besoin) — la colonne latérale affiche chaque livre comme un REPLIABLE (replié par défaut) listant le NOM DE CHAQUE ARME (clic direct vers la page de son Lore), pages par ordre chronologique. Les ARMURES forment UN SEUL LIVRE « Ensembles d'armures » (titre du livre = nom du groupe, compteur = total des pages) avec un SECOND NIVEAU REPLIABLE PAR CLASSE (Titan/Chasseur/Arcaniste, icône Manifest) puis un TROISIÈME NIVEAU REPLIABLE PAR ENSEMBLE (nom de l'ensemble, dans l'ordre chronologique de sortie) puis les NOMS DE PIÈCES (clic direct) — hiérarchie demandée : Classe → Ensemble → pièces. Le livre garde `pages` (TOUTES les pièces dédupliquées, dans l'ordre verrouillé classe → casque → gants → torse → jambes → marque, ensembles par saison) pour la lecture (précédent/suivant, ordre aplati, recherche) ; `groupesPages` ne sert qu'à l'affichage latéral. / EN: CHANGED - builds the "objets" section's books: WEAPONS become "pages-list" books (one per type: Kinetic, Energy, Heavy, then "Other weapons" if needed) — the sidebar shows each book as a COLLAPSIBLE group (collapsed by default) listing EACH WEAPON'S NAME (direct click to its lore page), pages chronologically. ARMOR becomes ONE SINGLE "Ensembles d'armures" BOOK (book title = the group name, counter = total pages) with a SECOND COLLAPSIBLE LEVEL BY CLASS (Titan/Hunter/Warlock, Manifest icon) then a THIRD COLLAPSIBLE LEVEL BY SET (set name, in release-season order) then the PIECE NAMES (direct click) — requested hierarchy: Class → Set → pieces. The book keeps `pages` (ALL deduplicated pieces, in the locked order class → helmet → gauntlets → chest → legs → class item, sets by season) for reading (previous/next, flat order, search); `groupesPages` only drives the SIDEBAR DISPLAY. */
 function livresObjets(db: Database): LivreLore[] {
   const porteurs = indexPorteurs(db).objets;
   const livres: LivreLore[] = [];
@@ -492,49 +535,51 @@ function livresObjets(db: Database): LivreLore[] {
     if (pages.length > 0) livres.push({ id: "objets-armes-autre", titre: "Autres armes", pages, listePages: true });
   }
 
-  // --- Groupe « Ensembles d'armures » : un livre par ensemble (provenance) ---
+  // --- UN SEUL LIVRE « Ensembles d'armures » : Classe → Ensemble → pièces (suite 14, correction d'un malentendu) ---
   const armures = porteurs.filter((p) => p.slotArmure !== undefined);
-  const parEnsemble = new Map<string, ObjetPorteur[]>();
-  const sansProvenance: ObjetPorteur[] = [];
-  for (const p of armures) {
-    let nomEnsemble: string | undefined;
-    try {
-      const def = obtenirDefinition<DestinyItemDefinition>(db, TABLE_OBJETS, p.hash);
-      if (def) nomEnsemble = provenanceArmure(db, def);
-    } catch { /* pas de provenance */ }
-    if (nomEnsemble) {
-      const groupe = parEnsemble.get(nomEnsemble) ?? [];
+  if (armures.length > 0) {
+    // Regrouper par provenance (nom d'ensemble) ; les armures sans provenance vont dans l'ensemble « Autres armures »
+    const parEnsemblePorteurs = new Map<string, ObjetPorteur[]>();
+    for (const p of armures) {
+      let nomEnsemble: string | undefined;
+      try {
+        const def = obtenirDefinition<DestinyItemDefinition>(db, TABLE_OBJETS, p.hash);
+        if (def) nomEnsemble = provenanceArmure(db, def);
+      } catch { /* pas de provenance */ }
+      const cle = nomEnsemble ?? "Autres armures";
+      const groupe = parEnsemblePorteurs.get(cle) ?? [];
       groupe.push(p);
-      parEnsemble.set(nomEnsemble, groupe);
-    } else {
-      sansProvenance.push(p);
+      parEnsemblePorteurs.set(cle, groupe);
     }
-  }
-  // Ordonner les ensembles par saison de sortie (rang chrono du premier porteur daté), puis par nom
-  const rangEnsemble = (liste: ObjetPorteur[]) => {
-    const rangs = liste.map((p) => rangChronoObjet(db, p.hash)).filter((r): r is number => r !== undefined);
-    return rangs.length > 0 ? Math.min(...rangs) : Number.POSITIVE_INFINITY;
-  };
-  const ensembles = [...parEnsemble.entries()].sort((a, b) => {
-    const ra = rangEnsemble(a[1]), rb = rangEnsemble(b[1]);
-    return ra - rb || a[0].localeCompare(b[0], "fr");
-  });
-  for (const [nomEnsemble, liste] of ensembles) {
-    // Pièces dans l'ordre verrouillé (classe → casque → gants → torse → jambes → marque), puis dédup des pages
-    const pages = dedupPages(db, trierArmuresParEnsemble(liste));
-    if (pages.length === 0) continue;
-    // ⚠️ AJOUT (22/10/2026, suite 13, remarque utilisateur) : niveau 2 repliable = la CLASSE (Titan/Chasseur/Arcaniste, dans l'ordre verrouillé ORDRE_CLASSES), avec icône Manifest quand disponible. Le livre garde `pages` (ordre verrouillé) pour la lecture ; `groupesPages` ne sert qu'à l'affichage latéral.
-    livres.push({ id: `objets-armures-${nomEnsemble}`, titre: nomEnsemble, pages, groupe: "Ensembles d'armures", groupesPages: groupesParClasse(db, pages) });
-  }
-  // Armures sans provenance : livre « Autres armures » (ordre verrouillé), APRÈS les ensembles datés
-  if (sansProvenance.length > 0) {
-    const pages = dedupPages(db, trierArmuresParEnsemble(sansProvenance));
-    if (pages.length > 0) livres.push({ id: "objets-armures-autres", titre: "Autres armures", pages, groupe: "Ensembles d'armures", groupesPages: groupesParClasse(db, pages) });
+    // Pages dédupliquées PAR ENSEMBLE (ordre verrouillé dans chaque ensemble), dans l'ordre chronologique des ensembles
+    const rangEnsemble = (liste: ObjetPorteur[]) => {
+      const rangs = liste.map((p) => rangChronoObjet(db, p.hash)).filter((r): r is number => r !== undefined);
+      return rangs.length > 0 ? Math.min(...rangs) : Number.POSITIVE_INFINITY;
+    };
+    const nomsEnsembles = [...parEnsemblePorteurs.keys()].sort((a, b) => {
+      const ra = rangEnsemble(parEnsemblePorteurs.get(a) ?? []), rb = rangEnsemble(parEnsemblePorteurs.get(b) ?? []);
+      return ra - rb || a.localeCompare(b, "fr");
+    });
+    const parEnsemblePages = new Map<string, PageLore[]>();
+    for (const nom of nomsEnsembles) {
+      parEnsemblePages.set(nom, dedupPages(db, trierArmuresParEnsemble(parEnsemblePorteurs.get(nom) ?? [])));
+    }
+    // Toutes les pages du livre, dans l'ordre verrouillé GLOBAL (classe → slot) sur l'ensemble des porteurs triés
+    const pagesToutes = dedupPages(db, trierArmuresParEnsemble(armures));
+    if (pagesToutes.length > 0) {
+      livres.push({
+        id: "objets-armures",
+        titre: "Ensembles d'armures",
+        pages: pagesToutes,
+        groupesPages: groupesArmuresParClasse(db, pagesToutes, parEnsemblePages),
+      });
+    }
   }
   return livres;
 }
 
-/** FR : ⚠️ CHANGÉ (22/10/2026, suite 12, remarques utilisateur) - construit les livres de la section « cosmétiques » : UN LIVRE « LISTE DE PAGES » PAR TYPE de cosmétique (Spectres, Vaisseaux, Passereaux, dans cet ordre), pages par ordre chronologique dans chaque livre ; les autres types (artefacts, ornements…) dans un livre « Autres ». La colonne latérale affiche chaque livre comme un REPLIABLE (replié par défaut) listant le NOM DE CHAQUE OBJET (clic direct vers sa page de Lore). / EN: CHANGED - builds the "cosmétiques" section's books: ONE "PAGES-LIST" BOOK PER cosmetic type (Spectres, Vaisseaux, Passereaux, in this order), pages chronologically within each book; other types (artifacts, ornaments…) in an "Autres" book. The sidebar shows each book as a COLLAPSIBLE group (collapsed by default) listing EACH ITEM'S NAME (direct click to its lore page). */
+
+/** FR : ⚠️ CHANGÉ (22/10/2026, suite 14, correction d'un malentendu) - construit les livres de la section « cosmétiques » : UN LIVRE « LISTE DE PAGES » PAR TYPE de cosmétique (Spectres, Vaisseaux, Passereaux, dans cet ordre), pages par ordre chronologique dans chaque livre. Les AUTRES types (artefacts, ornements, DOCTRINES DE CLASSES : Brise-soleil, Grâce survoltée, Lame de l'aube, Voie abyssale…) vont dans un livre « Autres », lui-même affiché comme un REPLIABLE DE CLASSES (Titan/Chasseur/Arcaniste, avec icône) → liste des NOMS D'OBJETS (clic direct), les cosmétiques sans classe connue dans un groupe « Sans classe » en dernier. Tous les livres de la section portent `listePages: true` (repliable de noms d'objets), sauf « Autres » qui porte `groupesPages` (repliable par classe). / EN: CHANGED - builds the "cosmétiques" section's books: ONE "PAGES-LIST" BOOK PER cosmetic type (Spectres, Vaisseaux, Passereaux, in this order), pages chronologically within each book. OTHER types (artifacts, ornaments, CLASS SUBCLASSES: Brise-soleil, Grâce survoltée, Lame de l'aube, Voie abyssale…) go into an "Autres" book, itself shown as a COLLAPSIBLE BY CLASS (Titan/Hunter/Warlock, with icon) → list of ITEM NAMES (direct click), cosmetics with no known class in a "Sans classe" group last. Every book in the section carries `listePages: true` (collapsible of item names), except "Autres" which carries `groupesPages` (collapsible by class). */
 function livreCosmetiques(db: Database): LivreLore[] {
   const porteurs = [...indexPorteurs(db).cosmetiques];
   const parType = new Map<number, ObjetPorteur[]>();
@@ -564,7 +609,10 @@ function livreCosmetiques(db: Database): LivreLore[] {
   }
   if (autres.length > 0) {
     const pages = trierPagesChrono(dedupPages(db, autres));
-    if (pages.length > 0) livres.push({ id: "cosmetiques-autres", titre: "Autres", pages, listePages: true });
+    if (pages.length > 0) {
+      // ⚠️ AJOUT (22/10/2026, suite 14, correction d'un malentendu) : le livre « Autres » est un REPLIABLE DE CLASSES (Titan/Chasseur/Arcaniste, icône) → noms d'objets (clic direct) ; les cosmétiques sans classe dans « Sans classe » en dernier.
+      livres.push({ id: "cosmetiques-autres", titre: "Autres", pages, groupesPages: groupesCosmetiquesParClasse(db, pages) });
+    }
   }
   return livres;
 }
@@ -744,11 +792,17 @@ export function rechercherPages(livresParSection: Partial<Record<SectionLegendar
     const livres = livresParSection[section.id] ?? [];
     for (const livre of livres) {
       // ⚠️ AJOUT (21/10/2026, suite 10) : la catégorie du livre est cherchée aussi (ex: « lumière » retrouve « La Lumière »)
-      const haystackLivre = normaliser(`${livre.titre} ${livre.categorie ?? ""}`);
+      // ⚠️ AJOUT (22/10/2026, suite 14) : les noms des SOUS-GROUPES repliables (classes, ensembles) sont cherchés aussi (ex: « raid A » retrouve les pages de l'ensemble « Armure du raid A » dans le livre « Ensembles d'armures »).
+      const sousGroupes = (livre.groupesPages ?? []).flatMap((g) => [g.classe ? libelleClasse(g.classe) : "", ...(g.ensembles ?? []).map((e) => e.titre)]);
+      const haystackLivre = normaliser(`${livre.titre} ${livre.categorie ?? ""} ${sousGroupes.join(" ")}`);
       const livreMatch = haystackLivre.includes(cle);
+      // ⚠️ AJOUT (22/10/2026, suite 14) : un livre correspond aussi si CHAQUE MOT de la requête est trouvé dans le livre OU dans l'une de ses pages (ex: « raid A » = « raid » ET « a », tous deux dans « Armure du raid A ») — sans ce ET multi-mots, une requête ne trouvait que les livres dont le titre contient TOUTE la chaîne.
+      const motsCle = cle.split(/\s+/).filter(Boolean);
+      const textePages = livre.pages.map((p) => normaliser(`${p.titre} ${p.sousTitre ?? ""} ${p.texte}`)).join(" ");
+      const livreMatchMots = motsCle.length > 1 && motsCle.every((m) => haystackLivre.includes(m) || textePages.includes(m));
       for (const page of livre.pages) {
         const haystack = normaliser(`${page.titre} ${page.sousTitre ?? ""} ${page.texte}`);
-        if (haystack.includes(cle) || livreMatch) resultats.push({ section: section.id, livre, page, categorie: livre.categorie });
+        if (haystack.includes(cle) || livreMatch || livreMatchMots) resultats.push({ section: section.id, livre, page, categorie: livre.categorie });
       }
     }
   }

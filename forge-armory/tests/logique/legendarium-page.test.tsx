@@ -340,8 +340,8 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
   ok("⚠️ suite 13 : SANS indexPage/totalPages (page hors livre), AUCUN compteur n'est affiché (pas de « page undefined »)",
     !renderToStaticMarkup(<ZoneLecture section="legendes" livre={livre14} page={livre14.pages[0]} idPrecedente={null} idSuivante={null} onOuvrirPage={() => {}} />).includes('data-compteur-page=""'));
 
-  // 2) Ensembles d'armures : livre avec groupesPages (2 classes) dans GroupeLivres
-  const livreEnsemble = livre("objets-armures-Armure de Sekris", "Armure de Sekris", [
+  // 2) ⚠️ CHANGÉ (22/10/2026, suite 14) : UN SEUL livre « Ensembles d'armures » avec `groupesPages` = 2 classes (Titan 5 pièces, Chasseur 1), chaque classe portant `ensembles` (hiérarchie Classe → Ensemble → pièces)
+  const livreEnsemble = livre("objets-armures", "Ensembles d'armures", [
     page("lore:7301", "Casque de Sekris", "Texte casque."),
     page("lore:7302", "Gants de Sekris", "Texte gants."),
     page("lore:7303", "Torse de Sekris", "Texte torse."),
@@ -349,51 +349,55 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
     page("lore:7305", "Marque de Sekris", "Texte marque."),
     page("lore:7311", "Casque Chasseur Sekris", "Texte casque chasseur."),
   ]);
-  livreEnsemble.groupe = "Ensembles d'armures";
   livreEnsemble.groupesPages = [
-    { classe: "titan", icône: "/icons/classes/titan.png", pages: [livreEnsemble.pages[0], livreEnsemble.pages[1], livreEnsemble.pages[2], livreEnsemble.pages[3], livreEnsemble.pages[4]] },
-    { classe: "chasseur", pages: [livreEnsemble.pages[5]] }, // sans icône Manifest -> repli IconeClasse
+    { classe: "titan", icône: "/icons/classes/titan.png", ensembles: [{ titre: "Armure de Sekris", pages: [livreEnsemble.pages[0], livreEnsemble.pages[1], livreEnsemble.pages[2], livreEnsemble.pages[3], livreEnsemble.pages[4]] }] },
+    { classe: "chasseur", ensembles: [{ titre: "Armure de Sekris", pages: [livreEnsemble.pages[5]] }] }, // sans icône Manifest -> repli IconeClasse
   ];
-  const livreSimple = livre("objets-armures-Autre ensemble", "Autre ensemble", [page("lore:7401", "Casque autre", "Texte.")]);
-  livreSimple.groupe = "Ensembles d'armures"; // SANS groupesPages : LigneLivre classique
+  const livreSimple = livre("objets-armes-cinetique", "Cinétiques", [page("lore:7101", "Izanagi", "Texte.")]);
+  livreSimple.listePages = true; // repliable de NOMS (armes)
 
   const colonneArmures = renderToStaticMarkup(
-    <ColonneSections section="objets" livres={[livreEnsemble, livreSimple]} pageId="lore:7301" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
+    <ColonneSections section="objets" livres={[livreSimple, livreEnsemble]} pageId="lore:7301" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
   );
-  ok("⚠️ suite 13 : le groupe « Ensembles d'armures » contient les 2 livres (compteur = 6 + 1 = 7 pages) et est REPLIÉ PAR DÉFAUT (ni data-livre-groupees ni data-livre ni data-classe visibles tant que le groupe est replié)",
-    colonneArmures.includes('data-groupe="Ensembles d&#x27;armures"') && colonneArmures.includes("7 pages") && !colonneArmures.includes('data-livre-groupees=""') && !colonneArmures.includes('data-livre="objets-armures-Armure de Sekris"') && !colonneArmures.includes('data-livre="objets-armures-Autre ensemble"') && !colonneArmures.includes('data-classe="') && !colonneArmures.includes('data-page="lore:7301"'),
-    colonneArmures.slice(colonneArmures.indexOf('data-groupe='), colonneArmures.indexOf('data-groupe=') + 700));
-  ok("⚠️ suite 13 : les DEUX livres sont dans le groupe (compteur 7 pages = 6 Sekris + 1 Autre ensemble) — la structure à 2 niveaux ne CASSE pas le regroupement par `groupe`",
-    colonneArmures.includes("7 pages") && (colonneArmures.match(/data-groupe-titre=""/g) ?? []).length === 1,
-    colonneArmures.slice(colonneArmures.indexOf('data-groupe='), colonneArmures.indexOf('data-groupe=') + 700));
-  ok("⚠️ suite 13 : le groupe « Ensembles d'armures » est REPLIÉ PAR DÉFAUT (aria-expanded=false)",
-    colonneArmures.includes('data-groupe="Ensembles d&#x27;armures"') && (colonneArmures.match(/aria-expanded="false"/g) ?? []).length === 1,
-    colonneArmures.slice(colonneArmures.indexOf('data-groupe=')));
-
-  // 3) GroupeClasse seul (rendu statique isolé, ouvert forcé via le DOM) : on vérifie la structure avec groupesPages vide de pages visibles (replié)
-  //    -> on teste via ColonneSections mais le niveau 2 est replié ; on vérifie juste la présence du data-classes absent + la structure du niveau 1
-  ok("⚠️ suite 13 : les classes ne sont rendues QUE quand l'ensemble est déplié (pas de fuite du niveau 2 dans le rendu statique replié)",
-    !colonneArmures.includes('data-classes=""') && !colonneArmures.includes("Titan") && !colonneArmures.includes("Chasseur"),
+  ok("⚠️ suite 14 : le livre « Ensembles d'armures » (6 pages) est rendu comme un REPLIABLE DE CLASSES (`data-livre-groupees`), REPLIÉ PAR DÉFAUT (ni data-classe ni data-ensemble ni data-page visibles tant que le livre est replié) ; le livre « Cinétiques » (listePages) est rendu séparément",
+    colonneArmures.includes('data-livre-groupees=""') && colonneArmures.includes('data-livre="objets-armures"') && colonneArmures.includes("6 pages") &&
+    colonneArmures.includes('data-liste-pages=""') && colonneArmures.includes('data-groupe="Cinétiques"') &&
+    !colonneArmures.includes('data-classe="') && !colonneArmures.includes('data-ensemble="') && !colonneArmures.includes('data-page="lore:7301"'),
+    colonneArmures.slice(colonneArmures.indexOf('data-liste-livres'), colonneArmures.indexOf('data-liste-livres') + 900));
+  ok("⚠️ suite 14 : les DEUX types de repliables coexistent (1 repliable de noms « Cinétiques » + 1 repliable de classes « Ensembles d'armures ») = 2 aria-expanded=false au total",
+    (colonneArmures.match(/aria-expanded="false"/g) ?? []).length === 2,
+    colonneArmures.slice(colonneArmures.indexOf('data-liste-livres')));
+  ok("⚠️ suite 14 : les classes/ensembles/pièces ne sont rendues QUE quand le livre est déplié (pas de fuite des niveaux 2 et 3 dans le rendu statique replié)",
+    !colonneArmures.includes('data-classes=""') && !colonneArmures.includes("Titan") && !colonneArmures.includes("Chasseur") && !colonneArmures.includes("Armure de Sekris") && !colonneArmures.includes("Casque de Sekris"),
     colonneArmures.slice(colonneArmures.indexOf('data-livre-groupees'), colonneArmures.indexOf('data-livre-groupees') + 600));
 }
 
-// --- GroupeClasse isolé (test du niveau 2 repliable + icônes) via un livre déjà ouvert : on force l'ouverture en testant le composant rendu avec un état initial ouvert impossible en statique ;
-//     on vérifie donc la STRUCTURE du niveau 2 en rendant GroupeLivres avec un livre groupesPages et en comptant les aria-expanded (groupe + livre = 2 repliés) ---
+// --- ⚠️ AJOUT (22/10/2026, suite 14) : GroupeClasse avec `ensembles` (3 niveaux) vs `pages` (2 niveaux) ---
 {
-  const livreE = livre("objets-armures-X", "Ensemble X", [page("lore:7301", "Casque X", "Texte."), page("lore:7311", "Casque X chasseur", "Texte.")]);
-  livreE.groupe = "Ensembles d'armures";
-  livreE.groupesPages = [
-    { classe: "titan", icône: "/icons/classes/titan.png", pages: [livreE.pages[0]] },
-    { classe: "chasseur", pages: [livreE.pages[1]] },
+  // Livre « Autres » cosmétiques avec groupesPages = 2 classes en `pages` direct (hiérarchie Classe → noms)
+  const livreAutresCosm = livre("cosmetiques-autres", "Autres", [
+    page("lore:7601", "Brise-soleil", "Texte doctrine solaire."),
+    page("lore:7602", "Grâce survoltée", "Texte doctrine arc."),
+    page("lore:7604", "Artefact saisonnier", "Texte artefact."),
+  ]);
+  livreAutresCosm.groupesPages = [
+    { classe: "titan", icône: "/icons/classes/titan.png", pages: [livreAutresCosm.pages[0]] },
+    { classe: "chasseur", pages: [livreAutresCosm.pages[1]] },
+    { pages: [livreAutresCosm.pages[2]] }, // SANS classe = groupe « Sans classe » en dernier
   ];
-  const col = renderToStaticMarkup(
-    <ColonneSections section="objets" livres={[livreE]} pageId={null} grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
+  const colCosm = renderToStaticMarkup(
+    <ColonneSections section="cosmetiques" livres={[livreAutresCosm]} pageId={null} grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
   );
-  // Groupe (niveau 0) + Livre (niveau 1) repliés = 2 aria-expanded=false ; le niveau 2 (classes) n'est pas rendu tant que le livre est replié
-  ok("⚠️ suite 13 : avec un livre `groupesPages`, le groupe replié masque TOUT (1 aria-expanded=false, ni livre ni classe ni page visibles)",
-    (col.match(/aria-expanded="false"/g) ?? []).length === 1 && !col.includes('data-livre-groupees=""') && !col.includes('data-classe="') && !col.includes("data-classes") && !col.includes('data-livre="objets-armures-X"'),
-    col.slice(col.indexOf('data-groupe=')));
+  ok("⚠️ suite 14 : le livre « Autres » (cosmétiques) est un REPLIABLE DE CLASSES (`data-livre-groupees`), REPLIÉ PAR DÉFAUT (ni data-classe ni nom d'objet visibles)",
+    colCosm.includes('data-livre-groupees=""') && colCosm.includes('data-livre="cosmetiques-autres"') && colCosm.includes("3 pages") &&
+    !colCosm.includes('data-classe="') && !colCosm.includes("Brise-soleil") && !colCosm.includes("Artefact saisonnier"),
+    colCosm.slice(colCosm.indexOf('data-livre-groupees'), colCosm.indexOf('data-livre-groupees') + 600));
+  // Structure interne du niveau 2 (non rendue en statique replié, mais le compteur du livre est bon)
+  ok("⚠️ suite 14 : le groupe « Sans classe » (sans `classe`) est accepté par le type (pas d'icône, pas de libellé de classe) — le rendu ne plante pas",
+    colCosm.includes('data-livre-groupees=""') && (colCosm.match(/aria-expanded="false"/g) ?? []).length === 1,
+    colCosm.slice(colCosm.indexOf('data-liste-livres')));
 }
+
 
 // --- ⚠️ AJOUT (22/10/2026, suite 12) : COUVERTURE FLOTTANTE (haut gauche, taille naturelle, pas de pixellisation) ---
 {

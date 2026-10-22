@@ -137,34 +137,36 @@ ok("les pages de Légendes ont l'identifiant stable « lore:<hash> » et le sous
   pageChapitre?.sousTitre === "Chapitre I" && livresLegendes[0].pages.every((p) => /^lore:\d+$/.test(p.id)), pageChapitre);
 
 const livresObjets = livresDeSection(db2, "objets");
-// ⚠️ CHANGÉ (22/10/2026, suite 11) : la section « objets » = groupe « Lore des armes » (3 livres : Cinétiques, Énergétiques, Lourdes) + groupe « Ensembles d'armures » (1 livre par ensemble, sinon « Autres armures »)
+// ⚠️ CHANGÉ (22/10/2026, suite 14) : la section « objets » = 3 livres d'armes « listePages » (Cinétiques, Énergétiques, Lourdes) + UN SEUL livre « Ensembles d'armures » (Classe → Ensemble → pièces)
 const livreArmes = livresObjets.find((l) => l.id === "objets-armes-cinetique");
-const livreArmuresAutres = livresObjets.find((l) => l.id === "objets-armures-autres");
+const livreArmures = livresObjets.find((l) => l.id === "objets-armures");
 ok("⚠️ suite 12 : le livre « Cinétiques » est un REPLIABLE DE NOMS (`listePages`, sans groupe) — Izanagi y est ; l'arme sans Lore, masquée et factice exclues",
   livreArmes?.listePages === true && livreArmes.groupe === undefined && livreArmes.titre === "Cinétiques" && livreArmes.pages.length === 1 && livreArmes.pages[0].id === "lore:7101", livresObjets.map((l) => `${l.groupe ?? "listePages"}/${l.titre}(${l.pages.length})`));
 ok("⚠️ DÉDOUBLONNAGE : la réédition d'Izanagi (même Lore 7101) ne crée PAS de page en double — UNE page « lore:7101 », TITRE = NOM DE L'OBJET du porteur principal",
   livreArmes?.pages.length === 1 && livreArmes.pages[0].titre === "Izanagi — Burden", livreArmes?.pages.map((p) => p.titre));
 ok("⚠️ la page dédoublonnée embarque TOUS les porteurs (Izanagi + sa réédition) pour le parcours inverse",
   livreArmes?.pages[0].porteurs?.length === 2 && livreArmes.pages[0].porteurs.some((x) => x.hash === 6040), livreArmes?.pages[0].porteurs?.map((x) => x.hash));
-ok("⚠️ suite 11 : sans collectibles/nœuds, les 7 armures tombent dans le livre « Autres armures » (groupe « Ensembles d'armures »), ordre verrouillé conservé",
-  livreArmuresAutres?.groupe === "Ensembles d'armures" && livreArmuresAutres.pages.length === 7, livresObjets.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`));
-// ⚠️ AJOUT (22/10/2026, suite 13) : second niveau repliable par CLASSE sur les livres d'armures
-ok("⚠️ suite 13 : le livre « Autres armures » porte `groupesPages` = 2 classes DANS L'ORDRE VERROUILLÉ (Titan 5 pages, Chasseur 2 pages), chaque groupe a sa classe et ses pages dans l'ordre verrouillé",
-  livreArmuresAutres?.groupesPages?.length === 2 &&
-  livreArmuresAutres.groupesPages[0].classe === "titan" && livreArmuresAutres.groupesPages[0].pages.length === 5 &&
-  livreArmuresAutres.groupesPages[1].classe === "chasseur" && livreArmuresAutres.groupesPages[1].pages.length === 2 &&
-  JSON.stringify(livreArmuresAutres.groupesPages[0].pages.map((p) => p.id)) === JSON.stringify(["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114"]) &&
-  JSON.stringify(livreArmuresAutres.groupesPages[1].pages.map((p) => p.id)) === JSON.stringify(["lore:7120", "lore:7121"]),
-  livreArmuresAutres?.groupesPages?.map((g) => `${g.classe}(${g.pages.length})`));
-ok("⚠️ suite 13 : sans table DestinyClassDefinition (fixtures db2), `groupesPages` est présent SANS icône Manifest (icône = undefined, l'UI retombe sur IconeClasse)",
-  livreArmuresAutres?.groupesPages?.every((g) => g.icône === undefined) === true);
-ok("⚠️ suite 13 : les livres d'ARMES (listePages) n'ont PAS de `groupesPages` (le second niveau par classe ne concerne que les armures)",
+ok("⚠️ suite 14 : sans collectibles/nœuds, les 7 armures tombent dans UN SEUL livre « Ensembles d'armures » (id `objets-armures`), ordre verrouillé conservé",
+  livreArmures?.titre === "Ensembles d'armures" && livreArmures.pages.length === 7 && livreArmures.listePages === undefined && livreArmures.groupe === undefined, livresObjets.map((l) => `${l.groupe ?? (l.listePages ? "listePages" : "classes")}/${l.titre}(${l.pages.length})`));
+// ⚠️ AJOUT (22/10/2026, suite 14) : hiérarchie Classe → Ensemble → pièces (un seul ensemble ici : « Autres armures », saison inconnue donc en dernier)
+ok("⚠️ suite 14 : le livre « Ensembles d'armures » porte `groupesPages` = 2 classes DANS L'ORDRE VERROUILLÉ (Titan, Chasseur), chaque groupe porte `ensembles` = 1 sous-groupe « Autres armures » avec ses pièces dans l'ordre verrouillé",
+  livreArmures?.groupesPages?.length === 2 &&
+  livreArmures.groupesPages[0].classe === "titan" && livreArmures.groupesPages[0].ensembles?.length === 1 &&
+  livreArmures.groupesPages[0].ensembles[0].titre === "Autres armures" &&
+  JSON.stringify(livreArmures.groupesPages[0].ensembles[0].pages.map((p) => p.id)) === JSON.stringify(["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114"]) &&
+  livreArmures.groupesPages[1].classe === "chasseur" && livreArmures.groupesPages[1].ensembles?.length === 1 &&
+  JSON.stringify(livreArmures.groupesPages[1].ensembles[0].pages.map((p) => p.id)) === JSON.stringify(["lore:7120", "lore:7121"]) &&
+  livreArmures.groupesPages.every((g) => g.pages === undefined),
+  livreArmures?.groupesPages?.map((g) => `${g.classe}/${g.ensembles?.map((e) => `${e.titre}(${e.pages.length})`).join(",")}`));
+ok("⚠️ suite 14 : sans table DestinyClassDefinition (fixtures db2), `groupesPages` est présent SANS icône Manifest (icône = undefined, l'UI retombe sur IconeClasse)",
+  livreArmures?.groupesPages?.every((g) => g.icône === undefined) === true);
+ok("⚠️ suite 14 : les livres d'ARMES (listePages) n'ont PAS de `groupesPages` (le repliable par classe ne concerne que les armures et les cosmétiques « Autres »)",
   livreArmes?.groupesPages === undefined);
 
 // --- Règle des ensembles d'armures (verrouillée) ---
 const ordreAttendu = ["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114", "lore:7120", "lore:7121"];
 ok("RÈGLE VERROUILLÉE (dans le livre) : armures regroupées par classe (Titan puis Chasseur), ordre casque → gants → torse → jambes → objet de classe",
-  JSON.stringify(livreArmuresAutres?.pages.map((p) => p.id)) === JSON.stringify(ordreAttendu), livreArmuresAutres?.pages.map((p) => p.id));
+  JSON.stringify(livreArmures?.pages.map((p) => p.id)) === JSON.stringify(ordreAttendu), livreArmures?.pages.map((p) => p.id));
 ok("l'ordre des slots verrouillé est bien casque, gants, torse, jambes, marque",
   JSON.stringify(ORDRE_SLOTS_ARMURE) === JSON.stringify(["casque", "gants", "torse", "jambes", "marque"]) && JSON.stringify(ORDRE_CLASSES) === JSON.stringify(["titan", "chasseur", "arcaniste"]));
 ok("libellé des emplacements : « marque » s'appelle « Objet de classe »", libelleSlot("marque") === "Objet de classe");
@@ -202,8 +204,8 @@ ok("aucun résultat pour un mot inexistant ; chaîne vide = aucun résultat", r3
 
 // --- Lien profond ---
 const cible = trouverPage(tousLesLivres, "lore:7112");
-ok("le lien profond retrouve une page par son identifiant stable « lore:<hash> », avec sa section et son livre",
-  cible?.section === "objets" && cible.livre.id === "objets-armures-autres" && cible.page.id === "lore:7112", cible?.page.id);
+ok("le lien profond retrouve une page par son identifiant stable « lore:<hash> », avec sa section et son livre (« Ensembles d'armures », suite 14)",
+  cible?.section === "objets" && cible.livre.id === "objets-armures" && cible.page.id === "lore:7112", cible?.page.id);
 // ⚠️ (20/10/2026, décision utilisateur) : la forme lien profond « item:<hashObjet> » (fiche Détails) est acceptée et résolue vers la page dédoublonnée
 const cibleLien = trouverPage(tousLesLivres, "item:6012", db2);
 ok("la forme lien profond « item:6012 » (fiche Détails) est résolue vers la page « lore:7112 »",
@@ -281,9 +283,9 @@ ok("⚠️ trierPagesChrono ne mute pas le tableau d'entrée",
   // Le résultat est identique avec l'index (pas de régression fonctionnelle) : Izanagi 6001+6040 dédoublonnés en 1 page (livre « Cinétiques »), le casque est dans « Autres armures », le Spectre dans « Spectres ».
   const livresObj = livresDeSection(dbCompte, "objets");
   const livresCosmCompte = livresDeSection(dbCompte, "cosmetiques");
-  ok("⚠️ index des porteurs : le contenu est le même (Izanagi dédoublonné en 1 page dans « Cinétiques », casque dans « Autres armures », Spectre dans « Spectres »)",
-    livresObj.length === 2 && livresObj[0].titre === "Cinétiques" && livresObj[0].listePages === true && livresObj[0].pages.length === 1 && livresObj[0].pages[0].titre === "Izanagi — Burden" && livresObj[1].titre === "Autres armures" && livresObj[1].groupe === "Ensembles d'armures" && livresObj[1].pages.length === 1 && livresCosmCompte.length === 1 && livresCosmCompte[0].titre === "Spectres" && livresCosmCompte[0].listePages === true && livresCosmCompte[0].pages.length === 1,
-    { obj: livresObj.map((l) => `${l.groupe ?? "listePages"}/${l.titre}(${l.pages.length})`), cosm: livresCosmCompte.map((l) => `${l.groupe ?? "listePages"}/${l.titre}(${l.pages.length})`) });
+  ok("⚠️ index des porteurs : le contenu est le même (Izanagi dédoublonné en 1 page dans « Cinétiques », casque dans l'ensemble « Autres armures » du livre « Ensembles d'armures », Spectre dans « Spectres »)",
+    livresObj.length === 2 && livresObj[0].titre === "Cinétiques" && livresObj[0].listePages === true && livresObj[0].pages.length === 1 && livresObj[0].pages[0].titre === "Izanagi — Burden" && livresObj[1].titre === "Ensembles d'armures" && livresObj[1].pages.length === 1 && livresObj[1].groupesPages?.length === 1 && livresObj[1].groupesPages[0].classe === "titan" && livresObj[1].groupesPages[0].ensembles?.[0].titre === "Autres armures" && livresCosmCompte.length === 1 && livresCosmCompte[0].titre === "Spectres" && livresCosmCompte[0].listePages === true && livresCosmCompte[0].pages.length === 1,
+    { obj: livresObj.map((l) => `${l.groupe ?? (l.listePages ? "listePages" : "classes")}/${l.titre}(${l.pages.length})`), cosm: livresCosmCompte.map((l) => `${l.groupe ?? "listePages"}/${l.titre}(${l.pages.length})`) });
 }
 
 
@@ -593,48 +595,101 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
   ok("⚠️ suite 12 : chaque livre d'arme porte `listePages: true` et AUCUN `groupe` (repliable de noms dans la colonne, pas de groupe « Lore des armes »)",
     livreCin?.listePages === true && livreCin.groupe === undefined && livreEner?.listePages === true && livreEner.groupe === undefined && livreLourd?.listePages === true && livreLourd.groupe === undefined);
 
-  const livreRaidA = livresObjG.find((l) => l.titre === "Armure du raid A");
-  const livreDonjonB = livresObjG.find((l) => l.titre === "Armure du donjon B");
-  const livreAutres = livresObjG.find((l) => l.id === "objets-armures-autres");
-  ok("⚠️ suite 11 : les armures sont groupées par PROVENANCE (nœud ensemble) : « Armure du raid A » (5 pages) et « Armure du donjon B » (2 pages)",
-    livreRaidA?.groupe === "Ensembles d'armures" && livreRaidA.pages.length === 5 && livreDonjonB?.groupe === "Ensembles d'armures" && livreDonjonB.pages.length === 2,
-    livresObjG.filter((l) => l.groupe === "Ensembles d'armures").map((l) => `${l.titre}(${l.pages.length})`));
-  ok("⚠️ suite 11 : les ensembles sont ordonnés par SAISON DE SORTIE (donjon B = saison 11 AVANT raid A = saison 12), l'armure sans provenance dans « Autres armures » EN DERNIER",
-    livresObjG.filter((l) => l.groupe === "Ensembles d'armures").map((l) => l.titre).join("|") === "Armure du donjon B|Armure du raid A|Autres armures",
-    livresObjG.filter((l) => l.groupe === "Ensembles d'armures").map((l) => `${l.titre}(${l.pages.length})`));
-  ok("⚠️ suite 11 : DANS un ensemble, les pièces suivent l'ordre verrouillé (casque → gants → torse → jambes → marque)",
-    JSON.stringify(livreRaidA?.pages.map((p) => p.id)) === JSON.stringify(["lore:7301", "lore:7302", "lore:7303", "lore:7304", "lore:7305"]),
-    livreRaidA?.pages.map((p) => p.id));
-  ok("⚠️ suite 13 : le livre « Armure du raid A » porte `groupesPages` = 1 SEULE classe (Titan, toutes les pièces sont classType 0), avec l'icône Manifest `/icons/classes/titan.png`",
-    livreRaidA?.groupesPages?.length === 1 && livreRaidA.groupesPages[0].classe === "titan" && livreRaidA.groupesPages[0].icône === "/icons/classes/titan.png" &&
-    JSON.stringify(livreRaidA.groupesPages[0].pages.map((p) => p.id)) === JSON.stringify(["lore:7301", "lore:7302", "lore:7303", "lore:7304", "lore:7305"]),
-    livreRaidA?.groupesPages?.map((g) => `${g.classe}/${g.icône}(${g.pages.length})`));
-  ok("⚠️ suite 13 : le livre « Autres armures » (1 pièce Arcaniste sans collectible) porte `groupesPages` = 1 classe (arcaniste) avec l'icône Manifest",
-    livreAutres?.groupesPages?.length === 1 && livreAutres.groupesPages[0].classe === "arcaniste" && livreAutres.groupesPages[0].icône === "/icons/classes/arcaniste.png" && livreAutres.groupesPages[0].pages.length === 1,
-    livreAutres?.groupesPages?.map((g) => `${g.classe}/${g.icône}(${g.pages.length})`));
-  ok("⚠️ suite 11 : l'armure sans collectible tombe dans « Autres armures » (1 page)",
-    livreAutres?.pages.length === 1 && livreAutres.pages[0]?.id === "lore:7401", livreAutres?.pages.map((p) => p.id));
+  // ⚠️ CHANGÉ (22/10/2026, suite 14) : UN SEUL livre « Ensembles d'armures » (8 pages : raid A 5 + donjon B 2 + sans provenance 1)
+  const livreEnsembles = livresObjG.find((l) => l.id === "objets-armures");
+  ok("⚠️ suite 14 : les armures forment UN SEUL livre « Ensembles d'armures » (8 pages), SANS `groupe` ni `listePages` (c'est un repliable de CLASSES via `groupesPages`)",
+    livreEnsembles?.titre === "Ensembles d'armures" && livreEnsembles.pages.length === 8 && livreEnsembles.groupe === undefined && livreEnsembles.listePages === undefined,
+    livresObjG.map((l) => `${l.groupe ?? (l.listePages ? "listePages" : "classes")}/${l.titre}(${l.pages.length})`));
+  ok("⚠️ suite 14 : DANS le livre, les pièces suivent l'ordre verrouillé GLOBAL (Titan raid A : casque → gants → torse → jambes → marque, puis Chasseur donjon B, puis Arcaniste sans provenance)",
+    JSON.stringify(livreEnsembles?.pages.map((p) => p.id)) === JSON.stringify(["lore:7301", "lore:7302", "lore:7303", "lore:7304", "lore:7305", "lore:7311", "lore:7312", "lore:7401"]),
+    livreEnsembles?.pages.map((p) => p.id));
+  // Hiérarchie Classe → Ensemble → pièces : Titan (raid A, 5 pièces) puis Chasseur (donjon B, 2) puis Arcaniste (Autres armures, 1)
+  ok("⚠️ suite 14 : `groupesPages` = 3 classes DANS L'ORDRE VERROUILLÉ (Titan, Chasseur, Arcaniste), chaque groupe porte `ensembles` (1 sous-groupe par ensemble, avec icône Manifest)",
+    livreEnsembles?.groupesPages?.length === 3 &&
+    livreEnsembles.groupesPages[0].classe === "titan" && livreEnsembles.groupesPages[0].icône === "/icons/classes/titan.png" &&
+    livreEnsembles.groupesPages[1].classe === "chasseur" && livreEnsembles.groupesPages[1].icône === "/icons/classes/chasseur.png" &&
+    livreEnsembles.groupesPages[2].classe === "arcaniste" && livreEnsembles.groupesPages[2].icône === "/icons/classes/arcaniste.png" &&
+    livreEnsembles.groupesPages.every((g) => g.pages === undefined),
+    livreEnsembles?.groupesPages?.map((g) => `${g.classe}/${g.icône}`));
+  ok("⚠️ suite 14 : Titan → 1 ensemble « Armure du raid A » (5 pièces dans l'ordre verrouillé), Chasseur → « Armure du donjon B » (2 pièces), Arcaniste → « Autres armures » (1 pièce)",
+    livreEnsembles?.groupesPages[0].ensembles?.length === 1 && livreEnsembles.groupesPages[0].ensembles[0].titre === "Armure du raid A" &&
+    JSON.stringify(livreEnsembles.groupesPages[0].ensembles[0].pages.map((p) => p.id)) === JSON.stringify(["lore:7301", "lore:7302", "lore:7303", "lore:7304", "lore:7305"]) &&
+    livreEnsembles?.groupesPages[1].ensembles?.length === 1 && livreEnsembles.groupesPages[1].ensembles[0].titre === "Armure du donjon B" &&
+    JSON.stringify(livreEnsembles.groupesPages[1].ensembles[0].pages.map((p) => p.id)) === JSON.stringify(["lore:7311", "lore:7312"]) &&
+    livreEnsembles?.groupesPages[2].ensembles?.length === 1 && livreEnsembles.groupesPages[2].ensembles[0].titre === "Autres armures" &&
+    JSON.stringify(livreEnsembles.groupesPages[2].ensembles[0].pages.map((p) => p.id)) === JSON.stringify(["lore:7401"]),
+    livreEnsembles?.groupesPages?.map((g) => `${g.classe}→${g.ensembles?.map((e) => `${e.titre}(${e.pages.length})`).join(",")}`));
 
+  // --- Cosmétiques : Spectres/Vaisseaux/Passereaux en listePages, « Autres » en repliable de CLASSES ---
+  // ⚠️ AJOUT (22/10/2026, suite 14) : l'artefact W (itemType 28, SANS classType) est le seul « Autre » : le livre « Autres » porte `groupesPages` = 1 groupe SANS classe (« Sans classe »), avec la page en `pages` directe.
   const livresCosmG = livresDeSection(dbG, "cosmetiques");
   ok("⚠️ suite 12 : la section cosmétiques a UN LIVRE « LISTE DE PAGES » PAR TYPE, DANS L'ORDRE Spectres, Vaisseaux, Passereaux (+ Autres)",
     livresCosmG.map((l) => l.titre).join(",") === "Spectres,Vaisseaux,Passereaux,Autres" &&
     livresCosmG[0].pages[0]?.id === "lore:7501" && livresCosmG[1].pages[0]?.id === "lore:7502" && livresCosmG[2].pages[0]?.id === "lore:7503" && livresCosmG[3].pages[0]?.id === "lore:7504",
-    livresCosmG.map((l) => `${l.groupe ?? "listePages"}/${l.titre}(${l.pages.length})`));
-  ok("⚠️ suite 12 : chaque livre cosmétique porte `listePages: true` et AUCUN `groupe` (repliable de noms dans la colonne)",
-    livresCosmG.every((l) => l.listePages === true && l.groupe === undefined));
+    livresCosmG.map((l) => `${l.groupe ?? (l.listePages ? "listePages" : "classes")}/${l.titre}(${l.pages.length})`));
+  ok("⚠️ suite 12+14 : les 3 livres Spectres/Vaisseaux/Passereaux portent `listePages: true` SANS `groupe` ; le livre « Autres » porte `groupesPages` (repliable de classes) SANS `listePages`",
+    livresCosmG[0].listePages === true && livresCosmG[0].groupe === undefined && livresCosmG[1].listePages === true && livresCosmG[2].listePages === true &&
+    livresCosmG[3].listePages === undefined && livresCosmG[3].groupe === undefined && livresCosmG[3].groupesPages !== undefined);
+  ok("⚠️ suite 14 : le livre « Autres » (1 artefact SANS classType) porte `groupesPages` = 1 groupe SANS classe (groupe `pages` direct, pas `ensembles`), avec l'icône Manifest ABSENTE (pas de classe)",
+    livresCosmG[3].groupesPages?.length === 1 && livresCosmG[3].groupesPages[0].classe === undefined && livresCosmG[3].groupesPages[0].icône === undefined &&
+    livresCosmG[3].groupesPages[0].ensembles === undefined &&
+    JSON.stringify(livresCosmG[3].groupesPages[0].pages?.map((p) => p.id)) === JSON.stringify(["lore:7504"]),
+    livresCosmG[3].groupesPages?.map((g) => `${g.classe ?? "sans-classe"}(${g.pages?.length ?? 0})`));
 
-  // Ordre aplati de la section objets : armes (cinétique, énergétique, lourde) puis armures (donjon B, raid A, autres)
+  // ⚠️ AJOUT (22/10/2026, suite 14) : cosmétiques « Autres » AVEC classes (doctrines) : Titan + Chasseur + sans classe, dans l'ordre verrouillé
+  const { db: dbCosm } = creerFausseDb({
+    [T_LORE]: {
+      7601: lore("Brise-soleil", "Texte doctrine solaire."),
+      7602: lore("Grâce survoltée", "Texte doctrine arc."),
+      7603: lore("Lame de l'aube", "Texte doctrine vide."),
+      7604: lore("Artefact saisonnier", "Texte artefact."),
+    },
+    [T_OBJET]: {
+      7050: objet("Brise-soleil", { itemType: 0, itemTypeDisplayName: "Doctrine", classType: 0, loreHash: 7601 }), // Titan
+      7051: objet("Grâce survoltée", { itemType: 0, itemTypeDisplayName: "Doctrine", classType: 1, loreHash: 7602 }), // Chasseur
+      7052: objet("Lame de l'aube", { itemType: 0, itemTypeDisplayName: "Doctrine", classType: 2, loreHash: 7603 }), // Arcaniste
+      7053: objet("Artefact saisonnier", { itemType: 28, itemTypeDisplayName: "Artefact saisonnier", loreHash: 7604 }), // SANS classe
+    },
+    [T_CLASSE]: {
+      0: { hash: 0, classType: 0, displayProperties: { name: "Titan", icon: "/icons/classes/titan.png", description: "" } },
+      1: { hash: 1, classType: 1, displayProperties: { name: "Chasseur", icon: "/icons/classes/chasseur.png", description: "" } },
+      2: { hash: 2, classType: 2, displayProperties: { name: "Arcaniste", icon: "/icons/classes/arcaniste.png", description: "" } },
+    },
+  });
+  const livreAutresCosm = livresDeSection(dbCosm, "cosmetiques").find((l) => l.id === "cosmetiques-autres");
+  ok("⚠️ suite 14 : le livre « Autres » avec doctrines classe les pages : Titan (Brise-soleil), Chasseur (Grâce survoltée), Arcaniste (Lame de l'aube), puis SANS classe (Artefact) EN DERNIER",
+    livreAutresCosm?.groupesPages?.length === 4 &&
+    livreAutresCosm.groupesPages[0].classe === "titan" && livreAutresCosm.groupesPages[0].icône === "/icons/classes/titan.png" &&
+    JSON.stringify(livreAutresCosm.groupesPages[0].pages?.map((p) => p.id)) === JSON.stringify(["lore:7601"]) &&
+    livreAutresCosm.groupesPages[1].classe === "chasseur" &&
+    JSON.stringify(livreAutresCosm.groupesPages[1].pages?.map((p) => p.id)) === JSON.stringify(["lore:7602"]) &&
+    livreAutresCosm.groupesPages[2].classe === "arcaniste" &&
+    JSON.stringify(livreAutresCosm.groupesPages[2].pages?.map((p) => p.id)) === JSON.stringify(["lore:7603"]) &&
+    livreAutresCosm.groupesPages[3].classe === undefined &&
+    JSON.stringify(livreAutresCosm.groupesPages[3].pages?.map((p) => p.id)) === JSON.stringify(["lore:7604"]) &&
+    livreAutresCosm.groupesPages.every((g) => g.ensembles === undefined),
+    livreAutresCosm?.groupesPages?.map((g) => `${g.classe ?? "sans-classe"}(${g.pages?.length ?? 0})`));
+
+  // Ordre aplati de la section objets : armes (cinétique, énergétique, lourde) puis armures (ordre verrouillé global)
   const ordreG = ordrePages(livresObjG);
-  ok("⚠️ suite 11 : l'ordre aplati enchaîne Cinétiques → Énergétiques → Lourdes → donjon B → raid A → autres armures",
-    JSON.stringify(ordreG) === JSON.stringify(["lore:7101", "lore:7201", "lore:7202", "lore:7311", "lore:7312", "lore:7301", "lore:7302", "lore:7303", "lore:7304", "lore:7305", "lore:7401"]),
+  ok("⚠️ suite 14 : l'ordre aplati enchaîne Cinétiques → Énergétiques → Lourdes → armures (ordre verrouillé : Titan raid A, Chasseur donjon B, Arcaniste sans provenance)",
+    JSON.stringify(ordreG) === JSON.stringify(["lore:7101", "lore:7201", "lore:7202", "lore:7301", "lore:7302", "lore:7303", "lore:7304", "lore:7305", "lore:7311", "lore:7312", "lore:7401"]),
     ordreG);
 
-  // Recherche : le nom du livre (ensemble) est cherché
+  // Recherche : le nom d'un SOUS-GROUPE (ensemble) est cherché dans le livre « Ensembles d'armures » (toutes les pages du livre sont remontées : la correspondance se fait au niveau du LIVRE).
   const rG = rechercherPages({ objets: livresObjG }, "raid A");
-  ok("⚠️ suite 11 : la recherche retrouve les 5 pages de l'ensemble « Armure du raid A » par le nom du livre",
-    rG.length === 5 && rG.every((r) => r.livre.titre === "Armure du raid A"), rG.map((r) => r.page.id));
+  ok("⚠️ suite 14 : la recherche « raid A » retrouve les 8 pages du livre « Ensembles d'armures » (correspondance au niveau du livre, via le nom du sous-groupe)",
+    rG.length === 8 && rG.every((r) => r.livre.id === "objets-armures"), rG.map((r) => `${r.livre.titre}/${r.page.id}`));
+  // La recherche par nom de PIÈCE (titre de page) retrouve aussi le livre (toutes ses pages)
+  const rPiece = rechercherPages({ objets: livresObjG }, "casque donjon");
+  ok("⚠️ suite 14 : la recherche « casque donjon » retrouve le livre « Ensembles d'armures » (8 pages, la pièce correspondante est dans le livre)",
+    rPiece.length === 8 && rPiece.every((r) => r.livre.id === "objets-armures") && rPiece.some((r) => r.page.id === "lore:7311"), rPiece.map((r) => r.page.id));
+  // Recherche ciblée sur un seul mot du nom d'ensemble : ne remonte que les pages dont le texte contient ce mot
+  const rTexte = rechercherPages({ objets: livresObjG }, "gants");
+  ok("⚠️ suite 14 : la recherche « gants » (mot présent dans les titres de 2 pièces) ne remonte QUE ces 2 pages (pas tout le livre)",
+    rTexte.length === 2 && rTexte.every((r) => r.page.id === "lore:7302" || r.page.id === "lore:7312"), rTexte.map((r) => r.page.id));
 
-  // Sans tables collectibles/nœuds : toutes les armures dans "Autres armures" (pas de régression)
+  // Sans tables collectibles/nœuds : toutes les armures dans l'ensemble « Autres armures » DU livre unique (pas de régression)
   const { db: dbSans } = creerFausseDb({
     [T_LORE]: { 7301: lore("Casque X", "Texte."), 7302: lore("Gants X", "Texte.") },
     [T_OBJET]: {
@@ -643,8 +698,10 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
     },
   });
   const livresSans = livresDeSection(dbSans, "objets");
-  ok("⚠️ suite 11 : REPLI — sans tables collectibles/nœuds, les armures (même avec collectibleHash) tombent dans « Autres armures », sans erreur",
-    livresSans.length === 1 && livresSans[0].id === "objets-armures-autres" && livresSans[0].pages.length === 2,
+  ok("⚠️ suite 14 : REPLI — sans tables collectibles/nœuds, les armures (même avec collectibleHash) tombent dans l'ensemble « Autres armures » DU livre unique « Ensembles d'armures », sans erreur",
+    livresSans.length === 1 && livresSans[0].id === "objets-armures" && livresSans[0].pages.length === 2 &&
+    livresSans[0].groupesPages?.length === 1 && livresSans[0].groupesPages[0].classe === "titan" &&
+    livresSans[0].groupesPages[0].ensembles?.length === 1 && livresSans[0].groupesPages[0].ensembles[0].titre === "Autres armures",
     livresSans.map((l) => `${l.titre}(${l.pages.length})`));
 }
 
