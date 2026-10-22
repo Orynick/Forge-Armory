@@ -629,6 +629,14 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 - **confidentialité** : le pseudo Bungie est public, mais il part dans tout fichier ou image partagé ; si un utilisateur ne le souhaite pas, prévoir une case « inclure mon pseudo dans les exports » (à décider avec la phase 2, ouverture à des tiers) ;
 - affichage de l'auteur dans le futur onglet « Load-out » (§ 16).
 
+### 25. Boutons « Carrière » et « Accomplissements » : la pop-up ne s'ouvre pas hors Build Analyzer (21/10/2026)
+
+**Retour de l'utilisateur (21/10/2026, branche `draft-legendarium`)** : les boutons « Carrière » et « Accomplissements » apparaissent PARTOUT (au-dessus du sélecteur de vue), mais en cliquant dessus dans « Load-out », « Forge » ou « Legendarium », **la pop-up ne s'ouvre pas**. Dans « Build Analyzer » (vue par défaut), cela fonctionne.
+
+**Diagnostic** : les boutons étaient rendus dans le bloc « Connexion » (`DashboardPage.tsx`, ligne 516), qui est **masqué** (`display: none`) quand la vue Build Analyzer n'est pas active — les clics sur les autres vues ne pouvaient donc rien déclencher. La modale « Carrière » (`ModaleCarriere`) et le tiroir « Accomplissements » (`PanneauTriomphes`) sont montés HORS des vues (lignes 672-681), donc le problème n'était que le **bouton**, pas la cible.
+
+**Piste de correction (à valider)** : déplacer le rendu de `BoutonsVuesCompte` au-dessus du sélecteur de vue (`SelecteurVues`), hors de tout bloc masqué — ainsi les boutons restent visibles et cliquables dans TOUTES les vues. **⚠️ à valider en `npm run dev`** : vérifier que la mise en page reste correcte (les boutons ne doivent pas décaler le sélecteur de vue ni le bloc Connexion).
+
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 
 - **Icônes des 21 perks par artefact, par la table d'extraction** — abandonné (26/08) : la table lue par

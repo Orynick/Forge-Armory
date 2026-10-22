@@ -1,3 +1,14 @@
+## 22/10/2026 (push intermédiaire depuis `draft-legendarium`, suites 7-15) — CORRECTIF `saisonDeLObjet` (hash signé/non signé) + TODO §25 (boutons Carrière/Accomplissements) + .gitignore artefacts de tests
+
+**Contexte** : l'utilisateur a demandé un push intermédiaire sur `main` avant de continuer le chantier Legendarium. Audit de `draft-legendarium` vs `main` : le diff ne contient **QUE** du Legendarium (page, modèle, tests, spec, CHANGELOG/TODO §26) **SAUF** trois éléments transversaux, poussés ici isolément :
+
+- **⚠️ CORRECTIF RÉEL — `src/data/saisons.ts` `saisonDeLObjet()`** (découvert et validé sur le VRAI Manifest le 22/10, suite 11 du Legendarium) : le JSON de DIM (`saisons-objets.json`, 57 439 entrées) stocke les hashes d'objets en **NON SIGNÉ 32 bits** (ex: 2147961687), mais les hashes du Manifest (colonne `id` SQLite, champ `hash` des définitions) sont **SIGNÉS** (ex: -2147005609). La fonction ne testait que la forme signée : **~50 % des objets (hash > 0x7FFFFFFF, ~29 000 entrées) ne trouvait JAMAIS sa saison** via cette table. Conséquence visible sur `main` : dans **Recherche dans le Manifest** (Build Analyzer), la ligne « Saison de sortie » manquait pour ces objets (ex: la Mesure corrective) ; dans l'infobulle `IconeSaison`, le nom de saison manquait aussi. **Corrigé** : les DEUX formes sont testées (hash tel quel, puis `itemHash >>> 0`). Aucun changement de comportement pour les hashes positifs. Tests : `saisons-sources` 17/17 → **20/20** (3 nouveaux : hash négatif résout via forme non signée, hash positif direct, hash négatif absent reste `undefined`).
+- **`TODO.md` §25** (nouvelle section, après §24) : **boutons « Carrière » / « Accomplissements » — la pop-up ne s'ouvre pas hors Build Analyzer** (retour utilisateur 21/10, branche `draft-legendarium`). Diagnostic : les boutons sont rendus dans le bloc Connexion, **masqué** (`display: none`) hors vue Build Analyzer. Piste de correction (à valider en `npm run dev`) : déplacer `BoutonsVuesCompte` au-dessus du sélecteur de vue. **⚠️ Reporté depuis `draft-legendarium`** (la correction elle-même reste à faire, avec l'accord de l'utilisateur — une première tentative de déplacement a été annulée comme régression).
+- **`.gitignore`** : ajout de `tests/logique/_sortie/` et `tests/ui/_sortie/` (artefacts esbuild du lanceur de tests et de la construction des pages UI de test — ne pas versionner).
+
+**Vérifié** : `tsc -b` zéro erreur, `npm run build` strict ✓, `npm run test:logique` **30/30 suites, 433/433 contrôles** (dont `saisons-sources` 20/20). Aucun code Legendarium dans ce push.
+
+
 ## 21/10/2026 (suite 6) — LIVRAISON : PR #9 et PR #10 mergées dans `main`, propagées aux branches de chantier
 
 **Livraison du problème initialement traité sur cette conversation** (les deux échecs de la batterie logique, « préexistants sur main ») :

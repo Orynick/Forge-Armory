@@ -29,5 +29,8 @@ const SAISONS_OBJETS = saisonsObjetsJson as Record<string, number>;
 /** FR : le numéro de saison d'un OBJET par son hash (table d2-additional-info), ou undefined — jamais estimé. / EN: an item's season number by its hash, or undefined. */
 export function saisonDeLObjet(itemHash: number | undefined): number | undefined {
   if (itemHash == null) return undefined;
-  return SAISONS_OBJETS[String(itemHash)];
+  // ⚠️ CORRIGÉ (22/10/2026, branche draft-legendarium suite 11, validé VRAI Manifest, poussé en intermédiaire sur main) : le JSON de DIM stocke les hashes en NON SIGNÉ 32 bits (ex: 2147961687), mais les hashes du Manifest (colonne `id` SQLite, champ `hash` des définitions) sont SIGNÉS (ex: -2147005609). On teste les DEUX formes : d'abord le hash tel quel (cas positif), puis sa forme non signée (cas négatif). Sans cela, la moitié des objets (hash > 0x7FFFFFFF, soit ~29 000 entrées sur 57 439) ne trouvait JAMAIS sa saison via cette table — dont les objets sans seasonHash ni filigrane connu (ex: la Mesure corrective côté Recherche dans le Manifest, les armures côté Legendarium). / EN: FIXED - DIM's JSON stores hashes as UNSIGNED 32-bit, but Manifest hashes (SQLite `id` column, `hash` field) are SIGNED. Test BOTH forms: the hash as-is (positive case), then its unsigned form (negative case). Without this, half the items (hash > 0x7FFFFFFF, ~29,000 of 57,439 entries) NEVER found their season through this table.
+  const direct = SAISONS_OBJETS[String(itemHash)];
+  if (direct !== undefined) return direct;
+  return SAISONS_OBJETS[String(itemHash >>> 0)];
 }
