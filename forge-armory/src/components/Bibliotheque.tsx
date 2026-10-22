@@ -12,6 +12,8 @@ import { PALETTE, ereDeSection } from "../lib/legendarium/palette";
 import type { DiagnosticGrimoire } from "../lib/legendarium/grimoire"; // ⚠️ type uniquement : le module (et son JSON de 930 Ko) est importé dynamiquement plus bas
 import type { CategorieLore, LivreLore, PageLore, ProvenanceObjet, SectionLegendarium } from "../lib/legendarium/types";
 import { urlIcone } from "../lib/manifest/search";   // ⚠️ AJOUT (21/10/2026, suite 10) : URL complète des couvertures de livres (chemin relatif Bungie → https://www.bungie.net…)
+import IconeClasse, { LIBELLES as LIBELLES_CLASSE } from "./icones/IconeClasse";   // ⚠️ AJOUT (22/10/2026, suite 13) : icône locale de classe (repli si le Manifest n'en porte pas)
+import type { ClasseArmure } from "../lib/manifest/catalogueArmures";   // ⚠️ AJOUT (22/10/2026, suite 13)
 
 interface Props {
   db: Database | null;
@@ -121,11 +123,13 @@ function LigneLivre({ titre, nbPages, actif, onClick, dataAttr }: {
 }
 
 /** FR : ⚠️ AJOUT (22/10/2026, suite 11) - un GROUPE REPLIABLE de livres (dans la colonne latérale) : un titre cliquable (déplier/replier) + la liste des livres quand il est ouvert. REPLIÉ PAR DÉFAUT. Utilisé pour la section « Armes et Armures » (« Ensembles d'armures » → un livre par ensemble). ⚠️ CHANGÉ (22/10/2026, suite 12) : chaque livre est rendu par `LigneLivre` (compteur de pages justifié à droite sur une ligne). / EN: ADDED - a COLLAPSIBLE group of books (in the sidebar): a clickable title (expand/collapse) + the book list when open. COLLAPSED BY DEFAULT. Used for the "Armes et Armures" section ("Ensembles d'armures" → one book per set). CHANGED - each book is rendered by `LigneLivre` (page count justified to the right on one line). */
-function GroupeLivres({ groupe, livres, pageId, onOuvrirLivre }: {
+function GroupeLivres({ groupe, livres, pageId, onOuvrirLivre, onOuvrirPage }: {
   groupe: string;
   livres: LivreLore[];
   pageId: string | null;
   onOuvrirLivre: (l: LivreLore) => void;
+  /** FR : ⚠️ AJOUT (22/10/2026, suite 13) - ouvre une PAGE directement (niveau 3 : pièces d'un ensemble, classées). / EN: ADDED - opens a PAGE directly (level 3: set pieces, by class). */
+  onOuvrirPage: (id: string) => void;
 }) {
   // FR : replié par défaut (état en mémoire uniquement, lecture passive).
   const [ouvert, setOuvert] = useState(false);
@@ -146,7 +150,83 @@ function GroupeLivres({ groupe, livres, pageId, onOuvrirLivre }: {
         <ul data-livres="" style={{ listStyle: "none", margin: "0.2rem 0 0.4rem", padding: 0, paddingLeft: "1rem" }}>
           {livres.map((l) => (
             <li key={l.id}>
-              <LigneLivre titre={l.titre} nbPages={l.pages.length} actif={l.pages.some((p) => p.id === pageId)} onClick={() => onOuvrirLivre(l)} dataAttr={{ "data-livre": l.id }} />
+              {/* ⚠️ AJOUT (22/10/2026, suite 13) : un livre avec `groupesPages` (ensemble d'armures) s'ouvre en DEUX NIVEAUX repliables (Ensemble → Classe → pièces) ; sinon LigneLivre classique. */}
+              {l.groupesPages && l.groupesPages.length > 0 ? (
+                <LivreAvecGroupes livre={l} pageId={pageId} onOuvrirPage={onOuvrirPage} />
+              ) : (
+                <LigneLivre titre={l.titre} nbPages={l.pages.length} actif={l.pages.some((p) => p.id === pageId)} onClick={() => onOuvrirLivre(l)} dataAttr={{ "data-livre": l.id }} />
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/** FR : ⚠️ AJOUT (22/10/2026, suite 13, remarque utilisateur) - un livre d'ENSEMBLE D'ARMURES avec un SECOND NIVEAU REPLIABLE PAR CLASSE : niveau 1 = le livre (l'ensemble, replié par défaut, compteur justifié à droite) ; niveau 2 = la CLASSE (Titan/Chasseur/Arcaniste, dans l'ordre verrouillé, avec icône Manifest quand disponible sinon icône locale `IconeClasse`, repliée par défaut) ; niveau 3 = la liste des NOMS DE PIÈCES (casque, gants…), chaque nom ouvre DIRECTEMENT la page de Lore. Chemin : Ensemble → Classe → sélection de la page à lire. / EN: ADDED - an ARMOR SET book with a SECOND COLLAPSIBLE LEVEL BY CLASS: level 1 = the book (the set, collapsed by default, count justified right); level 2 = the CLASS (Titan/Hunter/Warlock, locked order, Manifest icon when available else local `IconeClasse`, collapsed by default); level 3 = the list of PIECE NAMES (helmet, gauntlets…), each name opens the lore page DIRECTLY. Path: Set → Class → pick the page to read. */
+function LivreAvecGroupes({ livre, pageId, onOuvrirPage }: {
+  livre: LivreLore;
+  pageId: string | null;
+  onOuvrirPage: (id: string) => void;
+}) {
+  // FR : les DEUX niveaux sont repliés par défaut (état en mémoire uniquement, lecture passive).
+  const [ouvert, setOuvert] = useState(false);
+  const groupes = livre.groupesPages ?? [];
+  return (
+    <div data-livre-groupees="" style={{ marginBottom: "0.15rem" }}>
+      <button
+        data-livre={livre.id}
+        data-groupe-titre=""
+        aria-expanded={ouvert}
+        onClick={() => setOuvert((o) => !o)}
+        title={`${livre.titre} — ${livre.pages.length} page${livre.pages.length > 1 ? "s" : ""}`}
+        style={{ background: "none", border: "none", cursor: "pointer", padding: "0.1rem 0", fontSize: "0.82rem", color: livre.pages.some((p) => p.id === pageId) ? "#e8e4d8" : "#9a968a", textAlign: "left", display: "flex", alignItems: "center", width: "100%", gap: "0.35rem" }}
+      >
+        <span aria-hidden="true" style={{ fontSize: "0.65rem", width: "0.8rem", display: "inline-block", flexShrink: 0 }}>{ouvert ? "▾" : "▸"}</span>
+        <span style={{ flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{livre.titre}</span>
+        <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: "0.68rem", color: "#7d7a70", whiteSpace: "nowrap" }}>{livre.pages.length} page{livre.pages.length > 1 ? "s" : ""}</span>
+      </button>
+      {ouvert && (
+        <div data-classes="" style={{ paddingLeft: "1rem" }}>
+          {groupes.map((g) => (
+            <GroupeClasse key={g.classe} groupe={g} pageId={pageId} onOuvrirPage={onOuvrirPage} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** FR : ⚠️ AJOUT (22/10/2026, suite 13, remarque utilisateur) - un groupe de pages d'une CLASSE (niveau 2 repliable, replié par défaut) : titre = icône de classe (Manifest `urlIcone`, repli icône locale `IconeClasse` 14px) + libellé (Titan/Chasseur/Arcaniste) + compteur de pièces justifié à droite ; contenu = la liste des noms de pièces (niveau 3, clic direct vers la page de Lore). / EN: ADDED - a group of one CLASS's pages (level-2 collapsible, collapsed by default): title = class icon (Manifest `urlIcone`, fallback local `IconeClasse` 14px) + label (Titan/Hunter/Warlock) + piece count justified right; content = the list of piece names (level 3, direct click to the lore page). */
+function GroupeClasse({ groupe, pageId, onOuvrirPage }: {
+  groupe: { classe: ClasseArmure; icône?: string; pages: PageLore[] };
+  pageId: string | null;
+  onOuvrirPage: (id: string) => void;
+}) {
+  const [ouvert, setOuvert] = useState(false);
+  return (
+    <section data-classe={groupe.classe} style={{ marginBottom: "0.1rem" }}>
+      <button
+        data-classe-titre=""
+        aria-expanded={ouvert}
+        onClick={() => setOuvert((o) => !o)}
+        style={{ margin: 0, fontSize: "0.78rem", fontWeight: 600, color: "#9a968a", display: "flex", alignItems: "center", gap: "0.3rem", background: "none", border: "none", cursor: "pointer", padding: "0.1rem 0", textAlign: "left", width: "100%" }}
+      >
+        <span aria-hidden="true" style={{ fontSize: "0.6rem", width: "0.7rem", display: "inline-block", flexShrink: 0 }}>{ouvert ? "▾" : "▸"}</span>
+        {groupe.icône ? (
+          <img src={urlIcone(groupe.icône)} alt="" width={14} height={14} style={{ borderRadius: "2px", flexShrink: 0 }} />
+        ) : (
+          <IconeClasse classe={groupe.classe} taille={14} />
+        )}
+        <span style={{ flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{LIBELLES_CLASSE[groupe.classe]}</span>
+        <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: "0.66rem", color: "#7d7a70", whiteSpace: "nowrap" }}>{groupe.pages.length} pièce{groupe.pages.length > 1 ? "s" : ""}</span>
+      </button>
+      {ouvert && (
+        <ul data-livres="" style={{ listStyle: "none", margin: "0.1rem 0 0.3rem", padding: 0, paddingLeft: "1rem" }}>
+          {groupe.pages.map((p) => (
+            <li key={p.id}>
+              <LigneLivre titre={p.titre} nbPages={1} actif={p.id === pageId} onClick={() => onOuvrirPage(p.id)} dataAttr={{ "data-page": p.id }} />
             </li>
           ))}
         </ul>
@@ -225,7 +305,7 @@ function ListeLivresGroupee({ livres, pageId, onOuvrirLivre, onOuvrirPage }: {
         b.genre === "pages" ? (
           <GroupePages key={`pages-${b.livres[0].id}`} livre={b.livres[0]} pageId={pageId} onOuvrirPage={onOuvrirPage} />
         ) : b.genre === "groupe" ? (
-          <GroupeLivres key={b.nom} groupe={b.nom} livres={b.livres} pageId={pageId} onOuvrirLivre={onOuvrirLivre} />
+          <GroupeLivres key={b.nom} groupe={b.nom} livres={b.livres} pageId={pageId} onOuvrirLivre={onOuvrirLivre} onOuvrirPage={onOuvrirPage} />
         ) : (
           <ul key={`sans-groupe-${i}`} data-livres="" style={{ listStyle: "none", margin: "0.2rem 0 0.4rem", padding: 0 }}>
             {b.livres.map((l) => (
@@ -294,7 +374,7 @@ export function ColonneSections({ section, livres, categories, pageId, grimoireE
 }
 
 /** FR : zone de lecture centrale (spécification §4 zone 3) : œilleton du livre, titre de la page, sous-titre, libellé chronologique, texte, parcours inverse (objets porteurs), navigation précédent/suivant, bouton de retour vers l'objet (si provenance). Palette verrouillée appliquée ici. / EN: central reading zone (spec §4 zone 3): book eyebrow, page title, subtitle, chronological label, text, reverse path (carrier items), previous/next navigation, back-to-item button (if origin). The locked palette is applied here. */
-export function ZoneLecture({ section, livre, page, idPrecedente, idSuivante, onOuvrirPage, provenance, onRetourObjet }: {
+export function ZoneLecture({ section, livre, page, idPrecedente, idSuivante, onOuvrirPage, provenance, onRetourObjet, indexPage, totalPages }: {
   section: SectionLegendarium;
   livre: LivreLore;
   page: PageLore;
@@ -303,6 +383,9 @@ export function ZoneLecture({ section, livre, page, idPrecedente, idSuivante, on
   onOuvrirPage: (id: string) => void;
   provenance?: ProvenanceObjet;
   onRetourObjet?: () => void;
+  /** FR : ⚠️ AJOUT (22/10/2026, suite 13, remarque utilisateur) - position de la page DANS LE LIVRE (0-based) et nombre total de pages du livre, pour le compteur « page X/Y » affiché au niveau du titre du livre (œilleton), justifié à droite. `undefined` = pas de compteur (ex: page hors livre). / EN: ADDED - the page's POSITION IN THE BOOK (0-based) and the book's total page count, for the "page X/Y" counter shown at the book title (eyebrow), justified right. `undefined` = no counter (e.g. page outside a book). */
+  indexPage?: number;
+  totalPages?: number;
 }) {
   const ere = PALETTE[ereDeSection(section)];
   const styleBoutonNav: React.CSSProperties = { background: "none", border: `1px solid ${ere.bordure}`, borderRadius: "4px", color: ere.couleurTitre, cursor: "pointer", padding: "0.3rem 0.8rem", fontSize: "0.85rem" };
@@ -322,8 +405,13 @@ export function ZoneLecture({ section, livre, page, idPrecedente, idSuivante, on
         <button data-nav-precedente="" disabled={!idPrecedente} onClick={() => idPrecedente && onOuvrirPage(idPrecedente)} style={styleBoutonNav}>← Précédent</button>
         <button data-nav-suivante="" disabled={!idSuivante} onClick={() => idSuivante && onOuvrirPage(idSuivante)} style={styleBoutonNav}>Suivant →</button>
       </div>
-      {/* FR : ⚠️ AJOUT (21/10/2026, suite 10) - quand le livre a une catégorie (section Légendes D2, hiérarchie en jeu), l'œilleton l'affiche : « La Lumière · La Frontière sans foi ni loi ». / EN: ADDED - when the book has a category (D2 Légendes section, in-game hierarchy), the eyebrow shows it: "The Light · The Forsaken Shore". */}
-      <p data-oeilleton="" style={{ color: ere.oeilleton, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 0.3rem" }}>{livre.categorie ? `${livre.categorie} · ${livre.titre}` : livre.titre}</p>
+      {/* FR : ⚠️ AJOUT (21/10/2026, suite 10) - quand le livre a une catégorie (section Légendes D2, hiérarchie en jeu), l'œilleton l'affiche : « La Lumière · La Frontière sans foi ni loi ». ⚠️ CHANGÉ (22/10/2026, suite 13, remarque utilisateur) : l'œilleton est une LIGNE FLEX — le titre du livre à gauche, et le COMPTEUR « page X/Y » JUSTIFIÉ À DROITE (quand la page est dans le livre). Ex: « La Lumière · La Frontière sans foi ni loi » … « page 1/14 ». / EN: ADDED - when the book has a category (D2 Légendes section, in-game hierarchy), the eyebrow shows it: "The Light · The Forsaken Shore". CHANGED - the eyebrow is a FLEX LINE — the book title on the left, and the "page X/Y" COUNTER JUSTIFIED RIGHT (when the page is in the book). E.g. "The Light · The Forsaken Shore" … "page 1/14". */}
+      <p data-oeilleton="" style={{ color: ere.oeilleton, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 0.3rem", display: "flex", alignItems: "baseline", gap: "0.6rem" }}>
+        <span style={{ flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{livre.categorie ? `${livre.categorie} · ${livre.titre}` : livre.titre}</span>
+        {indexPage !== undefined && totalPages !== undefined && totalPages > 0 && (
+          <span data-compteur-page="" style={{ marginLeft: "auto", flexShrink: 0, textTransform: "none", letterSpacing: 0, whiteSpace: "nowrap" }}>page {indexPage + 1}/{totalPages}</span>
+        )}
+      </p>
       {/* FR : ⚠️ CHANGÉ (22/10/2026, suite 12, remarque utilisateur) - COUVERTURE du livre : FLOTTANTE EN HAUT À GAUCHE (`float: left`), le titre et le texte s'écoulent À DROITE puis CONTINUENT SOUS l'image — jamais de superposition, jamais de « colonne » réservée à l'image (pas de grille 2 colonnes). TAILLE : `max-width: 45%` + `height: auto` SANS `width` forcée → l'image n'est JAMAIS agrandie au-delà de sa taille naturelle (elle ne pixellise plus ; une image plus petite s'affiche telle quelle, une grande est réduite proprement). Les blocs suivants (parcours inverse, nav du bas) portent `clear: both` pour ne JAMAIS remonter à côté de l'image. / EN: CHANGED - the book's COVER: FLOATS TOP-LEFT (`float: left`), the title and text flow TO THE RIGHT then CONTINUE BELOW the image — never overlapping, never a reserved "column" for the image (no 2-column grid). SIZE: `max-width: 45%` + `height: auto` WITHOUT forced `width` → the image is NEVER upscaled beyond its natural size (no more pixelation; a small image shows as-is, a big one is cleanly downscaled). The following blocks (reverse path, bottom nav) carry `clear: both` so they NEVER climb up beside the image. */}
       {livre.couvertureUrl && (
         <img data-couverture-page="" src={livre.couvertureUrl} alt={livre.titre} style={{ float: "left", maxWidth: "45%", height: "auto", borderRadius: "4px", margin: "0 0.9rem 0.6rem 0" }} loading="lazy" />
@@ -450,6 +538,8 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
   const livreActif = selection?.livre ?? null;
   const pageActive = selection?.page ?? null;
   const ordre = useMemo(() => ordrePages(livresSection), [livresSection]);
+  // ⚠️ CHANGÉ (22/10/2026, suite 13) : `indexPage` = position DANS LE LIVRE ACTIF (pour le compteur « page X/Y » de l'œilleton), distinct de l'index dans l'ORDRE APLATI de la section (pour précédent/suivant).
+  const indexPageLivre = pageActive && livreActif ? livreActif.pages.findIndex((p) => p.id === pageActive.id) : -1;
   const indexPage = pageActive ? ordre.indexOf(pageActive.id) : -1;
   const idPrecedente = indexPage > 0 ? ordre[indexPage - 1] : null;
   const idSuivante = indexPage >= 0 && indexPage < ordre.length - 1 ? ordre[indexPage + 1] : null;
@@ -476,7 +566,7 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
           {rechercheActive ? (
             <ResultatsRecherche motCle={motCle} resultats={resultats} onOuvrir={ouvrirResultat} />
           ) : pageActive && livreActif ? (
-            <ZoneLecture section={section} livre={livreActif} page={pageActive} idPrecedente={idPrecedente} idSuivante={idSuivante} onOuvrirPage={ouvrirPage} provenance={provenance} onRetourObjet={onRetourObjet} />
+            <ZoneLecture section={section} livre={livreActif} page={pageActive} idPrecedente={idPrecedente} idSuivante={idSuivante} onOuvrirPage={ouvrirPage} provenance={provenance} onRetourObjet={onRetourObjet} indexPage={indexPageLivre >= 0 ? indexPageLivre : undefined} totalPages={livreActif.pages.length} />
           ) : (
             <div data-accueil-legendarium="" style={{ padding: "1rem", color: "#7d7a70", fontSize: "0.9rem" }}>
               <p style={{ margin: "0 0 0.3rem" }}>Bienvenue dans le Legendarium.</p>

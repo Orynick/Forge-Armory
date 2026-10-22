@@ -318,6 +318,83 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
 }
 
 
+// --- ⚠️ AJOUT (22/10/2026, suite 13) : COMPTEUR « page X/Y » AU NIVEAU DU TITRE DU LIVRE (justifié à droite) + ENSEMBLES D'ARMURES : DEUX NIVEAUX REPLIABLES (Ensemble → Classe → pièces) ---
+{
+  // 1) Compteur page X/Y dans l'œilleton (même ligne que le titre du livre, justifié à droite)
+  const livre14 = livre("legendes-livre:1000", "La Frontière sans foi ni loi", [
+    page("lore:8001", "Ces terres maudites", "Texte 1."),
+    page("lore:8002", "Par cette langue, soyez damnés", "Texte 2."),
+    page("lore:8003", "Troisième page", "Texte 3."),
+  ]);
+  livre14.categorie = "La Lumière";
+  const zoneAvecCompteur = renderToStaticMarkup(
+    <ZoneLecture section="legendes" livre={livre14} page={livre14.pages[0]} idPrecedente={null} idSuivante="lore:8002" onOuvrirPage={() => {}} indexPage={0} totalPages={14} />
+  );
+  ok("⚠️ suite 13 : l'œilleton affiche le COMPTEUR « page 1/14 » JUSTIFIÉ À DROITE (même ligne que le titre du livre, margin-left:auto)",
+    zoneAvecCompteur.includes('data-compteur-page=""') && zoneAvecCompteur.includes("page 1/14") && zoneAvecCompteur.includes("margin-left:auto"),
+    zoneAvecCompteur.slice(zoneAvecCompteur.indexOf('data-oeilleton'), zoneAvecCompteur.indexOf('data-oeilleton') + 700));
+  ok("⚠️ suite 13 : le compteur reflète la page affichée (page 3/14 en troisième position) et le titre du livre reste sur la même ligne (flex)",
+    renderToStaticMarkup(<ZoneLecture section="legendes" livre={livre14} page={livre14.pages[2]} idPrecedente="lore:8002" idSuivante={null} onOuvrirPage={() => {}} indexPage={2} totalPages={14} />).includes("page 3/14") &&
+    zoneAvecCompteur.includes("display:flex") && texte(zoneAvecCompteur).includes("La Lumière · La Frontière sans foi ni loi"),
+    texte(zoneAvecCompteur).slice(0, 300));
+  ok("⚠️ suite 13 : SANS indexPage/totalPages (page hors livre), AUCUN compteur n'est affiché (pas de « page undefined »)",
+    !renderToStaticMarkup(<ZoneLecture section="legendes" livre={livre14} page={livre14.pages[0]} idPrecedente={null} idSuivante={null} onOuvrirPage={() => {}} />).includes('data-compteur-page=""'));
+
+  // 2) Ensembles d'armures : livre avec groupesPages (2 classes) dans GroupeLivres
+  const livreEnsemble = livre("objets-armures-Armure de Sekris", "Armure de Sekris", [
+    page("lore:7301", "Casque de Sekris", "Texte casque."),
+    page("lore:7302", "Gants de Sekris", "Texte gants."),
+    page("lore:7303", "Torse de Sekris", "Texte torse."),
+    page("lore:7304", "Jambes de Sekris", "Texte jambes."),
+    page("lore:7305", "Marque de Sekris", "Texte marque."),
+    page("lore:7311", "Casque Chasseur Sekris", "Texte casque chasseur."),
+  ]);
+  livreEnsemble.groupe = "Ensembles d'armures";
+  livreEnsemble.groupesPages = [
+    { classe: "titan", icône: "/icons/classes/titan.png", pages: [livreEnsemble.pages[0], livreEnsemble.pages[1], livreEnsemble.pages[2], livreEnsemble.pages[3], livreEnsemble.pages[4]] },
+    { classe: "chasseur", pages: [livreEnsemble.pages[5]] }, // sans icône Manifest -> repli IconeClasse
+  ];
+  const livreSimple = livre("objets-armures-Autre ensemble", "Autre ensemble", [page("lore:7401", "Casque autre", "Texte.")]);
+  livreSimple.groupe = "Ensembles d'armures"; // SANS groupesPages : LigneLivre classique
+
+  const colonneArmures = renderToStaticMarkup(
+    <ColonneSections section="objets" livres={[livreEnsemble, livreSimple]} pageId="lore:7301" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
+  );
+  ok("⚠️ suite 13 : le groupe « Ensembles d'armures » contient les 2 livres (compteur = 6 + 1 = 7 pages) et est REPLIÉ PAR DÉFAUT (ni data-livre-groupees ni data-livre ni data-classe visibles tant que le groupe est replié)",
+    colonneArmures.includes('data-groupe="Ensembles d&#x27;armures"') && colonneArmures.includes("7 pages") && !colonneArmures.includes('data-livre-groupees=""') && !colonneArmures.includes('data-livre="objets-armures-Armure de Sekris"') && !colonneArmures.includes('data-livre="objets-armures-Autre ensemble"') && !colonneArmures.includes('data-classe="') && !colonneArmures.includes('data-page="lore:7301"'),
+    colonneArmures.slice(colonneArmures.indexOf('data-groupe='), colonneArmures.indexOf('data-groupe=') + 700));
+  ok("⚠️ suite 13 : les DEUX livres sont dans le groupe (compteur 7 pages = 6 Sekris + 1 Autre ensemble) — la structure à 2 niveaux ne CASSE pas le regroupement par `groupe`",
+    colonneArmures.includes("7 pages") && (colonneArmures.match(/data-groupe-titre=""/g) ?? []).length === 1,
+    colonneArmures.slice(colonneArmures.indexOf('data-groupe='), colonneArmures.indexOf('data-groupe=') + 700));
+  ok("⚠️ suite 13 : le groupe « Ensembles d'armures » est REPLIÉ PAR DÉFAUT (aria-expanded=false)",
+    colonneArmures.includes('data-groupe="Ensembles d&#x27;armures"') && (colonneArmures.match(/aria-expanded="false"/g) ?? []).length === 1,
+    colonneArmures.slice(colonneArmures.indexOf('data-groupe=')));
+
+  // 3) GroupeClasse seul (rendu statique isolé, ouvert forcé via le DOM) : on vérifie la structure avec groupesPages vide de pages visibles (replié)
+  //    -> on teste via ColonneSections mais le niveau 2 est replié ; on vérifie juste la présence du data-classes absent + la structure du niveau 1
+  ok("⚠️ suite 13 : les classes ne sont rendues QUE quand l'ensemble est déplié (pas de fuite du niveau 2 dans le rendu statique replié)",
+    !colonneArmures.includes('data-classes=""') && !colonneArmures.includes("Titan") && !colonneArmures.includes("Chasseur"),
+    colonneArmures.slice(colonneArmures.indexOf('data-livre-groupees'), colonneArmures.indexOf('data-livre-groupees') + 600));
+}
+
+// --- GroupeClasse isolé (test du niveau 2 repliable + icônes) via un livre déjà ouvert : on force l'ouverture en testant le composant rendu avec un état initial ouvert impossible en statique ;
+//     on vérifie donc la STRUCTURE du niveau 2 en rendant GroupeLivres avec un livre groupesPages et en comptant les aria-expanded (groupe + livre = 2 repliés) ---
+{
+  const livreE = livre("objets-armures-X", "Ensemble X", [page("lore:7301", "Casque X", "Texte."), page("lore:7311", "Casque X chasseur", "Texte.")]);
+  livreE.groupe = "Ensembles d'armures";
+  livreE.groupesPages = [
+    { classe: "titan", icône: "/icons/classes/titan.png", pages: [livreE.pages[0]] },
+    { classe: "chasseur", pages: [livreE.pages[1]] },
+  ];
+  const col = renderToStaticMarkup(
+    <ColonneSections section="objets" livres={[livreE]} pageId={null} grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
+  );
+  // Groupe (niveau 0) + Livre (niveau 1) repliés = 2 aria-expanded=false ; le niveau 2 (classes) n'est pas rendu tant que le livre est replié
+  ok("⚠️ suite 13 : avec un livre `groupesPages`, le groupe replié masque TOUT (1 aria-expanded=false, ni livre ni classe ni page visibles)",
+    (col.match(/aria-expanded="false"/g) ?? []).length === 1 && !col.includes('data-livre-groupees=""') && !col.includes('data-classe="') && !col.includes("data-classes") && !col.includes('data-livre="objets-armures-X"'),
+    col.slice(col.indexOf('data-groupe=')));
+}
+
 // --- ⚠️ AJOUT (22/10/2026, suite 12) : COUVERTURE FLOTTANTE (haut gauche, taille naturelle, pas de pixellisation) ---
 {
   const livreAvecCouv = livre("legendes-livre:1000", "La Frontière sans foi ni loi", [page("lore:8001", "Ces terres maudites", "Texte de la page.")]);

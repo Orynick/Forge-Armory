@@ -387,6 +387,52 @@ function indexProvenance(db: Database): IndexProvenance {
   return index;
 }
 
+/** FR : ⚠️ AJOUT (22/10/2026, suite 13, remarque utilisateur) - icône d'une CLASSE, lue dans le Manifest (`DestinyClassDefinition.displayProperties.icon`, chemin relatif Bungie), mise en cache par base (WeakMap). ⚠️ VALIDÉ VRAI Manifest FR (22/10/2026) : `DestinyClassDefinition` a `hasIcon: false` et AUCUN `displayProperties.icon` pour les 3 classes — cette fonction renvoie donc toujours `undefined` en pratique ; l'UI affiche l'icône locale `IconeClasse` (disque coloré + SVG, source justrealmilk/destiny-icons CC0). Le code reste prêt si Bungie ajoute des icônes. / EN: ADDED - a CLASS icon, read from the Manifest (`DestinyClassDefinition.displayProperties.icon`, Bungie relative path), cached per database (WeakMap). ⚠️ VERIFIED on the REAL FR Manifest (22/10/2026): `DestinyClassDefinition` has `hasIcon: false` and NO `displayProperties.icon` for the 3 classes — this function therefore always returns `undefined` in practice; the UI shows the local `IconeClasse` (colored disc + SVG, source justrealmilk/destiny-icons CC0). The code stays ready if Bungie ever adds icons. */
+const cacheIconesClasses = new WeakMap<Database, Map<ClasseArmure, string | undefined>>();
+
+function iconesClasses(db: Database): Map<ClasseArmure, string | undefined> {
+  const enCache = cacheIconesClasses.get(db);
+  if (enCache) return enCache;
+  const index = new Map<ClasseArmure, string | undefined>();
+  try {
+    const stmt = db.prepare(`SELECT id, json FROM DestinyClassDefinition`);
+    const lignes: Array<{ id: number; json: string }> = [];
+    while (stmt.step()) lignes.push(stmt.getAsObject() as { id: number; json: string });
+    stmt.free();
+    for (const ligne of lignes) {
+      try {
+        const def = JSON.parse(ligne.json) as { classType?: number; displayProperties?: { icon?: string } };
+        const classe = def.classType !== undefined ? CLASS_TYPE_VERS_CLASSE[def.classType] : undefined;
+        if (!classe) continue;
+        const icone = def.displayProperties?.icon?.trim();
+        if (icone) index.set(classe, icone);
+      } catch { continue; }
+    }
+  } catch { /* table absente : pas d'icônes Manifest */ }
+  cacheIconesClasses.set(db, index);
+  return index;
+}
+
+/** FR : ⚠️ AJOUT (22/10/2026, suite 13, remarque utilisateur) - découpe les PAGES DÉDUPLIQUÉES d'un ensemble en GROUPES PAR CLASSE, dans l'ordre verrouillé ORDRE_CLASSES (Titan → Chasseur → Arcaniste) : chaque groupe porte la classe, l'icône Manifest (quand disponible) et SES PAGES (les pages dédupliquées correspondant aux pièces de cette classe, dans l'ordre verrouillé des slots). Sert au second niveau repliable de la colonne latérale (Ensemble → Classe → pièces). / EN: ADDED - splits an armor set's DEDUPLICATED pages into GROUPS BY CLASS, in the locked ORDRE_CLASSES order (Titan → Hunter → Warlock): each group carries the class, the Manifest icon (when available) and ITS PAGES (the deduplicated pages matching this class's pieces, in the locked slot order). Used for the sidebar's second collapsible level (Set → Class → pieces). */
+function groupesParClasse(db: Database, pagesDedup: PageLore[]): { classe: ClasseArmure; icône?: string; pages: PageLore[] }[] {
+  const icones = iconesClasses(db);
+  // ⚠️ CHANGÉ (22/10/2026, suite 13, validation VRAI Manifest) : une PAGE = un LORE (dédupliqué), mais PLUSIEURS ITEMS partagent ce Lore (rééditions : même nom, même classe, même slot, même loreHash, collectibleHash différent ou absent). La classe se lit donc sur le LORE (via n'importe quel porteur de la page), pas sur le hash d'un item particulier. Sinon un ensemble avec rééditions perdait des pièces (ex: « Armure de Rull » : 5 pages mais seulement 3 groupes Titan car les rééditions sans collectible n'étaient pas dans la map par hash).
+  const classeParPage = new Map<string, ClasseArmure>();
+  for (const p of pagesDedup) {
+    const porteur = p.porteurs?.[0];
+    if (porteur?.classe) classeParPage.set(p.id, porteur.classe);
+  }
+  const groupes: { classe: ClasseArmure; icône?: string; pages: PageLore[] }[] = [];
+  for (const classe of ORDRE_CLASSES) {
+    // Les pages de cette classe, DANS L'ORDRE DU LIVRE (ordre verrouillé : la page hérite la position de ses porteurs)
+    const pagesClasse = pagesDedup.filter((p) => classeParPage.get(p.id) === classe);
+    if (pagesClasse.length === 0) continue;
+    const icône = icones.get(classe);
+    groupes.push(icône ? { classe, icône, pages: pagesClasse } : { classe, pages: pagesClasse });
+  }
+  return groupes;
+}
+
 /** FR : ⚠️ AJOUT (22/10/2026, suite 11) - PROVENANCE d'une armure = nom de son ENSEMBLE (nœud parent du collectible, ex: « Armure de Sekris » pour une armure du raid Léviathan). Résolution : `def.collectibleHash` → collectible → `parentNodeHashes[0]` → nœud → nom. Renvoie `undefined` si l'armure n'a pas de collectible ou si la chaîne est rompue (l'armure part alors dans le groupe « Autres armures »). / EN: an armor piece's PROVENANCE = its SET's name (the collectible's parent node, e.g. \"Armure de Sekris\" for a Leviathan raid armor piece). Resolution: `def.collectibleHash` → collectible → `parentNodeHashes[0]` → node → name. Returns `undefined` if the armor has no collectible or the chain is broken (the armor then goes to the \"Other armor\" group). */
 function provenanceArmure(db: Database, def: DestinyItemDefinition): string | undefined {
   const ch = def.collectibleHash;
@@ -415,7 +461,7 @@ function dedupPages(db: Database, liste: ObjetPorteur[]): PageLore[] {
   return pages;
 }
 
-/** FR : ⚠️ CHANGÉ (22/10/2026, suite 12, remarques utilisateur) - construit les livres de la section « objets » : les ARMES forment des livres « liste de pages » (un par type : Cinétiques, Énergétiques, Lourdes, puis « Autres armes » si besoin) — la colonne latérale affiche chaque livre comme un REPLIABLE (replié par défaut) listant le NOM DE CHAQUE ARME (clic direct vers la page de son Lore), pages par ordre chronologique. Les ARMURES restent dans un groupe repliable « Ensembles d'armures » avec UN LIVRE PAR ENSEMBLE (provenance = nœud parent du collectible, ex: « Armure de Sekris »), les ensembles ordonnés par ordre chronologique de sortie des saisons, les pièces d'un ensemble dans l'ordre verrouillé (casque → gants → torse → jambes → marque). Les armures SANS provenance connue vont dans un livre « Autres armures » (ordre verrouillé). / EN: CHANGED - builds the "objets" section's books: WEAPONS become "pages-list" books (one per type: Kinetic, Energy, Heavy, then "Other weapons" if needed) — the sidebar shows each book as a COLLAPSIBLE group (collapsed by default) listing EACH WEAPON'S NAME (direct click to its lore page), pages chronologically. ARMOR stays in a collapsible "Ensembles d'armures" group with ONE BOOK PER SET (provenance = the collectible's parent node, e.g. "Armure de Sekris"), sets ordered by release season, pieces within a set in the locked order (helmet → gauntlets → chest → legs → class item). Armor WITHOUT known provenance goes to an "Autres armures" book (locked order). */
+/** FR : ⚠️ CHANGÉ (22/10/2026, suite 13, remarques utilisateur) - construit les livres de la section « objets » : les ARMES forment des livres « liste de pages » (un par type : Cinétiques, Énergétiques, Lourdes, puis « Autres armes » si besoin) — la colonne latérale affiche chaque livre comme un REPLIABLE (replié par défaut) listant le NOM DE CHAQUE ARME (clic direct vers la page de son Lore), pages par ordre chronologique. Les ARMURES restent dans un groupe repliable « Ensembles d'armures » avec UN LIVRE PAR ENSEMBLE (provenance = nœud parent du collectible, ex: « Armure de Sekris »), les ensembles ordonnés par ordre chronologique de sortie des saisons, les pièces d'un ensemble dans l'ordre verrouillé (classe → casque → gants → torse → jambes → marque), avec un SECOND NIVEAU REPLIABLE PAR CLASSE (Titan/Chasseur/Arcaniste, icône Manifest) dans la colonne latérale (`groupesPages`). Les armures SANS provenance connue vont dans un livre « Autres armures » (ordre verrouillé). / EN: CHANGED - builds the "objets" section's books: WEAPONS become "pages-list" books (one per type: Kinetic, Energy, Heavy, then "Other weapons" if needed) — the sidebar shows each book as a COLLAPSIBLE group (collapsed by default) listing EACH WEAPON'S NAME (direct click to its lore page), pages chronologically. ARMOR stays in a collapsible "Ensembles d'armures" group with ONE BOOK PER SET (provenance = the collectible's parent node, e.g. "Armure de Sekris"), sets ordered by release season, pieces within a set in the locked order (class → helmet → gauntlets → chest → legs → class item), with a SECOND COLLAPSIBLE LEVEL BY CLASS (Titan/Hunter/Warlock, Manifest icon) in the sidebar (`groupesPages`). Armor WITHOUT known provenance goes to an "Autres armures" book (locked order). */
 function livresObjets(db: Database): LivreLore[] {
   const porteurs = indexPorteurs(db).objets;
   const livres: LivreLore[] = [];
@@ -477,12 +523,13 @@ function livresObjets(db: Database): LivreLore[] {
     // Pièces dans l'ordre verrouillé (classe → casque → gants → torse → jambes → marque), puis dédup des pages
     const pages = dedupPages(db, trierArmuresParEnsemble(liste));
     if (pages.length === 0) continue;
-    livres.push({ id: `objets-armures-${nomEnsemble}`, titre: nomEnsemble, pages, groupe: "Ensembles d'armures" });
+    // ⚠️ AJOUT (22/10/2026, suite 13, remarque utilisateur) : niveau 2 repliable = la CLASSE (Titan/Chasseur/Arcaniste, dans l'ordre verrouillé ORDRE_CLASSES), avec icône Manifest quand disponible. Le livre garde `pages` (ordre verrouillé) pour la lecture ; `groupesPages` ne sert qu'à l'affichage latéral.
+    livres.push({ id: `objets-armures-${nomEnsemble}`, titre: nomEnsemble, pages, groupe: "Ensembles d'armures", groupesPages: groupesParClasse(db, pages) });
   }
   // Armures sans provenance : livre « Autres armures » (ordre verrouillé), APRÈS les ensembles datés
   if (sansProvenance.length > 0) {
     const pages = dedupPages(db, trierArmuresParEnsemble(sansProvenance));
-    if (pages.length > 0) livres.push({ id: "objets-armures-autres", titre: "Autres armures", pages, groupe: "Ensembles d'armures" });
+    if (pages.length > 0) livres.push({ id: "objets-armures-autres", titre: "Autres armures", pages, groupe: "Ensembles d'armures", groupesPages: groupesParClasse(db, pages) });
   }
   return livres;
 }

@@ -31,6 +31,8 @@ const T_COLL = "DestinyCollectibleDefinition";
 const T_NOEUD = "DestinyPresentationNodeDefinition";
 const T_SAISON = "DestinySeasonDefinition";
 const T_LORE = "DestinyLoreDefinition";
+// ⚠️ AJOUT (22/10/2026, suite 13) : table des classes (icônes Manifest pour le niveau repliable par classe)
+const T_CLASSE = "DestinyClassDefinition";
 const BUCKET = { casque: 3448274439, gants: 3551918588, torse: 14239492, jambes: 20886954, marque: 1585787867, cinetique: 1498876634, energie: 2465295065, lourde: 953998645 };
 
 const lore = (titre: string, corps: string, sousTitre?: string) => ({ displayProperties: { name: titre, description: corps }, ...(sousTitre ? { subtitle: sousTitre } : {}) });
@@ -146,6 +148,18 @@ ok("⚠️ la page dédoublonnée embarque TOUS les porteurs (Izanagi + sa réé
   livreArmes?.pages[0].porteurs?.length === 2 && livreArmes.pages[0].porteurs.some((x) => x.hash === 6040), livreArmes?.pages[0].porteurs?.map((x) => x.hash));
 ok("⚠️ suite 11 : sans collectibles/nœuds, les 7 armures tombent dans le livre « Autres armures » (groupe « Ensembles d'armures »), ordre verrouillé conservé",
   livreArmuresAutres?.groupe === "Ensembles d'armures" && livreArmuresAutres.pages.length === 7, livresObjets.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`));
+// ⚠️ AJOUT (22/10/2026, suite 13) : second niveau repliable par CLASSE sur les livres d'armures
+ok("⚠️ suite 13 : le livre « Autres armures » porte `groupesPages` = 2 classes DANS L'ORDRE VERROUILLÉ (Titan 5 pages, Chasseur 2 pages), chaque groupe a sa classe et ses pages dans l'ordre verrouillé",
+  livreArmuresAutres?.groupesPages?.length === 2 &&
+  livreArmuresAutres.groupesPages[0].classe === "titan" && livreArmuresAutres.groupesPages[0].pages.length === 5 &&
+  livreArmuresAutres.groupesPages[1].classe === "chasseur" && livreArmuresAutres.groupesPages[1].pages.length === 2 &&
+  JSON.stringify(livreArmuresAutres.groupesPages[0].pages.map((p) => p.id)) === JSON.stringify(["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114"]) &&
+  JSON.stringify(livreArmuresAutres.groupesPages[1].pages.map((p) => p.id)) === JSON.stringify(["lore:7120", "lore:7121"]),
+  livreArmuresAutres?.groupesPages?.map((g) => `${g.classe}(${g.pages.length})`));
+ok("⚠️ suite 13 : sans table DestinyClassDefinition (fixtures db2), `groupesPages` est présent SANS icône Manifest (icône = undefined, l'UI retombe sur IconeClasse)",
+  livreArmuresAutres?.groupesPages?.every((g) => g.icône === undefined) === true);
+ok("⚠️ suite 13 : les livres d'ARMES (listePages) n'ont PAS de `groupesPages` (le second niveau par classe ne concerne que les armures)",
+  livreArmes?.groupesPages === undefined);
 
 // --- Règle des ensembles d'armures (verrouillée) ---
 const ordreAttendu = ["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114", "lore:7120", "lore:7121"];
@@ -559,6 +573,12 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
       500: { hash: 500, displayProperties: { name: "Armure du raid A", description: "", icon: "" }, children: { collectibles: [] } },
       600: { hash: 600, displayProperties: { name: "Armure du donjon B", description: "", icon: "" }, children: { collectibles: [] } },
     },
+    [T_CLASSE]: {
+      // ⚠️ AJOUT (22/10/2026, suite 13) : icônes de classe dans le Manifest (0=Titan, 1=Chasseur, 2=Arcaniste)
+      0: { hash: 0, classType: 0, displayProperties: { name: "Titan", icon: "/icons/classes/titan.png", description: "" } },
+      1: { hash: 1, classType: 1, displayProperties: { name: "Chasseur", icon: "/icons/classes/chasseur.png", description: "" } },
+      2: { hash: 2, classType: 2, displayProperties: { name: "Arcaniste", icon: "/icons/classes/arcaniste.png", description: "" } },
+    },
   });
 
   const livresObjG = livresDeSection(dbG, "objets");
@@ -585,6 +605,13 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
   ok("⚠️ suite 11 : DANS un ensemble, les pièces suivent l'ordre verrouillé (casque → gants → torse → jambes → marque)",
     JSON.stringify(livreRaidA?.pages.map((p) => p.id)) === JSON.stringify(["lore:7301", "lore:7302", "lore:7303", "lore:7304", "lore:7305"]),
     livreRaidA?.pages.map((p) => p.id));
+  ok("⚠️ suite 13 : le livre « Armure du raid A » porte `groupesPages` = 1 SEULE classe (Titan, toutes les pièces sont classType 0), avec l'icône Manifest `/icons/classes/titan.png`",
+    livreRaidA?.groupesPages?.length === 1 && livreRaidA.groupesPages[0].classe === "titan" && livreRaidA.groupesPages[0].icône === "/icons/classes/titan.png" &&
+    JSON.stringify(livreRaidA.groupesPages[0].pages.map((p) => p.id)) === JSON.stringify(["lore:7301", "lore:7302", "lore:7303", "lore:7304", "lore:7305"]),
+    livreRaidA?.groupesPages?.map((g) => `${g.classe}/${g.icône}(${g.pages.length})`));
+  ok("⚠️ suite 13 : le livre « Autres armures » (1 pièce Arcaniste sans collectible) porte `groupesPages` = 1 classe (arcaniste) avec l'icône Manifest",
+    livreAutres?.groupesPages?.length === 1 && livreAutres.groupesPages[0].classe === "arcaniste" && livreAutres.groupesPages[0].icône === "/icons/classes/arcaniste.png" && livreAutres.groupesPages[0].pages.length === 1,
+    livreAutres?.groupesPages?.map((g) => `${g.classe}/${g.icône}(${g.pages.length})`));
   ok("⚠️ suite 11 : l'armure sans collectible tombe dans « Autres armures » (1 page)",
     livreAutres?.pages.length === 1 && livreAutres.pages[0]?.id === "lore:7401", livreAutres?.pages.map((p) => p.id));
 
