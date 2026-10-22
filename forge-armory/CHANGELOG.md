@@ -1,3 +1,20 @@
+## 22/10/2026 (branche `draft-legendarium`, étape 6) — VÉRIFICATION : LES 9 CRITÈRES D'ACCEPTATION SONT AU VERT (34/34)
+
+**Fait** : nouveau test d'acceptation **`tests/logique/legendarium-acceptation.test.ts`** (34 contrôles) qui vérifie les **9 critères d'acceptation** de la spécification verrouillée (`documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md` §7), chacun par lecture du code (comme `cablage-forge.test.ts`) ou exécution du modèle :
+
+1. **Légendes D2 + Grimoire D1 regroupés par livres** (comme en jeu) — ✅ hiérarchie catégorie → livre → pages (suite 10) ; repli D1 = 6 livres / 834 cartes, ordre officiel, ids `grimoire:<idCarte>` + sous-titre chapitre.
+2. **Ordre global respecté** — ✅ Grimoire D1 → Légendes D2 → Armes et Armures → Cosmétiques et utilitaires (`SECTIONS`).
+3. **Ensembles d'armures : ordre casque → gants → torse → jambes → objet de classe, par classe** — ✅ `ORDRE_SLOTS_ARMURE` + `ORDRE_CLASSES` (Titan → Chasseur → Arcaniste), vérifié aussi par le modèle sur un livre « Ensembles d'armures ».
+4. **Recherche par mots-clés** — ✅ retrouve les pages (insensible à la casse), y compris la recherche avancée suite 15 (guillemets = phrase exacte, `-` = exclu).
+5. **Bouton « Lire le Lore » uniquement si Lore présent, haut de fiche, justifié à droite, sous la croix** — ✅ `BoutonLireLore` retourne `null` sans Lore (`aLore`), `justify-content:flex-end`, et dans les **5 fiches** (InventaireArmes/Armures, CollectionArmes/Armures, pop-up Build Analyzer `SelecteurInventaire`) le bouton est DANS LE DOM **après** la croix de fermeture, rendu seulement si `onLireLore` est fourni.
+6. **Parcours inverse page → objets porteurs** — ✅ `porteursDeLore` retrouve tous les porteurs (rééditions comprises, objets masqués exclus) ; lien profond `item:<hash>` résolu vers `lore:<hash>`.
+7. **Spectres, Vaisseaux, Passereaux listés avec leur Lore** — ✅ livres « Spectres » → « Vaisseaux » → « Passereaux » (dans cet ordre, avant « Autres »), objets sans Lore exclus.
+8. **Aucun impact sur le scoring ni le build (lecture passive vérifiée)** — ✅ aucun import scoring/build/simulation dans les modules Legendarium ; les seuls appels réseau sont des **GET** en lecture (Grimoire D1) — **aucun POST/PUT/DELETE** ; **aucun stockage persistant** (pas de localStorage/sessionStorage/indexedDB/cookies) ; le bouton est un composant **pur** (pas de `useState`/`useEffect`) ; la cible Legendarium dans `DashboardPage` est en `useState` (mémoire uniquement) ; le modèle ne fait que **lire** le cache manifeste.
+9. **Cache téléchargé/mis à jour sans casser le catalogue** — ✅ le Legendarium **réutilise** le cache existant (`lib/manifest/download.ts`), aucun second mécanisme de téléchargement ; le Grimoire D1 (JSON 930 Ko) est importé **dynamiquement** (`import()`, hors du bundle principal) ; le cache manifeste n'importe **rien** du Legendarium (dépendance à sens unique).
+
+**Vérifié** : `legendarium-acceptation` **34/34** ; batterie logique complète **35/35 suites, 686/686 contrôles** ; `tsc` 0 erreur ; `npm run build` strict ✓.
+
+
 ## 22/10/2026 (branche `draft-legendarium`, suite 15) — RECHERCHE AVANCÉE : GUILLEMETS (PHRASE EXACTE), `+` (OBLIGATOIRE), `-` (EXCLU), CASE « Aa » (RESPECTER LA CASSE)
 
 **Demande de l'utilisateur (avant test de la suite 14)** : « pour la recherche, il faudrait pouvoir utiliser **les guillemets, + et -, ainsi que respecter la casse** ».
