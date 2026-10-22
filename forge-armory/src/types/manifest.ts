@@ -98,6 +98,21 @@ export interface DestinyPresentationNodeDefinition {
   blacklisted?: boolean;
 }
 
+/** FR : ⚠️ AJOUT (22/10/2026, suite 11, chantier Legendarium) - un collectible (Collections) : lien entre un OBJET (`DestinyInventoryItemDefinition.collectibleHash`) et son emplacement dans l'arbre des Collections (`parentNodeHashes` → nœud de PRÉSENTATION). Pour les ARMURES, le parent direct du collectible est le nœud « ensemble » (ex: « Armure de Sekris » = 5 collectibles = 5 pièces) : c'est la PROVENANCE utilisée pour grouper les armures du Legendarium. Vérifié sur le VRAI Manifest FR (22/10/2026) : 12 255 collectibles, 2 985 pointent vers une armure. / EN: a collectible (Collections): links an ITEM (`DestinyInventoryItemDefinition.collectibleHash`) to its place in the Collections tree (`parentNodeHashes` → PRESENTATION node). For ARMOR, the collectible's direct parent is the « set » node (e.g. « Armure de Sekris » = 5 collectibles = 5 pieces): this is the PROVENANCE used to group armor in the Legendarium. Verified on the REAL FR Manifest (2026-10-22): 12,255 collectibles, 2,985 point to armor. */
+export interface DestinyCollectibleDefinition {
+  hash: DefinitionHash;
+  displayProperties: DestinyDisplayProperties;
+  /** FR : hash de l'objet correspondant (pièce d'armure, arme, cosmétique…). / EN: hash of the corresponding item (armor piece, weapon, cosmetic…). */
+  itemHash?: DefinitionHash;
+  /** FR : nœuds de présentation parents — le PREMIER est le nœud « ensemble » pour les armures (ex: « Armure de Sekris »), le parent de celui-ci est la catégorie de provenance (« Haut niveau », « Monde », « Compétitif »…). / EN: parent presentation nodes — the FIRST is the « set » node for armor (e.g. « Armure de Sekris »), its parent is the provenance category (« High-level », « World », « Competitive »…). */
+  parentNodeHashes?: DefinitionHash[];
+  /** FR : texte de la source d'obtention (« Source : Raid Léviathan. »), brut — le groupement par ensemble passe par `parentNodeHashes`, pas par ce texte. / EN: raw obtain-source text (« Source: Raid Leviathan. ») — set grouping goes through `parentNodeHashes`, not this text. */
+  sourceString?: string;
+  scope?: number;
+  redacted?: boolean;
+  blacklisted?: boolean;
+}
+
 /** FR : ⚠️ AJOUT (21/10/2026, suite 10, chantier Legendarium) - un record (page d'un livre de Lore) : le champ clé est **`loreHash`** (lien vers DestinyLoreDefinition), vérifié sur le VRAI Manifest FR. / EN: a record (a lore book's page): the key field is **`loreHash`** (link to DestinyLoreDefinition), verified on the REAL FR Manifest. */
 export interface DestinyRecordDefinition {
   hash: DefinitionHash;

@@ -58,16 +58,17 @@ ok("fixture : les Légendes forment un livre avec 2 pages (la page sans corps et
   livresLegendes.length === 1 && livresLegendes[0].pages.length === 2 && livresLegendes[0].pages.every((p) => /^lore:70\d\d$/.test(p.id)), livresLegendes[0]?.pages.map((p) => p.id));
 
 const livresObjets = livresDeSection(db, "objets");
-const livreArmures = livresObjets.find((l) => l.id === "objets-armures");
-const livreArmes = livresObjets.find((l) => l.id === "objets-armes");
-ok("fixture : un livre « Lore des armes » avec l'arme exotique (seule porteuse d'armes)",
-  livreArmes?.pages.length === 1 && livreArmes.pages[0].id === "lore:7101", livreArmes?.pages.map((p) => p.id));
-ok("fixture : RÈGLE VERROUILLÉE respectée — Titan (casque→gants→torse→jambes→marque) puis Chasseur (casque→marque)",
-  JSON.stringify(livreArmures?.pages.map((p) => p.id)) === JSON.stringify(["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114", "lore:7120", "lore:7121"]), livreArmures?.pages.map((p) => p.id));
+// ⚠️ CHANGÉ (22/10/2026, suite 11) : livre Cinétiques (groupe « Lore des armes ») + livre « Autres armures » (pas de collectibles dans les fixtures projet)
+const livreArmures = livresObjets.find((l) => l.id === "objets-armures-autres");
+const livreArmes = livresObjets.find((l) => l.id === "objets-armes-cinetique");
+ok("fixture : un livre « Cinétiques » (groupe « Lore des armes ») avec l'arme exotique (seule porteuse d'armes)",
+  livreArmes?.groupe === "Lore des armes" && livreArmes?.pages.length === 1 && livreArmes.pages[0].id === "lore:7101", livresObjets.map((l) => `${l.groupe}/${l.titre}`));
+ok("fixture : RÈGLE VERROUILLÉE respectée — Titan (casque→gants→torse→jambes→marque) puis Chasseur (casque→marque), dans le livre « Autres armures »",
+  livreArmures?.groupe === "Ensembles d'armures" && JSON.stringify(livreArmures?.pages.map((p) => p.id)) === JSON.stringify(["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114", "lore:7120", "lore:7121"]), livreArmures?.pages.map((p) => p.id));
 
 const livresCosm = livresDeSection(db, "cosmetiques");
-ok("fixture : le Spectre est listé avec son Lore (le Vaisseau sans Lore est exclu)",
-  livresCosm.length === 1 && livresCosm[0].pages.length === 1 && livresCosm[0].pages[0].id === "lore:7130", livresCosm[0]?.pages.map((p) => p.id));
+ok("fixture : le Spectre est listé dans le livre « Spectres » (itemType 24 ; le Vaisseau sans Lore est exclu)",
+  livresCosm.length === 1 && livresCosm[0].titre === "Spectres" && livresCosm[0].pages.length === 1 && livresCosm[0].pages[0].id === "lore:7130", livresCosm.map((l) => `${l.titre}(${l.pages.length})`));
 
 // --- Recherche + lien profond + parcours inverse ---
 const tous = { legendes: livresLegendes, objets: livresObjets, cosmetiques: livresCosm };
@@ -91,7 +92,7 @@ ok("fixture : rang chrono — SECOURS table DIM — Casque du Chasseur (hash 236
   rangChronoObjet(db, 236588) === 11, rangChronoObjet(db, 236588));
 ok("fixture : rang chrono — SECOURS table DIM — Marque du Chasseur (hash 1399216, sans seasonHash) = saison 12",
   rangChronoObjet(db, 1399216) === 12, rangChronoObjet(db, 1399216));
-ok("fixture : la page du livre « Lore des armes » porte rangChrono = 11 (Izanagi)",
+ok("fixture : la page du livre « Cinétiques » porte rangChrono = 11 (Izanagi)",
   livreArmes?.pages[0].rangChrono === 11, livreArmes?.pages[0].rangChrono);
 ok("fixture : trierPagesChrono classe le livre cosmétiques (Spectre, saison 11) avant une page non datée",
   JSON.stringify(trierPagesChrono([{ id: "lore:zzz", titre: "Zzz sans date", texte: "x" }, ...(livresCosm[0]?.pages ?? [])] as never[]).map((p) => p.id)) === JSON.stringify(["lore:7130", "lore:zzz"]));

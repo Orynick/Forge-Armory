@@ -197,9 +197,9 @@
           "icon": "/icons/Coque de Spectre.png",
           "description": ""
         },
-        "itemType": 14,
+        "itemType": 24,
         "itemSubType": 0,
-        "itemTypeDisplayName": "Spectre",
+        "itemTypeDisplayName": "Coque de Spectre",
         "seasonHash": 9011,
         "loreHash": 7130
       },

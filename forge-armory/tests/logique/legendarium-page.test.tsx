@@ -228,19 +228,21 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
     arbre.includes('data-categorie="100"') && arbre.includes('data-categorie="200"') && arbre.indexOf("La Lumière") < arbre.indexOf("Les Ténèbres") && arbre.includes('data-categorie-titre=""'), arbre.slice(0, 300));
   ok("⚠️ suite 10 : l'icône de catégorie est rendue (URL complète Bungie) quand présente",
     arbre.includes('src="https://www.bungie.net/icons/lumiere.png"'), arbre.slice(0, 500));
-  ok("⚠️ suite 10 : chaque livre est une tuile cliquable (data-livre) avec son compteur de pages (« 2 pages » / « 1 page »)",
-    (arbre.match(/data-livre="legendes-livre:\d+"/g) ?? []).length === 3 && arbre.includes("2 pages") && arbre.includes("1 page"), (arbre.match(/data-livre="[^"]+"/g) ?? []).join(","));
-  ok("⚠️ suite 10 : le livre AVEC couverture rend une image (data-couverture-livre, URL Bungie) ; le livre SANS couverture rend un carré-titre (data-couverture-absente, pas d'image cassée)",
-    arbre.includes('data-couverture-livre=""') && arbre.includes('src="https://www.bungie.net/icons/frontiere.png"') && arbre.includes('data-couverture-absente=""') && arbre.includes("Histoires de Spectres"));
-  ok("⚠️ suite 10 : la tuile du livre contenant la page active est marquée (aria-current page)",
-    arbre.includes('data-livre="legendes-livre:1000"') && arbre.includes('aria-current="page"'), arbre.slice(0, 400));
+  ok("⚠️ suite 11 : les catégories sont REPLIÉES PAR DÉFAUT (aria-expanded=false, pas de liste de livres visible)",
+    (arbre.match(/aria-expanded="false"/g) ?? []).length === 2 && !arbre.includes('data-livres-categorie=""'), arbre.slice(0, 500));
+  ok("⚠️ suite 11 : les titres de catégories sont cliquables (boutons data-categorie-titre, replier/déplier)",
+    (arbre.match(/data-categorie-titre=""/g) ?? []).length === 2 && arbre.includes('data-categorie-replier=""'), arbre.slice(0, 300));
+  ok("⚠️ suite 11 : AUCUNE image de couverture dans le menu de sélection (pas de data-couverture-livre, pas de <img> de livre) — les titres de livres ne s'affichent pas repliés",
+    !arbre.includes('data-couverture-livre=""') && !arbre.includes('data-couverture-absente=""') && !arbre.includes('src="https://www.bungie.net/icons/frontiere.png"') && !arbre.includes("La Frontière sans foi ni loi"), arbre.slice(0, 600));
+  ok("⚠️ suite 10 : l'icône de CATÉGORIE (petite, 14px) est toujours rendue quand présente",
+    arbre.includes('src="https://www.bungie.net/icons/lumiere.png"'), arbre.slice(0, 500));
 
   // ColonneSections avec categories : la section legendes active affiche l'arbre (pas la liste plate)
   const colonneHierarchie = renderToStaticMarkup(
     <ColonneSections section="legendes" livres={[catLumiere.livres[0]]} categories={[catLumiere, cattenebres]} pageId="lore:8001" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
   );
-  ok("⚠️ suite 10 : ColonneSections — la section « legendes » active affiche L'ARBRE (data-arbre-categories), pas la liste plate (data-livres absent)",
-    colonneHierarchie.includes('data-arbre-categories=""') && !colonneHierarchie.includes('data-livres=""'), colonneHierarchie.slice(0, 400));
+  ok("⚠️ suite 10+11 : ColonneSections — la section « legendes » active affiche L'ARBRE (data-arbre-categories), pas la liste plate (data-livres absent), et les catégories y sont REPLIÉES",
+    colonneHierarchie.includes('data-arbre-categories=""') && !colonneHierarchie.includes('data-livres=""') && colonneHierarchie.includes('aria-expanded="false"'), colonneHierarchie.slice(0, 400));
   ok("⚠️ suite 10 : ColonneSections — les 4 sections restent dans l'ordre verrouillé même avec l'arbre",
     JSON.stringify([...colonneHierarchie.matchAll(/data-section="([^"]+)"/g)].map((m) => m[1])) === JSON.stringify(["grimoire", "legendes", "objets", "cosmetiques"]));
 
@@ -269,6 +271,49 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
   const resCat = renderToStaticMarkup(<ResultatsRecherche motCle="frontière" resultats={[resultat("legendes", livreAvecCat, livreAvecCat.pages[0])]} onOuvrir={() => {}} />);
   ok("⚠️ suite 10 : recherche — le résultat affiche la catégorie (Légendes D2 · La Lumière · La Frontière sans foi ni loi)",
     texte(resCat).includes("Légendes D2 · La Lumière · La Frontière sans foi ni loi"), texte(resCat));
+}
+
+
+// --- ⚠️ AJOUT (22/10/2026, suite 11) : GROUPES REPLIABLES (repliés par défaut) + PAS D'IMAGES dans le menu de sélection ---
+{
+  // Livres avec groupe (comme le modèle suite 11 : armes par type, armures par ensemble, cosmétiques par type)
+  const livreCin = livre("objets-armes-cinetique", "Cinétiques", [page("lore:7101", "Izanagi", "Texte.")]);
+  livreCin.groupe = "Lore des armes";
+  const livreEner = livre("objets-armes-energie", "Énergétiques", [page("lore:7201", "Fusil énergie", "Texte.")]);
+  livreEner.groupe = "Lore des armes";
+  const livreRaid = livre("objets-armures-Armure du raid A", "Armure du raid A", [page("lore:7301", "Casque raid A", "Texte.")]);
+  livreRaid.groupe = "Ensembles d'armures";
+  const livreAutres = livre("objets-armures-autres", "Autres armures", [page("lore:7401", "Casque sans provenance", "Texte.")]);
+  livreAutres.groupe = "Ensembles d'armures";
+  const livresGroupe = [livreCin, livreEner, livreRaid, livreAutres];
+
+  const colonneObjets = renderToStaticMarkup(
+    <ColonneSections section="objets" livres={livresGroupe} pageId="lore:7101" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+  );
+  ok("⚠️ suite 11 : la section « objets » affiche les GROUPES repliables (data-groupe), PAS la liste plate de livres",
+    colonneObjets.includes('data-groupe="Lore des armes"') && colonneObjets.includes('data-groupe="Ensembles d&#x27;armures"') && colonneObjets.includes('data-liste-livres=""'),
+    colonneObjets.slice(colonneObjets.indexOf('data-section="objets"')));
+  ok("⚠️ suite 11 : les groupes sont REPLIÉS PAR DÉFAUT (aria-expanded=false, les titres de livres ne sont PAS visibles)",
+    (colonneObjets.match(/aria-expanded="false"/g) ?? []).length === 2 && !colonneObjets.includes('data-livre="objets-armes-cinetique"') && !colonneObjets.includes(">Cinétiques<") && !colonneObjets.includes(">Armure du raid A<"),
+    colonneObjets.slice(colonneObjets.indexOf('data-section="objets"')));
+  ok("⚠️ suite 11 : les titres de groupes sont cliquables (boutons data-groupe-titre) avec le compteur total de pages",
+    (colonneObjets.match(/data-groupe-titre=""/g) ?? []).length === 2 && colonneObjets.includes("(2)") && colonneObjets.includes("(2)"),
+    colonneObjets.slice(0, 800));
+
+  // Livres SANS groupe (Grimoire D1) : liste plate inchangée
+  const colonneGrimoire = renderToStaticMarkup(
+    <ColonneSections section="grimoire" livres={[livre("grimoire-livre:Guardian", "Gardiens", [page("grimoire:1", "Carte 1", "Texte.")])]} pageId="grimoire:1" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+  );
+  ok("⚠️ suite 11 : sans groupe (Grimoire D1), la liste reste PLATE (data-livres, pas de data-groupe)",
+    colonneGrimoire.includes('data-livres=""') && !colonneGrimoire.includes('data-groupe="') && colonneGrimoire.includes('data-livre="grimoire-livre:Guardian"'),
+    colonneGrimoire.slice(0, 600));
+
+  // Section label : majuscule à "Armures"
+  const colonneLabels = renderToStaticMarkup(
+    <ColonneSections section="objets" livres={[]} pageId={null} grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+  );
+  ok("⚠️ suite 11 : le libellé de section est « Armes et Armures » (majuscule à Armures, remarque utilisateur)",
+    colonneLabels.includes("Armes et Armures") && !colonneLabels.includes("Armes et armures"), colonneLabels.slice(0, 600));
 }
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);

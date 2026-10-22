@@ -37,6 +37,8 @@ export interface LivreLore {
   couvertureUrl?: string;
   /** FR : ⚠️ AJOUT (21/10/2026, suite 10) - nom de la CATÉGORIE parente (livres de Légendes D2 uniquement, ex: « La Lumière ») : affiché dans l'œilleton de la zone de lecture et dans les résultats de recherche. Absente ailleurs. / EN: ADDED - the PARENT CATEGORY's name (D2 Legends books only, e.g. "The Light"): shown in the reading zone's eyebrow and in search results. Absent elsewhere. */
   categorie?: string;
+  /** FR : ⚠️ AJOUT (22/10/2026, suite 11, remarques utilisateur) - nom du GROUPE REPLIABLE auquel appartient le livre, dans la colonne latérale (ex: « Cinétiques » pour les armes cinétiques, « Armure de Sekris » pour un ensemble d'armures de raid, « Spectres » pour les coques). Les groupes sont affichés repliés par défaut. Absent pour le Grimoire D1 et les livres sans groupe (liste plate). / EN: ADDED - the name of the COLLAPSIBLE GROUP the book belongs to, in the sidebar (e.g. "Kinetic" for kinetic weapons, "Armure de Sekris" for a raid armor set, "Ghosts" for shells). Groups are shown collapsed by default. Absent for the D1 Grimoire and ungrouped books (flat list). */
+  groupe?: string;
 }
 
 /** FR : ⚠️ AJOUT (21/10/2026, suite 10) - une CATÉGORIE de Légendes D2 (niveau intermédiaire de l'arbre de présentation, ex: « La Lumière », « Les Ténèbres ») : regroupe les livres, dans l'ordre du Manifest. / EN: ADDED - a D2 Legends CATEGORY (intermediate level of the presentation tree, e.g. "The Light", "The Darkness"): groups the books, in Manifest order. */

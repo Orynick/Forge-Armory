@@ -26,9 +26,12 @@ const res: boolean[] = [];
 const ok = (nom: string, cond: unknown, detail?: unknown) => { res.push(!!cond); console.log(cond ? "✅" : "❌", nom); if (!cond && detail !== undefined) console.log("   détail :", JSON.stringify(detail).slice(0, 500)); };
 
 const T_OBJET = "DestinyInventoryItemDefinition";
+// ⚠️ AJOUT (22/10/2026, suite 11) : tables pour le groupement par provenance (armures) et par type (cosmétiques)
+const T_COLL = "DestinyCollectibleDefinition";
+const T_NOEUD = "DestinyPresentationNodeDefinition";
 const T_SAISON = "DestinySeasonDefinition";
 const T_LORE = "DestinyLoreDefinition";
-const BUCKET = { casque: 3448274439, gants: 3551918588, torse: 14239492, jambes: 20886954, marque: 1585787867, cinetique: 1498876634 };
+const BUCKET = { casque: 3448274439, gants: 3551918588, torse: 14239492, jambes: 20886954, marque: 1585787867, cinetique: 1498876634, energie: 2465295065, lourde: 953998645 };
 
 const lore = (titre: string, corps: string, sousTitre?: string) => ({ displayProperties: { name: titre, description: corps }, ...(sousTitre ? { subtitle: sousTitre } : {}) });
 const objet = (nom: string, extra: Record<string, unknown> = {}) => ({ displayProperties: { name: nom, icon: `/icons/${nom}.png`, description: "" }, ...extra });
@@ -59,7 +62,7 @@ const { db } = creerFausseDb({
     6020: objet("Casque du Chasseur", { itemType: 2, classType: 1, loreHash: 7120, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
     6021: objet("Marque du Chasseur", { itemType: 2, classType: 1, loreHash: 7121, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
     // Cosmétique : Spectre avec Lore
-    6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", loreHash: 7130 }),
+    6030: objet("Coque de Spectre", { itemType: 24, itemTypeDisplayName: "Coque de Spectre", loreHash: 7130 }),
     // Cosmétique SANS Lore : exclu des cosmétiques
     6031: objet("Vaisseau sans lore", { itemType: 16, itemTypeDisplayName: "Vaisseau" }),
   },
@@ -97,7 +100,7 @@ const { db: db2 } = creerFausseDb({  [T_SAISON]: {
     6014: objet("Marque du Siège brisé", { itemType: 2, classType: 0, loreHash: 7114, seasonHash: 9012, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
     236588: objet("Casque du Chasseur", { itemType: 2, classType: 1, loreHash: 7120, inventory: { bucketTypeHash: BUCKET.casque, tierTypeHash: 4008398120 } }),
     1399216: objet("Marque du Chasseur", { itemType: 2, classType: 1, loreHash: 7121, inventory: { bucketTypeHash: BUCKET.marque, tierTypeHash: 4008398120 } }),
-    6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", seasonHash: 9011, loreHash: 7130 }),
+    6030: objet("Coque de Spectre", { itemType: 24, itemTypeDisplayName: "Coque de Spectre", seasonHash: 9011, loreHash: 7130 }),
     6031: objet("Vaisseau sans lore", { itemType: 16, itemTypeDisplayName: "Vaisseau" }),
   },
 });
@@ -132,21 +135,22 @@ ok("les pages de Légendes ont l'identifiant stable « lore:<hash> » et le sous
   pageChapitre?.sousTitre === "Chapitre I" && livresLegendes[0].pages.every((p) => /^lore:\d+$/.test(p.id)), pageChapitre);
 
 const livresObjets = livresDeSection(db2, "objets");
-const livreArmes = livresObjets.find((l) => l.id === "objets-armes");
-const livreArmures = livresObjets.find((l) => l.id === "objets-armures");
-ok("la section « objets » a un livre « Lore des armes » (arme avec Lore seule ; l'arme sans Lore, masquée et factice exclues)",
-  livreArmes?.pages.length === 1 && livreArmes.pages[0].id === "lore:7101", livreArmes?.pages.map((p) => p.id));
-ok("⚠️ DÉDOUBLONNAGE : la rééédition d'Izanagi (même Lore 7101) ne crée PAS de page en double — UNE page « lore:7101 », TITRE = NOM DE L'OBJET du porteur principal",
+// ⚠️ CHANGÉ (22/10/2026, suite 11) : la section « objets » = groupe « Lore des armes » (3 livres : Cinétiques, Énergétiques, Lourdes) + groupe « Ensembles d'armures » (1 livre par ensemble, sinon « Autres armures »)
+const livreArmes = livresObjets.find((l) => l.id === "objets-armes-cinetique");
+const livreArmuresAutres = livresObjets.find((l) => l.id === "objets-armures-autres");
+ok("⚠️ suite 11 : le groupe « Lore des armes » a un livre « Cinétiques » (Izanagi y est ; l'arme sans Lore, masquée et factice exclues)",
+  livreArmes?.groupe === "Lore des armes" && livreArmes.titre === "Cinétiques" && livreArmes.pages.length === 1 && livreArmes.pages[0].id === "lore:7101", livresObjets.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`));
+ok("⚠️ DÉDOUBLONNAGE : la réédition d'Izanagi (même Lore 7101) ne crée PAS de page en double — UNE page « lore:7101 », TITRE = NOM DE L'OBJET du porteur principal",
   livreArmes?.pages.length === 1 && livreArmes.pages[0].titre === "Izanagi — Burden", livreArmes?.pages.map((p) => p.titre));
 ok("⚠️ la page dédoublonnée embarque TOUS les porteurs (Izanagi + sa réédition) pour le parcours inverse",
   livreArmes?.pages[0].porteurs?.length === 2 && livreArmes.pages[0].porteurs.some((x) => x.hash === 6040), livreArmes?.pages[0].porteurs?.map((x) => x.hash));
-ok("la section « objets » a un livre « Ensembles d'armures » avec 7 armures (Titan ×5 + Chasseur ×2)",
-  livreArmures?.pages.length === 7, livreArmures?.pages.map((p) => p.titre));
+ok("⚠️ suite 11 : sans collectibles/nœuds, les 7 armures tombent dans le livre « Autres armures » (groupe « Ensembles d'armures »), ordre verrouillé conservé",
+  livreArmuresAutres?.groupe === "Ensembles d'armures" && livreArmuresAutres.pages.length === 7, livresObjets.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`));
 
 // --- Règle des ensembles d'armures (verrouillée) ---
 const ordreAttendu = ["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114", "lore:7120", "lore:7121"];
-ok("RÈGLE VERROUILLÉE : armures regroupées par classe (Titan puis Chasseur), ordre casque → gants → torse → jambes → objet de classe",
-  JSON.stringify(livreArmures?.pages.map((p) => p.id)) === JSON.stringify(ordreAttendu), livreArmures?.pages.map((p) => p.id));
+ok("RÈGLE VERROUILLÉE (dans le livre) : armures regroupées par classe (Titan puis Chasseur), ordre casque → gants → torse → jambes → objet de classe",
+  JSON.stringify(livreArmuresAutres?.pages.map((p) => p.id)) === JSON.stringify(ordreAttendu), livreArmuresAutres?.pages.map((p) => p.id));
 ok("l'ordre des slots verrouillé est bien casque, gants, torse, jambes, marque",
   JSON.stringify(ORDRE_SLOTS_ARMURE) === JSON.stringify(["casque", "gants", "torse", "jambes", "marque"]) && JSON.stringify(ORDRE_CLASSES) === JSON.stringify(["titan", "chasseur", "arcaniste"]));
 ok("libellé des emplacements : « marque » s'appelle « Objet de classe »", libelleSlot("marque") === "Objet de classe");
@@ -162,15 +166,15 @@ ok("le tri par ensemble reclasse un mélange (classe d'abord, puis slot)",
 
 // --- Cosmétiques ---
 const livresCosm = livresDeSection(db2, "cosmetiques");
-ok("la section « cosmétiques » liste le Spectre AVEC son Lore (le Vaisseau sans Lore est exclu)",
-  livresCosm.length === 1 && livresCosm[0].titre === "Spectres, Vaisseaux, Passereaux" && livresCosm[0].pages.length === 1 && livresCosm[0].pages[0].id === "lore:7130", livresCosm[0]?.pages.map((p) => p.id));
+ok("⚠️ suite 11 : la section « cosmétiques » a UN LIVRE PAR TYPE — ici un livre « Spectres » (itemType 24 dans les fixtures ; le Vaisseau sans Lore est exclu)",
+  livresCosm.length === 1 && livresCosm[0].titre === "Spectres" && livresCosm[0].groupe === "Spectres" && livresCosm[0].pages.length === 1 && livresCosm[0].pages[0].id === "lore:7130", livresCosm.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`));
 
 // --- Grimoire D1 : hors Manifest D2 ---
 ok("la section « grimoire » (D1) ne lit PAS le Manifest D2 : aucun livre", livresDeSection(db2, "grimoire").length === 0);
 
 // --- Ordre de lecture aplati (précédent/suivant) ---
 const ordre = ordrePages(livresObjets);
-ok("l'ordre aplati d'une section enchaîne les livres dans l'ordre (armes puis armures)",
+ok("l'ordre aplati d'une section enchaîne les livres dans l'ordre (armes Cinétiques puis armures)",
   JSON.stringify(ordre) === JSON.stringify(["lore:7101", ...ordreAttendu]), ordre);
 
 // --- Recherche par mots-clés ---
@@ -185,7 +189,7 @@ ok("aucun résultat pour un mot inexistant ; chaîne vide = aucun résultat", r3
 // --- Lien profond ---
 const cible = trouverPage(tousLesLivres, "lore:7112");
 ok("le lien profond retrouve une page par son identifiant stable « lore:<hash> », avec sa section et son livre",
-  cible?.section === "objets" && cible.livre.id === "objets-armures" && cible.page.id === "lore:7112", cible?.page.id);
+  cible?.section === "objets" && cible.livre.id === "objets-armures-autres" && cible.page.id === "lore:7112", cible?.page.id);
 // ⚠️ (20/10/2026, décision utilisateur) : la forme lien profond « item:<hashObjet> » (fiche Détails) est acceptée et résolue vers la page dédoublonnée
 const cibleLien = trouverPage(tousLesLivres, "item:6012", db2);
 ok("la forme lien profond « item:6012 » (fiche Détails) est résolue vers la page « lore:7112 »",
@@ -217,7 +221,7 @@ ok("libelleRangChrono : « nom court · extension » quand connu (saison 12 = Om
   libelleRangChrono(12) !== undefined && libelleRangChrono(undefined) === undefined, libelleRangChrono(12));
 
 // Le livre des armes : Izanagi (saison 11) doit porter rangChrono = 11
-ok("la page du livre « Lore des armes » porte le rang chronologique de son porteur (Izanagi = 11)",
+ok("la page du livre « Cinétiques » porte le rang chronologique de son porteur (Izanagi = 11)",
   livreArmes?.pages[0].rangChrono === 11, livreArmes?.pages[0].rangChrono);
 
 // Tri chrono d'un livre mixte : saison 11 d'abord, puis 12, puis non datées par titre
@@ -248,7 +252,7 @@ ok("⚠️ trierPagesChrono ne mute pas le tableau d'entrée",
       6001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
       6040: objet("Izanagi — Burden (réédition)", { itemType: 3, loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
       6010: objet("Casque du Siège brisé", { itemType: 2, classType: 0, loreHash: 7110, inventory: { bucketTypeHash: BUCKET.casque } }),
-      6030: objet("Coque de Spectre", { itemType: 14, itemTypeDisplayName: "Spectre", loreHash: 7130 }),
+      6030: objet("Coque de Spectre", { itemType: 24, itemTypeDisplayName: "Coque de Spectre", loreHash: 7130 }),
     },
   });
   requetes.length = 0;
@@ -260,11 +264,12 @@ ok("⚠️ trierPagesChrono ne mute pas le tableau d'entrée",
   const balayages = requetes.filter((q) => /FROM DestinyInventoryItemDefinition\b/.test(q) && !/WHERE/.test(q)).length;
   ok("⚠️ index des porteurs : les 3 sections D2 + parcours inverse + fiche objet = UN SEUL balayage de la table des objets (pas un par porteur)",
     balayages === 1, { balayages, requetes });
-  // Le résultat est identique avec l'index (pas de régression fonctionnelle) : Izanagi 6001+6040 dédoublonnés en 1 page (livre « Lore des armes »), le casque est dans « Ensembles d'armures », le Spectre dans les cosmétiques.
+  // Le résultat est identique avec l'index (pas de régression fonctionnelle) : Izanagi 6001+6040 dédoublonnés en 1 page (livre « Cinétiques »), le casque est dans « Autres armures », le Spectre dans « Spectres ».
   const livresObj = livresDeSection(dbCompte, "objets");
-  ok("⚠️ index des porteurs : le contenu est le même (Izanagi dédoublonné en 1 page, casque dans « Ensembles d'armures », cosmétique présent)",
-    livresObj.length === 2 && livresObj[0].titre === "Lore des armes" && livresObj[0].pages.length === 1 && livresObj[0].pages[0].titre === "Izanagi — Burden" && livresObj[1].titre === "Ensembles d'armures" && livresObj[1].pages.length === 1 && livresDeSection(dbCompte, "cosmetiques")[0]?.pages.length === 1,
-    livresObj.map((l) => `${l.titre}(${l.pages.length})`));
+  const livresCosmCompte = livresDeSection(dbCompte, "cosmetiques");
+  ok("⚠️ index des porteurs : le contenu est le même (Izanagi dédoublonné en 1 page dans « Cinétiques », casque dans « Autres armures », Spectre dans « Spectres »)",
+    livresObj.length === 2 && livresObj[0].titre === "Cinétiques" && livresObj[0].groupe === "Lore des armes" && livresObj[0].pages.length === 1 && livresObj[0].pages[0].titre === "Izanagi — Burden" && livresObj[1].titre === "Autres armures" && livresObj[1].groupe === "Ensembles d'armures" && livresObj[1].pages.length === 1 && livresCosmCompte.length === 1 && livresCosmCompte[0].titre === "Spectres" && livresCosmCompte[0].pages.length === 1,
+    { obj: livresObj.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`), cosm: livresCosmCompte.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`) });
 }
 
 
@@ -359,8 +364,8 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
   ok("⚠️ suite 9 : VRAI Manifest — `pageLoreObjet` construit la page (id `lore:7101`, texte depuis `displayProperties.description`)",
     pageLoreObjet(dbVrai, 6001)?.texte === "Un seul coup, mais un coup parfait." && pageLoreObjet(dbVrai, 6001)?.id === "lore:7101");
   const livresVrai = livresDeSection(dbVrai, "objets");
-  ok("⚠️ suite 9 : VRAI Manifest — le livre « Lore des armes » contient Izanagi (détection via l'index, champ `loreHash`)",
-    livresVrai.find((l) => l.id === "objets-armes")?.pages.length === 1 && livresVrai.find((l) => l.id === "objets-armes")?.pages[0].titre === "Izanagi — Burden");
+  ok("⚠️ suite 9 : VRAI Manifest — le livre « Cinétiques » (groupe « Lore des armes ») contient Izanagi (détection via l'index, champ `loreHash`)",
+    livresVrai.find((l) => l.id === "objets-armes-cinetique")?.pages.length === 1 && livresVrai.find((l) => l.id === "objets-armes-cinetique")?.pages[0].titre === "Izanagi — Burden");
   const livresLegVrai = livresDeSection(dbVrai, "legendes");
   ok("⚠️ suite 9 : VRAI Manifest — la section Légendes lit le texte depuis `displayProperties.description` (sous-titre `subtitle` conservé)",
     livresLegVrai[0]?.pages.length === 1 && livresLegVrai[0].pages[0].texte === "Un Gardien se lève." && livresLegVrai[0].pages[0].sousTitre === "Chapitre I");
@@ -486,6 +491,134 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
     livresRepli.length === 1 && livresRepli[0].id === "legendes" && livresRepli[0].titre === "Tomes de Légendes" && livresRepli[0].pages.length === 2 && livresRepli[0].pages[0].titre === "L'Ombre" && livresRepli[0].pages[1].titre === "Le Gardien se lève", livresRepli.map((l) => [l.id, l.pages.map((p) => p.titre)]));
   ok("⚠️ suite 10 : sans Manifest, `categoriesDeLegendes` renvoie une liste vide sans erreur",
     categoriesDeLegendes(null).length === 0);
+}
+
+
+// ============================================================
+// ⚠️ AJOUT (22/10/2026, suite 11) : groupement armes par type, armures par PROVENANCE (collectible → nœud ensemble), cosmétiques par type
+// ============================================================
+{
+  // --- Fausse base AVEC collectibles + nœuds de présentation (structure Collections) ---
+  const { db: dbG } = creerFausseDb({
+    [T_SAISON]: {
+      9011: { displayProperties: { name: "Saison 11" }, seasonNumber: 11 },
+      9012: { displayProperties: { name: "Saison 12" }, seasonNumber: 12 },
+      9013: { displayProperties: { name: "Saison 13" }, seasonNumber: 13 },
+    },
+    [T_LORE]: {
+      7101: lore("Izanagi", "Un seul coup."),
+      7201: lore("Fusil énergétique", "Texte arme énergétique."),
+      7202: lore("Lance-roquettes", "Texte arme lourde."),
+      7301: lore("Casque raid A", "Texte casque raid A."),
+      7302: lore("Gants raid A", "Texte gants raid A."),
+      7303: lore("Torse raid A", "Texte torse raid A."),
+      7304: lore("Jambes raid A", "Texte jambes raid A."),
+      7305: lore("Marque raid A", "Texte marque raid A."),
+      7311: lore("Casque donjon B", "Texte casque donjon B."),
+      7312: lore("Gants donjon B", "Texte gants donjon B."),
+      7401: lore("Casque sans provenance", "Texte casque sans collectible."),
+      7501: lore("Coque de Spectre X", "Texte Spectre."),
+      7502: lore("Vaisseau Y", "Texte Vaisseau."),
+      7503: lore("Passereau Z", "Texte Passereau."),
+      7504: lore("Artefact W", "Texte artefact."),
+    },
+    [T_OBJET]: {
+      // Armes : 1 cinétique (saison 11), 1 énergétique (saison 12), 1 lourde (saison 13)
+      7001: objet("Izanagi — Burden", { itemType: 3, itemTypeDisplayName: "Fusil de précision", seasonHash: 9011, loreHash: 7101, inventory: { bucketTypeHash: BUCKET.cinetique } }),
+      7002: objet("Fusil énergétique test", { itemType: 3, itemTypeDisplayName: "Fusil automatique", seasonHash: 9012, loreHash: 7201, inventory: { bucketTypeHash: BUCKET.energie } }),
+      7003: objet("Lance-roquettes test", { itemType: 3, itemTypeDisplayName: "Lance-roquettes", seasonHash: 9013, loreHash: 7202, inventory: { bucketTypeHash: BUCKET.lourde } }),
+      // Armures du raid A (5 pièces, saison 12) avec collectibles pointant vers le nœud "Armure du raid A" (500)
+      7010: objet("Casque raid A", { itemType: 2, classType: 0, seasonHash: 9012, loreHash: 7301, collectibleHash: 9001, inventory: { bucketTypeHash: BUCKET.casque } }),
+      7011: objet("Gants raid A", { itemType: 2, classType: 0, seasonHash: 9012, loreHash: 7302, collectibleHash: 9002, inventory: { bucketTypeHash: BUCKET.gants } }),
+      7012: objet("Torse raid A", { itemType: 2, classType: 0, seasonHash: 9012, loreHash: 7303, collectibleHash: 9003, inventory: { bucketTypeHash: BUCKET.torse } }),
+      7013: objet("Jambes raid A", { itemType: 2, classType: 0, seasonHash: 9012, loreHash: 7304, collectibleHash: 9004, inventory: { bucketTypeHash: BUCKET.jambes } }),
+      7014: objet("Marque raid A", { itemType: 2, classType: 0, seasonHash: 9012, loreHash: 7305, collectibleHash: 9005, inventory: { bucketTypeHash: BUCKET.marque } }),
+      // Armures du donjon B (2 pièces, saison 11) avec collectibles pointant vers "Armure du donjon B" (600)
+      7020: objet("Casque donjon B", { itemType: 2, classType: 1, seasonHash: 9011, loreHash: 7311, collectibleHash: 9011, inventory: { bucketTypeHash: BUCKET.casque } }),
+      7021: objet("Gants donjon B", { itemType: 2, classType: 1, seasonHash: 9011, loreHash: 7312, collectibleHash: 9012, inventory: { bucketTypeHash: BUCKET.gants } }),
+      // Armure SANS collectible (saison 11)
+      7030: objet("Casque sans provenance", { itemType: 2, classType: 2, seasonHash: 9011, loreHash: 7401, inventory: { bucketTypeHash: BUCKET.casque } }),
+      // Cosmétiques : Spectre (24), Vaisseau (21), Passereau (22), Artefact (28)
+      7040: objet("Coque de Spectre X", { itemType: 24, itemTypeDisplayName: "Coque de Spectre", seasonHash: 9012, loreHash: 7501 }),
+      7041: objet("Vaisseau Y", { itemType: 21, itemTypeDisplayName: "Vaisseau", seasonHash: 9013, loreHash: 7502 }),
+      7042: objet("Passereau Z", { itemType: 22, itemTypeDisplayName: "Véhicule", seasonHash: 9011, loreHash: 7503 }),
+      7043: objet("Artefact W", { itemType: 28, itemTypeDisplayName: "Artefact saisonnier", seasonHash: 9013, loreHash: 7504 }),
+    },
+    [T_COLL]: {
+      // Collectibles d'armures : parentNodeHashes[0] = nœud ensemble
+      9001: { displayProperties: { name: "Casque raid A", description: "", icon: "" }, itemHash: 7010, parentNodeHashes: [500] },
+      9002: { displayProperties: { name: "Gants raid A", description: "", icon: "" }, itemHash: 7011, parentNodeHashes: [500] },
+      9003: { displayProperties: { name: "Torse raid A", description: "", icon: "" }, itemHash: 7012, parentNodeHashes: [500] },
+      9004: { displayProperties: { name: "Jambes raid A", description: "", icon: "" }, itemHash: 7013, parentNodeHashes: [500] },
+      9005: { displayProperties: { name: "Marque raid A", description: "", icon: "" }, itemHash: 7014, parentNodeHashes: [500] },
+      9011: { displayProperties: { name: "Casque donjon B", description: "", icon: "" }, itemHash: 7020, parentNodeHashes: [600] },
+      9012: { displayProperties: { name: "Gants donjon B", description: "", icon: "" }, itemHash: 7021, parentNodeHashes: [600] },
+    },
+    [T_NOEUD]: {
+      // Nœuds de présentation : 500 = "Armure du raid A", 600 = "Armure du donjon B"
+      500: { hash: 500, displayProperties: { name: "Armure du raid A", description: "", icon: "" }, children: { collectibles: [] } },
+      600: { hash: 600, displayProperties: { name: "Armure du donjon B", description: "", icon: "" }, children: { collectibles: [] } },
+    },
+  });
+
+  const livresObjG = livresDeSection(dbG, "objets");
+  const livreCin = livresObjG.find((l) => l.id === "objets-armes-cinetique");
+  const livreEner = livresObjG.find((l) => l.id === "objets-armes-energie");
+  const livreLourd = livresObjG.find((l) => l.id === "objets-armes-lourde");
+  ok("⚠️ suite 11 : le groupe « Lore des armes » a 3 livres DANS L'ORDRE Cinétiques, Énergétiques, Lourdes (1 page chacun)",
+    livreCin?.titre === "Cinétiques" && livreEner?.titre === "Énergétiques" && livreLourd?.titre === "Lourdes" &&
+    livreCin.pages[0]?.id === "lore:7101" && livreEner.pages[0]?.id === "lore:7201" && livreLourd.pages[0]?.id === "lore:7202" &&
+    livresObjG.filter((l) => l.groupe === "Lore des armes").map((l) => l.titre).join(",") === "Cinétiques,Énergétiques,Lourdes",
+    livresObjG.map((l) => `${l.groupe}/${l.titre}`));
+  ok("⚠️ suite 11 : chaque livre d'arme porte groupe = « Lore des armes » (repliable)",
+    livreCin?.groupe === "Lore des armes" && livreEner?.groupe === "Lore des armes" && livreLourd?.groupe === "Lore des armes");
+
+  const livreRaidA = livresObjG.find((l) => l.titre === "Armure du raid A");
+  const livreDonjonB = livresObjG.find((l) => l.titre === "Armure du donjon B");
+  const livreAutres = livresObjG.find((l) => l.id === "objets-armures-autres");
+  ok("⚠️ suite 11 : les armures sont groupées par PROVENANCE (nœud ensemble) : « Armure du raid A » (5 pages) et « Armure du donjon B » (2 pages)",
+    livreRaidA?.groupe === "Ensembles d'armures" && livreRaidA.pages.length === 5 && livreDonjonB?.groupe === "Ensembles d'armures" && livreDonjonB.pages.length === 2,
+    livresObjG.filter((l) => l.groupe === "Ensembles d'armures").map((l) => `${l.titre}(${l.pages.length})`));
+  ok("⚠️ suite 11 : les ensembles sont ordonnés par SAISON DE SORTIE (donjon B = saison 11 AVANT raid A = saison 12), l'armure sans provenance dans « Autres armures » EN DERNIER",
+    livresObjG.filter((l) => l.groupe === "Ensembles d'armures").map((l) => l.titre).join("|") === "Armure du donjon B|Armure du raid A|Autres armures",
+    livresObjG.filter((l) => l.groupe === "Ensembles d'armures").map((l) => `${l.titre}(${l.pages.length})`));
+  ok("⚠️ suite 11 : DANS un ensemble, les pièces suivent l'ordre verrouillé (casque → gants → torse → jambes → marque)",
+    JSON.stringify(livreRaidA?.pages.map((p) => p.id)) === JSON.stringify(["lore:7301", "lore:7302", "lore:7303", "lore:7304", "lore:7305"]),
+    livreRaidA?.pages.map((p) => p.id));
+  ok("⚠️ suite 11 : l'armure sans collectible tombe dans « Autres armures » (1 page)",
+    livreAutres?.pages.length === 1 && livreAutres.pages[0]?.id === "lore:7401", livreAutres?.pages.map((p) => p.id));
+
+  const livresCosmG = livresDeSection(dbG, "cosmetiques");
+  ok("⚠️ suite 11 : la section cosmétiques a UN LIVRE PAR TYPE, DANS L'ORDRE Spectres, Vaisseaux, Passereaux (+ Autres)",
+    livresCosmG.map((l) => l.titre).join(",") === "Spectres,Vaisseaux,Passereaux,Autres" &&
+    livresCosmG[0].pages[0]?.id === "lore:7501" && livresCosmG[1].pages[0]?.id === "lore:7502" && livresCosmG[2].pages[0]?.id === "lore:7503" && livresCosmG[3].pages[0]?.id === "lore:7504",
+    livresCosmG.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`));
+  ok("⚠️ suite 11 : chaque livre cosmétique porte son type en `groupe` (repliable)",
+    livresCosmG.every((l) => l.groupe === l.titre));
+
+  // Ordre aplati de la section objets : armes (cinétique, énergétique, lourde) puis armures (donjon B, raid A, autres)
+  const ordreG = ordrePages(livresObjG);
+  ok("⚠️ suite 11 : l'ordre aplati enchaîne Cinétiques → Énergétiques → Lourdes → donjon B → raid A → autres armures",
+    JSON.stringify(ordreG) === JSON.stringify(["lore:7101", "lore:7201", "lore:7202", "lore:7311", "lore:7312", "lore:7301", "lore:7302", "lore:7303", "lore:7304", "lore:7305", "lore:7401"]),
+    ordreG);
+
+  // Recherche : le nom du livre (ensemble) est cherché
+  const rG = rechercherPages({ objets: livresObjG }, "raid A");
+  ok("⚠️ suite 11 : la recherche retrouve les 5 pages de l'ensemble « Armure du raid A » par le nom du livre",
+    rG.length === 5 && rG.every((r) => r.livre.titre === "Armure du raid A"), rG.map((r) => r.page.id));
+
+  // Sans tables collectibles/nœuds : toutes les armures dans "Autres armures" (pas de régression)
+  const { db: dbSans } = creerFausseDb({
+    [T_LORE]: { 7301: lore("Casque X", "Texte."), 7302: lore("Gants X", "Texte.") },
+    [T_OBJET]: {
+      7010: objet("Casque X", { itemType: 2, classType: 0, loreHash: 7301, collectibleHash: 9001, inventory: { bucketTypeHash: BUCKET.casque } }),
+      7011: objet("Gants X", { itemType: 2, classType: 0, loreHash: 7302, collectibleHash: 9002, inventory: { bucketTypeHash: BUCKET.gants } }),
+    },
+  });
+  const livresSans = livresDeSection(dbSans, "objets");
+  ok("⚠️ suite 11 : REPLI — sans tables collectibles/nœuds, les armures (même avec collectibleHash) tombent dans « Autres armures », sans erreur",
+    livresSans.length === 1 && livresSans[0].id === "objets-armures-autres" && livresSans[0].pages.length === 2,
+    livresSans.map((l) => `${l.titre}(${l.pages.length})`));
 }
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);
