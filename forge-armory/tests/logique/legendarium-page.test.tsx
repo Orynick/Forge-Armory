@@ -35,22 +35,22 @@ ok("bandeau : pendant une recherche, le compteur de résultats s'affiche",
 
 // --- Colonne latérale (zone 2, spécification §4) ---
 const colonne = renderToStaticMarkup(
-  <ColonneSections section="grimoire" livres={[livreGrimoire]} pageId="grimoire:101005" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+  <ColonneSections section="grimoire" livres={[livreGrimoire]} pageId="grimoire:101005" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
 );
 const boutonsSections = [...colonne.matchAll(/data-section="([^"]+)"/g)].map((m) => m[1]);
 ok("colonne : les QUATRE sections, DANS L'ORDRE GLOBAL VERROUILLÉ (Grimoire D1 → Légendes D2 → Armes et armures → Cosmétiques et utilitaires)",
   JSON.stringify(boutonsSections) === JSON.stringify(["grimoire", "legendes", "objets", "cosmetiques"]), boutonsSections);
 ok("colonne : la section active est marquée (aria-pressed) et ses livres sont dépliés avec leur nombre de pages",
-  colonne.includes('data-section="grimoire" aria-pressed="true"') && colonne.includes("Gardiens") && colonne.includes("(2)") && colonne.includes('data-livre="grimoire-livre:Guardian"'));
+  colonne.includes('data-section="grimoire" aria-pressed="true"') && colonne.includes("Gardiens") && colonne.includes("2 pages") && colonne.includes('data-livre="grimoire-livre:Guardian"'));
 ok("colonne : la page active est repérée dans le livre (aria-current)",
   colonne.includes('aria-current="page"'));
 const colonneChargement = renderToStaticMarkup(
-  <ColonneSections section="grimoire" livres={[]} pageId={null} grimoireEnChargement={true} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+  <ColonneSections section="grimoire" livres={[]} pageId={null} grimoireEnChargement={true} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
 );
 ok("colonne : pendant le chargement du Grimoire D1, un message est affiché (pas de liste vide silencieuse)",
   colonneChargement.includes("Chargement du Grimoire"));
 const colonneVide = renderToStaticMarkup(
-  <ColonneSections section="legendes" livres={[]} pageId={null} grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+  <ColonneSections section="legendes" livres={[]} pageId={null} grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
 );
 ok("colonne : une section D2 sans Manifest affiche « Aucun contenu » (le Grimoire D1 est embarqué, pas les sections D2)",
   colonneVide.includes("Aucun contenu"));
@@ -223,7 +223,7 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
   };
   cattenebres.livres[0].categorie = "Les Ténèbres";
 
-  const arbre = renderToStaticMarkup(<ArbreCategories categories={[catLumiere, cattenebres]} pageId="lore:8001" onOuvrirLivre={() => {}} />);
+  const arbre = renderToStaticMarkup(<ArbreCategories categories={[catLumiere, cattenebres]} pageId="lore:8001" onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />);
   ok("⚠️ suite 10 : l'arbre rend les catégories dans l'ordre (data-categorie), avec leurs titres en tête de section",
     arbre.includes('data-categorie="100"') && arbre.includes('data-categorie="200"') && arbre.indexOf("La Lumière") < arbre.indexOf("Les Ténèbres") && arbre.includes('data-categorie-titre=""'), arbre.slice(0, 300));
   ok("⚠️ suite 10 : l'icône de catégorie est rendue (URL complète Bungie) quand présente",
@@ -239,7 +239,7 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
 
   // ColonneSections avec categories : la section legendes active affiche l'arbre (pas la liste plate)
   const colonneHierarchie = renderToStaticMarkup(
-    <ColonneSections section="legendes" livres={[catLumiere.livres[0]]} categories={[catLumiere, cattenebres]} pageId="lore:8001" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+    <ColonneSections section="legendes" livres={[catLumiere.livres[0]]} categories={[catLumiere, cattenebres]} pageId="lore:8001" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
   );
   ok("⚠️ suite 10+11 : ColonneSections — la section « legendes » active affiche L'ARBRE (data-arbre-categories), pas la liste plate (data-livres absent), et les catégories y sont REPLIÉES",
     colonneHierarchie.includes('data-arbre-categories=""') && !colonneHierarchie.includes('data-livres=""') && colonneHierarchie.includes('aria-expanded="false"'), colonneHierarchie.slice(0, 400));
@@ -248,7 +248,7 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
 
   // ColonneSections SANS categories (repli Manifest vieilli) : retombe sur la liste plate
   const colonnePlate = renderToStaticMarkup(
-    <ColonneSections section="legendes" livres={[catLumiere.livres[0]]} pageId="lore:8001" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+    <ColonneSections section="legendes" livres={[catLumiere.livres[0]]} pageId="lore:8001" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
   );
   ok("⚠️ suite 10 : ColonneSections — SANS categories (repli), la section « legendes » retombe sur la LISTE PLATE (data-livres, pas d'arbre)",
     colonnePlate.includes('data-livres=""') && !colonnePlate.includes('data-arbre-categories=""'), colonnePlate.slice(0, 400));
@@ -275,12 +275,13 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
 
 
 // --- ⚠️ AJOUT (22/10/2026, suite 11) : GROUPES REPLIABLES (repliés par défaut) + PAS D'IMAGES dans le menu de sélection ---
+// ⚠️ CHANGÉ (22/10/2026, suite 12) : les ARMES ne sont plus dans un groupe « Lore des armes » mais en REPLIABLES DE NOMS (`listePages`) ; les ARMURES restent groupées (« Ensembles d'armures »).
 {
-  // Livres avec groupe (comme le modèle suite 11 : armes par type, armures par ensemble, cosmétiques par type)
-  const livreCin = livre("objets-armes-cinetique", "Cinétiques", [page("lore:7101", "Izanagi", "Texte.")]);
-  livreCin.groupe = "Lore des armes";
+  // Livres comme le modèle suite 12 : armes = listePages (Cinétiques/Énergétiques), armures = groupe « Ensembles d'armures »
+  const livreCin = livre("objets-armes-cinetique", "Cinétiques", [page("lore:7101", "Izanagi", "Texte."), page("lore:7102", "Ace of Spades", "Texte.")]);
+  livreCin.listePages = true;
   const livreEner = livre("objets-armes-energie", "Énergétiques", [page("lore:7201", "Fusil énergie", "Texte.")]);
-  livreEner.groupe = "Lore des armes";
+  livreEner.listePages = true;
   const livreRaid = livre("objets-armures-Armure du raid A", "Armure du raid A", [page("lore:7301", "Casque raid A", "Texte.")]);
   livreRaid.groupe = "Ensembles d'armures";
   const livreAutres = livre("objets-armures-autres", "Autres armures", [page("lore:7401", "Casque sans provenance", "Texte.")]);
@@ -288,32 +289,62 @@ ok("page complète : aucun résidu de l'ancien panneau « en construction »",
   const livresGroupe = [livreCin, livreEner, livreRaid, livreAutres];
 
   const colonneObjets = renderToStaticMarkup(
-    <ColonneSections section="objets" livres={livresGroupe} pageId="lore:7101" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+    <ColonneSections section="objets" livres={livresGroupe} pageId="lore:7101" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
   );
-  ok("⚠️ suite 11 : la section « objets » affiche les GROUPES repliables (data-groupe), PAS la liste plate de livres",
-    colonneObjets.includes('data-groupe="Lore des armes"') && colonneObjets.includes('data-groupe="Ensembles d&#x27;armures"') && colonneObjets.includes('data-liste-livres=""'),
+  ok("⚠️ suite 12 : la section « objets » affiche les REPLIABLES DE NOMS des armes (data-liste-pages, data-groupe = type) + le groupe « Ensembles d'armures » (data-groupe), PAS de groupe « Lore des armes »",
+    colonneObjets.includes('data-liste-pages=""') && colonneObjets.includes('data-groupe="Cin\u00e9tiques"') && colonneObjets.includes('data-groupe="\u00c9nerg\u00e9tiques"') && colonneObjets.includes('data-groupe="Ensembles d&#x27;armures"') && !colonneObjets.includes('Lore des armes') && colonneObjets.includes('data-liste-livres=""'),
     colonneObjets.slice(colonneObjets.indexOf('data-section="objets"')));
-  ok("⚠️ suite 11 : les groupes sont REPLIÉS PAR DÉFAUT (aria-expanded=false, les titres de livres ne sont PAS visibles)",
-    (colonneObjets.match(/aria-expanded="false"/g) ?? []).length === 2 && !colonneObjets.includes('data-livre="objets-armes-cinetique"') && !colonneObjets.includes(">Cinétiques<") && !colonneObjets.includes(">Armure du raid A<"),
+  ok("⚠️ suite 12 : les repliables (armes ET armures) sont REPLIÉS PAR DÉFAUT (aria-expanded=false, ni les noms d'objets ni les titres de livres ne sont visibles)",
+    (colonneObjets.match(/aria-expanded="false"/g) ?? []).length === 3 && !colonneObjets.includes('data-page="lore:7101"') && !colonneObjets.includes('data-livre="objets-armes-cinetique"') && !colonneObjets.includes(">Izanagi<") && !colonneObjets.includes(">Armure du raid A<"),
     colonneObjets.slice(colonneObjets.indexOf('data-section="objets"')));
-  ok("⚠️ suite 11 : les titres de groupes sont cliquables (boutons data-groupe-titre) avec le compteur total de pages",
-    (colonneObjets.match(/data-groupe-titre=""/g) ?? []).length === 2 && colonneObjets.includes("(2)") && colonneObjets.includes("(2)"),
+  ok("⚠️ suite 12 : les titres de repliables/groupes sont cliquables (boutons data-groupe-titre) avec le compteur total de pages JUSTIFIÉ À DROITE (margin-left:auto)",
+    (colonneObjets.match(/data-groupe-titre=""/g) ?? []).length === 3 && (colonneObjets.match(/margin-left:auto/g) ?? []).length >= 3 && colonneObjets.includes("2 pages") && colonneObjets.includes("1 page"),
     colonneObjets.slice(0, 800));
 
-  // Livres SANS groupe (Grimoire D1) : liste plate inchangée
+  // ⚠️ suite 12 : LIGNE DE LIVRE = titre + compteur SUR UNE LIGNE (nowrap + ellipsis sur le titre, compteur à droite) — testé via la liste plate (Grimoire D1)
   const colonneGrimoire = renderToStaticMarkup(
-    <ColonneSections section="grimoire" livres={[livre("grimoire-livre:Guardian", "Gardiens", [page("grimoire:1", "Carte 1", "Texte.")])]} pageId="grimoire:1" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+    <ColonneSections section="grimoire" livres={[livre("grimoire-livre:Guardian", "Gardiens", [page("grimoire:1", "Carte 1", "Texte."), page("grimoire:2", "Carte 2", "Texte.")])]} pageId="grimoire:1" grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
   );
-  ok("⚠️ suite 11 : sans groupe (Grimoire D1), la liste reste PLATE (data-livres, pas de data-groupe)",
-    colonneGrimoire.includes('data-livres=""') && !colonneGrimoire.includes('data-groupe="') && colonneGrimoire.includes('data-livre="grimoire-livre:Guardian"'),
+  ok("⚠️ suite 12 : sans groupe ni listePages (Grimoire D1), la liste reste PLATE (data-livres, pas de data-groupe) et chaque livre est sur UNE LIGNE (nowrap + ellipsis, compteur justifié à droite)",
+    colonneGrimoire.includes('data-livres=""') && !colonneGrimoire.includes('data-groupe="') && colonneGrimoire.includes('data-livre="grimoire-livre:Guardian"') && colonneGrimoire.includes("white-space:nowrap") && colonneGrimoire.includes("text-overflow:ellipsis") && colonneGrimoire.includes("margin-left:auto") && colonneGrimoire.includes("2 pages"),
     colonneGrimoire.slice(0, 600));
 
   // Section label : majuscule à "Armures"
   const colonneLabels = renderToStaticMarkup(
-    <ColonneSections section="objets" livres={[]} pageId={null} grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} />
+    <ColonneSections section="objets" livres={[]} pageId={null} grimoireEnChargement={false} onChangerSection={() => {}} onOuvrirLivre={() => {}} onOuvrirPage={() => {}} />
   );
   ok("⚠️ suite 11 : le libellé de section est « Armes et Armures » (majuscule à Armures, remarque utilisateur)",
     colonneLabels.includes("Armes et Armures") && !colonneLabels.includes("Armes et armures"), colonneLabels.slice(0, 600));
+}
+
+
+// --- ⚠️ AJOUT (22/10/2026, suite 12) : COUVERTURE FLOTTANTE (haut gauche, taille naturelle, pas de pixellisation) ---
+{
+  const livreAvecCouv = livre("legendes-livre:1000", "La Frontière sans foi ni loi", [page("lore:8001", "Ces terres maudites", "Texte de la page.")]);
+  livreAvecCouv.couvertureUrl = "https://www.bungie.net/icons/frontiere.png";
+  livreAvecCouv.categorie = "La Lumière";
+  const pageCouv = page("lore:8001", "Ces terres maudites", "Texte de la page.", { porteurs: [{ hash: 6001, nom: "Izanagi", emplacement: "Fusil" }] });
+  const zoneCouv = renderToStaticMarkup(<ZoneLecture section="legendes" livre={livreAvecCouv} page={pageCouv} idPrecedente={null} idSuivante={null} onOuvrirPage={() => {}} />);
+  const iBaliseCouv = zoneCouv.indexOf('data-couverture-page=""');
+  const baliseCouv = zoneCouv.slice(iBaliseCouv, zoneCouv.indexOf("/>", iBaliseCouv));
+  ok("⚠️ suite 12 : la couverture est FLOTTANTE EN HAUT À GAUCHE (float:left, max-width:45%) — le texte s'écoule à droite puis continue dessous (PAS de width:100%, PAS d'object-fit:cover → plus de pixellisation)",
+    zoneCouv.includes('data-couverture-page=""') && baliseCouv.includes("float:left") && baliseCouv.includes("max-width:45%") && baliseCouv.includes("height:auto") && !baliseCouv.includes("width:100%") && !baliseCouv.includes("object-fit"),
+    baliseCouv);
+  ok("⚠️ suite 12 : la couverture n'est JAMAIS agrandie au-delà de sa taille naturelle (pas de width forcée hors max-width, pas de min-width) — une image petite s'affiche telle quelle",
+    !baliseCouv.replace("max-width:45%", "").includes("width:") && !baliseCouv.includes("min-width"),
+    baliseCouv);
+  ok("⚠️ suite 12 : le parcours inverse et la nav du BAS portent clear:both — RIEN ne remonte à côté de l'image (pas de superposition, pas de « colonne » réservée)",
+    (zoneCouv.match(/clear:both/g) ?? []).length >= 2 && zoneCouv.indexOf('data-parcours-inverse=""') > iBaliseCouv && zoneCouv.indexOf('data-nav-bas=""') > zoneCouv.indexOf('data-parcours-inverse=""'),
+    { clear: (zoneCouv.match(/clear:both/g) ?? []).length });
+  ok("⚠️ suite 12 : la couverture reste EN HAUT de la page (après data-nav-haut, avant le titre de la page)",
+    iBaliseCouv > zoneCouv.indexOf('data-nav-haut=""') && iBaliseCouv < zoneCouv.indexOf("Ces terres maudites"),
+    { iCouv: iBaliseCouv, iNav: zoneCouv.indexOf('data-nav-haut=""') });
+  // Sans parcours inverse : la nav du bas porte quand même clear:both (ne remonte pas à côté de l'image)
+  const zoneCouvSansInv = renderToStaticMarkup(<ZoneLecture section="legendes" livre={livreAvecCouv} page={livreAvecCouv.pages[0]} idPrecedente={null} idSuivante={null} onOuvrirPage={() => {}} />);
+  const iNavBas = zoneCouvSansInv.indexOf('data-nav-bas=""');
+  ok("⚠️ suite 12 : sans parcours inverse, la nav du BAS porte clear:both (la couverture flottante ne crée pas de colonne à sa droite jusqu'en bas)",
+    !zoneCouvSansInv.includes('data-parcours-inverse=""') && zoneCouvSansInv.slice(iNavBas, zoneCouvSansInv.indexOf(">", iNavBas)).includes("clear:both"),
+    zoneCouvSansInv.slice(iNavBas, iNavBas + 200));
 }
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);

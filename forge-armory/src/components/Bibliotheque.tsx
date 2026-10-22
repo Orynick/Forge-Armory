@@ -82,23 +82,12 @@ export function ArbreCategories({ categories, pageId, onOuvrirLivre }: {
             </button>
             {ouverte && (
               <ul data-livres-categorie="" style={{ listStyle: "none", margin: "0.2rem 0 0.4rem", padding: 0, paddingLeft: "1rem" }}>
-                {cat.livres.map((l) => {
-                  const active = l.pages.some((p) => p.id === pageId);
-                  return (
-                    <li key={l.id}>
-                      <button
-                        data-livre={l.id}
-                        aria-current={active ? "page" : undefined}
-                        onClick={() => onOuvrirLivre(l)}
-                        title={`${l.titre} — ${l.pages.length} page(s)`}
-                        style={{ background: "none", border: "none", cursor: "pointer", padding: "0.1rem 0", fontSize: "0.82rem", color: active ? "#e8e4d8" : "#9a968a", textAlign: "left", display: "flex", gap: "0.35rem", alignItems: "baseline" }}
-                      >
-                        <span>{l.titre}</span>
-                        <span style={{ fontSize: "0.68rem", color: "#7d7a70" }}>{l.pages.length} page{l.pages.length > 1 ? "s" : ""}</span>
-                      </button>
-                    </li>
-                  );
-                })}
+                {cat.livres.map((l) => (
+                  <li key={l.id}>
+                    {/* ⚠️ CHANGÉ (22/10/2026, suite 12) : LigneLivre — compteur de pages justifié à droite, SUR UNE LIGNE (remarque utilisateur). */}
+                    <LigneLivre titre={l.titre} nbPages={l.pages.length} actif={l.pages.some((p) => p.id === pageId)} onClick={() => onOuvrirLivre(l)} dataAttr={{ "data-livre": l.id }} />
+                  </li>
+                ))}
               </ul>
             )}
           </section>
@@ -108,7 +97,30 @@ export function ArbreCategories({ categories, pageId, onOuvrirLivre }: {
   );
 }
 
-/** FR : ⚠️ AJOUT (22/10/2026, suite 11) - un GROUPE REPLIABLE de livres (dans la colonne latérale) : un titre cliquable (déplier/replier) + la liste des livres quand il est ouvert. REPLIÉ PAR DÉFAUT. Utilisé pour les sections « Armes et Armures » (« Lore des armes » → Cinétiques/Énergétiques/Lourdes ; « Ensembles d'armures » → un livre par ensemble) et « Cosmétiques et utilitaires » (Spectres, Vaisseaux, Passereaux…). / EN: ADDED - a COLLAPSIBLE group of books (in the sidebar): a clickable title (expand/collapse) + the book list when open. COLLAPSED BY DEFAULT. Used for the "Armes et Armures" section ("Lore des armes" → Cinétiques/Énergétiques/Lourdes ; "Ensembles d'armures" → one book per set) and "Cosmétiques et utilitaires" (Spectres, Vaisseaux, Passereaux…). */
+/** FR : ⚠️ AJOUT (22/10/2026, suite 12) - UNE LIGNE de livre dans la colonne latérale : le titre (tronqué avec « … » si trop long) + le NOMBRE DE PAGES JUSTIFIÉ À DROITE, SUR UNE SEULE LIGNE (remarque utilisateur : « fait tenir l'affichage du nombre de pages sur une ligne… justifiée à droite du menu de sélection »). Le titre s'étire (`flex: 1`), le compteur reste collé à droite (`marginLeft: "auto"`). / EN: ADDED - ONE book line in the sidebar: the title (truncated with "…" if too long) + the PAGE COUNT JUSTIFIED TO THE RIGHT, ON ONE SINGLE LINE (user remark: "keep the page count on one line… justified to the right of the selection menu"). The title stretches (`flex: 1`), the counter stays glued to the right (`marginLeft: "auto"`). */
+function LigneLivre({ titre, nbPages, actif, onClick, dataAttr }: {
+  titre: string;
+  nbPages: number;
+  actif: boolean;
+  onClick: () => void;
+  /** FR : attribut(s) data-* posé(s) sur le bouton (ex: `{ "data-livre": l.id }` pour un livre, `{ "data-page": p.id }` pour une page directe). / EN: data-* attribute(s) on the button (e.g. `{ "data-livre": l.id }` for a book, `{ "data-page": p.id }` for a direct page). */
+  dataAttr?: Record<string, string>;
+}) {
+  return (
+    <button
+      {...dataAttr}
+      aria-current={actif ? "page" : undefined}
+      onClick={onClick}
+      title={`${titre} — ${nbPages} page${nbPages > 1 ? "s" : ""}`}
+      style={{ background: "none", border: "none", cursor: "pointer", padding: "0.1rem 0", fontSize: "0.82rem", color: actif ? "#e8e4d8" : "#9a968a", textAlign: "left", display: "flex", alignItems: "baseline", width: "100%", gap: "0.4rem" }}
+    >
+      <span style={{ flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{titre}</span>
+      <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: "0.68rem", color: "#7d7a70", whiteSpace: "nowrap" }}>{nbPages} page{nbPages > 1 ? "s" : ""}</span>
+    </button>
+  );
+}
+
+/** FR : ⚠️ AJOUT (22/10/2026, suite 11) - un GROUPE REPLIABLE de livres (dans la colonne latérale) : un titre cliquable (déplier/replier) + la liste des livres quand il est ouvert. REPLIÉ PAR DÉFAUT. Utilisé pour la section « Armes et Armures » (« Ensembles d'armures » → un livre par ensemble). ⚠️ CHANGÉ (22/10/2026, suite 12) : chaque livre est rendu par `LigneLivre` (compteur de pages justifié à droite sur une ligne). / EN: ADDED - a COLLAPSIBLE group of books (in the sidebar): a clickable title (expand/collapse) + the book list when open. COLLAPSED BY DEFAULT. Used for the "Armes et Armures" section ("Ensembles d'armures" → one book per set). CHANGED - each book is rendered by `LigneLivre` (page count justified to the right on one line). */
 function GroupeLivres({ groupe, livres, pageId, onOuvrirLivre }: {
   groupe: string;
   livres: LivreLore[];
@@ -127,22 +139,14 @@ function GroupeLivres({ groupe, livres, pageId, onOuvrirLivre }: {
         style={{ margin: 0, fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9a968a", display: "flex", alignItems: "center", gap: "0.35rem", background: "none", border: "none", cursor: "pointer", padding: "0.15rem 0", textAlign: "left", width: "100%" }}
       >
         <span aria-hidden="true" style={{ fontSize: "0.65rem", width: "0.8rem", display: "inline-block" }}>{ouvert ? "▾" : "▸"}</span>
-        {groupe}
-        <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, fontSize: "0.68rem", color: "#7d7a70" }}>({totalPages})</span>
+        <span style={{ flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{groupe}</span>
+        <span style={{ marginLeft: "auto", flexShrink: 0, fontWeight: 400, textTransform: "none", letterSpacing: 0, fontSize: "0.68rem", color: "#7d7a70", whiteSpace: "nowrap" }}>{totalPages} page{totalPages > 1 ? "s" : ""}</span>
       </button>
       {ouvert && (
         <ul data-livres="" style={{ listStyle: "none", margin: "0.2rem 0 0.4rem", padding: 0, paddingLeft: "1rem" }}>
           {livres.map((l) => (
             <li key={l.id}>
-              <button
-                data-livre={l.id}
-                aria-current={l.pages.some((p) => p.id === pageId) ? "page" : undefined}
-                onClick={() => onOuvrirLivre(l)}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: "0.1rem 0", fontSize: "0.82rem", color: l.pages.some((p) => p.id === pageId) ? "#e8e4d8" : "#9a968a", textAlign: "left", display: "flex", gap: "0.35rem", alignItems: "baseline" }}
-              >
-                <span>{l.titre}</span>
-                <span style={{ fontSize: "0.68rem", color: "#7d7a70" }}>{l.pages.length} page{l.pages.length > 1 ? "s" : ""}</span>
-              </button>
+              <LigneLivre titre={l.titre} nbPages={l.pages.length} actif={l.pages.some((p) => p.id === pageId)} onClick={() => onOuvrirLivre(l)} dataAttr={{ "data-livre": l.id }} />
             </li>
           ))}
         </ul>
@@ -151,50 +155,85 @@ function GroupeLivres({ groupe, livres, pageId, onOuvrirLivre }: {
   );
 }
 
-/** FR : ⚠️ AJOUT (22/10/2026, suite 11) - la liste des livres d'une section, groupée par `groupe` quand les livres en portent un (repliable, replié par défaut), liste plate sinon (Grimoire D1). L'ORDRE des groupes est l'ordre d'apparition des livres (le modèle garantit l'ordre demandé). / EN: ADDED - a section's book list, grouped by `groupe` when the books carry one (collapsible, collapsed by default), flat list otherwise (D1 Grimoire). The GROUP ORDER is the books' order of appearance (the model guarantees the requested order). */
-function ListeLivresGroupee({ livres, pageId, onOuvrirLivre }: {
+/** FR : ⚠️ AJOUT (22/10/2026, suite 12, remarque utilisateur) - un livre affiché comme un REPLIABLE DE NOMS D'OBJETS (`livre.listePages === true`) : le titre du livre (le type : « Cinétiques », « Spectres »…) est cliquable (déplier/replier, REPLIÉ PAR DÉFAUT), et quand il est ouvert, la liste affiche le NOM DE CHAQUE PAGE (objet porteur) — chaque nom ouvre DIRECTEMENT la page de Lore de cet objet (plus besoin d'ouvrir le livre puis de chercher la bonne page). Le compteur total de pages est justifié à droite du titre. / EN: ADDED - a book shown as a COLLAPSIBLE LIST OF ITEM NAMES (`livre.listePages === true`): the book's title (the type: "Kinetic", "Ghosts"…) is clickable (expand/collapse, COLLAPSED BY DEFAULT), and when open, the list shows EACH PAGE'S NAME (carrier item) — each name opens THAT item's lore page DIRECTLY (no need to open the book then look for the right page). The total page count is justified to the right of the title. */
+function GroupePages({ livre, pageId, onOuvrirPage }: {
+  livre: LivreLore;
+  pageId: string | null;
+  onOuvrirPage: (id: string) => void;
+}) {
+  // FR : replié par défaut (état en mémoire uniquement, lecture passive).
+  const [ouvert, setOuvert] = useState(false);
+  return (
+    <section data-groupe={livre.titre} data-liste-pages="" style={{ marginBottom: "0.35rem" }}>
+      <button
+        data-groupe-titre=""
+        aria-expanded={ouvert}
+        onClick={() => setOuvert((o) => !o)}
+        style={{ margin: 0, fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9a968a", display: "flex", alignItems: "center", gap: "0.35rem", background: "none", border: "none", cursor: "pointer", padding: "0.15rem 0", textAlign: "left", width: "100%" }}
+      >
+        <span aria-hidden="true" style={{ fontSize: "0.65rem", width: "0.8rem", display: "inline-block" }}>{ouvert ? "▾" : "▸"}</span>
+        <span style={{ flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{livre.titre}</span>
+        <span style={{ marginLeft: "auto", flexShrink: 0, fontWeight: 400, textTransform: "none", letterSpacing: 0, fontSize: "0.68rem", color: "#7d7a70", whiteSpace: "nowrap" }}>{livre.pages.length} page{livre.pages.length > 1 ? "s" : ""}</span>
+      </button>
+      {ouvert && (
+        <ul data-livres="" style={{ listStyle: "none", margin: "0.2rem 0 0.4rem", padding: 0, paddingLeft: "1rem" }}>
+          {livre.pages.map((p) => (
+            <li key={p.id}>
+              <LigneLivre titre={p.titre} nbPages={1} actif={p.id === pageId} onClick={() => onOuvrirPage(p.id)} dataAttr={{ "data-page": p.id }} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/** FR : ⚠️ CHANGÉ (22/10/2026, suite 12) - la liste des livres d'une section, DANS L'ORDRE DU MODÈLE : (1) un livre `listePages` (armes/cosmétiques par type) devient un REPLIABLE DE NOMS D'OBJETS (`GroupePages`, replié par défaut) ; (2) les livres portant un `groupe` (ex: « Ensembles d'armures ») sont regroupés dans un repliable (`GroupeLivres`, replié par défaut), l'ordre des groupes = ordre d'apparition ; (3) les livres sans groupe ni listePages (Grimoire D1) restent une LISTE PLATE. ⚠️ LIGNE UNIQUE : chaque livre est rendu par `LigneLivre` (titre + compteur de pages justifié à droite sur UNE ligne). / EN: CHANGED - a section's book list, IN MODEL ORDER: (1) a `listePages` book (weapons/cosmetics by type) becomes a COLLAPSIBLE LIST OF ITEM NAMES (`GroupePages`, collapsed by default); (2) books carrying a `groupe` (e.g. "Ensembles d'armures") are grouped in a collapsible (`GroupeLivres`, collapsed by default), group order = order of appearance; (3) books with neither (D1 Grimoire) stay a FLAT LIST. ONE LINE: each book is rendered by `LigneLivre` (title + page count justified to the right on ONE line). */
+function ListeLivresGroupee({ livres, pageId, onOuvrirLivre, onOuvrirPage }: {
   livres: LivreLore[];
   pageId: string | null;
   onOuvrirLivre: (l: LivreLore) => void;
+  /** FR : ⚠️ AJOUT (22/10/2026, suite 12) - ouvre une PAGE directement (utilisé par les repliables de noms d'objets). / EN: ADDED - opens a PAGE directly (used by the item-name collapsibles). */
+  onOuvrirPage: (id: string) => void;
 }) {
-  // Regrouper en préservant l'ordre d'apparition
-  const groupes: { nom: string; livres: LivreLore[] }[] = [];
+  // Regrouper en préservant l'ordre d'apparition : repliables de pages, groupes de livres, livres seuls (liste plate)
+  const blocs: { genre: "pages" | "groupe" | "plat"; nom: string; livres: LivreLore[] }[] = [];
   const indexParNom = new Map<string, number>();
   for (const l of livres) {
+    if (l.listePages) {
+      // ⚠️ AJOUT (22/10/2026, suite 12) : livre « liste de pages » = son propre repliable de noms (titre = type)
+      blocs.push({ genre: "pages", nom: l.titre, livres: [l] });
+      continue;
+    }
     const nom = l.groupe;
     if (!nom) {
       // Livre sans groupe : on l'ajoute tel quel (sera rendu dans la liste plate de repli)
-      groupes.push({ nom: "", livres: [l] });
+      blocs.push({ genre: "plat", nom: "", livres: [l] });
       continue;
     }
     const i = indexParNom.get(nom);
     if (i === undefined) {
-      indexParNom.set(nom, groupes.length);
-      groupes.push({ nom, livres: [l] });
+      indexParNom.set(nom, blocs.length);
+      blocs.push({ genre: "groupe", nom, livres: [l] });
     } else {
-      groupes[i].livres.push(l);
+      blocs[i].livres.push(l);
     }
   }
   return (
     <div data-liste-livres="">
-      {groupes.map((g, i) =>
-        g.nom === "" ? (
+      {blocs.map((b, i) =>
+        b.genre === "pages" ? (
+          <GroupePages key={`pages-${b.livres[0].id}`} livre={b.livres[0]} pageId={pageId} onOuvrirPage={onOuvrirPage} />
+        ) : b.genre === "groupe" ? (
+          <GroupeLivres key={b.nom} groupe={b.nom} livres={b.livres} pageId={pageId} onOuvrirLivre={onOuvrirLivre} />
+        ) : (
           <ul key={`sans-groupe-${i}`} data-livres="" style={{ listStyle: "none", margin: "0.2rem 0 0.4rem", padding: 0 }}>
-            {g.livres.map((l) => (
+            {b.livres.map((l) => (
               <li key={l.id}>
-                <button
-                  data-livre={l.id}
-                  aria-current={l.pages.some((p) => p.id === pageId) ? "page" : undefined}
-                  onClick={() => onOuvrirLivre(l)}
-                  style={{ background: "none", border: "none", cursor: "pointer", padding: "0.1rem 0", fontSize: "0.85rem", color: l.pages.some((p) => p.id === pageId) ? "#e8e4d8" : "#9a968a", textAlign: "left" }}
-                >
-                  {l.titre} <span style={{ color: "#7d7a70" }}>({l.pages.length})</span>
-                </button>
+                <LigneLivre titre={l.titre} nbPages={l.pages.length} actif={l.pages.some((p) => p.id === pageId)} onClick={() => onOuvrirLivre(l)} dataAttr={{ "data-livre": l.id }} />
               </li>
             ))}
           </ul>
-        ) : (
-          <GroupeLivres key={g.nom} groupe={g.nom} livres={g.livres} pageId={pageId} onOuvrirLivre={onOuvrirLivre} />
         )
       )}
     </div>
@@ -202,7 +241,7 @@ function ListeLivresGroupee({ livres, pageId, onOuvrirLivre }: {
 }
 
 /** FR : colonne latérale gauche (spécification §4 zone 2) : fil des quatre sections, puis les livres de la section active. / EN: left sidebar (spec §4 zone 2): the four sections, then the active section's books. */
-export function ColonneSections({ section, livres, categories, pageId, grimoireEnChargement, onChangerSection, onOuvrirLivre }: {
+export function ColonneSections({ section, livres, categories, pageId, grimoireEnChargement, onChangerSection, onOuvrirLivre, onOuvrirPage }: {
   section: SectionLegendarium;
   livres: LivreLore[];
   /** FR : ⚠️ AJOUT (21/10/2026, suite 10) - hiérarchie catégorie → livre de la section « légendes » (liste vide = retombe sur la liste plate de livres, ex: repli Manifest vieilli). / EN: ADDED - the category → book hierarchy of the "légendes" section (empty = falls back to the flat book list, e.g. old Manifest fallback). */
@@ -211,6 +250,8 @@ export function ColonneSections({ section, livres, categories, pageId, grimoireE
   grimoireEnChargement: boolean;
   onChangerSection: (s: SectionLegendarium) => void;
   onOuvrirLivre: (l: LivreLore) => void;
+  /** FR : ⚠️ AJOUT (22/10/2026, suite 12) - ouvre une PAGE directement (repliables de noms d'objets : « Cinétiques », « Spectres »…). / EN: ADDED - opens a PAGE directly (item-name collapsibles: "Kinetic", "Ghosts"…). */
+  onOuvrirPage: (id: string) => void;
 }) {
   return (
     <nav data-colonne-sections="" aria-label="Sections et livres" style={{ flex: "0 1 16rem", minWidth: "12rem" }}>
@@ -236,9 +277,9 @@ export function ColonneSections({ section, livres, categories, pageId, grimoireE
                     <ArbreCategories categories={categories} pageId={pageId} onOuvrirLivre={onOuvrirLivre} />
                   </div>
                 ) : livres.length > 0 ? (
-                  // ⚠️ CHANGÉ (22/10/2026, suite 11) : liste groupée par `groupe` repliable (replié par défaut) quand les livres portent un groupe, liste plate identique sinon (Grimoire D1).
+                  // ⚠️ CHANGÉ (22/10/2026, suite 12) : liste groupée — repliables de NOMS D'OBJETS (`listePages`, ex: Cinétiques/Spectres), groupes repliables par `groupe` (ex: Ensembles d'armures), liste plate sinon (Grimoire D1).
                   <div style={{ margin: "0.2rem 0 0", paddingLeft: "0.8rem" }}>
-                    <ListeLivresGroupee livres={livres} pageId={pageId} onOuvrirLivre={onOuvrirLivre} />
+                    <ListeLivresGroupee livres={livres} pageId={pageId} onOuvrirLivre={onOuvrirLivre} onOuvrirPage={onOuvrirPage} />
                   </div>
                 ) : (
                   <p style={{ margin: "0.2rem 0 0", paddingLeft: "0.8rem", fontSize: "0.8rem", color: "#7d7a70" }}>Aucun contenu (Manifest pas encore chargé).</p>
@@ -283,23 +324,25 @@ export function ZoneLecture({ section, livre, page, idPrecedente, idSuivante, on
       </div>
       {/* FR : ⚠️ AJOUT (21/10/2026, suite 10) - quand le livre a une catégorie (section Légendes D2, hiérarchie en jeu), l'œilleton l'affiche : « La Lumière · La Frontière sans foi ni loi ». / EN: ADDED - when the book has a category (D2 Légendes section, in-game hierarchy), the eyebrow shows it: "The Light · The Forsaken Shore". */}
       <p data-oeilleton="" style={{ color: ere.oeilleton, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 0.3rem" }}>{livre.categorie ? `${livre.categorie} · ${livre.titre}` : livre.titre}</p>
-      {/* FR : ⚠️ AJOUT (21/10/2026, suite 10) - COUVERTURE du livre (illustration, comme l'écran d'ouverture d'un livre en jeu), affichée EN HAUT de la page quand le Manifest en porte une. / EN: ADDED - the book's COVER (illustration, like a book's opening screen in game), shown at the TOP of the page when the Manifest carries one. */}
+      {/* FR : ⚠️ CHANGÉ (22/10/2026, suite 12, remarque utilisateur) - COUVERTURE du livre : FLOTTANTE EN HAUT À GAUCHE (`float: left`), le titre et le texte s'écoulent À DROITE puis CONTINUENT SOUS l'image — jamais de superposition, jamais de « colonne » réservée à l'image (pas de grille 2 colonnes). TAILLE : `max-width: 45%` + `height: auto` SANS `width` forcée → l'image n'est JAMAIS agrandie au-delà de sa taille naturelle (elle ne pixellise plus ; une image plus petite s'affiche telle quelle, une grande est réduite proprement). Les blocs suivants (parcours inverse, nav du bas) portent `clear: both` pour ne JAMAIS remonter à côté de l'image. / EN: CHANGED - the book's COVER: FLOATS TOP-LEFT (`float: left`), the title and text flow TO THE RIGHT then CONTINUE BELOW the image — never overlapping, never a reserved "column" for the image (no 2-column grid). SIZE: `max-width: 45%` + `height: auto` WITHOUT forced `width` → the image is NEVER upscaled beyond its natural size (no more pixelation; a small image shows as-is, a big one is cleanly downscaled). The following blocks (reverse path, bottom nav) carry `clear: both` so they NEVER climb up beside the image. */}
       {livre.couvertureUrl && (
-        <img data-couverture-page="" src={livre.couvertureUrl} alt={livre.titre} style={{ display: "block", width: "100%", maxHeight: "16rem", objectFit: "cover", borderRadius: "4px", margin: "0 0 0.7rem" }} loading="lazy" />
+        <img data-couverture-page="" src={livre.couvertureUrl} alt={livre.titre} style={{ float: "left", maxWidth: "45%", height: "auto", borderRadius: "4px", margin: "0 0.9rem 0.6rem 0" }} loading="lazy" />
       )}
       <h4 style={{ fontFamily: ere.policeTitre, color: ere.couleurTitre, fontWeight: ere.graisseTitre, fontSize: "1.25rem", margin: "0 0 0.2rem" }}>{page.titre}</h4>
       {page.sousTitre && <p style={{ color: ere.oeilleton, fontStyle: "italic", fontSize: "0.9rem", margin: "0 0 0.4rem" }}>{page.sousTitre}</p>}
       {page.libelleChrono && <p style={{ color: ere.oeilleton, fontSize: "0.75rem", margin: "0 0 0.6rem" }}>{page.libelleChrono}</p>}
       <div data-texte-lore="" style={{ fontFamily: ere.policeCorps, color: ere.couleurCorps, lineHeight: 1.65, fontSize: "0.95rem", whiteSpace: "pre-wrap" }}>{page.texte}</div>
       {page.porteurs && page.porteurs.length > 0 && (
-        <div data-parcours-inverse="" style={{ marginTop: "0.8rem", borderTop: `1px solid ${ere.bordure}`, paddingTop: "0.5rem" }}>
+        // ⚠️ AJOUT (22/10/2026, suite 12) : `clear: "both"` — le bloc ne remonte JAMAIS à côté de la couverture flottante (pas de superposition quand le texte est court).
+        <div data-parcours-inverse="" style={{ clear: "both", marginTop: "0.8rem", borderTop: `1px solid ${ere.bordure}`, paddingTop: "0.5rem" }}>
           <p style={{ color: ere.oeilleton, fontSize: "0.75rem", margin: "0 0 0.3rem" }}>{page.porteurs.length > 1 ? "Objets portant ce Lore :" : "Objet portant ce Lore :"}</p>
           <ul style={{ margin: 0, paddingLeft: "1.1rem", color: ere.couleurCorps, fontSize: "0.85rem" }}>
             {page.porteurs.map((p) => <li key={p.hash}>{p.nom} — {p.emplacement}</li>)}
           </ul>
         </div>
       )}
-      <div data-nav-bas="" style={{ display: "flex", justifyContent: "center", gap: "0.6rem", marginTop: "0.9rem" }}>
+      {/* ⚠️ AJOUT (22/10/2026, suite 12) : `clear: "both"` — la nav du bas ne remonte jamais à côté de la couverture flottante (quand la page n'a pas de parcours inverse). */}
+      <div data-nav-bas="" style={{ clear: "both", display: "flex", justifyContent: "center", gap: "0.6rem", marginTop: "0.9rem" }}>
         <button data-nav-precedente="" disabled={!idPrecedente} onClick={() => idPrecedente && onOuvrirPage(idPrecedente)} style={styleBoutonNav}>← Précédent</button>
         <button data-nav-suivante="" disabled={!idSuivante} onClick={() => idSuivante && onOuvrirPage(idSuivante)} style={styleBoutonNav}>Suivant →</button>
       </div>
@@ -428,7 +471,7 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
     <div className="pilier-carte" data-vue-legendarium="">
       <BandeauLegendarium motCle={motCle} onChangerMotCle={setMotCle} dbPresent={Boolean(db)} nbResultats={resultats.length} />
       <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap", alignItems: "flex-start" }}>
-        <ColonneSections section={section} livres={livresSection} categories={categoriesLegendes} pageId={pageId} grimoireEnChargement={livresGrimoire === null} onChangerSection={changerSection} onOuvrirLivre={ouvrirLivre} />
+        <ColonneSections section={section} livres={livresSection} categories={categoriesLegendes} pageId={pageId} grimoireEnChargement={livresGrimoire === null} onChangerSection={changerSection} onOuvrirLivre={ouvrirLivre} onOuvrirPage={ouvrirPage} />
         <div style={{ flex: "1 1 30rem", minWidth: "min(100%, 22rem)" }}>
           {rechercheActive ? (
             <ResultatsRecherche motCle={motCle} resultats={resultats} onOuvrir={ouvrirResultat} />

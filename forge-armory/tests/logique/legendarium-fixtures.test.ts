@@ -58,17 +58,17 @@ ok("fixture : les Légendes forment un livre avec 2 pages (la page sans corps et
   livresLegendes.length === 1 && livresLegendes[0].pages.length === 2 && livresLegendes[0].pages.every((p) => /^lore:70\d\d$/.test(p.id)), livresLegendes[0]?.pages.map((p) => p.id));
 
 const livresObjets = livresDeSection(db, "objets");
-// ⚠️ CHANGÉ (22/10/2026, suite 11) : livre Cinétiques (groupe « Lore des armes ») + livre « Autres armures » (pas de collectibles dans les fixtures projet)
+// ⚠️ CHANGÉ (22/10/2026, suite 12) : livre Cinétiques (REPLIABLE DE NOMS « listePages », sans groupe) + livre « Autres armures » (groupe « Ensembles d'armures » ; pas de collectibles dans les fixtures projet)
 const livreArmures = livresObjets.find((l) => l.id === "objets-armures-autres");
 const livreArmes = livresObjets.find((l) => l.id === "objets-armes-cinetique");
-ok("fixture : un livre « Cinétiques » (groupe « Lore des armes ») avec l'arme exotique (seule porteuse d'armes)",
-  livreArmes?.groupe === "Lore des armes" && livreArmes?.pages.length === 1 && livreArmes.pages[0].id === "lore:7101", livresObjets.map((l) => `${l.groupe}/${l.titre}`));
+ok("fixture : un livre « Cinétiques » en REPLIABLE DE NOMS (`listePages`, sans groupe) avec l'arme exotique (seule porteuse d'armes)",
+  livreArmes?.listePages === true && livreArmes.groupe === undefined && livreArmes?.pages.length === 1 && livreArmes.pages[0].id === "lore:7101", livresObjets.map((l) => `${l.groupe ?? "listePages"}/${l.titre}`));
 ok("fixture : RÈGLE VERROUILLÉE respectée — Titan (casque→gants→torse→jambes→marque) puis Chasseur (casque→marque), dans le livre « Autres armures »",
   livreArmures?.groupe === "Ensembles d'armures" && JSON.stringify(livreArmures?.pages.map((p) => p.id)) === JSON.stringify(["lore:7110", "lore:7111", "lore:7112", "lore:7113", "lore:7114", "lore:7120", "lore:7121"]), livreArmures?.pages.map((p) => p.id));
 
 const livresCosm = livresDeSection(db, "cosmetiques");
-ok("fixture : le Spectre est listé dans le livre « Spectres » (itemType 24 ; le Vaisseau sans Lore est exclu)",
-  livresCosm.length === 1 && livresCosm[0].titre === "Spectres" && livresCosm[0].pages.length === 1 && livresCosm[0].pages[0].id === "lore:7130", livresCosm.map((l) => `${l.titre}(${l.pages.length})`));
+ok("fixture : le Spectre est listé dans le livre « Spectres » en REPLIABLE DE NOMS (`listePages`, sans groupe ; itemType 24 ; le Vaisseau sans Lore est exclu)",
+  livresCosm.length === 1 && livresCosm[0].titre === "Spectres" && livresCosm[0].listePages === true && livresCosm[0].groupe === undefined && livresCosm[0].pages.length === 1 && livresCosm[0].pages[0].id === "lore:7130", livresCosm.map((l) => `${l.titre}(${l.pages.length})`));
 
 // --- Recherche + lien profond + parcours inverse ---
 const tous = { legendes: livresLegendes, objets: livresObjets, cosmetiques: livresCosm };

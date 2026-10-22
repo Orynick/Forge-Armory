@@ -334,25 +334,25 @@ export function trierPagesChrono(pages: PageLore[]): PageLore[] {
   return [...pages].sort((a, b) => rang(a) - rang(b) || a.titre.localeCompare(b.titre, "fr") || a.id.localeCompare(b.id));
 }
 
-/** FR : \u26a0\ufe0f AJOUT (22/10/2026, suite 11) - buckets d'armes (emplacement) avec leur libell\u00e9 de GROUPE repliable, dans l'ordre demand\u00e9 par l'utilisateur : Cin\u00e9tiques, \u00c9nerg\u00e9tiques, Lourdes. Le bucket se lit dans `inventory.bucketTypeHash` (v\u00e9rifi\u00e9 sur le VRAI Manifest FR : 281 cin\u00e9tiques, 323 \u00e9nerg\u00e9tiques, 175 lourdes parmi les armes avec Lore). / EN: weapon buckets with their COLLAPSIBLE GROUP label, in the user's order: Kinetic, Energy, Heavy. The bucket is read from `inventory.bucketTypeHash` (verified on the REAL FR Manifest: 281 kinetic, 323 energy, 175 heavy among weapons with lore). */
+/** FR : ⚠️ AJOUT (22/10/2026, suite 11) - buckets d'armes (emplacement) avec leur libellé de GROUPE repliable, dans l'ordre demandé par l'utilisateur : Cinétiques, Énergétiques, Lourdes. Le bucket se lit dans `inventory.bucketTypeHash` (vérifié sur le VRAI Manifest FR : 281 cinétiques, 323 énergétiques, 175 lourdes parmi les armes avec Lore). / EN: weapon buckets with their COLLAPSIBLE GROUP label, in the user's order: Kinetic, Energy, Heavy. The bucket is read from `inventory.bucketTypeHash` (verified on the REAL FR Manifest: 281 kinetic, 323 energy, 175 heavy among weapons with lore). */
 const GROUPES_ARMES: ReadonlyArray<{ slot: "cinetique" | "energie" | "lourde"; libelle: string }> = [
-  { slot: "cinetique", libelle: "Cin\u00e9tiques" },
-  { slot: "energie", libelle: "\u00c9nerg\u00e9tiques" },
+  { slot: "cinetique", libelle: "Cinétiques" },
+  { slot: "energie", libelle: "Énergétiques" },
   { slot: "lourde", libelle: "Lourdes" },
 ];
 
-/** FR : \u26a0\ufe0f AJOUT (22/10/2026, suite 11) - itemType des COSM\u00c9TIQUES avec leur libell\u00e9 de groupe, dans l'ordre demand\u00e9 : Spectres (itemType 24 = \u00ab Coque de Spectre \u00bb), Vaisseaux (itemType 21 = \u00ab Vaisseau \u00bb), Passereaux (itemType 22 = \u00ab V\u00e9hicule \u00bb). V\u00e9rifi\u00e9 sur le VRAI Manifest FR. Tout autre itemType avec Lore part dans \u00ab Autres \u00bb. / EN: cosmetic itemTypes with their group label, in the user's order: Ghosts (itemType 24 = \"Ghost Shell\"), Ships (itemType 21 = \"Ship\"), Sparrows (itemType 22 = \"Vehicle\"). Verified on the REAL FR Manifest. Any other itemType with lore goes to \"Other\". */
+/** FR : ⚠️ AJOUT (22/10/2026, suite 11) - itemType des COSMÉTIQUES avec leur libellé de groupe, dans l'ordre demandé : Spectres (itemType 24 = « Coque de Spectre »), Vaisseaux (itemType 21 = « Vaisseau »), Passereaux (itemType 22 = « Véhicule »). Vérifié sur le VRAI Manifest FR. Tout autre itemType avec Lore part dans « Autres ». / EN: cosmetic itemTypes with their group label, in the user's order: Ghosts (itemType 24 = \"Ghost Shell\"), Ships (itemType 21 = \"Ship\"), Sparrows (itemType 22 = \"Vehicle\"). Verified on the REAL FR Manifest. Any other itemType with lore goes to \"Other\". */
 const GROUPES_COSMETIQUES: ReadonlyArray<{ itemType: number; libelle: string }> = [
   { itemType: 24, libelle: "Spectres" },
   { itemType: 21, libelle: "Vaisseaux" },
   { itemType: 22, libelle: "Passereaux" },
 ];
 
-/** FR : \u26a0\ufe0f AJOUT (22/10/2026, suite 11) - index des COLLECTIBLES et des N\u0152UDS DE PR\u00c9SENTATION, construits en UN SEUL balayage chacun et mis en cache par base (WeakMap). Sert \u00e0 r\u00e9soudre la PROVENANCE d'une armure : objet \u2192 `collectibleHash` \u2192 collectible \u2192 `parentNodeHashes[0]` = n\u0153ud ENSEMBLE (ex: \u00ab Armure de Sekris \u00bb, 5 collectibles = 5 pi\u00e8ces). Sans cet index, chaque armure d\u00e9clencherait 2 lectures cibl\u00e9es (collectible + n\u0153ud). / EN: COLLECTIBLE and PRESENTATION-NODE index, each built in ONE scan and cached per database (WeakMap). Used to resolve an armor piece's PROVENANCE: item \u2192 `collectibleHash` \u2192 collectible \u2192 `parentNodeHashes[0]` = SET node (e.g. \"Armure de Sekris\", 5 collectibles = 5 pieces). Without this index, each armor piece would trigger 2 targeted reads (collectible + node). */
+/** FR : ⚠️ AJOUT (22/10/2026, suite 11) - index des COLLECTIBLES et des NŒUDS DE PRÉSENTATION, construits en UN SEUL balayage chacun et mis en cache par base (WeakMap). Sert à résoudre la PROVENANCE d'une armure : objet → `collectibleHash` → collectible → `parentNodeHashes[0]` = nœud ENSEMBLE (ex: « Armure de Sekris », 5 collectibles = 5 pièces). Sans cet index, chaque armure déclencherait 2 lectures ciblées (collectible + nœud). / EN: COLLECTIBLE and PRESENTATION-NODE index, each built in ONE scan and cached per database (WeakMap). Used to resolve an armor piece's PROVENANCE: item → `collectibleHash` → collectible → `parentNodeHashes[0]` = SET node (e.g. \"Armure de Sekris\", 5 collectibles = 5 pieces). Without this index, each armor piece would trigger 2 targeted reads (collectible + node). */
 interface IndexProvenance {
-  /** FR : hash de collectible \u2192 n\u0153ud ensemble parent (hash du n\u0153ud de pr\u00e9sentation). / EN: collectible hash \u2192 parent SET node (presentation node hash). */
+  /** FR : hash de collectible → nœud ensemble parent (hash du nœud de présentation). / EN: collectible hash → parent SET node (presentation node hash). */
   noeudEnsembleParCollectible: Map<number, number>;
-  /** FR : hash de n\u0153ud \u2192 nom du n\u0153ud. / EN: node hash \u2192 node name. */
+  /** FR : hash de nœud → nom du nœud. / EN: node hash → node name. */
   nomNoeud: Map<number, string>;
 }
 
@@ -362,7 +362,7 @@ function indexProvenance(db: Database): IndexProvenance {
   const enCache = cacheIndexProvenance.get(db);
   if (enCache) return enCache;
   const index: IndexProvenance = { noeudEnsembleParCollectible: new Map(), nomNoeud: new Map() };
-  // N\u0153uds de pr\u00e9sentation : index nom par hash (une seule requ\u00eate, comme `lireNoeudsPresentation` mais index\u00e9 diff\u00e9remment pour la provenance)
+  // Nœuds de présentation : index nom par hash (une seule requête, comme `lireNoeudsPresentation` mais indexé différemment pour la provenance)
   try {
     const noeuds = lireNoeudsPresentation(db);
     for (const [hash, def] of noeuds) {
@@ -387,7 +387,7 @@ function indexProvenance(db: Database): IndexProvenance {
   return index;
 }
 
-/** FR : \u26a0\ufe0f AJOUT (22/10/2026, suite 11) - PROVENANCE d'une armure = nom de son ENSEMBLE (n\u0153ud parent du collectible, ex: \u00ab Armure de Sekris \u00bb pour une armure du raid L\u00e9viathan). R\u00e9solution : `def.collectibleHash` \u2192 collectible \u2192 `parentNodeHashes[0]` \u2192 n\u0153ud \u2192 nom. Renvoie `undefined` si l'armure n'a pas de collectible ou si la cha\u00eene est rompue (l'armure part alors dans le groupe \u00ab Autres armures \u00bb). / EN: an armor piece's PROVENANCE = its SET's name (the collectible's parent node, e.g. \"Armure de Sekris\" for a Leviathan raid armor piece). Resolution: `def.collectibleHash` \u2192 collectible \u2192 `parentNodeHashes[0]` \u2192 node \u2192 name. Returns `undefined` if the armor has no collectible or the chain is broken (the armor then goes to the \"Other armor\" group). */
+/** FR : ⚠️ AJOUT (22/10/2026, suite 11) - PROVENANCE d'une armure = nom de son ENSEMBLE (nœud parent du collectible, ex: « Armure de Sekris » pour une armure du raid Léviathan). Résolution : `def.collectibleHash` → collectible → `parentNodeHashes[0]` → nœud → nom. Renvoie `undefined` si l'armure n'a pas de collectible ou si la chaîne est rompue (l'armure part alors dans le groupe « Autres armures »). / EN: an armor piece's PROVENANCE = its SET's name (the collectible's parent node, e.g. \"Armure de Sekris\" for a Leviathan raid armor piece). Resolution: `def.collectibleHash` → collectible → `parentNodeHashes[0]` → node → name. Returns `undefined` if the armor has no collectible or the chain is broken (the armor then goes to the \"Other armor\" group). */
 function provenanceArmure(db: Database, def: DestinyItemDefinition): string | undefined {
   const ch = def.collectibleHash;
   if (ch === undefined) return undefined;
@@ -397,7 +397,7 @@ function provenanceArmure(db: Database, def: DestinyItemDefinition): string | un
   return index.nomNoeud.get(noeudSet);
 }
 
-/** FR : \u26a0\ufe0f AJOUT (22/10/2026, suite 11) - DEDUP des pages (une page par Lore, titre = nom du porteur principal), partag\u00e9 entre les constructeurs de livres. / EN: page DEDUP (one page per lore, title = main carrier's name), shared between the book builders. */
+/** FR : ⚠️ AJOUT (22/10/2026, suite 11) - DEDUP des pages (une page par Lore, titre = nom du porteur principal), partagé entre les constructeurs de livres. / EN: page DEDUP (one page per lore, title = main carrier's name), shared between the book builders. */
 function dedupPages(db: Database, liste: ObjetPorteur[]): PageLore[] {
   const vus = new Set<string>();
   const pages: PageLore[] = [];
@@ -415,12 +415,13 @@ function dedupPages(db: Database, liste: ObjetPorteur[]): PageLore[] {
   return pages;
 }
 
-/** FR : \u26a0\ufe0f CHANG\u00c9 (22/10/2026, suite 11, remarques utilisateur) - construit les livres de la section \u00ab objets \u00bb : un groupe repliable \u00ab Lore des armes \u00bb avec TROIS livres (Cin\u00e9tiques, \u00c9nerg\u00e9tiques, Lourdes \u2014 dans cet ordre, pages par ordre chronologique dans chaque livre), puis un groupe repliable \u00ab Ensembles d'armures \u00bb avec UN LIVRE PAR ENSEMBLE (provenance = n\u0153ud parent du collectible, ex: \u00ab Armure de Sekris \u00bb), les ensembles ordonn\u00e9s par ordre chronologique de sortie des saisons, les pi\u00e8ces d'un ensemble dans l'ordre verrouill\u00e9 (casque \u2192 gants \u2192 torse \u2192 jambes \u2192 marque). Les armures SANS provenance connue vont dans un livre \u00ab Autres armures \u00bb (ordre verrouill\u00e9). / EN: CHANGED - builds the \"objets\" section's books: a collapsible \"Lore des armes\" group with THREE books (Cin\u00e9tiques, \u00c9nerg\u00e9tiques, Lourdes \u2014 in this order, pages chronologically within each book), then a collapsible \u00ab Ensembles d'armures \u00bb group with ONE BOOK PER SET (provenance = the collectible's parent node, e.g. \"Armure de Sekris\"), sets ordered by release season, pieces within a set in the locked order (helmet \u2192 gauntlets \u2192 chest \u2192 legs \u2192 class item). Armor WITHOUT known provenance goes to an \"Autres armures\" book (locked order). */
+/** FR : ⚠️ CHANGÉ (22/10/2026, suite 12, remarques utilisateur) - construit les livres de la section « objets » : les ARMES forment des livres « liste de pages » (un par type : Cinétiques, Énergétiques, Lourdes, puis « Autres armes » si besoin) — la colonne latérale affiche chaque livre comme un REPLIABLE (replié par défaut) listant le NOM DE CHAQUE ARME (clic direct vers la page de son Lore), pages par ordre chronologique. Les ARMURES restent dans un groupe repliable « Ensembles d'armures » avec UN LIVRE PAR ENSEMBLE (provenance = nœud parent du collectible, ex: « Armure de Sekris »), les ensembles ordonnés par ordre chronologique de sortie des saisons, les pièces d'un ensemble dans l'ordre verrouillé (casque → gants → torse → jambes → marque). Les armures SANS provenance connue vont dans un livre « Autres armures » (ordre verrouillé). / EN: CHANGED - builds the "objets" section's books: WEAPONS become "pages-list" books (one per type: Kinetic, Energy, Heavy, then "Other weapons" if needed) — the sidebar shows each book as a COLLAPSIBLE group (collapsed by default) listing EACH WEAPON'S NAME (direct click to its lore page), pages chronologically. ARMOR stays in a collapsible "Ensembles d'armures" group with ONE BOOK PER SET (provenance = the collectible's parent node, e.g. "Armure de Sekris"), sets ordered by release season, pieces within a set in the locked order (helmet → gauntlets → chest → legs → class item). Armor WITHOUT known provenance goes to an "Autres armures" book (locked order). */
 function livresObjets(db: Database): LivreLore[] {
   const porteurs = indexPorteurs(db).objets;
   const livres: LivreLore[] = [];
 
-  // --- Groupe \u00ab Lore des armes \u00bb : 3 livres par type d'arme ---
+  // --- Armes : UN LIVRE « LISTE DE PAGES » PAR TYPE (Cinétiques, Énergétiques, Lourdes) ---
+  // ⚠️ CHANGÉ (22/10/2026, suite 12, remarque utilisateur) : plus de groupe « Lore des armes » — chaque livre d'arme est un REPLIABLE DE NOMS (`listePages: true`, sans `groupe`) : la colonne liste le nom de chaque arme (clic direct vers sa page de Lore).
   const armes = porteurs.filter((p) => p.slotArmure === undefined);
   const armesParSlot = new Map<string, ObjetPorteur[]>();
   for (const p of armes) {
@@ -435,16 +436,17 @@ function livresObjets(db: Database): LivreLore[] {
     const liste = armesParSlot.get(slot) ?? [];
     const pages = trierPagesChrono(dedupPages(db, liste));
     if (pages.length === 0) continue;
-    livres.push({ id: `objets-armes-${slot}`, titre: libelle, pages, groupe: "Lore des armes" });
+    // ⚠️ AJOUT (22/10/2026, suite 12) : `listePages: true` + PAS de `groupe` → la colonne affiche ce livre comme un REPLIABLE de NOMS D'OBJETS (clic direct vers chaque page de Lore).
+    livres.push({ id: `objets-armes-${slot}`, titre: libelle, pages, listePages: true });
   }
   // Armes sans bucket connu (ne devrait pas arriver, mais on ne les perd pas)
   const autresArmes = armesParSlot.get("autre") ?? [];
   if (autresArmes.length > 0) {
     const pages = trierPagesChrono(dedupPages(db, autresArmes));
-    if (pages.length > 0) livres.push({ id: "objets-armes-autre", titre: "Autres armes", pages, groupe: "Lore des armes" });
+    if (pages.length > 0) livres.push({ id: "objets-armes-autre", titre: "Autres armes", pages, listePages: true });
   }
 
-  // --- Groupe \u00ab Ensembles d'armures \u00bb : un livre par ensemble (provenance) ---
+  // --- Groupe « Ensembles d'armures » : un livre par ensemble (provenance) ---
   const armures = porteurs.filter((p) => p.slotArmure !== undefined);
   const parEnsemble = new Map<string, ObjetPorteur[]>();
   const sansProvenance: ObjetPorteur[] = [];
@@ -462,7 +464,7 @@ function livresObjets(db: Database): LivreLore[] {
       sansProvenance.push(p);
     }
   }
-  // Ordonner les ensembles par saison de sortie (rang chrono du premier porteur dat\u00e9), puis par nom
+  // Ordonner les ensembles par saison de sortie (rang chrono du premier porteur daté), puis par nom
   const rangEnsemble = (liste: ObjetPorteur[]) => {
     const rangs = liste.map((p) => rangChronoObjet(db, p.hash)).filter((r): r is number => r !== undefined);
     return rangs.length > 0 ? Math.min(...rangs) : Number.POSITIVE_INFINITY;
@@ -472,12 +474,12 @@ function livresObjets(db: Database): LivreLore[] {
     return ra - rb || a[0].localeCompare(b[0], "fr");
   });
   for (const [nomEnsemble, liste] of ensembles) {
-    // Pièces dans l'ordre verrouill\u00e9 (classe \u2192 casque \u2192 gants \u2192 torse \u2192 jambes \u2192 marque), puis d\u00e9dup des pages
+    // Pièces dans l'ordre verrouillé (classe → casque → gants → torse → jambes → marque), puis dédup des pages
     const pages = dedupPages(db, trierArmuresParEnsemble(liste));
     if (pages.length === 0) continue;
     livres.push({ id: `objets-armures-${nomEnsemble}`, titre: nomEnsemble, pages, groupe: "Ensembles d'armures" });
   }
-  // Armures sans provenance : livre \u00ab Autres armures \u00bb (ordre verrouill\u00e9), APR\u00c8S les ensembles dat\u00e9s
+  // Armures sans provenance : livre « Autres armures » (ordre verrouillé), APRÈS les ensembles datés
   if (sansProvenance.length > 0) {
     const pages = dedupPages(db, trierArmuresParEnsemble(sansProvenance));
     if (pages.length > 0) livres.push({ id: "objets-armures-autres", titre: "Autres armures", pages, groupe: "Ensembles d'armures" });
@@ -485,7 +487,7 @@ function livresObjets(db: Database): LivreLore[] {
   return livres;
 }
 
-/** FR : \u26a0\ufe0f CHANG\u00c9 (22/10/2026, suite 11, remarques utilisateur) - construit les livres de la section \u00ab cosm\u00e9tiques \u00bb : UN LIVRE PAR TYPE de cosm\u00e9tique (Spectres, Vaisseaux, Passereaux, dans cet ordre), pages par ordre chronologique dans chaque livre ; les autres types (artefacts, ornements\u2026) dans un livre \u00ab Autres \u00bb. Chaque livre porte son type en `groupe` (repliable). / EN: CHANGED - builds the \"cosm\u00e9tiques\" section's books: ONE BOOK PER cosmetic type (Spectres, Vaisseaux, Passereaux, in this order), pages chronologically within each book; other types (artifacts, ornaments\u2026) in an \"Autres\" book. Each book carries its type in `groupe` (collapsible). */
+/** FR : ⚠️ CHANGÉ (22/10/2026, suite 12, remarques utilisateur) - construit les livres de la section « cosmétiques » : UN LIVRE « LISTE DE PAGES » PAR TYPE de cosmétique (Spectres, Vaisseaux, Passereaux, dans cet ordre), pages par ordre chronologique dans chaque livre ; les autres types (artefacts, ornements…) dans un livre « Autres ». La colonne latérale affiche chaque livre comme un REPLIABLE (replié par défaut) listant le NOM DE CHAQUE OBJET (clic direct vers sa page de Lore). / EN: CHANGED - builds the "cosmétiques" section's books: ONE "PAGES-LIST" BOOK PER cosmetic type (Spectres, Vaisseaux, Passereaux, in this order), pages chronologically within each book; other types (artifacts, ornaments…) in an "Autres" book. The sidebar shows each book as a COLLAPSIBLE group (collapsed by default) listing EACH ITEM'S NAME (direct click to its lore page). */
 function livreCosmetiques(db: Database): LivreLore[] {
   const porteurs = [...indexPorteurs(db).cosmetiques];
   const parType = new Map<number, ObjetPorteur[]>();
@@ -510,11 +512,12 @@ function livreCosmetiques(db: Database): LivreLore[] {
     const liste = parType.get(itemType) ?? [];
     const pages = trierPagesChrono(dedupPages(db, liste));
     if (pages.length === 0) continue;
-    livres.push({ id: `cosmetiques-${libelle}`, titre: libelle, pages, groupe: libelle });
+    // ⚠️ AJOUT (22/10/2026, suite 12) : `listePages: true` + PAS de `groupe` → repliable de NOMS d'objets dans la colonne.
+    livres.push({ id: `cosmetiques-${libelle}`, titre: libelle, pages, listePages: true });
   }
   if (autres.length > 0) {
     const pages = trierPagesChrono(dedupPages(db, autres));
-    if (pages.length > 0) livres.push({ id: "cosmetiques-autres", titre: "Autres", pages, groupe: "Autres" });
+    if (pages.length > 0) livres.push({ id: "cosmetiques-autres", titre: "Autres", pages, listePages: true });
   }
   return livres;
 }

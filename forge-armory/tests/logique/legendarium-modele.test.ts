@@ -138,8 +138,8 @@ const livresObjets = livresDeSection(db2, "objets");
 // ⚠️ CHANGÉ (22/10/2026, suite 11) : la section « objets » = groupe « Lore des armes » (3 livres : Cinétiques, Énergétiques, Lourdes) + groupe « Ensembles d'armures » (1 livre par ensemble, sinon « Autres armures »)
 const livreArmes = livresObjets.find((l) => l.id === "objets-armes-cinetique");
 const livreArmuresAutres = livresObjets.find((l) => l.id === "objets-armures-autres");
-ok("⚠️ suite 11 : le groupe « Lore des armes » a un livre « Cinétiques » (Izanagi y est ; l'arme sans Lore, masquée et factice exclues)",
-  livreArmes?.groupe === "Lore des armes" && livreArmes.titre === "Cinétiques" && livreArmes.pages.length === 1 && livreArmes.pages[0].id === "lore:7101", livresObjets.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`));
+ok("⚠️ suite 12 : le livre « Cinétiques » est un REPLIABLE DE NOMS (`listePages`, sans groupe) — Izanagi y est ; l'arme sans Lore, masquée et factice exclues",
+  livreArmes?.listePages === true && livreArmes.groupe === undefined && livreArmes.titre === "Cinétiques" && livreArmes.pages.length === 1 && livreArmes.pages[0].id === "lore:7101", livresObjets.map((l) => `${l.groupe ?? "listePages"}/${l.titre}(${l.pages.length})`));
 ok("⚠️ DÉDOUBLONNAGE : la réédition d'Izanagi (même Lore 7101) ne crée PAS de page en double — UNE page « lore:7101 », TITRE = NOM DE L'OBJET du porteur principal",
   livreArmes?.pages.length === 1 && livreArmes.pages[0].titre === "Izanagi — Burden", livreArmes?.pages.map((p) => p.titre));
 ok("⚠️ la page dédoublonnée embarque TOUS les porteurs (Izanagi + sa réédition) pour le parcours inverse",
@@ -166,8 +166,8 @@ ok("le tri par ensemble reclasse un mélange (classe d'abord, puis slot)",
 
 // --- Cosmétiques ---
 const livresCosm = livresDeSection(db2, "cosmetiques");
-ok("⚠️ suite 11 : la section « cosmétiques » a UN LIVRE PAR TYPE — ici un livre « Spectres » (itemType 24 dans les fixtures ; le Vaisseau sans Lore est exclu)",
-  livresCosm.length === 1 && livresCosm[0].titre === "Spectres" && livresCosm[0].groupe === "Spectres" && livresCosm[0].pages.length === 1 && livresCosm[0].pages[0].id === "lore:7130", livresCosm.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`));
+ok("⚠️ suite 12 : la section « cosmétiques » a UN LIVRE « LISTE DE PAGES » PAR TYPE — ici « Spectres » (`listePages`, sans groupe ; itemType 24 dans les fixtures ; le Vaisseau sans Lore est exclu)",
+  livresCosm.length === 1 && livresCosm[0].titre === "Spectres" && livresCosm[0].listePages === true && livresCosm[0].groupe === undefined && livresCosm[0].pages.length === 1 && livresCosm[0].pages[0].id === "lore:7130", livresCosm.map((l) => `${l.groupe ?? "listePages"}/${l.titre}(${l.pages.length})`));
 
 // --- Grimoire D1 : hors Manifest D2 ---
 ok("la section « grimoire » (D1) ne lit PAS le Manifest D2 : aucun livre", livresDeSection(db2, "grimoire").length === 0);
@@ -268,8 +268,8 @@ ok("⚠️ trierPagesChrono ne mute pas le tableau d'entrée",
   const livresObj = livresDeSection(dbCompte, "objets");
   const livresCosmCompte = livresDeSection(dbCompte, "cosmetiques");
   ok("⚠️ index des porteurs : le contenu est le même (Izanagi dédoublonné en 1 page dans « Cinétiques », casque dans « Autres armures », Spectre dans « Spectres »)",
-    livresObj.length === 2 && livresObj[0].titre === "Cinétiques" && livresObj[0].groupe === "Lore des armes" && livresObj[0].pages.length === 1 && livresObj[0].pages[0].titre === "Izanagi — Burden" && livresObj[1].titre === "Autres armures" && livresObj[1].groupe === "Ensembles d'armures" && livresObj[1].pages.length === 1 && livresCosmCompte.length === 1 && livresCosmCompte[0].titre === "Spectres" && livresCosmCompte[0].pages.length === 1,
-    { obj: livresObj.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`), cosm: livresCosmCompte.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`) });
+    livresObj.length === 2 && livresObj[0].titre === "Cinétiques" && livresObj[0].listePages === true && livresObj[0].pages.length === 1 && livresObj[0].pages[0].titre === "Izanagi — Burden" && livresObj[1].titre === "Autres armures" && livresObj[1].groupe === "Ensembles d'armures" && livresObj[1].pages.length === 1 && livresCosmCompte.length === 1 && livresCosmCompte[0].titre === "Spectres" && livresCosmCompte[0].listePages === true && livresCosmCompte[0].pages.length === 1,
+    { obj: livresObj.map((l) => `${l.groupe ?? "listePages"}/${l.titre}(${l.pages.length})`), cosm: livresCosmCompte.map((l) => `${l.groupe ?? "listePages"}/${l.titre}(${l.pages.length})`) });
 }
 
 
@@ -565,13 +565,13 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
   const livreCin = livresObjG.find((l) => l.id === "objets-armes-cinetique");
   const livreEner = livresObjG.find((l) => l.id === "objets-armes-energie");
   const livreLourd = livresObjG.find((l) => l.id === "objets-armes-lourde");
-  ok("⚠️ suite 11 : le groupe « Lore des armes » a 3 livres DANS L'ORDRE Cinétiques, Énergétiques, Lourdes (1 page chacun)",
+  ok("⚠️ suite 12 : les 3 livres d'armes sont DANS L'ORDRE Cinétiques, Énergétiques, Lourdes (1 page chacun), SANS groupe « Lore des armes »",
     livreCin?.titre === "Cinétiques" && livreEner?.titre === "Énergétiques" && livreLourd?.titre === "Lourdes" &&
     livreCin.pages[0]?.id === "lore:7101" && livreEner.pages[0]?.id === "lore:7201" && livreLourd.pages[0]?.id === "lore:7202" &&
-    livresObjG.filter((l) => l.groupe === "Lore des armes").map((l) => l.titre).join(",") === "Cinétiques,Énergétiques,Lourdes",
-    livresObjG.map((l) => `${l.groupe}/${l.titre}`));
-  ok("⚠️ suite 11 : chaque livre d'arme porte groupe = « Lore des armes » (repliable)",
-    livreCin?.groupe === "Lore des armes" && livreEner?.groupe === "Lore des armes" && livreLourd?.groupe === "Lore des armes");
+    livresObjG.filter((l) => l.listePages === true).map((l) => l.titre).join(",") === "Cinétiques,Énergétiques,Lourdes",
+    livresObjG.map((l) => `${l.groupe ?? "listePages"}/${l.titre}`));
+  ok("⚠️ suite 12 : chaque livre d'arme porte `listePages: true` et AUCUN `groupe` (repliable de noms dans la colonne, pas de groupe « Lore des armes »)",
+    livreCin?.listePages === true && livreCin.groupe === undefined && livreEner?.listePages === true && livreEner.groupe === undefined && livreLourd?.listePages === true && livreLourd.groupe === undefined);
 
   const livreRaidA = livresObjG.find((l) => l.titre === "Armure du raid A");
   const livreDonjonB = livresObjG.find((l) => l.titre === "Armure du donjon B");
@@ -589,12 +589,12 @@ ok("aLore : FAUX sans Manifest ou hash inconnu, sans erreur", aLore(null, 6001) 
     livreAutres?.pages.length === 1 && livreAutres.pages[0]?.id === "lore:7401", livreAutres?.pages.map((p) => p.id));
 
   const livresCosmG = livresDeSection(dbG, "cosmetiques");
-  ok("⚠️ suite 11 : la section cosmétiques a UN LIVRE PAR TYPE, DANS L'ORDRE Spectres, Vaisseaux, Passereaux (+ Autres)",
+  ok("⚠️ suite 12 : la section cosmétiques a UN LIVRE « LISTE DE PAGES » PAR TYPE, DANS L'ORDRE Spectres, Vaisseaux, Passereaux (+ Autres)",
     livresCosmG.map((l) => l.titre).join(",") === "Spectres,Vaisseaux,Passereaux,Autres" &&
     livresCosmG[0].pages[0]?.id === "lore:7501" && livresCosmG[1].pages[0]?.id === "lore:7502" && livresCosmG[2].pages[0]?.id === "lore:7503" && livresCosmG[3].pages[0]?.id === "lore:7504",
-    livresCosmG.map((l) => `${l.groupe}/${l.titre}(${l.pages.length})`));
-  ok("⚠️ suite 11 : chaque livre cosmétique porte son type en `groupe` (repliable)",
-    livresCosmG.every((l) => l.groupe === l.titre));
+    livresCosmG.map((l) => `${l.groupe ?? "listePages"}/${l.titre}(${l.pages.length})`));
+  ok("⚠️ suite 12 : chaque livre cosmétique porte `listePages: true` et AUCUN `groupe` (repliable de noms dans la colonne)",
+    livresCosmG.every((l) => l.listePages === true && l.groupe === undefined));
 
   // Ordre aplati de la section objets : armes (cinétique, énergétique, lourde) puis armures (donjon B, raid A, autres)
   const ordreG = ordrePages(livresObjG);
