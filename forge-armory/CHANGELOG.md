@@ -1,3 +1,14 @@
+## 22/10/2026 — LIVRAISON : branche `draft-legendarium` (Legendarium complet + bonus export infographique) mergée dans `main`
+
+**Livraison du chantier Legendarium** (bibliothèque de Lore en lecture passive, spécification verrouillée `documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md`) :
+
+- **Contenu livré** : étapes 1-6 du plan (fondations, page Legendarium 3 zones, navigation par livres en jeu, bouton « Lire le Lore » + lien profond + retour, suites 7-15 des retours utilisateur) + **bonus export infographique** (PNG d'une page de Lore : canvas natif, filigrane Forge Armory, crédit Bungie / Destiny ou Destiny 2). Spécification complète dans `documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md`.
+- **Grimoire D1** : repli statique embarqué (`src/data/grimoire-d1-repli.json`, 6 livres / 834 cartes FR, généré par `scripts/generer-repli-grimoire.mjs` depuis The Grimoire Archive) chargé par `import()` dynamique — Bungie ne sert plus le Grimoire via l'API D1 (diagnostic : clé acceptée, HTTP 200, 0 livre / 0 carte).
+- **9 critères d'acceptation vérifiés** : `legendarium-acceptation` **34/34** (dont la lecture passive : aucun impact scoring/build, aucun stockage persistant, état en mémoire uniquement).
+- **Vérifié avant livraison** : `tsc -b` zéro erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites, 706/706 contrôles** (legendarium : acceptation 34/34, export 17/17, fixtures 19/19, grimoire 23/23, modele 107/107, page 69/69, composant 5/5 ; saisons-sources 20/20).
+- **Merge** : `origin/main` (`e6a6816`, push intermédiaire : correctif `saisonDeLObjet` + TODO §25 + `.gitignore`) fusionné dans `draft-legendarium` (`821a785`, 4 conflits résolus : CHANGELOG/TODO/saisons/test — bloc branche conservé, doublons main écartés), puis fast-forward `main` → `821a785`.
+- **Reste côté utilisateur** : validation en `npm run dev` avec un vrai Manifest (TODO §26, « Reste à faire »). Le bug des boutons « Carrière » / « Accomplissements » hors Build Analyzer reste ouvert (TODO §25).
+
 ## 22/10/2026 (branche `draft-legendarium`, bonus) — EXPORT INFOGRAPHIQUE D'UNE PAGE DE LORE (PNG) : FILIGRANE FORGE ARMORY + CRÉDIT BUNGIE / DESTINY
 
 **Demande de l'utilisateur (note « pour plus tard » du 22/10, suite 12, mise en œuvre)** : « pouvoir générer un **export infographique (JPEG/PNG) de la page de lore sélectionnée** : le bouton sera affiché **en haut à droite de la page**. L'export affichera **tout ce qui se trouve sur la page de Lore** (l'encart bleu ou ambre). Sur l'export, tu pourras mettre **en filigrane le logo de Forge Armory** en précisant **en bas de l'image que c'est une mise en image**, et en **créditant Bungie et Destiny ou Destiny 2** (que tout le monde puisse savoir que c'est eux qui ont créé cet univers). »
