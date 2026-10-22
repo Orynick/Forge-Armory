@@ -1,3 +1,29 @@
+## 22/10/2026 — v0.5.0 : LIVRAISON LEGENDARIUM — NOUVELLE VERSION MAJEURE
+
+**Passage en version 0.5.0** — livraison du chantier Legendarium complet (bibliothèque de Lore en lecture passive) marquant une étape majeure du projet.
+
+**Pourquoi 0.5.0 ?** Le chantier Legendarium est terminé et livré : 6 étapes du plan + 15 suites de retours utilisateur + bonus export infographique. C'est une fonctionnalité complète qui transforme l'application (ex-« Bibliothèque », renommée « Legendarium »). La convention « 0.5 réservé à la clôture de la Forge » est levée : le Legendarium, chantier majeur livré en parallèle, justifie le passage en 0.5.0.
+
+**Contenu de la 0.5.0** :
+- **Legendarium complet** : navigation par livres hiérarchique (catégorie → livre → pages, couvertures), 4 sections (Grimoire D1, Légendes D2, Armes et armures, Cosmétiques et utilitaires)
+- **Grimoire D1** : repli statique embarqué (6 livres / 834 cartes FR, The Grimoire Archive), chargement dynamique, hors-ligne
+- **Lore D2** : armes (cinétiques/énergétiques/lourdes), armures (145 ensembles), cosmétiques (Spectres, Vaisseaux, Passereaux, Autres) depuis le Manifest
+- **Recherche avancée** : guillemets (phrase exacte), `+` (obligatoire), `-` (exclu), case « Aa » (respecter la casse)
+- **Parcours inverse** : page → objets porteurs du Lore (rééditions comprises)
+- **Bouton « Lire le Lore »** dans les fiches (lien profond fiche ↔ Legendarium + retour)
+- **Export infographique PNG** : filigrane Forge Armory + crédit Bungie/Destiny, canvas natif
+- **9 critères d'acceptation** vérifiés (34/34 contrôles)
+
+**État technique** :
+- `tsc -b` : 0 erreur
+- `npm run build` strict : ✓
+- Batterie logique : **36/36 suites, 706/706 contrôles** ✓
+- CI GitHub Actions : opérationnelle
+
+**Validé sur le VRAI Manifest FR** : 4 catégories / 108 livres / 1 076 pages
+
+---
+
 ## 22/10/2026 — LIVRAISON : branche `draft-legendarium` (Legendarium complet + bonus export infographique) mergée dans `main`
 
 **Livraison du chantier Legendarium** (bibliothèque de Lore en lecture passive, spécification verrouillée `documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md`) :
