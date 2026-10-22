@@ -1,3 +1,15 @@
+## 21/10/2026 (suite 6) — LIVRAISON : PR #9 et PR #10 mergées dans `main`, propagées aux branches de chantier
+
+**Livraison du problème initialement traité sur cette conversation** (les deux échecs de la batterie logique, « préexistants sur main ») :
+
+- **PR #9** « Batterie logique au vert » mergée dans `main` (`d8d7212`) : `icones` 11/11 (snapshot obsolète régénéré) + `reproductibilite-visuels` 7/7 (4 SVG « Optimisation » intégrés, catalogue `forgeAssets.ts` repris depuis l'archive, 77 → 81 actifs).
+- **PR #10** « CI GitHub Actions » mergée dans `main` (`743d273`) : workflow `.github/workflows/ci.yml` (npm ci → tsc -b → npm run build → npm run test:logique), lanceur `scripts/test-logique.mjs` + `npm run test:logique`.
+- **Vérifié avant merge** : les deux branches en local — `tsc -b` zéro erreur, `npm run build` strict ✓, `npm run test:logique` **30/30 suites, 430/430 contrôles**. Check CI GitHub Actions vert sur la PR #10 (2 runs SUCCESS). Note : la PR #9 n'a pas de check CI (le workflow n'existait pas encore sur sa branche au moment de son push) — sa vérification est le run local ci-dessus + la batterie rejouée sur `main` après merge.
+- **Propagation aux branches de chantier** (coutume du dépôt, comme pour le correctif barre Forge) : `test`, `draft-legendarium`, `draft-armure-score`, `draft-deps`, `draft-netlify`, `draft-sec` — merge de `main` dans chacune, poussées. `draft-legendarium` avait un conflit dans `CHANGELOG.md` (deux entrées en tête) : résolu en gardant les deux blocs (entrées de la branche d'abord, puis les entrées `main` suite 5 + suite 4). Les 5 autres branches : merge propre.
+- **PR #9 et PR #10** : passées en « ready for review » avant merge. **Branches de travail** `vibe/fix-tests-icones-reproductibilite-97f9fd` et `vibe/ci-batterie-logique-97f9fd` : laissées en place (leur contenu est dans `main` via les merges ; suppression à la main de l'utilisateur, comme pour `vibe/forge-barre-regression-ae0c65`).
+- **Protection de branche** : toujours **aucune** sur `main` (vérifié via l'API GraphQL : `branchProtectionRule: null`). Le ruleset créé par l'utilisateur n'est **pas appliqué** (plan gratuit + dépôt privé sur compte perso : GitHub exige Pro/Team). La CI s'affiche sur les PR mais ne bloque aucun merge. Piste gratuite : la **branch protection classique** (Settings → Branches → Branch protection rules, pas « Rulesets ») fonctionne sur ce plan — cocher « Require status checks to pass » avec le check `tsc + build + batterie logique`.
+- **État final** : batterie logique **100 % au vert** (30/30 suites, 430/430 contrôles) sur `main` et sur les 6 branches de chantier ; CI opérationnelle pour les prochains push/PR.
+
 ## 21/10/2026 (suite 5) — CI GitHub Actions : tsc + build strict + batterie logique automatisées
 
 Le dépôt n'avait **aucun** workflow (vérifié : 0 workflow GitHub Actions, aucun check sur les PR) : toutes les vérifications étaient manuelles. Ajout d'une CI qui rejoue la routine à chaque push et chaque PR :
