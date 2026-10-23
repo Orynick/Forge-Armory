@@ -4,6 +4,18 @@
 
 ---
 
+## 23/10/2026 — PROPAGATION : v0.5.2 répercutée sur les branches de chantier
+
+**Propagation** : le merge de `draft-update-triomphes` (v0.5.2 — livraison finale chantier Accomplissements, TODO n°23 validé) a été répercuté sur les 6 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`.
+
+**Conflits** : aucun (merge propre sur les 6 branches).
+
+**Note** : la branche `draft-update-triomphes` est supprimée après livraison. Tag `v0.5.2` créé.
+
+**Version 0.5.2.**
+
+---
+
 ## 23/10/2026 — v0.5.2 : LIVRAISON FINALE DU CHANTIER « ACCOMPLISSEMENTS » (TODO n°23, branche `draft-update-triomphes`)
 
 **Validation de l'utilisateur** : « C'est validé pour moi. Chantier complet. » — après test en `npm run dev` de la page Accomplissements en cartes.
