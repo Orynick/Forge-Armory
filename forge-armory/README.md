@@ -18,7 +18,7 @@ Application pour étudier et scorer des builds Destiny 2 selon 5 piliers pondér
 - **Legendarium** : bibliothèque de Lore en lecture passive (Grimoire D1, Légendes D2, armes, armures, cosmétiques), avec export infographique PNG.
 - **Forge** : collection et inventaire des armes et armures, simulation locale des perks et mods (le score en tient compte).
 - **Carrière** : page dédiée aux statistiques du compte (temps de jeu, 74+ stats traduites en français).
-- **Accomplissements** : page dédiée aux Triomphes du compte (en construction).
+- **Accomplissements** : page dédiée aux Triomphes du compte, groupés par sceau (obtenus et à obtenir), avec recherche avancée.
 
 ## Démarrage rapide
 

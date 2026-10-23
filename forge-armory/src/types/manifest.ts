@@ -96,6 +96,10 @@ export interface DestinyPresentationNodeDefinition {
   parentNodeHashes?: DefinitionHash[];
   redacted?: boolean;
   blacklisted?: boolean;
+  /** FR : ⚠️ AJOUT (23/10/2026, TODO n°23, page Accomplissements) - hash du RECORD dont la complétion débloque le sceau (titre) : c'est LE critère d'un nœud = SCEAU (vs un nœud de regroupement sans sceau). Vérifié sur le Manifest (light.gg : nœuds de sceaux avec completionRecordHash, ex. racine Triumphs 1163735237). / EN: ADDED - hash of the RECORD whose completion unlocks the seal (title): this is the criterion for a node = SEAL (vs a plain grouping node without a seal). */
+  completionRecordHash?: DefinitionHash;
+  /** FR : ⚠️ AJOUT (23/10/2026, TODO n°23) - hash de l'objectif de progression du nœud (barre de progression du sceau), quand il y en a un. / EN: ADDED - hash of the node's progression objective (the seal's progress bar), when present. */
+  objectiveHash?: DefinitionHash;
 }
 
 /** FR : ⚠️ AJOUT (22/10/2026, suite 11, chantier Legendarium) - un collectible (Collections) : lien entre un OBJET (`DestinyInventoryItemDefinition.collectibleHash`) et son emplacement dans l'arbre des Collections (`parentNodeHashes` → nœud de PRÉSENTATION). Pour les ARMURES, le parent direct du collectible est le nœud « ensemble » (ex: « Armure de Sekris » = 5 collectibles = 5 pièces) : c'est la PROVENANCE utilisée pour grouper les armures du Legendarium. Vérifié sur le VRAI Manifest FR (22/10/2026) : 12 255 collectibles, 2 985 pointent vers une armure. / EN: a collectible (Collections): links an ITEM (`DestinyInventoryItemDefinition.collectibleHash`) to its place in the Collections tree (`parentNodeHashes` → PRESENTATION node). For ARMOR, the collectible's direct parent is the « set » node (e.g. « Armure de Sekris » = 5 collectibles = 5 pieces): this is the PROVENANCE used to group armor in the Legendarium. Verified on the REAL FR Manifest (2026-10-22): 12,255 collectibles, 2,985 point to armor. */
@@ -122,6 +126,14 @@ export interface DestinyRecordDefinition {
   recordTypeName?: string;
   redacted?: boolean;
   blacklisted?: boolean;
+  /** FR : ⚠️ AJOUT (23/10/2026, TODO n°23, page Accomplissements) - portée du triomphe : 0 = PROFIL (compte), 1 = PERSONNAGE. La page Accomplissements ne montre que les triomphes de PORTÉE PROFIL (ceux du composant 900, `profileRecords`). / EN: ADDED - triumph scope: 0 = PROFILE (account), 1 = CHARACTER. The Accomplishments page only shows PROFILE-scope triumphs (component 900, `profileRecords`). */
+  scope?: number;
+  /** FR : ⚠️ AJOUT (23/10/2026, TODO n°23) - hashes des OBJECTIFS liés au triomphe (progression pas à pas : ex. « 500 éliminations avec une arme de précision »). Vide quand le triomphe n'a pas d'objectif traqué. / EN: ADDED - hashes of the triumph's OBJECTIVES (step-by-step progress), empty when the triumph has no tracked objective. */
+  objectiveHashes?: DefinitionHash[];
+  /** FR : ⚠️ AJOUT (23/10/2026, TODO n°23) - infos de complétion : `ScoreValue` = POINTS de score de triomphe gagnés à la complétion (somme utilisée pour le « score total » du compteur global de la page). Champ en PascalCase dans le Manifest réel. / EN: ADDED - completion info: `ScoreValue` = TRIUMPH SCORE POINTS earned on completion (summed for the page's global "total score" counter). PascalCase field in the real Manifest. */
+  completionInfo?: { ScoreValue?: number; partialCompletionObjectiveCountThreshold?: number };
+  /** FR : ⚠️ AJOUT (23/10/2026, TODO n°23) - infos de TITRE : `hasTitle` = le triomphe décerne un TITRE (c'est typiquement le record de complétion d'un SCEAU) ; `titlesByGender` / `titlesByGenderHash` portent le nom du titre selon le genre du personnage. / EN: ADDED - TITLE info: `hasTitle` = the triumph grants a TITLE (typically a SEAL's completion record); `titlesByGender` / `titlesByGenderHash` carry the title's name per character gender. */
+  titleInfo?: { hasTitle?: boolean; titlesByGender?: Record<string, string>; titlesByGenderHash?: Record<string, DefinitionHash> };
 }
 
 /** DestinyStatDefinition (Santé, Mêlée, Grenade, Super, Classe, Arme, Armes) */
