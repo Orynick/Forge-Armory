@@ -43,7 +43,7 @@ ok("⚠️ 21/10 : la popup Détails du Build Analyzer rend le composant `Bouton
   /import BoutonLireLore from "\.\/BoutonLireLore"/.test(inventaire) && /onLireLore && <BoutonLireLore db=\{db\} itemHash=\{piece\.itemHash\}/.test(inventaire));
 ok("⚠️ 21/10 : `ouvrirLoreDepuisObjet` aiguille vers la vue `bibliotheque` avec la cible `item:<hashObjet>` et la provenance (origine = vue courante)",
   /function ouvrirLoreDepuisObjet\(itemHash: number, nomObjet: string\) \{[\s\S]{0,300}pageId: `item:\$\{itemHash\}`[\s\S]{0,200}setVue\("bibliotheque"\)/.test(P));
-ok("⚠️ 21/10 (suite 8, ANNULÉ) : les boutons « Carrière » et « Accomplissements » sont DANS le bloc Connexion (le déplacement hors bloc, testé en suite 7, est annulé — régression signalée par l'utilisateur ; le bug est noté dans le TODO de main §25)",
+ok("⚠️ 21/10 (suite 8, ANNULÉ) : les boutons « Carrière » et « Accomplissements » sont DANS le bloc Connexion (le déplacement hors bloc, testé en suite 7, est annulé — régression signalée par l'utilisateur ; le bug est noté dans le TODO de main §23)",
   (P.match(/<BoutonsVuesCompte onCarriere=/g) ?? []).length === 1 && /erreurTest && <p[\s\S]{0,400}<BoutonsVuesCompte onCarriere=\{\(\) => setCarriereOuverte\(true\)\}/.test(P));
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`); process.exit(res.every(Boolean) ? 0 : 1);
