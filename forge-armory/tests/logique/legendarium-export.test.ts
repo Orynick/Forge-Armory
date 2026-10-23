@@ -67,8 +67,12 @@ const ctxFactice = { measureText: (t: string) => ({ width: t.length * 10 }) } as
     /document\.createElement\("a"\)/.test(src) && /a\.remove\(\)/.test(src) && /URL\.revokeObjectURL/.test(src));
   ok("export : le crédit Bungie / Destiny est présent dans le pied de l'image (texte du Lore © Bungie + marque Destiny/Destiny 2 + projet de fan non affilié)",
     src.includes("Mise en image par Forge Armory") && src.includes("Bungie, Inc.") && src.includes("Destiny 2") && src.includes("non affilié à Bungie"));
-  ok("export : le filigrane du logo Forge Armory est dessiné en bas de l'image (emblème, opacité réduite)",
-    src.includes("logo-forge-armory-embleme.png") && src.includes("FILIGRANE_OPACITE"));
+  ok("export : le filigrane du logo Forge Armory est CENTRÉ sur toute la fiche (emblème, opacité 0.07 identique aux exports de builds, dessiné derrière le contenu)",
+    src.includes("logo-forge-armory-embleme.png") && src.includes("FILIGRANE_OPACITE") && src.includes("LARGEUR_FILIGRANE"));
+  ok("export : le filigrane est centré horizontalement ET verticalement (translate/drawImage avec (canvas.width - LARGEUR)/2 et (canvas.height - hauteur)/2)",
+    /\(canvas\.width - LARGEUR_FILIGRANE\) \/ 2/.test(src) && /\(canvas\.height - hauteurFiligrane\) \/ 2/.test(src));
+  ok("export : le filigrane est dessiné AVANT le contenu (derrière), pas dans le pied de l'image",
+    src.indexOf("logoFiligrane") < src.indexOf("let y = MARGE") && src.indexOf("FILIGRANE_OPACITE = 0.07") > 0);
   ok("export : le pied de l'image porte le libellé D1 « Destiny » quand la section est le Grimoire (ère d1) et « Destiny 2 » sinon",
     src.includes('estD1 ? "Destiny" : "Destiny 2"'));
 }

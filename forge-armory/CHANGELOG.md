@@ -1,3 +1,23 @@
+## 22/10/2026 — CORRECTIF : FILIGRANE CENTRÉ SUR TOUTE LA FICHE (export infographique Legendarium)
+
+**Demande de l'utilisateur** : « le filigrane du logo de Forge Armory qui se trouve dans l'export infographique, je le veux sur l'ensemble de la fiche. À l'image de ce que l'on fait pour l'export infographique des builds. Assure-toi qu'il soit bien centré. »
+
+**Fait** :
+- **`src/lib/legendarium/exportImage.ts`** (⚠️ CHANGÉ) —
+  - Le filigrane (emblème Forge Armory) est maintenant **centré sur TOUTE la fiche** (horizontalement ET verticalement), dessiné **AVANT le contenu** (derrière), à l'opacité **0.07** — identique aux exports de builds (`OPACITE_FILIGRANE = 0.07` dans `src/data/emblemeForgeArmory.ts`).
+  - Largeur du filigrane : **1000 px** sur une image de 1200 px (~5/6, comme les 760 px sur 900 px des exports de builds).
+  - Le logo petit (64 px) dans le pied de l'image est **retiré** — le filigrane centré le remplace.
+  - Le pied de l'image garde la mention « Mise en image par Forge Armory » + le crédit Bungie / Destiny (inchangé).
+  - Constantes mises à jour : `FILIGRANE_OPACITE` 0.22 → 0.07, ajout de `LARGEUR_FILIGRANE = 1000`.
+  - Commentaires FR/EN mis à jour (le filigrane est centré, pas dans le pied).
+- **Tests** : `legendarium-export` **19/19** (2 nouveaux : le filigrane est centré horizontalement ET verticalement via `(canvas.width - LARGEUR_FILIGRANE) / 2` et `(canvas.height - hauteurFiligrane) / 2` ; le filigrane est dessiné avant le contenu, pas dans le pied). `tsc` 0 erreur, `npm run build` strict ✓, batterie logique **36/36 suites, 708/708 contrôles**.
+
+**À valider en `npm run dev`** : onglet Legendarium → une page de Lore → bouton « ⤳ Exporter en image » → vérifier que le filigrane (emblème Forge Armory) est **centré sur toute la fiche** (pas seulement en bas), à faible opacité, derrière le texte.
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — v0.5.0 : LIVRAISON LEGENDARIUM — NOUVELLE VERSION MAJEURE
 
 **Passage en version 0.5.0** — livraison du chantier Legendarium complet (bibliothèque de Lore en lecture passive) marquant une étape majeure du projet.
