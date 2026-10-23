@@ -1,3 +1,9 @@
+# DEVLOG — Forge Armory
+
+> **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
+
+---
+
 ## 23/10/2026 — CORRECTIF page « Accomplissements » : « Aucun sceau trouvé » avec le vrai Manifest (TODO n°23, branche `draft-update-triomphes`)
 
 **Diagnostic** (retour utilisateur « Il m'affiche : Aucun sceau trouvé — non disponible. ») : dans le Manifest ACTUEL, les nœuds **sceaux** (avec `completionRecordHash`) ne sont **pas** sous la racine « Triumphs » (1163735237) — celle-ci ne contient que des catégories et des triomphes « nus » — mais sous une **racine séparée** « Sceaux/Titres » (vue sur light.gg : racine 616318467 « Titles » ; doc Bungie 2018 : racine « Seals » = 1652422747). Le code ne parcourait que la racine « Triumphs » → zéro sceau. La portée des records (scope) est confirmée correcte (`DestinyScope.Profile = 0`).
@@ -18,7 +24,7 @@
 
 ## 23/10/2026 — PROPAGATION : chantier `draft-deps` (dépendances majeures) répercuté sur `draft-update-triomphes`
 
-**Propagation** : `main` (incluant le merge de `draft-deps` — Vite 7, React 19, Electron 45) a été mergé dans `draft-update-triomphes`. Conflit CHANGELOG résolu (entrée de propagation + entrée TODO n°23 conservées, dans l'ordre).
+**Propagation** : `main` (incluant le merge de `draft-deps` — Vite 7, React 19, Electron 45) a été mergé dans `draft-update-triomphes`. Conflit DEVLOG résolu (entrée de propagation + entrée TODO n°23 conservées, dans l'ordre).
 
 **Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 716/716 contrôles réussis. ⚠️ **Re-vérifié après le merge du chantier TODO n°23** : `npm install` (React 19.3.1 effectif — le snapshot `element:officielle` obsolète était dû à une install React 18 résiduelle), `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` **37/37 suites, 740/740 contrôles** (incluant `sceaux.test.ts` 24/24).
 
@@ -61,6 +67,38 @@
 **Tests** : `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites, 716/716 contrôles** ✓ (3 contrôles anti-doublon : `cablage-forge`, `legendarium`, `selecteur.py` ; parsing de la structure réelle de l'API ; Accomplissements sans vitrine ; montage `profil={profilComplet}`), pages de test UI construites ✓ (`vue-carriere`, `vue-carriere-dev`, `selecteur`, `connexion-boutons`), `ast.parse` OK. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **validés par l'utilisateur en `npm run dev`** (« Ok, c'est validé »).
 
 **TODO.md** : l'item 23 (boutons « Carrière »/« Accomplissements ») est retiré (résolu) et remplacé par un **nouvel item 23** : « Page « Accomplissements » : afficher les Triomphes du compte » (branche `draft-update-triomphes`).
+
+## 23/10/2026 — v0.5.1 : LIVRAISON COMPLÈTE — Legendarium opérationnel + pages Carrière/Accomplissements + stack à jour
+
+## 23/10/2026 — RENOMMAGE : `CHANGELOG.md` → `DEVLOG.md`
+
+**Demande de l'utilisateur** : le fichier `CHANGELOG.md` devient `DEVLOG.md` pour garder l'historique du développement. Un nouveau `CHANGELOG.md` minimal est créé pour les utilisateurs (changements visibles uniquement).
+
+**Fait** :
+- `git mv CHANGELOG.md DEVLOG.md` (historique préservé dans git)
+- Nouveau `CHANGELOG.md` créé : changelog orienté utilisateur (v0.5.1, v0.5.0, lien vers DEVLOG)
+- **25 fichiers mis à jour** — toutes les mentions de `CHANGELOG` remplacées par `DEVLOG` :
+  - Code source (9 fichiers) : `elementVerbs.ts`, `triomphesSoloFlawless.ts`, `diagnosticsArchives.ts`, `pillars.ts`, `doctrine.ts`, `IconeLoadout.tsx`, `IconeSlotArmure.tsx`, `SelecteurArtefact.tsx`, `telecharger-manifest.mjs`
+  - Documentation (7 fichiers) : `README.md`, `TODO.md`, `LISEZ-MOI.md`, archives TODO/tests/audit, `GITIGNORE-A-AJOUTER.txt`
+  - Knowledge-base (5 fichiers) : `00_INDEX.md` + 4 fichiers artefacts
+  - Config : `.gitignore`, `.github/workflows/ci.yml`
+- En-tête ajouté en haut de `DEVLOG.md` expliquant la séparation CHANGELOG (utilisateurs) / DEVLOG (développement)
+
+**Règle à suivre** :
+- **`CHANGELOG.md`** = changements visibles par les utilisateurs (nouvelles fonctionnalités, correctifs majeurs)
+- **`DEVLOG.md`** = historique complet du développement (décisions, détails techniques, propagations, nettoyages)
+
+---
+
+## 23/10/2026 — PROPAGATION : v0.5.1 (PR #16) répertutée sur les branches de chantier
+
+**Propagation** : le passage en v0.5.1 (PR #16) a été répertuté sur les 7 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `draft-update-triomphes`, `test`.
+
+**Note** : les branches `draft-deps` et `draft-update-carriere` ont été supprimées après livraison. Tag `v0.5.1` créé. Nouvelle branche `draft-optimiseur` détectée (chantier en cours).
+
+**Version inchangée (0.5.1).**
+
+---
 
 ## 23/10/2026 — v0.5.1 : LIVRAISON COMPLÈTE — Legendarium opérationnel + pages Carrière/Accomplissements + stack à jour
 

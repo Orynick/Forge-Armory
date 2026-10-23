@@ -4,7 +4,7 @@
 #   3. `npm run build` (build strict complet : tsc -b && vite build)
 #   4. `npm run test:logique` (les 30 suites de tests/logique/, 430 contrôles)
 # Les tests d'interface Playwright (tests/ui/*.py) NE tournent PAS ici :
-# ils ont besoin d'un navigateur et d'un vrai environnement (voir CHANGELOG,
+# ils ont besoin d'un navigateur et d'un vrai environnement (voir DEVLOG,
 # entrées du 21/10/2026). Ils restent à rejouer manuellement.
 # EN: CI for Forge Armory — on every push and pull request: install, strict
 # typecheck, strict build, and the whole logic test battery. Playwright UI

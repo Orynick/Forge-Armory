@@ -79,7 +79,7 @@ export const DIAGNOSTICS_ACTIFS = {
   /** FR : ⚠️ ACTIF (26/08) - dump texte de toutes les options de Super/
    * Mêlée/Grenade/Saut/Compétence de classe/Aspects d'une sous-classe, pour
    * l'audit du texte réel des capacités de base (voir la discussion sur les
-   * "identités de capacité" et l'asymétrie source/payoff, CHANGELOG.md).
+   * "identités de capacité" et l'asymétrie source/payoff, DEVLOG.md).
    * Recurring workflow tool, PAS un diagnostic ponctuel résolu - reste actif
    * tant que l'audit progresse élément par élément.
    * EN: ⚠️ ACTIVE - text dump of all ability options for a subclass, for

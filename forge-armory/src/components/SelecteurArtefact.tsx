@@ -193,14 +193,14 @@ function libelleArme(a: string): string {
  * FRANÇAIS ÉCRIT À LA MAIN par l'utilisateur pour 4 artefacts sur 7 (les
  * trois autres restent en anglais, traduits par substitution de termes en
  * repli). Les anciennes couches `traductionOfficielle` (pont vers
- * l'extraction Manifest, abandonnée : voir CHANGELOG "cul-de-sac") et la
+ * l'extraction Manifest, abandonnée : voir DEVLOG "cul-de-sac") et la
  * distinction nom/description séparées ne sont plus nécessaires - le rendu
  * se fait directement via `rendreTextePerk`, qui gère aussi les jetons
  * `[icone X]` et les verbes en cyan que l'utilisateur a intégrés à ses
  * traductions.
  * EN: ⚠️ SIMPLIFIED - `artefacts.ts` now holds HAND-WRITTEN FRENCH for 4 of
  * 7 artifacts (the rest stay in English, term-substituted as fallback). The
- * old `traductionOfficielle` bridge (dead end, see CHANGELOG) is no longer
+ * old `traductionOfficielle` bridge (dead end, see DEVLOG) is no longer
  * needed - rendering goes through `rendreTextePerk`.
  */
 
