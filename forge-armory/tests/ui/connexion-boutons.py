@@ -14,7 +14,8 @@ lire = lambda f: open(f"{racine}/{f}", encoding="utf-8").read()
 
 # ---------- 0. câblage dans le code source ----------
 dash, comp, css = lire("src/pages/DashboardPage.tsx"), lire("src/components/BoutonsVuesCompte.tsx"), lire("src/index.css")
-ok("CÂBLAGE : `DashboardPage` monte `BoutonsVuesCompte` UNE seule fois, DANS `connecte &&` (masqué hors connexion), avec l'ouverture de la fenêtre Carrière et du tiroir Accomplissements ; plus aucun appel direct de `urlVisuel`", len(re.findall(r"<BoutonsVuesCompte", dash)) == 1 and re.search(r"\{connecte && <BoutonsVuesCompte onCarriere=\{\(\) => setCarriereOuverte\(true\)\} onAccomplissements=\{\(\) => setTiroirTriomphesOuvert\(true\)\} />\}", dash) and "urlVisuel(" not in dash)
+# ⚠️ 22/10/2026 (TODO §25) : les deux boutons ouvrent des ONGLETS (pages dédiées), plus de fenêtre ni de tiroir.
+ok("CÂBLAGE : `DashboardPage` monte `BoutonsVuesCompte` UNE seule fois, DANS `connecte &&` (masqué hors connexion), avec l'ouverture de l'ONGLET Carrière et de l'ONGLET Accomplissements (pages dédiées) ; plus aucun appel direct de `urlVisuel`", len(re.findall(r"<BoutonsVuesCompte", dash)) == 1 and re.search(r"\{connecte && <BoutonsVuesCompte onCarriere=\{\(\) => setVue\(\"carriere\"\)\} onAccomplissements=\{\(\) => setVue\(\"accomplissements\"\)\} />\}", dash) and "urlVisuel(" not in dash)
 ok("CÂBLAGE : la carte Connexion ne passe en grille (`pilier-carte--connexion`) QUE connectée, et la ligne du compte porte `connexion-compte`", 'className={`pilier-carte${connecte ? " pilier-carte--connexion" : ""}`}' in dash and len(re.findall(r'className="connexion-compte"', dash)) == 1)
 ok("CÂBLAGE : les deux boutons ont le MÊME cadre (modificateur `bouton-vue--large` 4897 / 1024), la même hauteur (3,0625 rem), Carrière en variante élargie et Accomplissements d'origine", 'className="bouton-vue bouton-vue--large"' in comp and 'HAUTEUR_BOUTONS_VUES_COMPTE = "3.0625rem"' in comp and 'cle="selecteur.carriere-large"' in comp and 'cle="selecteur.accomplissements"' in comp and re.search(r"\.bouton-vue--large,\s*\.bouton-vue--large:hover,\s*\.bouton-vue--large:active\s*\{\s*aspect-ratio: 4897 / 1024;", css) is not None)
 
@@ -61,7 +62,7 @@ with sync_playwright() as p:
     # ---------- 6. clics ----------
     pg.set_viewport_size({"width": 1400, "height": 300}); pg.wait_for_timeout(250)
     pg.get_by_role("button", name="Carrière").click(); pg.get_by_role("button", name="Accomplissements").click()
-    ok("CLICS : « Carrière » ouvre la vue Carrière, « Accomplissements » le tiroir (un clic chacun, dans cet ordre)", pg.evaluate("window.__clics") == ["carriere", "accomplissements"], pg.evaluate("window.__clics"))
+    ok("CLICS : « Carrière » ouvre la vue Carrière, « Accomplissements » la vue Accomplissements (un clic chacun, dans cet ordre)", pg.evaluate("window.__clics") == ["carriere", "accomplissements"], pg.evaluate("window.__clics"))
     # ---------- 4. hors connexion ----------
     pg.goto(PAGE + "?deconnecte=1"); pg.wait_for_function("window.__pret===true"); pg.wait_for_timeout(400)
     d = pg.evaluate("""() => ({ nb: document.querySelectorAll('.connexion-vues-compte').length, carriere: document.querySelectorAll('button[aria-label="Carrière"]').length, accompl: document.querySelectorAll('button[aria-label="Accomplissements"]').length,

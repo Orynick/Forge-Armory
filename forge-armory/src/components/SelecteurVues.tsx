@@ -8,12 +8,13 @@
 
 import type { CSSProperties } from "react";
 
-export type VueApp = "analyseur" | "loadouts" | "forge" | "bibliotheque";   // ⚠️ v0.4.0 : + « forge »
+export type VueApp = "analyseur" | "loadouts" | "forge" | "bibliotheque" | "carriere" | "accomplissements";   // ⚠️ v0.4.0 : + « forge »
 
 // FR : ⚠️ CHANGÉ (07/10/2026, v0.3.16) - les fichiers viennent du catalogue de l'archive « forge-armory-app-assets » (`urlVisuel`, identifiants `selecteur.<vue>.repos|selectionne`) au lieu de chemins écrits ici. / EN: ⚠️ CHANGED - files now come from the supplied catalogue.
 import { urlVisuel } from "../lib/visuelsForge";
 
 /** FR : l'ordre est celui demandé : Build Analyzer, Load-outs, Forge, Legendarium (Forge ajoutée en v0.4.0 ; « Bibliothèque » renommée « Legendarium » en v0.4.4). / EN: the requested order. */
+/** FR : ⚠️ 22/10/2026 (TODO §25, retour utilisateur « les boutons apparaissent en double ») : les PAGES « Carrière » et « Accomplissements » du compte (ouvertes par les boutons du même nom du bloc Connexion ; `VueApp` = « carriere » / « accomplissements ») ne SONT PAS des onglets de ce sélecteur : elles ne figurent PAS dans `VUES`, pour ne pas doublonner les boutons du bloc Connexion. Le sélecteur garde ses QUATRE onglets de navigation. / EN: the account pages are NOT selector tabs (no duplicates with the Connection block's buttons). */
 const VUES: { valeur: VueApp; libelle: string; fichier: string }[] = [
   { valeur: "analyseur", libelle: "Build Analyzer", fichier: "build-analyzer" },
   { valeur: "loadouts", libelle: "Load-outs", fichier: "loadouts" },

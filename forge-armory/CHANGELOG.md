@@ -19,6 +19,29 @@
 
 **Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 708/708 contrôles réussis.
 
+---
+
+## 22/10/2026 — LIVRAISON TODO §25 (merge de `draft-update-carriere` sur `main`)
+Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carrière » et « Accomplissements » dédiées, toutes les stats traduites (74 statIds), temps de jeu corrigé, sections « Personnages »/« 10 dernières activités »/« Saison » supprimées — voir les entrées du 22/10/2026 ci-dessous.
+---
+## 22/10/2026 — PAGE « CARRIÈRE » : tous les libellés de stats traduits en français
+**Demande de l'utilisateur (22/10/2026, note avant test)** : « Avant test, tout traduire. » — capture de la grille « Statistiques de carrière » : la plupart des stats avaient un libellé FR, mais **46 statIds s'affichaient en ANGLAIS BRUT** (`weaponKillsAutoRifle`, `efficiency`, `score`, `totalKillDistance`, `allParticipantsTimePlayed`, …).
+**Changé** (`src/components/VueCarriere.tsx`) : la table `LIBELLES_STATS_CONNUS` est **complétée depuis la RÉPONSE RÉELLE du compte de l'utilisateur** (capture de la grille) — elle passe de 20 à **74 statIds** : les 46 statIds anglais restants ont leur libellé FR (vocabulaire du jeu en français) :
+- **Éliminations par type d'arme** (18) : « Fusil automatique », « Arc », « Glaive », « Fusil à fusion », « Revolver », « Fusil de traçage », « Mitrailleuse », « Fusil à impulsion », « Lance-roquettes », « Fusil éclaireur », « Fusil à pompe », « Fusil de précision », « Pistolet-mitrailleur », « Relique », « Épée », « Grenade », « Lance-grenades » + « **Capacités (armes)** », « **Super (armes)** », « **Mêlée (armes)** » (suffixe « (armes) » pour les distinguer des stats globales « Capacités » / « Super » / « Mêlée »).
+- **Distances** (5, unité précisée en mètres dans le libellé) : « Distance totale d'éliminations (m) », « Distance moyenne d'élimination (m) », « Distance d'élimination la plus longue (m) », « Distance totale de mort (m) », « Distance moyenne de mort (m) ».
+- **Divers** : « Efficacité totale » (`efficiency` — distincte de « Efficacité » = `killsDeathsAssists` : vérifié sur les valeurs réelles 22,54 vs 20,81), « Score », « Score d'équipe (cumulé) », « Meilleures éliminations (une partie) », « Meilleur score (une partie) », « Meilleures précisions (une partie) », « Série d'éliminations la plus longue », « Score moyen par élimination », « Score moyen par vie », « Adversaires vaincus », « Orbes générés », « Orbes ramassés », « Activités gagnées », « Activités en groupe », « Événements publics terminés », « Événements publics héroïques terminés », « Aventures terminées », « Niveau de personnage le plus élevé », « Puissance la plus élevée », « Participants (total) », « Score cumulé des participants », « Completion la plus rapide (ms) » (millisecondes — volontairement **absente** de `STATS_EN_SECONDES` pour ne pas afficher « non disponible » sur un 0 ms valide), « Type d'arme préférée (code brut) » (`weaponBestType` = code, la correspondance code→nom n'est pas dans la réponse de l'API).
+- **Durées** : `STATS_EN_SECONDES` étendu de 2 à **7** statIds (toutes en secondes) : + `totalActivityDurationSeconds` (« Durée totale des activités »), `allParticipantsTimePlayed` (« Temps cumulé des participants »), `longestSingleLife` (« Vie la plus longue »), `remainingTimeAfterQuitSeconds` (« Temps restant après abandon (cumulé) »), `averageLifespan` (« Durée de vie moyenne »).
+**Règle inchangée** : une statId **inconnue** continue d'afficher son statId **brut** (jamais renommée à l'aveugle) — la règle du projet « jamais d'estimation » s'applique aussi aux libellés.
+**Tests** :
+- `tests/ui/entree-vue-carriere.tsx` — la fixture passe à **16 stats** (les 8 d'origine + 8 statIds RÉELS du compte : `weaponKillsHandCannon`, `efficiency`, `score`, `totalKillDistance`, `totalActivityDurationSeconds`, `averageLifespan`, `longestSingleLife`, `allParticipantsTimePlayed`).
+- `tests/ui/vue-carriere.py` — le contrôle navigateur « TOUTES LES STATS » attend les **16 stats** avec leurs libellés FR (ex. « Revolver » → « 155 285 », « Efficacité totale » → « 22,54 », « Durée totale des activités » → « 4 031 h 08 », « Durée de vie moyenne » → « 4 min ») et le compte « 16 statistiques » ; le diagnostic attend « statIds retournés : 16 » et la structure « merged (allTime : 16 stats) ».
+- Vérification croisée (script) : **les 66 statIds de la capture de l'utilisateur ont TOUS un libellé FR** (aucun manquant, aucun libellé identique au statId brut).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+---
+
+---
+
+
 ## 23/10/2026 — PROPAGATION : PR #13 (nettoyage TODO) + PR #15 (doc README/NOTICE) répercuteées sur les branches de chantier
 
 **Propagation** : les deux PRs mergées sur `main` (PR #13 : nettoyage de la TODO section Confort ; PR #15 : mise à jour README + NOTICE après livraison Legendarium v0.5.0) ont été répertutées sur les 7 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `draft-update-carriere`, `test`.
@@ -28,7 +51,150 @@
 - `draft-update-carriere` : conflits `CHANGELOG.md` (entrée Carrière §25 + entrées main), `TODO.md` (item 23 résolu sur cette branche → retiré), `DashboardPage.tsx` et `cablage-forge.test.ts` (code spécifique Carrière conservé). Tests : **36/36 suites, 710/710 contrôles** ✓.
 - `test` : merge direct sans conflit.
 
+---
+
+## 22/10/2026 — PAGE « CARRIÈRE » : suppression de l'affichage de la saison
+
+**Demande de l'utilisateur (22/10/2026)** : « Finalement enlève l'affichage de la saison dans ce menu. »
+
+**Changé** : la section « Saison » (« Saison en cours ») est **supprimée** de la page « Carrière ». La page ne comporte plus que **DEUX sections** : **Temps de jeu** (total + par classe) et **Statistiques de carrière** (toutes les stats de l'API).
+
+**Fait** :
+- **`src/components/VueCarriere.tsx`** (⚠️ CHANGÉ) — la section « Saison » est supprimée, ainsi que `saisonEnCours`/`libelleSaisonEnCours` et l'import `SAISONS` de `src/data/saisons.ts` (aucun code mort). La table `SAISONS` reste utilisée ailleurs dans l'appli (recherche Manifest, infobulles de saison).
+
+**Tests** :
+- `tests/ui/vue-carriere.py` — le contrôle navigateur des sections attend **DEUX** sections (« Temps de jeu », « Statistiques de carrière ») et l'**absence** de « saison » dans le texte ; le contrôle « Saison en cours » est supprimé ; **+1 contrôle source** : plus de `SAISONS`/`libelleSaisonEnCours`/`titre="Saison"` dans le code ; le contrôle « MÊME EN ÉCHEC » n'attend plus la saison.
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
 **Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — PAGE « CARRIÈRE » : suppression des sections « Personnages » (niveaux) et « 10 dernières activités »
+
+**Demande de l'utilisateur (22/10/2026)** : « Enlève la partie affichant les niveaux de persos ainsi que les 10 dernières activités. »
+
+**Changé** : la page « Carrière » ne comporte plus que TROIS sections : **Temps de jeu** (total + par classe), **Saison** (« Saison en cours » — conservée, déplacée dans sa propre section) et **Statistiques de carrière** (toutes les stats de l'API). Les icônes de classes restent sur les lignes du temps de jeu par classe.
+
+**Fait** :
+- **`src/components/VueCarriere.tsx`** (⚠️ CHANGÉ) — sections « Personnages » (puissances) et « 10 dernières activités » supprimées ; la prop `personnages` est retirée (la page ne prend plus que `membership` et `profil`) ; « Saison en cours » reste, dans une section « Saison » dédiée.
+- **`src/lib/bungie/carriere.ts`** (⚠️ CHANGÉ) — le chargement des historiques d'activités est supprimé avec la section qu'il alimentait : `recupererActivitesPersonnage`, l'interface `ActiviteRecente`, le champ `activites` de `DonneesCarriere` et `erreursActivites` du diagnostic. `chargerCarriere(membership, profil)` ne prend plus `personnages` : la page ne fait plus qu'**UNE SEULE requête réseau** à l'ouverture (`GetHistoricalStatsForAccount`) — les 10 requêtes `GetActivityHistory` par personnage (et leurs erreurs possibles) disparaissent. Le diagnostic n'a plus de ligne « historiques d'activités en échec ».
+- **`src/pages/DashboardPage.tsx`** (⚠️ CHANGÉ) — montage `<VueCarriere membership={memberships[0] ?? null} profil={profilComplet} />` (plus de `personnages`).
+
+**Tests** :
+- `tests/logique/cablage-forge.test.ts` — le regex de montage attend `profil={profilComplet}` sans `personnages`.
+- `tests/logique/diagnostic-carriere.test.ts` — le cas « historiques d'activités en échec » est remplacé par un **contrôle de suppression** : le diagnostic ne contient AUCUNE ligne « historiques d'activités ».
+- `tests/ui/entree-vue-carriere.tsx` — plus de prop `personnages`, plus de handler `/Stats/Activities/` (une telle requête retombe en 404) ; `window.__requetes` enregistre les URL demandées.
+- `tests/ui/vue-carriere.py` — +1 contrôle source (sections supprimées, prop retirée, `chargerCarriere(membership, profil)`, `recupererActivitesPersonnage` absent de `carriere.ts`) ; le contrôle des sections attend **TROIS** sections (« Temps de jeu », « Saison », « Statistiques de carrière ») ; le contrôle « Saison en cours » lit la section « Saison » ; **+1 contrôle navigateur** : UNE SEULE requête réseau à l'ouverture (les stats agrégées), AUCUNE requête `/Stats/Activities/` ; le contrôle « MÊME EN ÉCHEC » attend le temps de jeu et la saison (plus de personnages/historique).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — CORRECTIFS (retour de l'utilisateur en test) : page « Carrière » — plus de « non disponible » pour le temps de jeu et la saison en cours
+
+**Retour de l'utilisateur (22/10/2026, en test)** : « Ca fonctionne ! Maintenant il faut comprendre pourquoi ici il y a des stats non-disponibles. Le temps de jeu est récupéré dans les stats plus bas, et l'en-tête de l'app indique la saison et même la version du jeu. » — capture de la page Carrière avec « non disponible » pour Temps de jeu → Total, Temps de jeu → Par classe et Personnages → « Saison en cours ».
+
+**Deux causes, deux correctifs** :
+
+1. **Temps de jeu « non disponible »** — la page recevait le MAUVAIS profil : `DashboardPage` lui passait `profilTriomphes`, qui est `GetProfile` avec le **composant 900 seul** (triomphes) — il ne contient **pas** le composant 200 (`characters.data[*].minutesPlayedTotal`, temps de jeu par personnage). Les données existaient pourtant déjà : `recupererResumeEtPersonnages` télécharge le profil complet (composants 100, 102, **200**, …) mais le jetait après en avoir dérivé le résumé. **Corrigé** : `recupererResumeEtPersonnages` (`src/lib/bungie/api.ts`, ⚠️ CHANGÉ) retourne aussi le profil brut (`profil`), `DashboardPage` le stocke dans un nouvel état `profilComplet` (réinitialisé à la déconnexion et au re-test) et le passe à `VueCarriere` (`profil={profilComplet}`) — **aucun appel réseau en plus** (c'est le même profil, déjà téléchargé). ⚠️ En complément (l'indice de l'utilisateur : « le temps de jeu est récupéré dans les stats plus bas »), le **Total** retombe désormais sur la stat `secondsPlayed` de `GetHistoricalStatsForAccount` (agrégat « Carrière » du jeu) quand le profil ne porte pas le composant 200 ; le **par classe** reste « non disponible » dans ce cas (les stats historiques n'ont pas le temps de jeu par personnage). Jamais d'estimation.
+2. **« Saison en cours » « non disponible »** — la ligne était en dur (`valeur={NON_DISPONIBLE}`, jamais implémentée). **Corrigé** : `VueCarriere` (⚠️ CHANGÉ) lit la saison en cours dans la table `SAISONS` (`src/data/saisons.ts`, socle dérivé de d2-additional-info/DIM) : l'entrée dont la date de fin est `null` — actuellement « Season of Lawless (saison 28, Renegades) ». Aucun appel réseau. ⚠️ Le nom affiché est celui de la **saison** (table des saisons), pas celui de la **version** 9.7.0 (« Monument of Triumph ») du badge de l'en-tête : ce ne sont pas les mêmes libellés (la version 9.7.0 est le patch du 9 juin 2026, la saison 28 « Lawless » a débuté le 2 décembre 2025).
+
+**Tests** :
+- `tests/logique/cablage-forge.test.ts` — le regex de montage attend `profil={profilComplet}` (+ `setProfilComplet(profil)`).
+- `tests/ui/entree-vue-carriere.tsx` — la fixture précise la FORME RÉELLE du profil (`data.Response`, `characters.data` en haut niveau, comme passé par `DashboardPage`) ; nouveau mode `?sans-profil=1` (profil absent → repli sur `secondsPlayed`).
+- `tests/ui/vue-carriere.py` — +1 contrôle source (saison depuis `SAISONS`, repli `secondsPlayed`) + 3 contrôles navigateur : temps de jeu Total « 225 h 00 » et par classe (100/75/50 h), « Saison en cours » = « Season of Lawless (saison 28, Renegades) », et repli `?sans-profil=1` (Total « 2500 h 00 » via `secondsPlayed`, « Par classe » « non disponible »).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — CORRECTIFS (retours de l'utilisateur en test) : page « Accomplissements » sans la vitrine « Solo sans mourir » ; parsing des stats « Carrière » corrigé (structure réelle de l'API)
+
+**Retours de l'utilisateur (22/10/2026, en test)** :
+1. « Accomplissement ne doit pas afficher la Vitrine Solo sans mourir : elle affichera plus tard tous les triomphes obtenus et à obtenir. »
+2. Le diagnostic de la page Carrière indiquait « statIds retournés : AUCUN » alors que la réponse de l'API contenait `mergedAllCharacters` avec 2 entrées (`clés de la réponse : mergedDeletedCharacters, mergedAllCharacters, characters` / `entrées de « mergedAllCharacters » : 2`).
+
+**Corrigé** :
+- **Page « Accomplissements »** (`src/components/VueAccomplissements.tsx`, ⚠️ CHANGÉ) : la vitrine « Solo sans mourir » (`VitrineSoloFlawless`) est **retirée** de la page — elle reste **uniquement** dans le tiroir « Solo sans mourir » du Build Analyzer (`PanneauTriomphes`, inchangé). La page affiche désormais un emplacement réservé : « 🚧 Bientôt : tous vos Triomphes de compte — obtenus et à obtenir. » Le composant ne prend plus de props (`<VueAccomplissements />` dans `DashboardPage`).
+- **Parsing des stats « Carrière »** (`src/lib/bungie/carriere.ts`, ⚠️ CORRIGÉ) : la structure **réelle** de `GetHistoricalStatsForAccount` est `mergedAllCharacters: { results: { <mode>: { allTime: { <statId>: {...} } } }, merged: { allTime: { <statId>: {...} } } }` — les stats ne sont PAS directement sous `mergedAllCharacters` (une clé par statId), mais imbriquées. La lecture se fait désormais dans **`merged.allTime`** (l'agrégat « Carrière » du jeu, toutes activités confondues), avec **repli** sur la somme des `results.<mode>.allTime` si `merged` est vide (`extraireStatsCarriere`, exportée pour les tests). C'est ce mauvais niveau de lecture qui produisait « statIds retournés : AUCUN ».
+- **Diagnostic enrichi** : il décrit maintenant la **structure réelle** de `mergedAllCharacters` (ex. « merged (allTime : 8 stats) ») et la **source lue** (« merged.allTime (agrégat « Carrière » du jeu) » ou « somme de results.<mode>.allTime »), au lieu du seul « entrées de « mergedAllCharacters » : N ».
+
+**Tests** :
+- `tests/logique/diagnostic-carriere.test.ts` — mis à jour (nouveau diagnostic) + **4 nouveaux contrôles** sur `extraireStatsCarriere` : structure réelle (`merged.allTime` prioritaire), repli (somme des modes), bloc vide (structure décrite, jamais un « AUCUN » muet), champ absent.
+- `tests/logique/cablage-forge.test.ts` — montage `<VueAccomplissements />` à jour + **1 nouveau contrôle** : la page Accomplissements n'affiche plus `VitrineSoloFlawless` (placeholder « Bientôt » ; la vitrine reste dans `PanneauTriomphes`).
+- `tests/ui/entree-vue-carriere.tsx` — la fixture retourne la **structure réelle** de l'API (`mergedAllCharacters: { results: { allPvE, allPvP }, merged: { allTime: <8 stats> } }`, `mergedDeletedCharacters`, `characters`).
+- `tests/ui/vue-carriere.py` — +1 contrôle source (Accomplissements sans vitrine) ; le contrôle navigateur Accomplissements attend le placeholder « Bientôt » et l'**absence** de « Solo sans mourir » ; le diagnostic attend les **clés réelles** de la réponse, la structure « merged (allTime : 8 stats) » et la source lue.
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites, 716/716 contrôles** ✓, pages de test UI reconstruites ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — PAGE « CARRIÈRE » : TOUTES les stats du compte sont affichées (plus de sélection figée)
+
+**Demande de l'utilisateur (22/10/2026)** : « Maintenant il reste à afficher les stats du compte. **Toutes les stats.** »
+
+**Changé** : la page « Carrière » n'affiche plus une sélection figée de 19 statistiques — elle affiche **TOUTES les stats retournées par l'API** (`GetHistoricalStatsForAccount`, filtre « Carrière », toutes périodes confondues), dans l'ordre de la réponse.
+
+**Fait** :
+- **`src/components/VueCarriere.tsx`** (⚠️ CHANGÉ) —
+  - La sélection figée `STATS_AFFICHEES` (19 statIds) est **supprimée** ; la section « Statistiques de carrière » rend désormais `donnees.stats.map(...)` (une ligne par stat de la réponse, grille auto-remplie).
+  - Les statIds **connus** gardent leur libellé FR (`LIBELLES_STATS_CONNUS`, figé depuis la réponse réelle de l'API pour ce compte, + `activityDurationSeconds` = « Durée d'activité ») ; une stat **inconnue** affiche son **statId brut** (jamais omise, jamais renommée à l'aveugle).
+  - Les statIds de **durées** (secondes : `secondsPlayed`, `activityDurationSeconds`) sont affichés en « X h Y min » et non en secondes brutes ; les autres valeurs gardent 2 décimales max (`fr-FR`).
+  - Un compte « N statistiques — filtre « Carrière » (toutes périodes confondues) » est affiché au-dessus de la grille (N = nombre de stats de la réponse).
+- **Tests** : `tests/ui/entree-vue-carriere.tsx` — la fixture retourne 8 stats (dont une inconnue `statInconnueDeTest` et une durée `activityDurationSeconds`) ; `tests/ui/vue-carriere.py` — +1 contrôle source (`STATS_AFFICHEES` absent, `donnees.stats.map`, `LIBELLES_STATS_CONNUS`, `STATS_EN_SECONDES`, `formaterDuree` présents) et +2 contrôles navigateur (les 8 stats affichées ni plus ni moins, dans l'ordre, libellés FR / statId brut / durée formatée ; le compte « 8 statistiques »), et le diagnostic dev est ajusté (8 statIds).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites, 711/711 contrôles** ✓, pages de test UI reconstruites ✓. Les tests navigateur Playwright ne tournent pas dans le sandbox (pas de `libglib-2.0-0`) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — CORRECTIF : « Carrière » et « Accomplissements » ne sont PLUS des onglets du sélecteur (doublon)
+
+**Retour de l'utilisateur (22/10/2026, avant test)** : « Les boutons apparaissent en double. Enlève ceux qui sont entourés de rouge » (capture : les doublons sont les onglets « CARRIÈRE » et « ACCOMPLISSEMENTS » dans le sélecteur de vues, en dessous du bloc Connexion).
+
+**Corrigé** : les pages « Carrière » et « Accomplissements » du compte **ne sont plus des onglets du sélecteur de vues**. Le sélecteur revient à ses **QUATRE onglets** de navigation (Build Analyzer, Load-outs, Forge, Legendarium), avec sa mise en page d'origine (une seule ligne, retour à la ligne sous 810 px, hauteur commune inchangée). Les deux pages restent ouvertes **uniquement** par les boutons « Carrière » et « Accomplissements » du bloc Connexion (qui restent affichés, comme les 4 onglets) : un seul exemplaire de chaque bouton dans toute l'appli.
+
+**Fait** :
+- **`src/components/SelecteurVues.tsx`** (⚠️ CHANGÉ) — `VUES` revient à 4 entrées ; le champ `large` et le modificateur `bouton-vue--large` du sélecteur sont retirés (les visuels 4897 x 1024 restent utilisés par le bloc Connexion via `BoutonsVuesCompte`). Le type `VueApp` garde `"carriere"` et `"accomplissements"` (les pages existent toujours, `DashboardPage` les monte comme des vues).
+- **`src/index.css`** (⚠️ CHANGÉ) — `.selecteur-vues` : retour à `flex-wrap: nowrap` (wrap sous 810 px) et à la hauteur commune d'origine (formule à 4 boutons, bornes 2,6 rem – 3,5 rem).
+- **Tests** : `legendarium.test.tsx` restauré (4 boutons) + nouveau contrôle anti-doublon ; `cablage-forge.test.ts` +1 contrôle anti-doublon ; `selecteur.py` restauré (4 onglets) + contrôle anti-doublon ; `entree-vue-carriere.tsx` réécrit (la page s'ouvre depuis le VRAI bouton du bloc Connexion) ; `vue-carriere.py` mis à jour (clic sur le bouton du bloc Connexion, sélecteur à 4 onglets, un seul exemplaire de chaque bouton).
+- `tsc` 0 erreur, `npm run build` strict ✓, batterie logique au vert.
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — TODO §25 RÉSOLU : « Carrière » et « Accomplissements » deviennent des PAGES dédiées (ouvertes par le bloc Connexion)
+
+**Demande de l'utilisateur (22/10/2026, TODO §25)** : « On va changer d'approche. On garde le tiroir des Solo sans Mourir pour le moment. Les boutons Carrière et Accomplissements devront chacun ouvrir un onglet spécifique (le bloc de Connexion reste affiché, tout comme les 4 onglets qui se trouvent en dessous). Carrière : n'affiche plus une pop-up mais une page dédiée aux statistiques du compte. Accomplissements : n'agit plus sur le tiroir latéral gauche mais ouvre une page dédiée aux Triomphes du compte. »
+
+**Pourquoi** : le bug §25 (la pop-up « Carrière » ne s'ouvrait pas hors Build Analyzer, car les boutons étaient rendus dans le bloc Connexion masqué `display: none` hors vue analyseur) est résolu **par construction** : il n'y a plus de pop-up, plus de tiroir commandé depuis le bloc Connexion — les deux boutons ouvrent des **onglets** du sélecteur de vues, et le bloc Connexion comme les onglets restent affichés.
+
+**Fait** :
+- **`src/components/SelecteurVues.tsx`** (⚠️ CHANGÉ) — le type `VueApp` gagne `"carriere"` et `"accomplissements"` (les deux pages du compte), mais le sélecteur garde ses **QUATRE onglets** de navigation : les pages du compte n'y figurent PAS (elles s'ouvrent par les boutons du bloc Connexion — pas de doublon, retour utilisateur).
+- **`src/components/VueCarriere.tsx`** (⚠️ AJOUT) — **page « Carrière »** du compte (remplace `ModaleCarriere.tsx`, **supprimé**) : carte pleine largeur (`pilier-carte`, région « Carrière »), contenu repris tel quel de l'ancienne modale (spécification du 14/10/2026 : temps de jeu total et par classe, personnages, 10 dernières activités, statistiques « Carrière » du compte — lecture seule, chargée à l'ouverture de l'onglet, « non disponible » jamais d'estimation, icônes `IconeClasse`, diagnostic statIds dev). Le bouton « Accomplissements » de l'ancienne modale est **retiré** (l'onglet du même nom remplace la navigation croisée).
+- **`src/components/VueAccomplissements.tsx`** (⚠️ AJOUT) — **page « Accomplissements »** : la vitrine « Solo sans mourir » en pleine page (page dédiée aux Triomphes du compte), sans tiroir latéral.
+- **`src/components/VitrineSoloFlawless.tsx`** (⚠️ AJOUT) — contenu de la vitrine « Solo sans mourir » (liste des 11 donjons, diagnostics dev), extrait pour être partagé par le tiroir et la page Accomplissements.
+- **`src/components/IconeCrane.tsx`** (⚠️ AJOUT) — icône « crâne » extraite de `PanneauTriomphes.tsx` (partagée tiroir / page).
+- **`src/components/PanneauTriomphes.tsx`** (⚠️ CHANGÉ) — le tiroir « Solo sans mourir » **retrouve son comportement d'origine** (état d'ouverture interne) : les props `ouvertExterieur` / `onOuvertChange` / `onOuvrirCarriere` et le bouton « Carrière » de la v0.4.14 sont supprimés. **Le tiroir est conservé** (demande de l'utilisateur).
+- **`src/components/Modale.tsx`** (⚠️ CHANGÉ) — la prop `apresTitre` (21/10/2026, bouton « Accomplissements » à droite du titre de la modale) est retirée ; l'en-tête redevient un simple titre + croix.
+- **`src/pages/DashboardPage.tsx`** (⚠️ CHANGÉ) —
+  - Les états `carriereOuverte` et `tiroirTriomphesOuvert` sont **supprimés** ; les boutons du bloc Connexion appellent `setVue("carriere")` / `setVue("accomplissements")`.
+  - Les deux pages sont montées comme des vues (`vue === "carriere"` / `vue === "accomplissements"`), **hors du bloc Connexion** masqué avec l'analyseur : elles s'affichent dans TOUTES les vues, avec le bloc Connexion et les 4 onglets du sélecteur au-dessus.
+  - `PanneauTriomphes` est rendu sans props de navigation croisée.
+
+**Tests** :
+- `tests/logique/cablage-forge.test.ts` — 2 nouveaux contrôles (boutons → onglets ; pages montées comme des vues, modale et état de tiroir externe supprimés).
+- `tests/ui/selecteur.py` + `entree-selecteur.tsx` — sélecteur à QUATRE boutons (inchangé) + contrôle anti-doublon (« Carrière » et « Accomplissements » n'y figurent pas).
+- `tests/ui/vue-carriere.py` + `entree-vue-carriere.tsx` (remplace `modale-carriere.py`) — **page, pas modale** : ouverte depuis le bouton « Carrière » du bloc Connexion (qui reste affiché), aucun `[role=dialog]`, sélecteur à 4 onglets (pas de doublon), plus de partie « Compte », icônes de classes, diagnostic dev (ouverture/fermeture, contenu même en échec 404), navigation par le bouton « Accomplissements » du bloc Connexion vers la page Accomplissements.
+- `tests/ui/connexion-boutons.py` — câblage mis à jour (les deux boutons ouvrent les onglets).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` batterie complète au vert.
+
+**À valider en `npm run dev`** : le sélecteur à 4 onglets (inchangé), le bouton « Carrière » du bloc Connexion → page Carrière (statistiques chargées à l'ouverture), le bouton « Accomplissements » → page Accomplissements (vitrine « Solo sans mourir » en pleine page), le tiroir « Solo sans mourir » toujours disponible depuis le Build Analyzer.
 
 ---
 
