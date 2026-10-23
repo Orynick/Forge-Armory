@@ -4,6 +4,14 @@
 
 ---
 
+## 23/10/2026 — PROPAGATION : correction CHANGELOG répercutée sur les branches de chantier
+
+**Propagation** : la correction « la présentation en cartes ne relève pas du CHANGELOG » (CHANGELOG restauré à l'état v0.5.1, README simplifié, DEVLOG mis à jour) a été répercutée sur les 6 branches de chantier actives : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`.
+
+**Version inchangée (0.5.2).**
+
+---
+
 ## 23/10/2026 — CORRECTION : la présentation en cartes ne relève PAS du CHANGELOG (retour utilisateur)
 
 **Retour de l'utilisateur** : « Correction, la précédente modif ne concerne pas le nouveau CHANGELOG :) »
