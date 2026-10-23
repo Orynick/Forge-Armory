@@ -1,3 +1,22 @@
+## 22/10/2026 — PAGE « CARRIÈRE » : TOUTES les stats du compte sont affichées (plus de sélection figée)
+
+**Demande de l'utilisateur (22/10/2026)** : « Maintenant il reste à afficher les stats du compte. **Toutes les stats.** »
+
+**Changé** : la page « Carrière » n'affiche plus une sélection figée de 19 statistiques — elle affiche **TOUTES les stats retournées par l'API** (`GetHistoricalStatsForAccount`, filtre « Carrière », toutes périodes confondues), dans l'ordre de la réponse.
+
+**Fait** :
+- **`src/components/VueCarriere.tsx`** (⚠️ CHANGÉ) —
+  - La sélection figée `STATS_AFFICHEES` (19 statIds) est **supprimée** ; la section « Statistiques de carrière » rend désormais `donnees.stats.map(...)` (une ligne par stat de la réponse, grille auto-remplie).
+  - Les statIds **connus** gardent leur libellé FR (`LIBELLES_STATS_CONNUS`, figé depuis la réponse réelle de l'API pour ce compte, + `activityDurationSeconds` = « Durée d'activité ») ; une stat **inconnue** affiche son **statId brut** (jamais omise, jamais renommée à l'aveugle).
+  - Les statIds de **durées** (secondes : `secondsPlayed`, `activityDurationSeconds`) sont affichés en « X h Y min » et non en secondes brutes ; les autres valeurs gardent 2 décimales max (`fr-FR`).
+  - Un compte « N statistiques — filtre « Carrière » (toutes périodes confondues) » est affiché au-dessus de la grille (N = nombre de stats de la réponse).
+- **Tests** : `tests/ui/entree-vue-carriere.tsx` — la fixture retourne 8 stats (dont une inconnue `statInconnueDeTest` et une durée `activityDurationSeconds`) ; `tests/ui/vue-carriere.py` — +1 contrôle source (`STATS_AFFICHEES` absent, `donnees.stats.map`, `LIBELLES_STATS_CONNUS`, `STATS_EN_SECONDES`, `formaterDuree` présents) et +2 contrôles navigateur (les 8 stats affichées ni plus ni moins, dans l'ordre, libellés FR / statId brut / durée formatée ; le compte « 8 statistiques »), et le diagnostic dev est ajusté (8 statIds).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites, 711/711 contrôles** ✓, pages de test UI reconstruites ✓. Les tests navigateur Playwright ne tournent pas dans le sandbox (pas de `libglib-2.0-0`) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — CORRECTIF : « Carrière » et « Accomplissements » ne sont PLUS des onglets du sélecteur (doublon)
 
 **Retour de l'utilisateur (22/10/2026, avant test)** : « Les boutons apparaissent en double. Enlève ceux qui sont entourés de rouge » (capture : les doublons sont les onglets « CARRIÈRE » et « ACCOMPLISSEMENTS » dans le sélecteur de vues, en dessous du bloc Connexion).

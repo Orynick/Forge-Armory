@@ -9,32 +9,44 @@ import type { DestinyMembership, Personnage } from "../lib/bungie/api";
 import IconeClasse from "./icones/IconeClasse";   // ⚠️ AJOUT (21/10/2026, demande de l'utilisateur : « utilise les assets d'icônes de classes de personnages »)
 import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 
-// FR : libellés des statIds affichés. La liste est FIGÉE depuis la réponse
-// réelle de l'API pour ce compte (même démarche que le composant 310 et les
-// filigranes de saison) : le diagnostic dev ci-dessous liste les statIds
-// bruts réellement retournés pour figer/étendre la sélection.
-// EN: labels of the displayed statIds, frozen from the real API response.
-const STATS_AFFICHEES: { statId: string; libelle: string }[] = [
-  { statId: "kills", libelle: "Éliminations" },
-  { statId: "precisionKills", libelle: "Éliminations de précision" },
-  { statId: "meleeKills", libelle: "Mêlée" },
-  { statId: "superKills", libelle: "Super" },
-  { statId: "weaponKills", libelle: "Armes" },
-  { statId: "abilityKills", libelle: "Capacités" },
-  { statId: "deaths", libelle: "Morts" },
-  { statId: "suicides", libelle: "Suicides" },
-  { statId: "assists", libelle: "Assistances" },
-  { statId: "killsDeathsRatio", libelle: "K/D" },
-  { statId: "killsDeathsAssists", libelle: "Efficacité" },
-  { statId: "combatRating", libelle: "Score de combat" },
-  { statId: "secondsPlayed", libelle: "Temps de jeu (s)" },
-  { statId: "activitiesEntered", libelle: "Activités commencées" },
-  { statId: "activitiesCleared", libelle: "Activités terminées" },
-  { statId: "objectivesCompleted", libelle: "Objectifs accomplis" },
-  { statId: "winLossRatio", libelle: "Ratio victoires/défaites" },
-  { statId: "resurrectionsPerformed", libelle: "Résurrections" },
-  { statId: "resurrectionsReceived", libelle: "Résurrections reçues" },
-];
+// FR : ⚠️ CHANGÉ (22/10/2026, demande de l'utilisateur : « il reste à afficher les stats du compte. Toutes les stats. ») - la page affiche DÉSORMAIS **TOUTES** les stats retournées par l'API (`donnees.stats`, ordre de la réponse), plus une sélection figée. Les statIds connus gardent leur libellé FR (table ci-dessous, figée depuis la réponse réelle de l'API pour ce compte) ; une stat inconnue affiche son **statId brut** (jamais omise, jamais renommée à l'aveugle). Les statIds de DURÉES (secondes) sont affichés en « X h Y min » (et non en secondes brutes) ; les ratios gardent 2 décimales.
+// EN: CHANGED - the page now shows ALL the stats returned by the API; known statIds keep their French label, unknown ones show their raw statId; duration statIds are shown as hours/minutes.
+const LIBELLES_STATS_CONNUS: Record<string, string> = {
+  kills: "Éliminations",
+  precisionKills: "Éliminations de précision",
+  meleeKills: "Mêlée",
+  superKills: "Super",
+  weaponKills: "Armes",
+  abilityKills: "Capacités",
+  deaths: "Morts",
+  suicides: "Suicides",
+  assists: "Assistances",
+  killsDeathsRatio: "K/D",
+  killsDeathsAssists: "Efficacité",
+  combatRating: "Score de combat",
+  secondsPlayed: "Temps de jeu",
+  activitiesEntered: "Activités commencées",
+  activitiesCleared: "Activités terminées",
+  objectivesCompleted: "Objectifs accomplis",
+  winLossRatio: "Ratio victoires/défaites",
+  resurrectionsPerformed: "Résurrections",
+  resurrectionsReceived: "Résurrections reçues",
+  activityDurationSeconds: "Durée d'activité",
+};
+
+// FR : statIds dont la valeur brute est un nombre de SECONDES : affichés en durée « X h Y min » plutôt qu'en secondes. / EN: statIds whose raw value is a number of SECONDS.
+const STATS_EN_SECONDES = new Set(["secondsPlayed", "activityDurationSeconds"]);
+
+function libelleStat(statId: string): string {
+  return LIBELLES_STATS_CONNUS[statId] ?? statId;
+}
+
+function formaterValeurStat(statId: string, valeur: number | null, precision: number | null): string {
+  const brut = valeur ?? precision;
+  if (brut == null || !Number.isFinite(brut)) return NON_DISPONIBLE;
+  if (STATS_EN_SECONDES.has(statId)) return formaterDuree(brut) ?? NON_DISPONIBLE;
+  return brut.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+}
 
 const NON_DISPONIBLE = "non disponible";
 
@@ -90,8 +102,6 @@ export default function VueCarriere({ membership, personnages, profil }: Props) 
   useEffect(() => {
     charger();
   }, [charger]);
-
-  const stat = (statId: string) => donnees?.stats.find((s) => s.statId === statId) ?? null;
 
   const totalMinutes =
     donnees?.minutesParClasse?.reduce((acc, l) => acc + (Number.isFinite(l.minutes) ? l.minutes : 0), 0) ?? null;
@@ -152,21 +162,20 @@ export default function VueCarriere({ membership, personnages, profil }: Props) 
       </Section>
 
       <Section titre="Statistiques de carrière">
+        {/* FR : ⚠️ CHANGÉ (22/10/2026, « Toutes les stats ») - TOUTES les stats retournées par l'API, dans l'ordre de la réponse (known = libellé FR, sinon statId brut) ; le nombre affiché est celui de la réponse. / EN: ALL the stats returned by the API, in response order. */}
         {donnees && donnees.stats.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "0.15rem 1rem" }}>
-            {STATS_AFFICHEES.map(({ statId, libelle }) => {
-              const s = stat(statId);
-              const valeur =
-                s?.valeur != null
-                  ? s.valeur.toLocaleString("fr-FR", { maximumFractionDigits: 2 })
-                  : s?.precision != null
-                    ? s.precision.toLocaleString("fr-FR", { maximumFractionDigits: 2 })
-                    : NON_DISPONIBLE;
-              return <Ligne key={statId} libelle={libelle} valeur={valeur} />;
-            })}
-          </div>
+          <>
+            <p style={{ margin: "0 0 0.4rem", fontSize: "0.75rem", color: "#7d7a70" }}>
+              {donnees.stats.length} statistique{donnees.stats.length > 1 ? "s" : ""} — filtre « Carrière » (toutes périodes confondues)
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.15rem 1rem" }}>
+              {donnees.stats.map((s) => (
+                <Ligne key={s.statId} libelle={libelleStat(s.statId)} valeur={formaterValeurStat(s.statId, s.valeur, s.precision)} />
+              ))}
+            </div>
+          </>
         ) : (
-          <Ligne libelle="Éliminations, précision, K/D…" valeur={enCours ? "…" : NON_DISPONIBLE} />
+          <Ligne libelle="Statistiques" valeur={enCours ? "…" : NON_DISPONIBLE} />
         )}
         {/* FR : ⚠️ CHANGÉ (21/10/2026, retour de l'utilisateur : « le diagnostic statIds retournés ne s'ouvre pas ») - bouton À BASCULE (il s'ouvre et se ferme) dont le contenu s'affiche TOUJOURS : avant, une liste vide donnait un texte vide, donc RIEN à l'écran, et l'erreur de la requête était avalée. Le diagnostic dit maintenant : statIds retournés (ou AUCUN), requête, erreur, structure de la réponse. Réservé au développement. / EN: a real toggle whose content always shows. Dev only. */}
         {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.statIdsCarriere && donnees && (
