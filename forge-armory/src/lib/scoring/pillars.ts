@@ -610,7 +610,7 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
   // rarement les 3 Champions à la fois.
   //
   // ⚠️ TROIS sources, désormais. La 3e (capacités de DOCTRINE) avait
-  // d'abord été EXCLUE (voir historique CHANGELOG du 05/08, plus tôt dans
+  // d'abord été EXCLUE (voir historique DEVLOG du 05/08, plus tôt dans
   // la journée) : la seule source alors disponible
   // (13_ARTIFACTS_2_0_ET_ANTI_CHAMPION.md) datait d'avant la 9.7.0 et se
   // contredisait sur un point. Ce blocage est levé : la 3e source vient

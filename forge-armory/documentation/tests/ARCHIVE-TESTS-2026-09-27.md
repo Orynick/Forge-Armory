@@ -274,7 +274,7 @@ mais jamais éprouvés en jeu, contrairement au 35/12/18 des boucles) :
 d'un aspect est vide (0 car.), le texte réel vit sur un perk lié. Le
 correctif était donc correct dès le départ, il lui manquait sa
 vérification. Diagnostic archivé (flag repassé à `false`), code conservé
-pour un futur besoin. Détail complet dans `CHANGELOG.md`.
+pour un futur besoin. Détail complet dans `DEVLOG.md`.
 
 ---
 
@@ -330,7 +330,7 @@ ASPECTS ont très souvent cette description vide — le vrai texte vit sur
 un perk lié. Le sélecteur de doctrine (affichage) le gérait déjà
 correctement depuis début août ; le scoring, non. D'où : "Aucun verbe
 d'élément détecté" pour un aspect pourtant bien surligné en cyan à
-l'écran. **Corrigé** — voir `CHANGELOG.md` pour le diagnostic complet.
+l'écran. **Corrigé** — voir `DEVLOG.md` pour le diagnostic complet.
 
 **Explique probablement 5 des 6 problèmes remontés ce jour-là**, tous des
 aspects/fragments testés seuls : Esquive furtive, Sentinelle ionique,
@@ -360,7 +360,7 @@ regarder les lignes de détail du **Pilier 2 (Verbes d'Élément)** dans
 stasique, Facette de détermination muette, et la chaîne Prismatique
 (Transcendance + grenade) qui ne démarrait jamais. **Tous corrigés et
 vérifiés sur un test d'intégration utilisant les vraies fonctions du
-projet** (voir `CHANGELOG.md`) :
+projet** (voir `DEVLOG.md`) :
 - ✅ Mêlée stasique — **confirmé réglé par l'utilisateur**.
 - ✅ Facette de détermination — coquille de terminologie corrigée
   ("orbe de pouvoir" → "orbe de puissance"), à retester.
@@ -466,7 +466,7 @@ projet** (voir `CHANGELOG.md`) :
 - [x] Vérifier que la couverture anti-champion (Pilier 4) n'a pas changé
       sur un build de référence — elle ne doit PAS bénéficier du ricochet
       de chaîne (volontairement laissée sur `aSource` pur, voir
-      `CHANGELOG.md`). **Confirmé RAS (26/08).**
+      `DEVLOG.md`). **Confirmé RAS (26/08).**
 
 ### 6. Correctifs de la passe d'audit du scoring (26/08)
 
@@ -493,7 +493,7 @@ comparaison avant/après si tu as noté des scores précédemment.
 ### 7. Correctifs de l'audit des 387 compétences de doctrine (26/08)
 
 Tous trouvés en rejouant les 18 fichiers transmis à travers le vrai
-moteur de détection — voir `CHANGELOG.md` pour le détail complet du
+moteur de détection — voir `DEVLOG.md` pour le détail complet du
 diagnostic. Quelques vérifications ciblées, faciles à reproduire :
 
 - [x] **Esquive furtive** (Chasseur Abyssal) — équiper cet aspect et

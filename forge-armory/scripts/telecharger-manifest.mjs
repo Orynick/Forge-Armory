@@ -107,10 +107,10 @@ async function main() {
     const zipCompresse = new Uint8Array(await reponseFichier.arrayBuffer());
     console.log(`[${langue.toUpperCase()}] Téléchargé : ${formaterTaille(zipCompresse.length)}. Décompression...`);
 
-    // FR : ⚠️ PIÈGE CONNU (déjà rencontré côté appli, voir CHANGELOG) -
+    // FR : ⚠️ PIÈGE CONNU (déjà rencontré côté appli, voir DEVLOG) -
     // l'URL sert un fichier ZIP, PAS directement du SQLite. Il faut le
     // décompresser avant d'obtenir la base utilisable.
-    // EN: ⚠️ KNOWN PITFALL (already hit in the app, see CHANGELOG) - the
+    // EN: ⚠️ KNOWN PITFALL (already hit in the app, see DEVLOG) - the
     // URL serves a ZIP file, NOT raw SQLite. It must be decompressed first.
     const contenuZip = unzipSync(zipCompresse);
     const nomsFichiers = Object.keys(contenuZip);
