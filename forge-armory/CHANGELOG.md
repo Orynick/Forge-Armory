@@ -1,3 +1,21 @@
+## 23/10/2026 — CORRECTIF page « Accomplissements » : « Aucun sceau trouvé » avec le vrai Manifest (TODO n°23, branche `draft-update-triomphes`)
+
+**Diagnostic** (retour utilisateur « Il m'affiche : Aucun sceau trouvé — non disponible. ») : dans le Manifest ACTUEL, les nœuds **sceaux** (avec `completionRecordHash`) ne sont **pas** sous la racine « Triumphs » (1163735237) — celle-ci ne contient que des catégories et des triomphes « nus » — mais sous une **racine séparée** « Sceaux/Titres » (vue sur light.gg : racine 616318467 « Titles » ; doc Bungie 2018 : racine « Seals » = 1652422747). Le code ne parcourait que la racine « Triumphs » → zéro sceau. La portée des records (scope) est confirmée correcte (`DestinyScope.Profile = 0`).
+
+**Correctif** (`src/lib/bungie/sceaux.ts`) :
+- La racine des sceaux est lue **dans le profil** : `Response.profileRecords.data.recordSealsRootNodeHash` (champ officiel du composant 900 — **exactement ce que lit DIM**, `presentation-nodes.ts`), puis `recordCategoriesRootNodeHash`.
+- **Secours** : constantes 1652422747 (« Seals » 2018), 616318467 (« Titles » courant), 1163735237 (« Triumphs ») — dédoublonnées, seules les racines présentes dans le Manifest sont parcourues.
+- **Dernier recours** : scan global de tous les nœuds, en **excluant** les sous-arbres Collections (3790247699), Badges (498211331), Lore « Légendes » (4077680549), Metrics (1074663644) et Patterns & Catalysts (2642502414) ; un nœud `completionRecordHash` **sans aucun record** est omis.
+- Les records d'un sceau sont lus dans ses `children.records` **et récursivement dans ses sous-nœuds** (certains sceaux les ont sous un sous-nœud), dédoublonnés.
+- Le **nom de la racine** n'est plus utilisé comme catégorie (ex. « Titles » n'apparaissait pas comme regroupement).
+- Inchangés : portée profil uniquement (scope 0), exclusion records masqués, sceaux sans triomphe omis, tri FR, bit 4 à zéro, score = somme des `ScoreValue` obtenus.
+
+**Tests** : `tests/logique/sceaux.test.ts` **31/31** (24 existants inchangés + 7 nouveaux : racine fournie par le profil, secours par constantes, sous-nœuds, scan global hors Lore, nom de racine). `npx tsc -b` 0 erreur, `npm run build` ✓, `npm run test:logique` **37/37 suites, 747/747 contrôles** ✓, pages UI construites ✓. **À valider en `npm run dev`** (le bac à sable ne peut pas lancer le navigateur ni appeler l'API Bungie).
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 23/10/2026 — PROPAGATION : chantier `draft-deps` (dépendances majeures) répercuté sur `draft-update-triomphes`
 
 **Propagation** : `main` (incluant le merge de `draft-deps` — Vite 7, React 19, Electron 45) a été mergé dans `draft-update-triomphes`. Conflit CHANGELOG résolu (entrée de propagation + entrée TODO n°23 conservées, dans l'ordre).

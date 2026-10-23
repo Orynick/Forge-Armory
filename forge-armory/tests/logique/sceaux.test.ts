@@ -1,5 +1,6 @@
 // FR : ⚠️ AJOUT (23/10/2026, TODO n°23, branche draft-update-triomphes) - TESTS du MODÈLE de la page « Accomplissements » (`src/lib/bungie/sceaux.ts`) : regroupement des triomphes du compte PAR SCEAU (arbre « Triumphs » du Manifest × état des records du profil, composant 900), compteurs globaux, recherche avancée (guillemets, +, -, casse) et tri (progression/nom). Fausse base = `creerFausseDb` (même mécanisme que les autres tests), profil simulé. AUCUNE donnée réelle de Bungie : ces tests prouvent la LOGIQUE.
-// EN: tests of the Accomplishments page model (grouping account triumphs by seal, global counters, advanced search, sorting). Fake DB = `creerFausseDb`, simulated profile. No real Bungie data: these tests prove the LOGIC.
+// ⚠️ CORRIGÉ (23/10/2026, TODO n°23, « Aucun sceau trouvé ») : sections 8–11 testent le CORRECTIF — racine des sceaux lue dans le profil (`recordSealsRootNodeHash`, comme DIM), secours par constantes (Seals 2018 / Titles / Triumphs), records lus aussi dans les sous-nœuds, et scan global hors Collections/Lore/Metrics en dernier recours.
+// EN: tests of the Accomplishments page model (grouping account triumphs by seal, global counters, advanced search, sorting). Fake DB = `creerFausseDb`, simulated profile. No real Bungie data: these tests prove the LOGIC. FIX (2026-10-23): sections 8–11 test the fix — seals root read from the profile (`recordSealsRootNodeHash`, like DIM), constant fallbacks, records also read from sub-nodes, and a global scan excluding Collections/Lore/Metrics as a last resort.
 import { regrouperParSceau, compteursGlobaux, filtrerSceaux, trierSceaux, HASH_RACINE_TRIOMPHES, type Sceau } from "../../src/lib/bungie/sceaux";
 import { creerFausseDb, type Defs } from "./fixtures/fauxManifest";
 
@@ -155,6 +156,97 @@ ok("REPLI : record sans nom dans le Manifest → hash brut affiché (jamais reno
     const { db: db2 } = creerFausseDb(d2);
     const s = regrouperParSceau(db2, null);
     return s.length === 1 && s[0].triomphes[0].nom === "6100"; })());
+
+// ---------- 8. CORRECTIF (23/10/2026) : racine des sceaux fournie par le PROFIL (`recordSealsRootNodeHash`) ----------
+// Dans le vrai Manifest, les sceaux ne sont PAS sous la racine « Triumphs » : le profil fournit la racine via `recordSealsRootNodeHash` (champ officiel du composant 900, lu tel quel par DIM).
+const HASH_RACINE_TITRES = 616318467, HASH_RACINE_SCEAUX_2018 = 1652422747, HASH_RACINE_LORE = 4077680549;
+const defsProfilRacine: Defs = {
+  [T_NOEUD]: {
+    // racine « Titles » fournie par le profil : catégorie « Compétitif » → sceau « Iron Banner » ; sceau DIRECT « Risen » (sans catégorie)
+    [HASH_RACINE_TITRES]: noeud(HASH_RACINE_TITRES, "Titles", { scope: 0, children: { presentationNodes: [{ presentationNodeHash: 9101 }, { presentationNodeHash: 8102 }] } }),
+    9101: noeud(9101, "Compétitif", { children: { presentationNodes: [{ presentationNodeHash: 8101 }] } }),
+    8101: noeud(8101, "Iron Banner", { completionRecordHash: 7101, children: { records: [{ recordHash: 6101 }, { recordHash: 6102 }, { recordHash: 6104 }] } }),
+    8102: noeud(8102, "Risen", { completionRecordHash: 7102, children: { records: [{ recordHash: 6103 }] } }),
+    // racine « Triumphs » PRÉSENTE mais SANS sceau (comme dans le vrai Manifest : catégories + triomphes nus)
+    [HASH_RACINE_TRIOMPHES]: noeud(HASH_RACINE_TRIOMPHES, "Triumphs", { scope: 1, children: { presentationNodes: [{ presentationNodeHash: 9001 }] } }),
+    9001: noeud(9001, "Raids", { children: { records: [{ recordHash: 6001 }] } }),  // triomphe « nu » : PAS un sceau
+  },
+  [T_RECORD]: {
+    7101: record(7101, "Iron Banner", "Complétez le sceau.", { titleInfo: { hasTitle: true, titlesByGender: { Male: "Seigneur de Fer" } } }),
+    7102: record(7102, "Risen", "Complétez le sceau.", { titleInfo: { hasTitle: true } }),
+    6101: record(6101, "Dominez en bannière", "Gagnez en Bannière.", { completionInfo: { ScoreValue: 100 } }),
+    6102: record(6102, "Triomphe IB", "Terminez des matchs.", { completionInfo: { ScoreValue: 50 } }),
+    6103: record(6103, "Triomphe Risen", "Devenez Risen.", {}),
+    6104: record(6104, "Triomphe perso IB", "Portée personnage.", { scope: 1 }),  // EXCLU
+    6001: record(6001, "On avait dit plus jamais !", "Solo sans mourir.", { completionInfo: { ScoreValue: 500 } }),
+  },
+};
+const { db: dbProfil } = creerFausseDb(defsProfilRacine);
+const profilAvecRacine = { Response: { profileRecords: { data: { recordSealsRootNodeHash: HASH_RACINE_TITRES, records: { "6101": { state: 0 } } } } } };
+const sceauxProfil = regrouperParSceau(dbProfil, profilAvecRacine);
+ok("CORRECTIF RACINE PROFIL : `recordSealsRootNodeHash` (616318467 « Titles ») fourni par le profil → les sceaux sont trouvés (la racine « Triumphs » 1163735237, présente mais SANS sceau, ne gêne pas) : 2 sceaux (Iron Banner, Risen)",
+  sceauxProfil.length === 2 && sceauxProfil.map((s) => s.nom).join("|") === "Iron Banner|Risen", sceauxProfil.map((s) => s.nom));
+const ironBanner = sceauxProfil.find((s) => s.nom === "Iron Banner")!;
+ok("CORRECTIF RACINE PROFIL : catégorie = « Compétitif » (nœud catégorie), le triomphe de PORTÉE PERSONNAGE (6104) est EXCLU → 2 triomphes ; 6101 accompli ; titre « Seigneur de Fer » lu",
+  ironBanner.categorie === "Compétitif" && ironBanner.triomphes.length === 2 && ironBanner.triomphes.every((t) => t.hash !== 6104) && ironBanner.titre === "Seigneur de Fer" && ironBanner.triomphes.find((t) => t.hash === 6101)!.accompli === true,
+  { categorie: ironBanner.categorie, triomphes: ironBanner.triomphes.map((t) => t.hash), titre: ironBanner.titre });
+const risen = sceauxProfil.find((s) => s.nom === "Risen")!;
+ok("CORRECTIF NOM DE RACINE : un sceau DIRECTEMENT sous la racine a categorie === undefined — le nom de la racine (« Titles ») n'est PAS utilisé comme regroupement",
+  risen.categorie === undefined, risen.categorie);
+
+// ---------- 9. CORRECTIF : secours par CONSTANTES quand le profil ne fournit pas la racine ----------
+const defsSecours: Defs = {
+  [T_NOEUD]: {
+    [HASH_RACINE_SCEAUX_2018]: noeud(HASH_RACINE_SCEAUX_2018, "Seals", { children: { presentationNodes: [{ presentationNodeHash: 8201 }] } }),
+    8201: noeud(8201, "Duality", { completionRecordHash: 7201, children: { records: [{ recordHash: 6201 }] } }),
+  },
+  [T_RECORD]: { 7201: record(7201, "Duality", ""), 6201: record(6201, "Solo Duality", "Terminez Duality en solo.", {}) },
+};
+const { db: dbSecours } = creerFausseDb(defsSecours);
+const profilRacineInconnue = { Response: { profileRecords: { data: { recordSealsRootNodeHash: 424242, records: {} } } } };  // hash ABSENT du Manifest
+const sceauxSecours = regrouperParSceau(dbSecours, profilRacineInconnue);
+ok("CORRECTIF SECOURS : `recordSealsRootNodeHash` du profil ABSENT du Manifest (424242) → repli sur la constante « Seals » 2018 (1652422747) → 1 sceau (Duality)",
+  sceauxSecours.length === 1 && sceauxSecours[0].nom === "Duality" && sceauxSecours[0].triomphes.length === 1, sceauxSecours.map((s) => s.nom));
+ok("CORRECTIF SECOURS : profil SANS aucune racine → les constantes suffisent (la racine « Titles » 616318467, absente ici, et la racine « Triumphs » restent des candidats)",
+  regrouperParSceau(dbSecours, null).length === 1);
+
+// ---------- 10. CORRECTIF : records d'un sceau lus aussi dans ses SOUS-NŒUDS ----------
+const defsSousNoeud: Defs = {
+  [T_NOEUD]: {
+    [HASH_RACINE_TRIOMPHES]: noeud(HASH_RACINE_TRIOMPHES, "Triumphs", { children: { presentationNodes: [{ presentationNodeHash: 9002 }] } }),
+    9002: noeud(9002, "Donjons", { children: { presentationNodes: [{ presentationNodeHash: 8301 }] } }),
+    8301: noeud(8301, "Prophétie", { completionRecordHash: 7301, children: { presentationNodes: [{ presentationNodeHash: 9301 }] } }),  // PAS de records directs
+    9301: noeud(9301, "Sous-nœud", { children: { records: [{ recordHash: 6301 }, { recordHash: 6302 }] } }),
+  },
+  [T_RECORD]: {
+    7301: record(7301, "Prophétie", ""), 6301: record(6301, "Solo sans mourir", "Solo.", {}), 6302: record(6302, "Vétéran", "Vétéran.", {}),
+  },
+};
+const { db: dbSousNoeud } = creerFausseDb(defsSousNoeud);
+const sceauxSousNoeud = regrouperParSceau(dbSousNoeud, null);
+ok("CORRECTIF SOUS-NŒUD : un sceau dont les triomphes sont sous un SOUS-NŒUD (pas de `children.records` direct) les récupère quand même → 2 triomphes, catégorie « Donjons »",
+  sceauxSousNoeud.length === 1 && sceauxSousNoeud[0].triomphes.map((t) => t.nom).join("|") === "Solo sans mourir|Vétéran" && sceauxSousNoeud[0].categorie === "Donjons",
+  sceauxSousNoeud.map((s) => [s.nom, s.categorie, s.triomphes.map((t) => t.nom)]));
+
+// ---------- 11. CORRECTIF : scan GLOBAL (dernier recours), hors Collections/Lore/Metrics ----------
+const defsScan: Defs = {
+  [T_NOEUD]: {
+    555000: noeud(555000, "Racine inconnue", { children: { presentationNodes: [{ presentationNodeHash: 8401 }] } }),
+    8401: noeud(8401, "Mystère", { completionRecordHash: 7401, children: { records: [{ recordHash: 6401 }] } }),
+    8402: noeud(8402, "Sceau vide", { completionRecordHash: 7402 }),  // AUCUN record : omis
+    [HASH_RACINE_LORE]: noeud(HASH_RACINE_LORE, "Légendes", { children: { presentationNodes: [{ presentationNodeHash: 9401 }] } }),
+    9401: noeud(9401, "Livre", { completionRecordHash: 7403, children: { records: [{ recordHash: 6402 }] } }),  // sous Lore : EXCLU
+  },
+  [T_RECORD]: {
+    7401: record(7401, "Mystère", ""), 6401: record(6401, "Triomphe mystère", "Obtenez-le.", {}),
+    7402: record(7402, "Sceau vide", ""), 7403: record(7403, "Livre", ""), 6402: record(6402, "Page de lore", "Texte.", {}),
+  },
+};
+const { db: dbScan } = creerFausseDb(defsScan);
+const sceauxScan = regrouperParSceau(dbScan, null);  // profil SANS racine + AUCUNE constante présente → scan global
+ok("CORRECTIF SCAN GLOBAL : aucune racine connue → scan de tous les nœuds : trouve le sceau sous une racine INCONNUE (Mystère), OMISSIONNE le nœud `completionRecordHash` SANS records (Sceau vide) et EXCLUT le sous-arbre Lore (4077680549)",
+  sceauxScan.length === 1 && sceauxScan[0].nom === "Mystère" && sceauxScan[0].triomphes.length === 1 && sceauxScan[0].triomphes[0].hash === 6401,
+  sceauxScan.map((s) => [s.nom, s.triomphes.map((t) => t.hash)]));
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`);
 process.exit(res.every(Boolean) ? 0 : 1);
