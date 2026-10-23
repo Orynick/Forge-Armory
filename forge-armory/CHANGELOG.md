@@ -7,7 +7,7 @@
 
 - **Legendarium** : bibliothèque de Lore complète (Grimoire D1, Légendes D2, armes, armures, cosmétiques) avec export infographique PNG.
 - **Page Carrière** : statistiques du compte (temps de jeu + 74+ stats traduites en français).
-- **Page Accomplissements** : en construction (Triomphes du compte à venir).
+- **Page Accomplissements** : tous les Triomphes du compte, groupés par sceau (obtenus et à obtenir), avec recherche avancée.
 - **Stack technique à jour** : Vite 7, React 19, React Router 7, Electron 45. **0 vulnérabilité.**
 
 → Détails complets : [DEVLOG.md](DEVLOG.md)

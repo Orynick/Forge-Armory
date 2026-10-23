@@ -2,7 +2,7 @@
 
 **Destiny 2 Build Analyzer**, par Orynick/Orygamer. Ce document explique comment installer, configurer et utiliser l'application. Pour un aperçu rapide, voir le `README.md`.
 
-**Sommaire** : Démarrage · Créer votre application Bungie · Fabriquer le logiciel installable · Fonctionnalités · Comprendre le score · Télécharger les Manifests · Loadouts · Le Legendarium (lire le Lore) · La page Carrière (vos statistiques).
+**Sommaire** : Démarrage · Créer votre application Bungie · Fabriquer le logiciel installable · Fonctionnalités · Comprendre le score · Télécharger les Manifests · Loadouts · Le Legendarium (lire le Lore) · La page Carrière (vos statistiques) · La page Accomplissements (vos Triomphes).
 
 ---
 
@@ -266,7 +266,7 @@ npm run electron:dev   (fenêtre 2)
 | Section **« Crédits »** (pied de page) | ✅ Fonctionnel — pop-up : projet de fan non affilié à Bungie + crédit MIT |
 | Onglet **Legendarium** — bibliothèque de Lore (Grimoire D1, Légendes D2, armes, armures, cosmétiques) | ✅ Fonctionnel — lecture passive, recherche avancée, parcours inverse, bouton « 📖 Lire le Lore » dans les fiches, export infographique PNG |
 | Page **Carrière** — statistiques du compte (bouton du bloc Connexion) | ✅ Fonctionnel — temps de jeu (total + par classe) et toutes les statistiques de carrière (74 libellés traduits en français) |
-| Page **Accomplissements** — Triomphes du compte (bouton du bloc Connexion) | 🚧 En construction — placeholder « Bientôt » (suite sur la branche `draft-update-triomphes`) |
+| Page **Accomplissements** — Triomphes du compte, groupés par sceau (bouton du bloc Connexion) | ✅ Fonctionnel — tous les triomphes (obtenus et à obtenir), recherche avancée, compteur global, score total |
 
 ---
 
@@ -294,7 +294,19 @@ Le bouton **« Carrière »** du bloc Connexion ouvre une page dédiée aux **st
 - Un **compteur** indique le nombre de statistiques affichées.
 - En mode développement (`npm run dev`), un panneau de diagnostic détaille la structure de la réponse API et la source des données lues.
 
-> La page **Accomplissements** (bouton du même bloc) ouvrira prochainement l'affichage de tous vos Triomphes — obtenus et à obtenir. En attendant, elle affiche un emplacement réservé « 🚧 Bientôt ».
+## La page Accomplissements : vos Triomphes par sceau
+
+Le bouton **« Accomplissements »** du bloc Connexion ouvre une page dédiée à **tous vos Triomphes de compte** — obtenus et à obtenir — groupés **par sceau** (comme la hiérarchie Collections→Sceaux du jeu).
+
+- **Compteur global en tête** : « X / Y triomphes obtenus · score total ».
+- **Sceaux repliés par défaut**, avec leur icône, leur barre de progression « X/Y (N %) » et leur titre (« débloqué » à 100 %). Triez par **progression** ou par **nom**.
+- Chaque triomphe affiche : icône, nom, description, progression des objectifs (« 3 / 10 »), badge ✅ (obtenu) ou ⬜ (à obtenir), et ses points.
+- **Recherche avancée** dans tous les sceaux (nom + description des triomphes, nom du sceau) : guillemets `"phrase exacte"`, `+obligatoire`, `-exclu`, case « Aa » pour respecter la casse. Exemple : `+"solo sans mourir" -gambit`.
+- Les triomphes **absents de votre profil** sont affichés comme « à obtenir » — jamais masqués, jamais estimés.
+- Seuls les triomphes de **portée compte** sont listés (pas les triomphes de personnage).
+- La vitrine « Solo sans mourir » reste disponible dans le tiroir du Build Analyzer.
+
+> Données lues depuis votre profil Bungie (composant « records ») croisées avec le Manifest. Une donnée manquante affiche « non disponible » (jamais d'estimation).
 
 ---
 
