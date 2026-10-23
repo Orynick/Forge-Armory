@@ -1,3 +1,19 @@
+## 23/10/2026 — PROPAGATION : PR #14 (TODO §25, pages « Carrière »/« Accomplissements ») répercutée sur les branches de chantier
+
+**Propagation** : la PR #14 (merge sur `main`, livraison TODO §25 : pages « Carrière » et « Accomplissements » dédiées, ouvertes par les boutons du bloc Connexion) a été répercutée sur les 6 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `test`.
+
+**Conflits résolus** :
+- `draft-deps`, `draft-netlify` : conflit `CHANGELOG.md` (entrées de la branche vs entrées du 23/10 de main) — résolu en gardant les entrées de la branche puis celles de main.
+- `draft-armure-score`, `draft-legendarium`, `draft-sec`, `test` : merge direct sans conflit.
+
+**Note** : sur `draft-deps`, le contrôle `icones.test.tsx` « element:officielle » échoue **déjà avant** la propagation (pré-existant sur cette branche, hors périmètre de ce merge) — à traiter sur cette branche.
+
+**Branches** : `draft-update-carriere` est **supprimée** (livrée). La suite fonctionnelle (affichage des Triomphes dans « Accomplissements ») démarre sur la nouvelle branche **`draft-update-triomphes`** (nouvel item TODO n°23).
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — LIVRAISON TODO §25 (merge de `draft-update-carriere` sur `main`)
 
 Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carrière » et « Accomplissements » dédiées, toutes les stats traduites (74 statIds), temps de jeu corrigé, sections « Personnages »/« 10 dernières activités »/« Saison » supprimées — voir les entrées du 22/10/2026 ci-dessous.
