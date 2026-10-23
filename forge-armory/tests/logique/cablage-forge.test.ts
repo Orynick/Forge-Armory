@@ -43,9 +43,14 @@ ok("⚠️ 21/10 : la popup Détails du Build Analyzer rend le composant `Bouton
   /import BoutonLireLore from "\.\/BoutonLireLore"/.test(inventaire) && /onLireLore && <BoutonLireLore db=\{db\} itemHash=\{piece\.itemHash\}/.test(inventaire));
 ok("⚠️ 21/10 : `ouvrirLoreDepuisObjet` aiguille vers la vue `bibliotheque` avec la cible `item:<hashObjet>` et la provenance (origine = vue courante)",
   /function ouvrirLoreDepuisObjet\(itemHash: number, nomObjet: string\) \{[\s\S]{0,300}pageId: `item:\$\{itemHash\}`[\s\S]{0,200}setVue\("bibliotheque"\)/.test(P));
-ok("⚠️ 22/10 (TODO §25) : les boutons « Carrière » et « Accomplissements » sont DANS le bloc Connexion (masqués hors connexion) et ouvrent chacun un ONGLET du sélecteur de vues (`setVue(\"carriere\")` / `setVue(\"accomplissements\")`) — plus de modale, plus de tiroir externe : le bug §25 est résolu par construction",
+ok("⚠️ 22/10 (TODO §25) : les boutons « Carrière » et « Accomplissements » sont DANS le bloc Connexion (masqués hors connexion) et ouvrent chacun une PAGE dédiée du compte (`setVue(\"carriere\")` / `setVue(\"accomplissements\")`) — plus de modale, plus de tiroir externe : le bug §25 est résolu par construction",
   (P.match(/<BoutonsVuesCompte onCarriere=/g) ?? []).length === 1 && /<BoutonsVuesCompte onCarriere=\{\(\) => setVue\("carriere"\)\} onAccomplissements=\{\(\) => setVue\("accomplissements"\)\} \/>/.test(P));
 ok("⚠️ 22/10 (TODO §25) : les deux pages du compte sont montées comme des VUES (`vue === \"carriere\"` / `vue === \"accomplissements\"`), hors du bloc Connexion masqué avec l'analyseur ; la modale `ModaleCarriere` et l'état `tiroirTriomphesOuvert` sont supprimés, le tiroir `PanneauTriomphes` retrouve son état interne",
   /\{vue === "carriere" && <VueCarriere membership=\{memberships\[0\] \?\? null\} personnages=\{personnages\} profil=\{profilTriomphes\} \/>\}/.test(P) && /\{vue === "accomplissements" && <VueAccomplissements profil=\{profilTriomphes\} db=\{db\} \/>\}/.test(P) && !/<ModaleCarriere|from "\.\.\/components\/ModaleCarriere"/.test(P) && !/tiroirTriomphesOuvert|setTiroirTriomphesOuvert|carriereOuverte|setCarriereOuverte/.test(P) && /<PanneauTriomphes profil=\{profilTriomphes\} db=\{db\} \/>/.test(P));
+{
+  const sel = fs.readFileSync("src/components/SelecteurVues.tsx", "utf-8");
+  ok("⚠️ 22/10 (TODO §25, retour utilisateur « les boutons apparaissent en double ») : PAS DE DOUBLON — le sélecteur de vues garde ses QUATRE onglets : « Carrière » et « Accomplissements » n'y figurent PAS (ce sont des pages du compte, ouvertes par les boutons du bloc Connexion)",
+    (sel.match(/\{ valeur: "/g) ?? []).length === 4 && !/valeur: "carriere"|valeur: "accomplissements"/.test(sel));
+}
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`); process.exit(res.every(Boolean) ? 0 : 1);

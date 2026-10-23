@@ -509,7 +509,7 @@ export default function DashboardPage() {
         </div>
 
         {erreurTest && <p style={{ color: "#e08080", margin: "0.5rem 0 0" }}>⚠️ {erreurTest}</p>}
-        {/* FR : ⚠️ CHANGÉ (22/10/2026, TODO §25) - « Carrière » (au-dessus) et « Accomplissements » ouvrent chacun un ONGLET du sélecteur de vues (pages dédiées), plus une pop-up ni un tiroir. Le bloc Connexion et les onglets restent affichés : le bug §25 (la pop-up ne s'ouvrait pas hors Build Analyzer) est résolu par construction. ⚠️ 21/10 (suite 8) : le déplacement hors du bloc Connexion (testé en suite 7) reste ANNULÉ — régression signalée par l'utilisateur. / EN: the two buttons now open tabs (dedicated pages); the Connection block and the tabs stay visible. */}
+        {/* FR : ⚠️ CHANGÉ (22/10/2026, TODO §25) - « Carrière » (au-dessus) et « Accomplissements » ouvrent chacun une PAGE DÉDIÉE du compte (plus de pop-up ni de tiroir). Le bloc Connexion et le sélecteur de vues (4 onglets) restent affichés : le bug §25 (la pop-up ne s'ouvrait pas hors Build Analyzer) est résolu par construction. ⚠️ Les pages ne sont PAS des onglets du sélecteur (retour utilisateur : « les boutons apparaissent en double ») : elles n'y figurent pas, seul le bloc Connexion porte ces deux boutons. ⚠️ 21/10 (suite 8) : le déplacement hors du bloc Connexion (testé en suite 7) reste ANNULÉ — régression signalée par l'utilisateur. / EN: the two buttons now open dedicated pages; the Connection block and the selector stay visible; the pages are NOT selector tabs (no duplicates). */}
         {connecte && <BoutonsVuesCompte onCarriere={() => setVue("carriere")} onAccomplissements={() => setVue("accomplissements")} />}
 
         {memberships.length > 1 && (
@@ -549,10 +549,10 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Carrière » : PAGE dédiée aux statistiques du compte (remplace la modale de la v0.4.14). Le bloc Connexion et le sélecteur de vues restent affichés : le bug §25 (pop-up qui ne s'ouvrait pas hors Build Analyzer) est résolu par construction. Lecture seule, chargée à l'ouverture de l'onglet (aucun appel réseau au chargement de l'appli). / EN: the Career page. */}
+      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Carrière » : PAGE dédiée aux statistiques du compte (remplace la modale de la v0.4.14), ouverte par le bouton « Carrière » du bloc Connexion. Le bloc Connexion et le sélecteur de vues (4 onglets, sans ces pages) restent affichés : le bug §25 (pop-up qui ne s'ouvrait pas hors Build Analyzer) est résolu par construction. Lecture seule, chargée à l'ouverture de la page (aucun appel réseau au chargement de l'appli). / EN: the Career page. */}
       {vue === "carriere" && <VueCarriere membership={memberships[0] ?? null} personnages={personnages} profil={profilTriomphes} />}
 
-      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte (la vitrine « Solo sans mourir » en pleine page). Le tiroir latéral du Build Analyzer est conservé à part. / EN: the Accomplishments page. */}
+      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte (la vitrine « Solo sans mourir » en pleine page), ouverte par le bouton « Accomplissements » du bloc Connexion. Le tiroir latéral du Build Analyzer est conservé à part. / EN: the Accomplishments page. */}
       {vue === "accomplissements" && <VueAccomplissements profil={profilTriomphes} db={db} />}
 
       {/* FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - la vue Build Analyzer est

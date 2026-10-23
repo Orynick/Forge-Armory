@@ -8,10 +8,11 @@
 // PLUS de navigation croisée avec la Carrière (les props `ouvertExterieur`,
 // `onOuvertChange` et `onOuvrirCarriere` sont supprimées, ainsi que le bouton
 // « Carrière » dans l'en-tête). Le bouton « Accomplissements » du bloc Connexion
-// ouvre désormais la PAGE « Accomplissements » (onglet du sélecteur de vues),
-// pas ce tiroir ; le tiroir reste disponible depuis le Build Analyzer, comme
-// avant. Le CONTENU (liste des 11 donjons, diagnostics dev) est déplacé dans
-// `VitrineSoloFlawless.tsx`, partagé avec cette page.
+// ouvre désormais la PAGE « Accomplissements » (page dédiée, pas un onglet
+// du sélecteur de vues), pas ce tiroir ; le tiroir reste disponible depuis
+// le Build Analyzer, comme avant. Le CONTENU (liste des 11 donjons,
+// diagnostics dev) est déplacé dans `VitrineSoloFlawless.tsx`, partagé avec
+// cette page.
 //
 // ⚠️ Aucune image copiée. L'utilisateur avait proposé un visuel trouvé sur
 // Dungeon Report (site communautaire tiers) : écarté, car on ne peut ni

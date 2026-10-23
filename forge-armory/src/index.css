@@ -232,12 +232,15 @@ summary > span {
    ============================================================================================================================ */
 .selecteur-vues {
   display: flex;
-  /* FR : ⚠️ CHANGÉ (22/10/2026, TODO §25) - retour à la ligne AUTORISÉ à toutes les largeurs : le sélecteur compte SIX boutons depuis l'ajout de « Carrière » et « Accomplissements » (cadre 4897 x 1024, plus larges que les 4316 x 1024 des quatre autres). À la hauteur commune maximale (56 px), six boutons demandent ~1540 px : ils ne tiennent JAMAIS sur une seule ligne dans les 1032 px de la page, même à la hauteur minimale de la charte (40 px demanderait ~1117 px). Deux rangées alignées, plutôt qu'un défilement horizontal ou des boutons illisibles. EN: wrapping allowed at every width (six buttons now). */
-  flex-wrap: wrap;
+  /* FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - jamais de retour à la ligne (4 boutons, une seule ligne) ; en dessous de 810 px de fenêtre (le logiciel installé n'y descend pas : largeur minimale 820 px) le retour à la ligne est rétabli plus bas, plutôt qu'un défilement horizontal. ⚠️ 22/10/2026 (TODO §25) : les pages « Carrière » et « Accomplissements » du compte ne sont PAS des onglets de ce sélecteur (elles s'ouvrent par les boutons du bloc Connexion) : il garde ses QUATRE boutons, la règle d'origine s'applique. EN: never wrap; wrapping restored below 810 px (the account pages are not selector tabs). */
+  flex-wrap: nowrap;
   gap: 0.5rem 0.75rem;
   margin-bottom: 0.75rem;
 }
-/* Les six boutons ont la MÊME hauteur ; la largeur suit le rapport de leur cadre (4316 / 1024, ou 4897 / 1024 avec `bouton-vue--large`). */
+@media (max-width: 810px) {
+  .selecteur-vues { flex-wrap: wrap; }
+}
+/* Les quatre boutons ont la MÊME hauteur ; la largeur suit (rapport 4316 / 1024 du cadre commun des SVG). */
 .bouton-vue,
 .bouton-vue:hover,
 .bouton-vue:active {
@@ -334,6 +337,6 @@ summary:has(.titre-repliable) .bloc-repliable-ligne { width: 100%; }
 
 /* ⚠️ AJOUT (07/10/2026, v0.3.17) - UNE SEULE hauteur pour tous les « logo + titre » (boutons du sélecteur de vues, titres de blocs, boutons de profil à l'échelle 1) : 3,5 rem (56 px) sur écran large,
    jamais sous 2,6 rem (41,6 px) sur écran étroit. Un seul réglage : changer cette variable change tout. */
-/* FR : la hauteur commune des logos est bornée entre 2,6 rem et 3,5 rem (mêmes valeurs que depuis la v0.4.0) : 56 px sur écran large, jamais sous 41,6 px. ⚠️ 22/10/2026 (TODO §25) : depuis l'ajout des onglets « Carrière » et « Accomplissements », les SIX boutons du sélecteur ne tiennent plus sur une seule ligne dans les 1032 px de la page (ils y tiendraient à ~34 px de haut, sous le minimum de 40 px de la charte) : le sélecteur passe sur DEUX rangées (voir `flex-wrap` ci-dessus) et la hauteur maximale reste 3,5 rem. La formule garde son facteur 4 (hauteur calculée pour quatre boutons) : elle ne sert plus qu'à borner la hauteur entre les deux paliers.
-   EN: the shared logo height stays clamped between 2.6 rem and 3.5 rem; with six buttons the selector wraps to two rows. */
+/* FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - la hauteur commune des logos DÉPEND maintenant de la largeur disponible pour que les quatre boutons du sélecteur tiennent toujours sur une ligne : (largeur de la page − marges − trois espaces) / 4 × 1024 / 4316, bornée entre 2,6 rem et 3,5 rem. La page fait au plus 1032 px ; la marge de 1,1 rem tient compte d'une barre de défilement classique (100vw l'inclut). Résultat mesuré : 56 px dès ~1040 px de fenêtre, puis 53 px (1000), 51 (960), 47 (900), 43 (820). Les titres des blocs et les boutons de profil suivent la MÊME variable, donc la même taille. ⚠️ 22/10/2026 (TODO §25) : inchangé — le sélecteur garde ses QUATRE onglets (les pages « Carrière » et « Accomplissements » du compte ne sont pas des onglets).
+   EN: ⚠️ CHANGED - the shared logo height now depends on the available width so the four selector buttons always fit on one line. */
 :root { --hauteur-logo-titre: clamp(2.6rem, calc((min(1032px, 100vw - 1.1rem) - 3rem - 2.25rem) / 4 * 1024 / 4316), 3.5rem); }
