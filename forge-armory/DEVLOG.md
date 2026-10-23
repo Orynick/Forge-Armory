@@ -4,6 +4,20 @@
 
 ---
 
+## 23/10/2026 — CORRECTION : la présentation en cartes ne relève PAS du CHANGELOG (retour utilisateur)
+
+**Retour de l'utilisateur** : « Correction, la précédente modif ne concerne pas le nouveau CHANGELOG :) »
+
+**Correction** : le nouveau `CHANGELOG.md` est un changelog **orienté utilisateur** (changements visibles majeurs). La présentation en cartes des sceaux (grille, barre sous la carte, pourcentage en dessous) est un **détail d'interface** — il relève du **DEVLOG** (historique développeur), pas du CHANGELOG. Le CHANGELOG est restauré à son état livré en v0.5.1 (la ligne « Page Accomplissements » de la v0.5.1 reste telle quelle). La ligne du `README.md` est simplifiée en conséquence (même cible : l'utilisateur).
+
+**Reste documenté dans le DEVLOG** : l'entrée « PAGE « ACCOMPLISSEMENTS » : les sceaux en CARTES » et l'entrée « v0.5.2 : LIVRAISON FINALE DU CHANTIER » (toutes deux en haut de ce fichier).
+
+**Règle confirmée** : `CHANGELOG.md` = changements visibles par les utilisateurs (nouvelles fonctionnalités, correctifs majeurs) ; `DEVLOG.md` = historique complet (détails d'interface, décisions, propagations).
+
+**Version inchangée (0.5.2).**
+
+---
+
 ## 23/10/2026 — PROPAGATION : v0.5.2 répercutée sur les branches de chantier
 
 **Propagation** : le merge de `draft-update-triomphes` (v0.5.2 — livraison finale chantier Accomplissements, TODO n°23 validé) a été répercuté sur les 6 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`.
