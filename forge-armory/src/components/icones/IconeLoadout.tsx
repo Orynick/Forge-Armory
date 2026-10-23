@@ -4,7 +4,7 @@
 // ⚠️ FICHIER GÉNÉRÉ PAR SCRIPT depuis les fichiers d'origine : les chemins
 // sont concaténés et leurs espaces normalisés automatiquement. Ne pas les
 // recopier à la main — c'est ainsi que 4 icônes d'armes s'étaient retrouvées
-// tronquées sans que rien ne le signale (voir CHANGELOG).
+// tronquées sans que rien ne le signale (voir DEVLOG).
 //
 // EN: Activity and subclass icons, to visually tag loadouts. SVGs provided by
 // the user. ⚠️ SCRIPT-GENERATED: paths are concatenated and whitespace

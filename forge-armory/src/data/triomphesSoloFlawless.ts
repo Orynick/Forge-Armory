@@ -9,7 +9,7 @@
 //
 // ⚠️ Trois formulations de description différentes ont été rencontrées en
 // cherchant ces triomphes, ce qui a nécessité deux corrections successives du
-// filtre de recherche (voir CHANGELOG du 05/08) :
+// filtre de recherche (voir DEVLOG du 05/08) :
 //   - « en solo sans mourir et sans quitter l'activité » (8 donjons)
 //   - « en solo, sans mourir et sans quitter l'activité » (Hôte Vesper)
 //   - « en solo sans mourir ni quitter l'activité » (Fantômes des

@@ -32,7 +32,8 @@ Logiciel Windows installable : `npm run electron:build` (détails dans la [notic
 ## Documentation
 
 - [`NOTICE.md`](NOTICE.md) — mode d'emploi : installation, application Bungie, fonctionnalités, comprendre le score.
-- [`CHANGELOG.md`](CHANGELOG.md) — historique daté des corrections et ajouts.
+- [`CHANGELOG.md`](CHANGELOG.md) — changements visibles par version (pour les utilisateurs).
+- [`DEVLOG.md`](DEVLOG.md) — historique complet du développement (décisions, détails techniques).
 - [`TODO.md`](TODO.md) — ce qui reste à faire.
 
 ## Licence
