@@ -1,3 +1,25 @@
+## 22/10/2026 — PAGE « CARRIÈRE » : suppression des sections « Personnages » (niveaux) et « 10 dernières activités »
+
+**Demande de l'utilisateur (22/10/2026)** : « Enlève la partie affichant les niveaux de persos ainsi que les 10 dernières activités. »
+
+**Changé** : la page « Carrière » ne comporte plus que TROIS sections : **Temps de jeu** (total + par classe), **Saison** (« Saison en cours » — conservée, déplacée dans sa propre section) et **Statistiques de carrière** (toutes les stats de l'API). Les icônes de classes restent sur les lignes du temps de jeu par classe.
+
+**Fait** :
+- **`src/components/VueCarriere.tsx`** (⚠️ CHANGÉ) — sections « Personnages » (puissances) et « 10 dernières activités » supprimées ; la prop `personnages` est retirée (la page ne prend plus que `membership` et `profil`) ; « Saison en cours » reste, dans une section « Saison » dédiée.
+- **`src/lib/bungie/carriere.ts`** (⚠️ CHANGÉ) — le chargement des historiques d'activités est supprimé avec la section qu'il alimentait : `recupererActivitesPersonnage`, l'interface `ActiviteRecente`, le champ `activites` de `DonneesCarriere` et `erreursActivites` du diagnostic. `chargerCarriere(membership, profil)` ne prend plus `personnages` : la page ne fait plus qu'**UNE SEULE requête réseau** à l'ouverture (`GetHistoricalStatsForAccount`) — les 10 requêtes `GetActivityHistory` par personnage (et leurs erreurs possibles) disparaissent. Le diagnostic n'a plus de ligne « historiques d'activités en échec ».
+- **`src/pages/DashboardPage.tsx`** (⚠️ CHANGÉ) — montage `<VueCarriere membership={memberships[0] ?? null} profil={profilComplet} />` (plus de `personnages`).
+
+**Tests** :
+- `tests/logique/cablage-forge.test.ts` — le regex de montage attend `profil={profilComplet}` sans `personnages`.
+- `tests/logique/diagnostic-carriere.test.ts` — le cas « historiques d'activités en échec » est remplacé par un **contrôle de suppression** : le diagnostic ne contient AUCUNE ligne « historiques d'activités ».
+- `tests/ui/entree-vue-carriere.tsx` — plus de prop `personnages`, plus de handler `/Stats/Activities/` (une telle requête retombe en 404) ; `window.__requetes` enregistre les URL demandées.
+- `tests/ui/vue-carriere.py` — +1 contrôle source (sections supprimées, prop retirée, `chargerCarriere(membership, profil)`, `recupererActivitesPersonnage` absent de `carriere.ts`) ; le contrôle des sections attend **TROIS** sections (« Temps de jeu », « Saison », « Statistiques de carrière ») ; le contrôle « Saison en cours » lit la section « Saison » ; **+1 contrôle navigateur** : UNE SEULE requête réseau à l'ouverture (les stats agrégées), AUCUNE requête `/Stats/Activities/` ; le contrôle « MÊME EN ÉCHEC » attend le temps de jeu et la saison (plus de personnages/historique).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — CORRECTIFS (retour de l'utilisateur en test) : page « Carrière » — plus de « non disponible » pour le temps de jeu et la saison en cours
 
 **Retour de l'utilisateur (22/10/2026, en test)** : « Ca fonctionne ! Maintenant il faut comprendre pourquoi ici il y a des stats non-disponibles. Le temps de jeu est récupéré dans les stats plus bas, et l'en-tête de l'app indique la saison et même la version du jeu. » — capture de la page Carrière avec « non disponible » pour Temps de jeu → Total, Temps de jeu → Par classe et Personnages → « Saison en cours ».

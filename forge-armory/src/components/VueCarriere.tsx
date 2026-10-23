@@ -1,11 +1,11 @@
 // FR : ⚠️ AJOUT (22/10/2026, TODO §25) - PAGE « CARRIÈRE » du compte, en REMPLACEMENT de la modale `ModaleCarriere` (supprimée) : le bouton « Carrière » du bloc Connexion ouvre désormais cette page, le bloc Connexion et le sélecteur de vues (4 onglets) restent affichés (le bug §25 — pop-up qui ne s'ouvrait pas hors Build Analyzer — est résolu par construction : plus de pop-up du tout). ⚠️ Cette page N'EST PAS un onglet du sélecteur de vues (retour utilisateur : « les boutons apparaissent en double ») : elle n'y figure pas, seul le bloc Connexion porte le bouton.
 // Contenu repris TEL QUEL de l'ancienne modale (spécification du 14/10/2026) : statistiques d'usage du compte en LECTURE SEULE, chargées à l'OUVERTURE de l'onglet (la page n'est montée que quand l'onglet est actif — aucun appel réseau au chargement de l'appli). Aucune persistance : la vue est à la demande, rafraîchie à chaque ouverture (les données d'usage évoluent en continu, un cache local présenterait des chiffres périmés).
-// Sections : temps de jeu (total et par classe), personnages (puissance), 10 dernières activités, stats « Carrière » du compte (bloc allTime de GetHistoricalStats, characterId = 0 : l'équivalent du filtre « Carrière » des Emblèmes du jeu — les filtres Tout/Semaine/Saison ne sont PAS repris). Chaque section s'affiche INDÉPENDAMMENT : une donnée manquante affiche « non disponible », jamais une estimation (règle du projet). ⚠️ La partie « Compte » (pseudo, plateformes liées) a été SUPPRIMÉE le 21/10/2026 (demande de l'utilisateur : « la partie Compte peut disparaître » — le pseudo reste affiché dans le bloc Connexion).
+// Sections : temps de jeu (total et par classe), saison en cours, stats « Carrière » du compte (bloc allTime de GetHistoricalStats, characterId = 0 : l'équivalent du filtre « Carrière » des Emblèmes du jeu — les filtres Tout/Semaine/Saison ne sont PAS repris). ⚠️ CHANGÉ (22/10/2026, demande de l'utilisateur : « Enlève la partie affichant les niveaux de persos ainsi que les 10 dernières activités ») : les sections « Personnages » (puissances) et « 10 dernières activités » sont SUPPRIMÉES ; « Saison en cours » (demandée la veille) est conservée, dans sa propre section. Chaque section s'affiche INDÉPENDAMMENT : une donnée manquante affiche « non disponible », jamais une estimation (règle du projet). ⚠️ La partie « Compte » (pseudo, plateformes liées) a été SUPPRIMÉE le 21/10/2026 (demande de l'utilisateur : « la partie Compte peut disparaître » — le pseudo reste affiché dans le bloc Connexion).
 // EN: ⚠️ ADDED - the account "Career" PAGE (view-selector tab), replacing the ModaleCarriere pop-up; same content, loaded on tab open, read-only.
 
 import { useCallback, useEffect, useState } from "react";
 import { chargerCarriere, DonneesCarriere, formaterDiagnosticCarriere } from "../lib/bungie/carriere";
-import type { DestinyMembership, Personnage } from "../lib/bungie/api";
+import type { DestinyMembership } from "../lib/bungie/api";
 import IconeClasse from "./icones/IconeClasse";   // ⚠️ AJOUT (21/10/2026, demande de l'utilisateur : « utilise les assets d'icônes de classes de personnages »)
 import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 import { SAISONS, SaisonFA } from "../data/saisons";
@@ -81,13 +81,6 @@ function formaterDuree(secondes: number | null): string | null {
   return `${h} h ${m.toString().padStart(2, "0")}`;
 }
 
-function formaterDate(iso: string | null): string {
-  if (!iso) return NON_DISPONIBLE;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return NON_DISPONIBLE;
-  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
-
 // FR : ⚠️ AJOUT (21/10/2026, demande de l'utilisateur) - icônes de CLASSES de personnages : les mêmes que partout dans l'appli (`IconeClasse`, couleurs de classe). Les noms de classe viennent de l'API déjà localisés (« Titan », « Chasseur », « Arcaniste ») ; une classe inconnue (« ? ») n'a pas d'icône. / EN: class icons, same component as the rest of the app.
 const CLES_CLASSE: Record<string, "titan" | "chasseur" | "arcaniste"> = { titan: "titan", chasseur: "chasseur", arcaniste: "arcaniste" };
 function iconeDeClasse(nom: string) {
@@ -97,11 +90,10 @@ function iconeDeClasse(nom: string) {
 
 interface Props {
   membership: DestinyMembership | null;
-  personnages: Personnage[];
   profil: unknown | null;
 }
 
-export default function VueCarriere({ membership, personnages, profil }: Props) {
+export default function VueCarriere({ membership, profil }: Props) {
   const [donnees, setDonnees] = useState<DonneesCarriere | null>(null);
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -112,7 +104,7 @@ export default function VueCarriere({ membership, personnages, profil }: Props) 
     setEnCours(true);
     setErreur(null);
     try {
-      const d = await chargerCarriere(membership, personnages, profil);
+      const d = await chargerCarriere(membership, profil);
       setDonnees(d);
     } catch (e) {
       setErreur((e as Error).message);
@@ -120,7 +112,7 @@ export default function VueCarriere({ membership, personnages, profil }: Props) 
       setEnCours(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [membership?.membershipId, personnages, profil]);
+  }, [membership?.membershipId, profil]);
 
   useEffect(() => {
     charger();
@@ -171,28 +163,8 @@ export default function VueCarriere({ membership, personnages, profil }: Props) 
         )}
       </Section>
 
-      <Section titre="Personnages">
-        {personnages.length > 0 ? (
-          personnages.map((p) => <Ligne key={p.characterId} libelle={p.classe} icone={iconeDeClasse(p.classe)} valeur={`puissance ${p.lumiere}`} />)
-        ) : (
-          <Ligne libelle="Niveaux" valeur={NON_DISPONIBLE} />
-        )}
+      <Section titre="Saison">
         <Ligne libelle="Saison en cours" valeur={libelleSaisonEnCours()} />
-      </Section>
-
-      <Section titre="10 dernières activités">
-        {donnees && donnees.activites.length > 0 ? (
-          <ul style={{ margin: 0, paddingLeft: "1.1rem", display: "grid", gap: "0.15rem" }}>
-            {donnees.activites.map((a) => (
-              <li key={a.instanceId || `${a.referenceId}-${a.periode}`}>
-                {formaterDate(a.periode)} — {a.mode != null ? `type ${a.mode}` : "type " + NON_DISPONIBLE}
-                {a.dureeSecondes != null ? ` (${formaterDuree(a.dureeSecondes)})` : ""}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <Ligne libelle="Activités" valeur={enCours ? "…" : NON_DISPONIBLE} />
-        )}
       </Section>
 
       <Section titre="Statistiques de carrière">

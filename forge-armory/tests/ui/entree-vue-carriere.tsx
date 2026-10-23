@@ -1,4 +1,4 @@
-// FR : ⚠️ AJOUT (21/10/2026) - page de test de la PAGE « CARRIÈRE » du compte, avec un réseau SIMULÉ : `GetHistoricalStats` (statistiques réussies, ou `?stats-en-echec=1` : erreur 404) et l'historique d'activités. Trois personnages (Titan, Chasseur, Arcaniste). ⚠️ CHANGÉ (22/10/2026, TODO §25) : la modale est remplacée par la PAGE « Carrière », ouverte par le VRAI bouton « Carrière » du bloc Connexion (vrai `BoutonsVuesCompte`, même structure que dans `DashboardPage`). Le test vérifie : le bloc Connexion et le sélecteur de vues (QUATRE onglets, sans doublon « Carrière »/« Accomplissements ») restent affichés quand la page est ouverte ; la page n'est PAS un onglet du sélecteur. `window.__clics` enregistre les clics. Construite aussi en mode développement (`vue-carriere-dev`) pour voir le diagnostic. / EN: test page of the Career PAGE, opened from the real Connection block button, with a simulated network.
+// FR : ⚠️ AJOUT (21/10/2026) - page de test de la PAGE « CARRIÈRE » du compte, avec un réseau SIMULÉ : `GetHistoricalStats` (statistiques réussies, ou `?stats-en-echec=1` : erreur 404). ⚠️ CHANGÉ (22/10/2026, TODO §25) : la modale est remplacée par la PAGE « Carrière », ouverte par le VRAI bouton « Carrière » du bloc Connexion (vrai `BoutonsVuesCompte`, même structure que dans `DashboardPage`). Le test vérifie : le bloc Connexion et le sélecteur de vues (QUATRE onglets, sans doublon « Carrière »/« Accomplissements ») restent affichés quand la page est ouverte ; la page n'est PAS un onglet du sélecteur. `window.__clics` enregistre les clics ; `window.__requetes` enregistre les URL demandées (le test vérifie qu'AUCUNE requête d'historique d'activités n'est faite). ⚠️ CHANGÉ (22/10/2026, « Enlève la partie affichant les niveaux de persos ainsi que les 10 dernières activités ») : plus de prop `personnages`, plus de handler `/Stats/Activities/` (une requête d'activité retomberait en 404). Construite aussi en mode développement (`vue-carriere-dev`) pour voir le diagnostic. / EN: test page of the Career PAGE, opened from the real Connection block button, with a simulated network.
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import SelecteurVues, { VueApp } from "../../src/components/SelecteurVues";
@@ -9,11 +9,13 @@ import VueAccomplissements from "../../src/components/VueAccomplissements";
 
 const params = new URLSearchParams(location.search);
 const statsEnEchec = params.has("stats-en-echec");
-const w = window as unknown as { __clics: string[]; __pret: boolean };
+const w = window as unknown as { __clics: string[]; __requetes: string[]; __pret: boolean };
 w.__clics = [];
+w.__requetes = [];
 const json = (corps: unknown) => new Response(JSON.stringify({ ErrorCode: 1, ErrorStatus: "Success", Response: corps }), { status: 200 });
 window.fetch = (async (url: RequestInfo | URL) => {
   const u = String(url);
+  w.__requetes.push(u);
   if (u.includes("/Account/") && u.includes("/Stats/")) {
     if (statsEnEchec) return new Response("Not Found", { status: 404 });
     // ⚠️ 22/10/2026 (« Toutes les stats » + retour réel « statIds retournés : AUCUN ») : STRUCTURE RÉELLE de
@@ -23,7 +25,8 @@ window.fetch = (async (url: RequestInfo | URL) => {
     const huitStats = Object.fromEntries([m("kills", 123456), m("deaths", 23456), m("precisionKills", 54321), m("assists", 9876), m("secondsPlayed", 9000000), m("killsDeathsRatio", 5.26), m("statInconnueDeTest", 42), m("activityDurationSeconds", 5400)]);
     return json({ mergedDeletedCharacters: { results: {}, merged: { allTime: {} } }, mergedAllCharacters: { results: { allPvE: { allTime: {} }, allPvP: { allTime: {} } }, merged: { allTime: huitStats } }, characters: [] });
   }
-  if (u.includes("/Stats/Activities/")) return json({ activities: [{ activityHash: 1, instanceId: "1", mode: 46, period: "2026-10-20T10:00:00Z", values: { activityDurationSeconds: { basic: { value: 1500 } } } }] });
+  // ⚠️ CHANGÉ (22/10/2026) : plus de handler `/Stats/Activities/` (section supprimée) : une telle
+  // requête retombe en 404, et `window.__requetes` permet au test de vérifier qu'elle n'est JAMAIS faite.
   return new Response("{}", { status: 404 });
 }) as typeof window.fetch;
 
@@ -35,7 +38,6 @@ window.fetch = (async (url: RequestInfo | URL) => {
 const profil = { characters: { data: { "1": { classType: 0, minutesPlayedTotal: "6000" }, "2": { classType: 1, minutesPlayedTotal: "4500" }, "3": { classType: 2, minutesPlayedTotal: "3000" } } } };
 const sansProfil = params.has("sans-profil");
 const membership = { membershipId: "4611686018000000001", membershipType: 3, displayName: "Orygamer#4497" } as never;
-const personnages = [{ characterId: "1", classe: "Titan", lumiere: 1990 }, { characterId: "2", classe: "Chasseur", lumiere: 1985 }, { characterId: "3", classe: "Arcaniste", lumiere: 1980 }];
 
 function App() {
   const [vue, setVue] = useState<VueApp>("analyseur");
@@ -52,7 +54,7 @@ function App() {
         <BoutonsVuesCompte onCarriere={() => { w.__clics.push("carriere"); setVue("carriere"); }} onAccomplissements={() => { w.__clics.push("accomplissements"); setVue("accomplissements"); }} />
       </div>
       <SelecteurVues vue={vue === "carriere" || vue === "accomplissements" ? "analyseur" : vue} onChanger={setVue} />
-      {vue === "carriere" && <VueCarriere membership={membership} personnages={personnages} profil={sansProfil ? null : profil} />}
+      {vue === "carriere" && <VueCarriere membership={membership} profil={sansProfil ? null : profil} />}
       {vue === "accomplissements" && <VueAccomplissements />}
       {(vue === "analyseur" || vue === "loadouts" || vue === "forge" || vue === "bibliotheque") && <p style={{ color: "#7d7a70" }}>vue « {vue} » (hors périmètre de ce test)</p>}
     </div>

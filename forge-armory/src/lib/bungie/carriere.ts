@@ -1,5 +1,5 @@
 // FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - CARRIÈRE du compte (lecture seule).
-// Trois sources, toutes en GET, jamais d'écriture :
+// Deux sources, toutes en GET, jamais d'écriture :
 //  1. GetHistoricalStats avec characterId = 0 (AGRÉGATION de tous les
 //     personnages en UNE requête) et periodType = AllTime - l'équivalent
 //     exact du filtre « Carrière » des Emblèmes du jeu. Les autres filtres
@@ -8,14 +8,17 @@
 //  2. Les personnages du GetProfile déjà chargé par l'appli : temps de jeu
 //     par classe (minutesPlayedTotal par personnage, composant 200) - sans
 //     requête réseau supplémentaire quand le profil est déjà disponible.
-//  3. GetActivityHistory par personnage, limité aux 10 dernières activités.
+// ⚠️ CHANGÉ (22/10/2026, demande de l'utilisateur : « Enlève la partie affichant les niveaux de
+// persos ainsi que les 10 dernières activités ») : la source 3 (GetActivityHistory par personnage,
+// 10 dernières activités) est SUPPRIMÉE avec la section qu'elle alimentait - la page ne fait plus
+// qu'UNE SEULE requête réseau à l'ouverture (les statistiques agrégées).
 // Aucun appel au chargement de l'appli : tout part du clic sur le bouton
 // « Carrière » du bloc Connexion (même règle que « Charger mon inventaire »).
 // Tout ce que l'API ne fournit pas est renvoyé absent (« non disponible »
 // à l'affichage), JAMAIS estimé (règle constante du projet).
 // EN: ⚠️ ADDED - account Career (read-only): aggregated GetHistoricalStats
 // (characterId=0, AllTime), per-character playtime from the profile already
-// loaded, and GetActivityHistory (last 10). No call at app startup.
+// loaded. CHANGED: the activity history (last 10) was removed with its section.
 
 import { BUNGIE_API_ROOT, bungieConfig } from "./config";
 import { obtenirAccessTokenValide } from "./oauth";
@@ -49,24 +52,11 @@ export interface StatCarriere {
   precision: number | null;
 }
 
-/** FR : activité récente (type, date, durée si disponible). / EN: recent activity. */
-export interface ActiviteRecente {
-  characterId: string;
-  referenceId: string;
-  instanceId: string;
-  mode: number | null;
-  periode: string | null;
-  dureeSecondes: number | null;
-  modeInconnu: boolean;
-}
-
 export interface DonneesCarriere {
   /** FR : stats « Carrière » agrégées (characterId = 0, AllTime) — l'ordre des statIds est celui de la réponse. / EN: aggregated allTime stats. */
   stats: StatCarriere[];
   /** FR : temps de jeu par personnage (classe → minutes), lu depuis le profil DEJA charge (composant 200) — aucune requête supplémentaire. / EN: playtime per class, from the already-loaded profile. */
   minutesParClasse: { classe: string; minutes: number }[] | null;
-  /** FR : 10 dernières activités, tous personnages confondus, triées par date décroissante. / EN: last 10 activities across characters. */
-  activites: ActiviteRecente[];
   /** FR : liste brute des statIds réellement retournés (diagnostic dev : figer la sélection affichée sur des données réelles). / EN: raw statIds for the dev diagnostic. */
   statIdsBruts: string[];
   /** FR : ⚠️ AJOUT (21/10/2026, retour de l'utilisateur : « le diagnostic statIds retournés ne s'ouvre pas ») - ce qui s'est PASSÉ pendant le chargement. Avant, l'échec de la requête de statistiques était AVALÉ en silence : la liste des statIds restait vide et le diagnostic n'affichait rien. Il dit maintenant pourquoi (requête, erreur, structure de la réponse). / EN: ⚠️ ADDED - what happened while loading (errors were silently swallowed before). */
@@ -84,8 +74,6 @@ export interface DiagnosticCarriere {
   structureMergedAllCharacters: string | null;
   /** FR : d'où viennent les stats affichées : `merged` (allTime, filtre « Carrière » exact) ou `results` (somme des modes, repli). / EN: where the displayed stats come from. */
   sourceStats: "merged" | "results" | null;
-  /** FR : une ligne par personnage dont l'historique d'activités a échoué. */
-  erreursActivites: string[];
 }
 
 interface ValeurHistoricalStat {
@@ -114,19 +102,6 @@ interface ReponseHistoricalStats {
   mergedDeletedCharacters?: BlocStatsAgrege;
   mergedAllCharacters?: BlocStatsAgrege;
   characters?: unknown[];
-}
-
-interface ReponseActivityHistory {
-  activities?: Array<{
-    characterId?: string;
-    activityHash?: number;
-    referenceId?: number;
-    instanceId?: string | number;
-    mode?: number;
-    activityModeType?: number;
-    period?: string;
-    values?: Record<string, { basic?: { value?: number } }>;
-  }>;
 }
 
 function lireStat(metric: ValeurHistoricalStat | undefined): { valeur: number | null; precision: number | null } {
@@ -184,15 +159,6 @@ export async function recupererStatsCarriere(membership: DestinyMembership): Pro
   return appelBungieCarriere<ReponseHistoricalStats>(cheminStatsCarriere(membership));
 }
 
-export async function recupererActivitesPersonnage(
-  membership: DestinyMembership,
-  characterId: string
-): Promise<ReponseActivityHistory> {
-  return appelBungieCarriere<ReponseActivityHistory>(
-    `/Destiny2/${membership.membershipType}/Account/${membership.membershipId}/Character/${characterId}/Stats/Activities/?count=10&mode=None`
-  );
-}
-
 /** FR : temps de jeu (minutes) par classe, depuis le profil DEJA chargé par l'appli (composant 200, `minutesPlayedTotal` par personnage). Aucune requête réseau. / EN: playtime per class from the already-loaded profile; no network call. */
 export function extraireMinutesParClasse(profil: unknown): { classe: string; minutes: number }[] | null {
   const p = profil as { characters?: { data?: Record<string, { classType?: number; minutesPlayedTotal?: string | number }> } } | null;
@@ -206,15 +172,19 @@ export function extraireMinutesParClasse(profil: unknown): { classe: string; min
   return lignes.some((l) => Number.isFinite(l.minutes) && l.minutes > 0) ? lignes : null;
 }
 
-/** FR : charge TOUTE la Carrière : les stats agrégées puis, en parallèle, les activités de chaque personnage. Chaque source peut échouer indépendamment : on renvoie ce qui a réussi (tolérance aux données manquantes). / EN: loads the whole Career; each source may fail independently. */
+/** FR : charge la Carrière : UNE SEULE requête (les stats agrégées, filtre « Carrière » du jeu) + le
+// temps de jeu par classe lu dans le profil déjà chargé (aucune requête de plus). ⚠️ CHANGÉ (22/10/2026,
+// « Enlève … les 10 dernières activités ») : le paramètre `personnages` et le chargement des historiques
+// d'activités (10 requêtes GetActivityHistory par personnage) sont SUPPRIMÉS avec la section affichée.
+// Chaque source peut échouer indépendamment : on renvoie ce qui a réussi (tolérance aux données
+// manquantes). / EN: loads the Career: ONE request (aggregated stats) + playtime from the profile. */
 export async function chargerCarriere(
   membership: DestinyMembership,
-  personnages: { characterId: string; classe: string }[],
   profil: unknown
 ): Promise<DonneesCarriere> {
   const resultat: DonneesCarriere = {
-    stats: [], minutesParClasse: extraireMinutesParClasse(profil), activites: [], statIdsBruts: [],
-    diagnostic: { requeteStats: cheminStatsCarriere(membership), erreurStats: null, clesReponseStats: null, structureMergedAllCharacters: null, sourceStats: null, erreursActivites: [] },
+    stats: [], minutesParClasse: extraireMinutesParClasse(profil), statIdsBruts: [],
+    diagnostic: { requeteStats: cheminStatsCarriere(membership), erreurStats: null, clesReponseStats: null, structureMergedAllCharacters: null, sourceStats: null },
   };
 
   try {
@@ -238,31 +208,6 @@ export async function chargerCarriere(
     resultat.diagnostic.erreurStats = (e as Error).message;
   }
 
-  const activites: ActiviteRecente[] = [];
-  await Promise.all(
-    personnages.map(async (perso) => {
-      try {
-        const reponse = await recupererActivitesPersonnage(membership, perso.characterId);
-        for (const a of reponse.activities ?? []) {
-          activites.push({
-            characterId: perso.characterId,
-            referenceId: String(a.referenceId ?? a.activityHash ?? "") || "",
-            instanceId: String(a.instanceId ?? ""),
-            mode: a.mode ?? a.activityModeType ?? null,
-            periode: a.period ?? null,
-            dureeSecondes: a.values?.["activityDurationSeconds"]?.basic?.value ?? null,
-            modeInconnu: a.mode == null && a.activityModeType == null,
-          });
-        }
-      } catch (e) {
-        // FR : un personnage sans histoire (jamais joué, API silencieuse) ne bloque pas les autres. ⚠️ CHANGÉ (21/10/2026) : l'erreur est conservée pour le diagnostic.
-        resultat.diagnostic.erreursActivites.push(`${perso.classe} (${perso.characterId}) : ${(e as Error).message}`);
-      }
-    })
-  );
-  activites.sort((a, b) => (b.periode ?? "").localeCompare(a.periode ?? ""));
-  resultat.activites = activites.slice(0, 10);
-
   return resultat;
 }
 
@@ -279,7 +224,5 @@ export function formaterDiagnosticCarriere(d: DonneesCarriere): string {
   // FR : ⚠️ CHANGÉ (22/10/2026, retour réel) - décrit la structure RÉELLE de `mergedAllCharacters` (les stats sont dans `merged.allTime`, pas directement sous la clé) et la source lue.
   lignes.push(`structure de « mergedAllCharacters » : ${g.structureMergedAllCharacters ?? "champ absent de la réponse"}`);
   if (g.sourceStats) lignes.push(`source des stats affichées : ${g.sourceStats === "merged" ? "merged.allTime (agrégat « Carrière » du jeu)" : "somme de results.<mode>.allTime"}`);
-  lignes.push(`historiques d'activités en échec : ${g.erreursActivites.length === 0 ? "aucun" : ""}`);
-  lignes.push(...g.erreursActivites.map((l) => `  - ${l}`));
   return lignes.join("\n");
 }

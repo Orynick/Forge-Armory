@@ -563,7 +563,10 @@ export default function DashboardPage() {
       {/* FR : ⚠️ CHANGÉ (22/10/2026, retour utilisateur en test) : la page Carrière reçoit le PROFIL COMPLET
       (`profilComplet`, composant 200 → temps de jeu par classe) et NON plus `profilTriomphes` (composant 900
       seul : sans temps de jeu → « non disponible »). / EN: the Career page gets the full profile (playtime). */}
-      {vue === "carriere" && <VueCarriere membership={memberships[0] ?? null} personnages={personnages} profil={profilComplet} />}
+      {/* FR : ⚠️ CHANGÉ (22/10/2026, demande de l'utilisateur : « Enlève la partie affichant les niveaux de persos
+      ainsi que les 10 dernières activités ») : la prop `personnages` est retirée (la section « Personnages » est
+      supprimée avec la section « 10 dernières activités » — la page ne lit plus que le profil et les stats). */}
+      {vue === "carriere" && <VueCarriere membership={memberships[0] ?? null} profil={profilComplet} />}
 
       {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte, ouverte par le bouton « Accomplissements » du bloc Connexion. ⚠️ CHANGÉ (22/10/2026, retour utilisateur) : la page n'affiche PAS la vitrine « Solo sans mourir » (elle reste dans le tiroir latéral du Build Analyzer) : elle affichera plus tard tous les triomphes obtenus et à obtenir. / EN: the Accomplishments page (placeholder for the account Triumphs; no Solo Flawless showcase here). */}
       {vue === "accomplissements" && <VueAccomplissements />}
