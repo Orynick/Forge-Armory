@@ -4,13 +4,15 @@
 
 ---
 
-## 23/10/2026 — PROPAGATION : chantier `draft-deps` (dépendances majeures) répercuté sur `draft-netlify`
+## 23/10/2026 — PROPAGATION : PR #18 (renommage CHANGELOG → DEVLOG) répertutée sur les branches de chantier
 
-**Propagation** : `main` (incluant le merge de `draft-deps` — Vite 7, React 19, Electron 45) a été mergé dans `draft-netlify`. Conflit DEVLOG résolu (entrée chantier deps + entrées main conservées).
+**Propagation** : le renommage `CHANGELOG.md` → `DEVLOG.md` (PR #18) a été répertuté sur les 7 branches de chantier actives : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `draft-update-triomphes`, `test`.
 
-**Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 716/716 contrôles réussis.
+**Conflits résolus** : `CHANGELOG.md` en conflit (rename/delete côté main vs modify côté branche) sur 3 branches (`draft-armure-score`, `draft-netlify`, `draft-update-triomphes`) — résolu en supprimant `CHANGELOG.md` et transférant les entrées spécifiques à la branche dans `DEVLOG.md`. Les 4 autres branches : merge propre.
 
-## 23/10/2026 — v0.5.1 : LIVRAISON COMPLÈTE — Legendarium opérationnel + pages Carrière/Accomplissements + stack à jour
+**Version inchangée (0.5.1).**
+
+---
 
 ## 23/10/2026 — RENOMMAGE : `CHANGELOG.md` → `DEVLOG.md`
 
