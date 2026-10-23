@@ -1,6 +1,6 @@
 // FR : ⚠️ AJOUT (22/10/2026, TODO §25) - PAGE « CARRIÈRE » du compte, en REMPLACEMENT de la modale `ModaleCarriere` (supprimée) : le bouton « Carrière » du bloc Connexion ouvre désormais cette page, le bloc Connexion et le sélecteur de vues (4 onglets) restent affichés (le bug §25 — pop-up qui ne s'ouvrait pas hors Build Analyzer — est résolu par construction : plus de pop-up du tout). ⚠️ Cette page N'EST PAS un onglet du sélecteur de vues (retour utilisateur : « les boutons apparaissent en double ») : elle n'y figure pas, seul le bloc Connexion porte le bouton.
 // Contenu repris TEL QUEL de l'ancienne modale (spécification du 14/10/2026) : statistiques d'usage du compte en LECTURE SEULE, chargées à l'OUVERTURE de l'onglet (la page n'est montée que quand l'onglet est actif — aucun appel réseau au chargement de l'appli). Aucune persistance : la vue est à la demande, rafraîchie à chaque ouverture (les données d'usage évoluent en continu, un cache local présenterait des chiffres périmés).
-// Sections : temps de jeu (total et par classe), saison en cours, stats « Carrière » du compte (bloc allTime de GetHistoricalStats, characterId = 0 : l'équivalent du filtre « Carrière » des Emblèmes du jeu — les filtres Tout/Semaine/Saison ne sont PAS repris). ⚠️ CHANGÉ (22/10/2026, demande de l'utilisateur : « Enlève la partie affichant les niveaux de persos ainsi que les 10 dernières activités ») : les sections « Personnages » (puissances) et « 10 dernières activités » sont SUPPRIMÉES ; « Saison en cours » (demandée la veille) est conservée, dans sa propre section. Chaque section s'affiche INDÉPENDAMMENT : une donnée manquante affiche « non disponible », jamais une estimation (règle du projet). ⚠️ La partie « Compte » (pseudo, plateformes liées) a été SUPPRIMÉE le 21/10/2026 (demande de l'utilisateur : « la partie Compte peut disparaître » — le pseudo reste affiché dans le bloc Connexion).
+// Sections : temps de jeu (total et par classe) et stats « Carrière » du compte (bloc allTime de GetHistoricalStats, characterId = 0 : l'équivalent du filtre « Carrière » des Emblèmes du jeu — les filtres Tout/Semaine/Saison ne sont PAS repris). ⚠️ CHANGÉ (22/10/2026, demande de l'utilisateur : « Enlève la partie affichant les niveaux de persos ainsi que les 10 dernières activités ») : les sections « Personnages » (puissances) et « 10 dernières activités » sont SUPPRIMÉES. ⚠️ CHANGÉ (22/10/2026, « Finalement enlève l'affichage de la saison dans ce menu ») : la section « Saison » (« Saison en cours ») est SUPPRIMÉE à son tour — la page ne comporte plus que DEUX sections : « Temps de jeu » et « Statistiques de carrière ». Chaque section s'affiche INDÉPENDAMMENT : une donnée manquante affiche « non disponible », jamais une estimation (règle du projet). ⚠️ La partie « Compte » (pseudo, plateformes liées) a été SUPPRIMÉE le 21/10/2026 (demande de l'utilisateur : « la partie Compte peut disparaître » — le pseudo reste affiché dans le bloc Connexion).
 // EN: ⚠️ ADDED - the account "Career" PAGE (view-selector tab), replacing the ModaleCarriere pop-up; same content, loaded on tab open, read-only.
 
 import { useCallback, useEffect, useState } from "react";
@@ -8,29 +8,6 @@ import { chargerCarriere, DonneesCarriere, formaterDiagnosticCarriere } from "..
 import type { DestinyMembership } from "../lib/bungie/api";
 import IconeClasse from "./icones/IconeClasse";   // ⚠️ AJOUT (21/10/2026, demande de l'utilisateur : « utilise les assets d'icônes de classes de personnages »)
 import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
-import { SAISONS, SaisonFA } from "../data/saisons";
-
-// FR : ⚠️ AJOUT (22/10/2026, retour utilisateur en test : « Saison en cours » affichait « non disponible »
-// alors que l'en-tête de l'appli indique la saison) - la saison en cours vient de la table `SAISONS`
-// (`src/data/saisons.ts`, socle dérivé de d2-additional-info/DIM) : c'est l'entrée dont la date de fin
-// est `null` (la dernière ligne, mise à jour manuellement à chaque saison). AUCUN appel réseau, aucune
-// base de données : c'est une donnée statique du dépôt. ⚠️ Le Manifest (`lib/manifest/saison.ts`) reste
-// la source PRINCIPALE pour le NOM d'une saison donnée ; ici on n'a que la saison EN COURS, que la
-// table locale suffit à désigner. ⚠️ Le nom de `VERSION_JEU` (« Monument of Triumph », badge de l'en-tête)
-// est le nom de la VERSION 9.7.0 (patch du 9 juin 2026), PAS celui de la saison en cours (« Season of
-// Lawless », n°28, depuis le 2 décembre 2025) : ce ne sont pas les mêmes libellés, on affiche donc la
-// SAISON (numéro + nom + extension), cohérente avec la table des saisons.
-// EN: ADDED - the current season comes from the SAISONS table (the entry with `fin === null`).
-function saisonEnCours(): SaisonFA | undefined {
-  return SAISONS.find((s) => s.fin === null);
-}
-
-function libelleSaisonEnCours(): string {
-  const s = saisonEnCours();
-  if (!s) return NON_DISPONIBLE;
-  const type = s.type === "episode" ? "épisode" : "saison";
-  return `${s.nom} (${type} ${s.numero}${s.extension ? `, ${s.extension}` : ""})`;
-}
 
 // FR : ⚠️ CHANGÉ (22/10/2026, demande de l'utilisateur : « il reste à afficher les stats du compte. Toutes les stats. ») - la page affiche DÉSORMAIS **TOUTES** les stats retournées par l'API (`donnees.stats`, ordre de la réponse), plus une sélection figée. Les statIds connus gardent leur libellé FR (table ci-dessous, figée depuis la réponse réelle de l'API pour ce compte) ; une stat inconnue affiche son **statId brut** (jamais omise, jamais renommée à l'aveugle). Les statIds de DURÉES (secondes) sont affichés en « X h Y min » (et non en secondes brutes) ; les ratios gardent 2 décimales.
 // EN: CHANGED - the page now shows ALL the stats returned by the API; known statIds keep their French label, unknown ones show their raw statId; duration statIds are shown as hours/minutes.
@@ -161,10 +138,6 @@ export default function VueCarriere({ membership, profil }: Props) {
         ) : (
           <Ligne libelle="Par classe" valeur={NON_DISPONIBLE} />
         )}
-      </Section>
-
-      <Section titre="Saison">
-        <Ligne libelle="Saison en cours" valeur={libelleSaisonEnCours()} />
       </Section>
 
       <Section titre="Statistiques de carrière">

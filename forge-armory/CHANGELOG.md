@@ -1,3 +1,20 @@
+## 22/10/2026 — PAGE « CARRIÈRE » : suppression de l'affichage de la saison
+
+**Demande de l'utilisateur (22/10/2026)** : « Finalement enlève l'affichage de la saison dans ce menu. »
+
+**Changé** : la section « Saison » (« Saison en cours ») est **supprimée** de la page « Carrière ». La page ne comporte plus que **DEUX sections** : **Temps de jeu** (total + par classe) et **Statistiques de carrière** (toutes les stats de l'API).
+
+**Fait** :
+- **`src/components/VueCarriere.tsx`** (⚠️ CHANGÉ) — la section « Saison » est supprimée, ainsi que `saisonEnCours`/`libelleSaisonEnCours` et l'import `SAISONS` de `src/data/saisons.ts` (aucun code mort). La table `SAISONS` reste utilisée ailleurs dans l'appli (recherche Manifest, infobulles de saison).
+
+**Tests** :
+- `tests/ui/vue-carriere.py` — le contrôle navigateur des sections attend **DEUX** sections (« Temps de jeu », « Statistiques de carrière ») et l'**absence** de « saison » dans le texte ; le contrôle « Saison en cours » est supprimé ; **+1 contrôle source** : plus de `SAISONS`/`libelleSaisonEnCours`/`titre="Saison"` dans le code ; le contrôle « MÊME EN ÉCHEC » n'attend plus la saison.
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — PAGE « CARRIÈRE » : suppression des sections « Personnages » (niveaux) et « 10 dernières activités »
 
 **Demande de l'utilisateur (22/10/2026)** : « Enlève la partie affichant les niveaux de persos ainsi que les 10 dernières activités. »
