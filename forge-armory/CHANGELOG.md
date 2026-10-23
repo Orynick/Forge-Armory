@@ -11,6 +11,19 @@
 
 **Non vérifié** : le lancement réel de l'appli installée avec Electron 45 (le conteneur d'intégration n'a pas les bibliothèques fenêtre/GTK, ni l'empaquetage NSIS Windows). **L'installateur fabriqué avec la v45 doit être lancé une fois sur Windows avant toute diffusion.** Reste aussi à faire dans ce chantier : palier 3 (React 18 → 19 + `react-router-dom` 7).
 
+## 23/10/2026 — PROPAGATION : PR #13 (nettoyage TODO) + PR #15 (doc README/NOTICE) répercuteées sur les branches de chantier
+
+**Propagation** : les deux PRs mergées sur `main` (PR #13 : nettoyage de la TODO section Confort ; PR #15 : mise à jour README + NOTICE après livraison Legendarium v0.5.0) ont été répertutées sur les 7 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `draft-update-carriere`, `test`.
+
+**Conflits résolus** :
+- `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec` : conflit `README.md` (ligne Legendarium « en construction » vs nouvelle entrée) — résolu en gardant les lignes spécifiques à la branche + la nouvelle entrée Legendarium.
+- `draft-update-carriere` : conflits `CHANGELOG.md` (entrée Carrière §25 + entrées main), `TODO.md` (item 23 résolu sur cette branche → retiré), `DashboardPage.tsx` et `cablage-forge.test.ts` (code spécifique Carrière conservé). Tests : **36/36 suites, 710/710 contrôles** ✓.
+- `test` : merge direct sans conflit.
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 23/10/2026 — MISE À JOUR DE LA DOCUMENTATION (README + NOTICE) — Legendarium livré en v0.5.0
 
 **Constat** (point d'avancement demandé par l'utilisateur) : le README et la NOTICE n'avaient pas été mis à jour après la livraison du Legendarium (v0.5.0, 22/10/2026).
