@@ -1,3 +1,34 @@
+## 23/10/2026 — v0.5.1 : LIVRAISON COMPLÈTE — Legendarium opérationnel + pages Carrière/Accomplissements + stack à jour
+
+**Passage en version 0.5.1** — consolidation de toutes les livraisons depuis la 0.5.0 (Legendarium, 22/10/2026).
+
+**Pourquoi 0.5.1 ?** La 0.5.0 marquait la livraison du Legendarium (chantier majeur). Depuis, trois livraisons significatives ont été mergées sur `main` :
+1. **Pages « Carrière » et « Accomplissements »** (PR #14, TODO §25) — deux nouvelles pages dédiées : temps de jeu (total + par classe) et **74 statistiques de compte traduites en français**, Accomplissements en placeholder « Bientôt » (suite sur `draft-update-triomphes`).
+2. **Chantier dépendances terminé** (`draft-deps`, PR #7) — Vite 5→7, React 18→19, React Router 6→7, Electron 44→45, TypeScript 5.9. **0 vulnérabilité npm** (contre 4 avant).
+3. **Mise à jour documentation** (PR #15) — README + NOTICE à jour (Legendarium livré, Forge fonctionnel).
+
+**État du Legendarium (vérifié sur `main`)** : bibliothèque de Lore complète et opérationnelle —
+- 4 sections : Grimoire D1 (6 livres / 834 cartes, hors-ligne), Légendes D2 (108 livres / 1 076 pages), armes et armures, cosmétiques
+- Recherche avancée (guillemets, `+`, `-`, case « Aa »)
+- Parcours inverse page → objets porteurs, lien profond fiche ↔ Legendarium avec retour
+- Export infographique PNG (filigrane centré, crédit Bungie)
+- 7 suites de tests : **277/277 contrôles** ✓
+
+**État technique** :
+- `tsc -b` : 0 erreur
+- `npm run build` strict : ✓
+- Batterie logique CI : **36/36 suites, 716/716 contrôles** ✓
+- CI GitHub Actions : verte
+- `npm audit` : **0 vulnérabilité** ✓
+
+**Stack technique** : Vite 7.3.7 · React 19.2.9 · React Router 7.18.4 · Electron 45.0.0 · TypeScript 5.9.3
+
+**Branches** : `draft-update-carriere` et `draft-deps` supprimées (livrées). Nouvelle branche active : `draft-update-triomphes` (suite Accomplissements, TODO §23).
+
+**Fichiers modifiés** : `package.json`, `package-lock.json` (version 0.5.0 → 0.5.1), `CHANGELOG.md`, `TODO.md` (références version + item 1 audit externe marqué terminé).
+
+---
+
 ## 23/10/2026 — DÉPENDANCES : CHANTIER `draft-deps` TERMINÉ (merge sur `main`)
 
 Merge de la branche `draft-deps` (PR #7) sur `main` : mise à jour complète des dépendances majeures en 3 paliers + 1 palier intermédiaire.

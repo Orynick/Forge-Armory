@@ -2,7 +2,7 @@
 
 **Destiny 2 Build Analyzer**, par Orynick/Orygamer. Ce document explique comment installer, configurer et utiliser l'application. Pour un aperçu rapide, voir le `README.md`.
 
-**Sommaire** : Démarrage · Créer votre application Bungie · Fabriquer le logiciel installable · Fonctionnalités · Comprendre le score · Télécharger les Manifests · Loadouts · Le Legendarium (lire le Lore).
+**Sommaire** : Démarrage · Créer votre application Bungie · Fabriquer le logiciel installable · Fonctionnalités · Comprendre le score · Télécharger les Manifests · Loadouts · Le Legendarium (lire le Lore) · La page Carrière (vos statistiques).
 
 ---
 
@@ -264,7 +264,9 @@ npm run electron:dev   (fenêtre 2)
 | **Saison de sortie** en clair sur la fiche d'un résultat de recherche | ✅ Fonctionnel — nom, numéro et dates |
 | **Catégorie de source** en clair sur la fiche (« — Raid — Source: "Last Wish" Raid ») | ✅ Fonctionnel — tables dérivées de d2-additional-info (MIT) |
 | Section **« Crédits »** (pied de page) | ✅ Fonctionnel — pop-up : projet de fan non affilié à Bungie + crédit MIT |
-| Onglet **Legendarium** — bibliothèque de Lore (Grimoire D1, Légendes D2, armes, armures, cosmétiques) | ✅ Fonctionnel — lecture passive, recherche avancée, parcours inverse, bouton « Lire le Lore » dans les fiches, export infographique PNG |
+| Onglet **Legendarium** — bibliothèque de Lore (Grimoire D1, Légendes D2, armes, armures, cosmétiques) | ✅ Fonctionnel — lecture passive, recherche avancée, parcours inverse, bouton « 📖 Lire le Lore » dans les fiches, export infographique PNG |
+| Page **Carrière** — statistiques du compte (bouton du bloc Connexion) | ✅ Fonctionnel — temps de jeu (total + par classe) et toutes les statistiques de carrière (74 libellés traduits en français) |
+| Page **Accomplissements** — Triomphes du compte (bouton du bloc Connexion) | 🚧 En construction — placeholder « Bientôt » (suite sur la branche `draft-update-triomphes`) |
 
 ---
 
@@ -279,6 +281,20 @@ L'onglet **Legendarium** (anciennement « Bibliothèque ») est une bibliothèqu
 - **Export infographique** : bouton « ⟳ Exporter en image » en haut à droite de chaque page — génère un PNG (1200 px) avec la palette de l'ère (parchemin D1 / hologramme D2), le filigrane Forge Armory centré, et le crédit Bungie / Destiny.
 
 Le Legendarium fonctionne **hors-ligne** pour le Grimoire D1 (données embarquées) ; les sections D2 nécessitent le Manifest (chargé automatiquement au démarrage si une connexion Bungie est active).
+
+---
+
+## La page Carrière : vos statistiques de compte
+
+Le bouton **« Carrière »** du bloc Connexion ouvre une page dédiée aux **statistiques de votre compte Bungie** (lecture seule, aucune modification en jeu).
+
+- **Temps de jeu** : total et par classe (Titan, Chasseur, Arcaniste), avec les icônes de classe. Le total est lu depuis votre profil Bungie (composant « personnages »), avec un repli sur la statistique `secondsPlayed` de l'API si le profil ne le porte pas.
+- **Statistiques de carrière** : **toutes les statistiques** retournées par l'API Bungie (`GetHistoricalStatsForAccount`, filtre « Carrière »), dans l'ordre de la réponse. Les libellés connus sont traduits en français (74 statIds : éliminations par type d'arme, distances en mètres, efficacités, scores, durées…). Une statistique inconnue affiche son identifiant brut (jamais renommée à l'aveugle). Les durées en secondes s'affichent en « X h Y min ».
+- La page ne fait **qu'une seule requête réseau** à l'ouverture.
+- Un **compteur** indique le nombre de statistiques affichées.
+- En mode développement (`npm run dev`), un panneau de diagnostic détaille la structure de la réponse API et la source des données lues.
+
+> La page **Accomplissements** (bouton du même bloc) ouvrira prochainement l'affichage de tous vos Triomphes — obtenus et à obtenir. En attendant, elle affiche un emplacement réservé « 🚧 Bientôt ».
 
 ---
 

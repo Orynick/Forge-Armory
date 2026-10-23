@@ -18,6 +18,8 @@ Application pour étudier et scorer des builds Destiny 2 selon 5 piliers pondér
 - **Forge** : simulation locale des perks d'armes et des mods d'armures (rien n'est modifié dans le jeu) — Collection (toutes les armes et armures du jeu, grisées si jamais obtenues) et Inventaire (vos exemplaires, simulation visible sur les statistiques et **le score, en temps réel**).
 - **Saisons et sources** : saison de sortie en clair sur les objets, menu de filtre par source (Raid, Donjon, Trials, par activité…), crédits [d2-additional-info](https://github.com/DestinyItemManager/d2-additional-info) (MIT).
 - **Legendarium** : bibliothèque de Lore en lecture passive (Grimoire D1, Légendes D2, armes, armures, cosmétiques), avec export infographique PNG.
+- **Carrière** : page dédiée aux statistiques du compte (temps de jeu, 74+ stats traduites en français).
+- **Accomplissements** : page dédiée aux Triomphes du compte (en construction).
 
 ## Démarrage rapide
 
