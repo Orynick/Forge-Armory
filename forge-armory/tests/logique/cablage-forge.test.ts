@@ -50,12 +50,12 @@ ok("⚠️ 22/10 (TODO §25) : les deux pages du compte sont montées comme des 
   // persos ainsi que les 10 dernières activités ») : la page Carrière reçoit le PROFIL COMPLET (`profilComplet`, composant
   // 200 → temps de jeu), pas `profilTriomphes` (composant 900 seul, sans temps de jeu), et N'A PLUS la prop
   // `personnages` (section « Personnages » supprimée avec « 10 dernières activités »).
-  /\{vue === "carriere" && <VueCarriere membership=\{memberships\[0\] \?\? null\} profil=\{profilComplet\} \/>\}/.test(P) && /\{vue === "accomplissements" && <VueAccomplissements \/>\}/.test(P) && !/<ModaleCarriere|from "\.\.\/components\/ModaleCarriere"/.test(P) && !/tiroirTriomphesOuvert|setTiroirTriomphesOuvert|carriereOuverte|setCarriereOuverte/.test(P) && /<PanneauTriomphes profil=\{profilTriomphes\} db=\{db\} \/>/.test(P) && /recupererResumeEtPersonnages\(comptes\[0\]\)/.test(P) && /setProfilComplet\(profil\)/.test(P));
+  /\{vue === "carriere" && <VueCarriere membership=\{memberships\[0\] \?\? null\} profil=\{profilComplet\} \/>\}/.test(P) && /\{vue === "accomplissements" && <VueAccomplissements profil=\{profilTriomphes\} db=\{db\} \/>\}/.test(P) && !/<ModaleCarriere|from "\.\.\/components\/ModaleCarriere"/.test(P) && !/tiroirTriomphesOuvert|setTiroirTriomphesOuvert|carriereOuverte|setCarriereOuverte/.test(P) && /<PanneauTriomphes profil=\{profilTriomphes\} db=\{db\} \/>/.test(P) && /recupererResumeEtPersonnages\(comptes\[0\]\)/.test(P) && /setProfilComplet\(profil\)/.test(P));
 {
   const acc = fs.readFileSync("src/components/VueAccomplissements.tsx", "utf-8");
   const codeAcc = acc.replace(/\/\*.*?\*\//gs, "").replace(/\/\/[^\n]*/g, "");
-  ok("⚠️ 22/10 (retour utilisateur : « Accomplissement ne doit pas afficher la Vitrine Solo sans mourir ») : la page Accomplissements n'affiche PLUS la vitrine `VitrineSoloFlawless` (elle reste UNIQUEMENT dans le tiroir `PanneauTriomphes`) — la page affiche un emplacement réservé pour les triomphes à venir",
-    !/VitrineSoloFlawless/.test(codeAcc) && /Bientôt/.test(codeAcc) && /import VitrineSoloFlawless/.test(fs.readFileSync("src/components/PanneauTriomphes.tsx", "utf-8")));
+  ok("⚠️ 22/10 (retour utilisateur : « Accomplissement ne doit pas afficher la Vitrine Solo sans mourir ») : la page Accomplissements n'affiche PLUS la vitrine `VitrineSoloFlawless` (elle reste UNIQUEMENT dans le tiroir `PanneauTriomphes`) ; ⚠️ CHANGÉ (23/10, TODO n°23) : la page affiche désormais les TRIOMPHES DU COMPTE PAR SCEAU (`regrouperParSceau`, compteur global, recherche avancée `filtrerSceaux`, tri `trierSceaux`)",
+    !/VitrineSoloFlawless/.test(codeAcc) && !/Bientôt/.test(codeAcc) && /regrouperParSceau/.test(codeAcc) && /compteursGlobaux/.test(codeAcc) && /filtrerSceaux/.test(codeAcc) && /trierSceaux/.test(codeAcc) && /import VitrineSoloFlawless/.test(fs.readFileSync("src/components/PanneauTriomphes.tsx", "utf-8")));
 }
 {
   const sel = fs.readFileSync("src/components/SelecteurVues.tsx", "utf-8");

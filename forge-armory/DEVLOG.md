@@ -4,6 +4,48 @@
 
 ---
 
+## 23/10/2026 — LIVRAISON TODO n°23 : page « Accomplissements » — Triomphes du compte par sceau (PR #17)
+
+**Demande de l'utilisateur** : la page « Accomplissements » affichait un placeholder « 🚧 Bientôt ». Livraison de l'affichage complet des Triomphes du compte — obtenus et à obtenir — groupés **par sceau** (hiérarchie Collections→Sceaux du jeu).
+
+**Fait** :
+- **Nouveau modèle** `src/lib/bungie/sceaux.ts` (358 lignes, lecture seule) :
+  - `regrouperParSceau(db, profil)` — croise l'arbre « Triumphs » du Manifest (nœuds avec `completionRecordHash` = sceaux) avec l'état des records du profil (composant 900, `profileRecords`). Portée PROFIL uniquement (scope compte). Triomphes absents = « à obtenir » (jamais masqués, jamais estimés).
+  - `compteursGlobaux` — « X / Y triomphes obtenus · score total » (somme des `ScoreValue` des triomphes obtenus).
+  - `filtrerSceaux` — **recherche avancée** (réutilise `parserRecherche`/`correspondRecherche` du Legendarium) : guillemets `"phrase exacte"`/`« »`, `+obligatoire`, `-exclu`, case « Respecter la casse » (insensible par défaut). Porte sur nom + description des triomphes + nom du sceau.
+  - `trierSceaux` — par **progression** (défaut) ou par **nom**.
+- **Page** `VueAccomplissements.tsx` réécrite (+168 lignes) — props `{ profil, db }` câblées dans `DashboardPage` : compteur global en tête, recherche + case « Aa » + sélecteur de tri, **sceaux repliés par défaut** (comme le Legendarium) avec icône, barre de progression « X/Y (N %) » et titre du sceau (« débloqué » à 100 %) ; chaque triomphe : icône, nom, description, progression des objectifs (« 3 / 10 »), badge ✅/⬜, points.
+- **Correction** (retour utilisateur « Aucun sceau trouvé ») : dans le Manifest actuel, les nœuds sceaux ne sont PAS sous la racine « Triumphs » (1163735237) mais sous une racine séparée « Sceaux/Titres ». La racine est lue **dans le profil** (`recordSealsRootNodeHash`, champ officiel du composant 900 — comme DIM), secours par constantes (1652422747 « Seals », 616318467 « Titles », 1163735237), puis **scan global** hors Collections/Lore/Metrics/Patterns en dernier recours.
+- **Types Manifest complétés** : `completionRecordHash`/`objectiveHash` sur les nœuds ; `scope`/`objectiveHashes`/`completionInfo.ScoreValue`/`titleInfo` sur les records.
+- La vitrine « Solo sans mourir » reste **uniquement** dans le tiroir du Build Analyzer (`PanneauTriomphes`).
+
+**Tests** :
+- `tests/logique/sceaux.test.ts` (nouveau, **31/31 contrôles**)
+- `tests/logique/cablage-forge.test.ts` mis à jour
+- `tests/ui/vue-accomplissements.py` (nouveau : compteur global, sceaux repliés, recherche avancée, casse, tri, replis `?sans-profil=1`/`?sans-db=1`)
+- `tests/ui/entree-vue-accomplissements.tsx` (nouveau)
+- `tests/ui/vue-carriere.py` + `entree-vue-carriere.tsx` mis à jour
+- **Batterie CI** : **37/37 suites, 740/740 contrôles** ✓ (local : 36/37, 746/747 — le test `icones.test.tsx` est connu, passe en CI)
+- `tsc -b` : 0 erreur ✓ · `npm run build` strict : ✓
+
+**À valider en `npm run dev`** (bac à sable : pas de navigateur ni d'API Bungie) : page Accomplissements — compteur global, sceaux repliés/dépliés, recherche avancée, tri progression/nom, triomphes obtenus (✅) et à obtenir (⬜).
+
+**Branche `draft-update-triomphes` supprimée** après merge. TODO n°23 marqué LIVRÉ.
+
+**Version inchangée (0.5.1).**
+
+---
+
+## 23/10/2026 — PROPAGATION : PR #18 (renommage CHANGELOG → DEVLOG) répertutée sur les branches de chantier
+
+**Propagation** : le renommage `CHANGELOG.md` → `DEVLOG.md` (PR #18) a été répertuté sur les 7 branches de chantier actives : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `draft-update-triomphes`, `test`.
+
+**Conflits résolus** : `CHANGELOG.md` en conflit (rename/delete côté main vs modify côté branche) sur 3 branches (`draft-armure-score`, `draft-netlify`, `draft-update-triomphes`) — résolu en supprimant `CHANGELOG.md` et transférant les entrées spécifiques à la branche dans `DEVLOG.md`. Les 4 autres branches : merge propre.
+
+**Version inchangée (0.5.1).**
+
+---
+
 ## 23/10/2026 — RENOMMAGE : `CHANGELOG.md` → `DEVLOG.md`
 
 **Demande de l'utilisateur** : le fichier `CHANGELOG.md` devient `DEVLOG.md` pour garder l'historique du développement. Un nouveau `CHANGELOG.md` minimal est créé pour les utilisateurs (changements visibles uniquement).
