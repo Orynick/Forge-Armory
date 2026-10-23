@@ -348,7 +348,7 @@ export function obtenirOptionsSousClasse(
  * Demande explicite de l'utilisateur (26/08) : les mêlées/grenades/
  * compétences de classe sont le texte le MOINS bien classé par
  * `sourcePayoff.ts` aujourd'hui (voir le principe des "identités de
- * capacité" dans `CHANGELOG.md`), et ce sont elles qui définissent
+ * capacité" dans `DEVLOG.md`), et ce sont elles qui définissent
  * concrètement ce qu'une capacité APPLIQUE - contrairement aux
  * aspects/fragments qui expriment de vrais synergies conditionnelles.
  *
@@ -1677,7 +1677,7 @@ export function deduireAntiChampion(db: Database, itemHash: number): "surcharge"
 /**
  * FR : correspondance armature (archétype) -> type de champion contré,
  * d'après la règle Anti-Champion 2.0 de la mise à jour 9.7.0.
- * Les mots-clés sont volontairement COURTS : on a appris (cf. CHANGELOG,
+ * Les mots-clés sont volontairement COURTS : on a appris (cf. DEVLOG,
  * épisode "Fusil à rayon" vs "rayons") que les textes Bungie varient en
  * genre/nombre et en formulation. Les cas les plus spécifiques doivent
  * être placés AVANT les plus génériques, .find() s'arrêtant au premier.
@@ -2957,7 +2957,7 @@ export function obtenirElementFiltre(db: Database, itemHash: number): ElementFil
 // dégâts « cinétiques » au sens élémentaire), il est isolé dans le drapeau
 // `soutientCinetique` des artefacts. Le réintroduire dans ENUM_VERS_ELEMENT
 // pour récupérer son icône aurait cassé cette séparation, qui avait été
-// posée délibérément (voir CHANGELOG du 04/08).
+// posée délibérément (voir DEVLOG du 04/08).
 // EN: ⚠️ ADDED - official KINETIC icon (enum 1). Deliberately a separate
 // function: Kinetic is NOT in `DamageElement` (it's not a subclass), it
 // lives in the artifacts' `soutientCinetique` flag. Adding it to
