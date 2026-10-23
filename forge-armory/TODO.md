@@ -547,7 +547,7 @@ n'apparaît qu'à `npm run build`.
 de données, impression PDF), le Manifest réel, la police de Windows. Toute livraison doit le dire explicitement, et la liste de tests commence par `npm.cmd run build`.
 
 
-### 23. Page « Accomplissements » : afficher les Triomphes du compte ✅ LIVRÉ (23/10/2026, PR #17)
+### 23. Page « Accomplissements » : afficher les Triomphes du compte ✅ LIVRÉ (23/10/2026, PR #17) — ⚠️ CHANGÉ (23/10, après merge PR #17) : présentation en CARTES (grille CSS, barre sous la carte, pourcentage en dessous, dépliage dans la carte). **Reste : validation utilisateur en `npm run dev`.**
 
 **LIVRÉ sur `main`** — la page « Accomplissements » affiche désormais **tous les Triomphes du compte — obtenus et à obtenir — groupés PAR SCEAU** (hiérarchie Collections→Sceaux du jeu).
 
