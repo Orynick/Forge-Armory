@@ -8,18 +8,21 @@
 
 import type { CSSProperties } from "react";
 
-export type VueApp = "analyseur" | "loadouts" | "forge" | "bibliotheque";   // ⚠️ v0.4.0 : + « forge »
+export type VueApp = "analyseur" | "loadouts" | "forge" | "bibliotheque" | "carriere" | "accomplissements";   // ⚠️ v0.4.0 : + « forge »
 
 // FR : ⚠️ CHANGÉ (07/10/2026, v0.3.16) - les fichiers viennent du catalogue de l'archive « forge-armory-app-assets » (`urlVisuel`, identifiants `selecteur.<vue>.repos|selectionne`) au lieu de chemins écrits ici. / EN: ⚠️ CHANGED - files now come from the supplied catalogue.
 import { urlVisuel } from "../lib/visuelsForge";
 
 /** FR : l'ordre est celui demandé : Build Analyzer, Load-outs, Forge, Legendarium (Forge ajoutée en v0.4.0 ; « Bibliothèque » renommée « Legendarium » en v0.4.4). / EN: the requested order. */
-const VUES: { valeur: VueApp; libelle: string; fichier: string }[] = [
+/** FR : ⚠️ AJOUT (22/10/2026, TODO §25) : les deux DERNIERS onglets « Carrière » et « Accomplissements » sont les PAGES DÉDIÉES du compte, ouvertes par les boutons du même nom du bloc Connexion. Leurs visuels ont le cadre 4897 x 1024 (comme dans le bloc Connexion) : `large: true` applique le modificateur `bouton-vue--large`, sinon ils seraient réduits pour tenir dans le cadre 4316 / 1024 des quatre autres. / EN: ADDED - the last two tabs are the account PAGES opened by the Connection block's buttons; their visuals use the 4897 x 1024 frame (`large`). */
+const VUES: { valeur: VueApp; libelle: string; fichier: string; large?: boolean }[] = [
   { valeur: "analyseur", libelle: "Build Analyzer", fichier: "build-analyzer" },
   { valeur: "loadouts", libelle: "Load-outs", fichier: "loadouts" },
   { valeur: "forge", libelle: "Forge", fichier: "forge" },   // ⚠️ AJOUT (12/10/2026, v0.4.0) : nouvel onglet, entre Load-outs et Bibliothèque (demande de l'utilisateur)
   // FR : ⚠️ CHANGÉ (13/10/2026, v0.4.4), demande de l'utilisateur : le bouton « Bibliothèque » devient « LEGENDARIUM » (visuels de l'archive v5 : `selecteur.legendarium.*`). L'IDENTIFIANT INTERNE reste « bibliotheque » (la vue choisie est mémorisée et les tests la nomment ainsi) : seuls le libellé affiché, lu par les lecteurs d'écran, et les images changent. / EN: ⚠️ CHANGED - the "Library" button is now "Legendarium"; the internal id stays "bibliotheque" (the chosen view is remembered).
   { valeur: "bibliotheque", libelle: "Legendarium", fichier: "legendarium" },
+  { valeur: "carriere", libelle: "Carrière", fichier: "carriere-large", large: true },
+  { valeur: "accomplissements", libelle: "Accomplissements", fichier: "accomplissements", large: true },
 ];
 
 /**
@@ -29,7 +32,7 @@ const VUES: { valeur: VueApp; libelle: string; fichier: string }[] = [
  * EN: ⚠️ ADDED - ONE stylised selector button, usable on its own, at any height (here 28 px in the save confirmation).
  */
 export function BoutonVue({ vue, libelle, actif = false, hauteur, roleOnglet = false, onClick }: { vue: VueApp; libelle: string; actif?: boolean; hauteur?: string; roleOnglet?: boolean; onClick: () => void }) {
-  const fichier = VUES.find((v) => v.valeur === vue)!.fichier;
+  const trouvee = VUES.find((v) => v.valeur === vue)!;
   return (
     <button
       type="button"
@@ -37,14 +40,14 @@ export function BoutonVue({ vue, libelle, actif = false, hauteur, roleOnglet = f
       aria-selected={roleOnglet ? actif : undefined}
       aria-label={libelle}
       title={libelle}
-      className="bouton-vue"
+      className={trouvee.large ? "bouton-vue bouton-vue--large" : "bouton-vue"}
       data-actif={actif}
       data-vue={vue}
       onClick={onClick}
       style={hauteur ? ({ "--hauteur-bouton": hauteur } as CSSProperties) : undefined}
     >
-      <img className="bouton-vue__repos" src={urlVisuel(`selecteur.${fichier}.repos`)} alt="" draggable={false} />
-      <img className="bouton-vue__actif" src={urlVisuel(`selecteur.${fichier}.selectionne`)} alt="" draggable={false} />
+      <img className="bouton-vue__repos" src={urlVisuel(`selecteur.${trouvee.fichier}.repos`)} alt="" draggable={false} />
+      <img className="bouton-vue__actif" src={urlVisuel(`selecteur.${trouvee.fichier}.selectionne`)} alt="" draggable={false} />
     </button>
   );
 }

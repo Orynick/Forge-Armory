@@ -1,26 +1,11 @@
-// FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - vue « CARRIÈRE » du compte (spécification
-// du 14/10/2026) : statistiques d'usage du compte en LECTURE SEULE, dans la
-// modale commune (Modale.tsx), chargées UNIQUEMENT au clic sur le bouton
-// « Carrière » du bloc Connexion — aucun appel réseau au chargement de
-// l'appli. Aucune persistance : la vue est à la demande, rafraîchie à chaque
-// ouverture (les données d'usage évoluent en continu, un cache local
-// présenterait des chiffres périmés).
-// Sections : compte (pseudo, plateformes liées), temps de jeu (total et par
-// classe), personnages (puissance), 10 dernières activités, stats « Carrière »
-// du compte (bloc allTime de GetHistoricalStats, characterId = 0 : l'équivalent
-// du filtre « Carrière » des Emblèmes du jeu — les filtres Tout/Semaine/Saison
-// ne sont PAS repris). Chaque section s'affiche INDÉPENDAMMENT : une donnée
-// manquante affiche « non disponible », jamais une estimation (règle du
-// projet). Navigation croisée : un bouton « Accomplissements » ouvre le tiroir
-// « Solo sans mourir » ; ce tiroir a le bouton retour.
-// EN: ⚠️ ADDED - read-only account "Career" view in a modal; loads on click
-// only; missing data shows "non disponible", never an estimate.
+// FR : ⚠️ AJOUT (22/10/2026, TODO §25) - PAGE « CARRIÈRE » du compte (onglet du sélecteur de vues), en REMPLACEMENT de la modale `ModaleCarriere` (supprimée) : le bouton « Carrière » du bloc Connexion ouvre désormais cet onglet, le bloc Connexion et les onglets restent affichés (le bug §25 — pop-up qui ne s'ouvrait pas hors Build Analyzer — est résolu par construction : plus de pop-up du tout).
+// Contenu repris TEL QUEL de l'ancienne modale (spécification du 14/10/2026) : statistiques d'usage du compte en LECTURE SEULE, chargées à l'OUVERTURE de l'onglet (la page n'est montée que quand l'onglet est actif — aucun appel réseau au chargement de l'appli). Aucune persistance : la vue est à la demande, rafraîchie à chaque ouverture (les données d'usage évoluent en continu, un cache local présenterait des chiffres périmés).
+// Sections : temps de jeu (total et par classe), personnages (puissance), 10 dernières activités, stats « Carrière » du compte (bloc allTime de GetHistoricalStats, characterId = 0 : l'équivalent du filtre « Carrière » des Emblèmes du jeu — les filtres Tout/Semaine/Saison ne sont PAS repris). Chaque section s'affiche INDÉPENDAMMENT : une donnée manquante affiche « non disponible », jamais une estimation (règle du projet). ⚠️ La partie « Compte » (pseudo, plateformes liées) a été SUPPRIMÉE le 21/10/2026 (demande de l'utilisateur : « la partie Compte peut disparaître » — le pseudo reste affiché dans le bloc Connexion).
+// EN: ⚠️ ADDED - the account "Career" PAGE (view-selector tab), replacing the ModaleCarriere pop-up; same content, loaded on tab open, read-only.
 
 import { useCallback, useEffect, useState } from "react";
-import Modale from "./Modale";
 import { chargerCarriere, DonneesCarriere, formaterDiagnosticCarriere } from "../lib/bungie/carriere";
 import type { DestinyMembership, Personnage } from "../lib/bungie/api";
-import { BoutonVue } from "./BoutonsVuesCompte";   // ⚠️ CHANGÉ (21/10/2026) : le bouton « Accomplissements » est le même composant que dans le bloc Connexion
 import IconeClasse from "./icones/IconeClasse";   // ⚠️ AJOUT (21/10/2026, demande de l'utilisateur : « utilise les assets d'icônes de classes de personnages »)
 import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 
@@ -68,7 +53,7 @@ function formaterDate(iso: string | null): string {
   return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-// FR : ⚠️ AJOUT (21/10/2026, demande de l'utilisateur) - icônes de CLASSES de personnages : les mêmes que partout dans l'appli (`IconeClasse`, couleurs de classe). Les noms de classe viennent de l'API déjà localisés (« Titan », « Chasseur », « Arcaniste ») ; une classe inconnue (« ? ») n'a pas d'icône. / EN: ⚠️ ADDED - class icons, same component as the rest of the app.
+// FR : ⚠️ AJOUT (21/10/2026, demande de l'utilisateur) - icônes de CLASSES de personnages : les mêmes que partout dans l'appli (`IconeClasse`, couleurs de classe). Les noms de classe viennent de l'API déjà localisés (« Titan », « Chasseur », « Arcaniste ») ; une classe inconnue (« ? ») n'a pas d'icône. / EN: class icons, same component as the rest of the app.
 const CLES_CLASSE: Record<string, "titan" | "chasseur" | "arcaniste"> = { titan: "titan", chasseur: "chasseur", arcaniste: "arcaniste" };
 function iconeDeClasse(nom: string) {
   const cle = CLES_CLASSE[nom.toLowerCase()];
@@ -76,15 +61,12 @@ function iconeDeClasse(nom: string) {
 }
 
 interface Props {
-  onFermer: () => void;
   membership: DestinyMembership | null;
   personnages: Personnage[];
   profil: unknown | null;
-  /** FR : ouvrir le tiroir « Solo sans mourir » (navigation croisée Accomplissements). / EN: open the Accomplishments drawer. */
-  onOuvrirAccomplissements: () => void;
 }
 
-export default function ModaleCarriere({ onFermer, membership, personnages, profil, onOuvrirAccomplissements }: Props) {
+export default function VueCarriere({ membership, personnages, profil }: Props) {
   const [donnees, setDonnees] = useState<DonneesCarriere | null>(null);
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -115,22 +97,24 @@ export default function ModaleCarriere({ onFermer, membership, personnages, prof
     donnees?.minutesParClasse?.reduce((acc, l) => acc + (Number.isFinite(l.minutes) ? l.minutes : 0), 0) ?? null;
 
   return (
-    /* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur) - le bouton « Accomplissements » est affiché À DROITE DU TITRE « Carrière » (et non plus en bas de la fenêtre). Même composant que dans le bloc Connexion (cadre 4897 x 1024 : plus réduit de 12 % dans un cadre trop étroit), à 2 rem de haut comme avant. / EN: ⚠️ CHANGED - the "Achievements" button now sits to the right of the title. */
-    <Modale
-      titre="Carrière"
-      onFermer={onFermer}
-      largeur={640}
-      fermerSurFond
-      apresTitre={<BoutonVue cle="selecteur.accomplissements" libelle="Accomplissements" infobulle="Ouvrir les Accomplissements (Donjons / Triomphes)" onClick={onOuvrirAccomplissements} hauteur="2rem" />}
-    >
+    /* FR : ⚠️ CHANGÉ (22/10/2026, TODO §25) - une PAGE (carte pleine largeur, comme la page Forge), plus de modale : le bloc Connexion et le sélecteur de vues restent affichés au-dessus. ⚠️ 21/10/2026 : le bouton « Accomplissements » qui était à droite du titre de la modale est RETIRÉ — la navigation vers les Accomplissements se fait par l'ONGLET du même nom dans le sélecteur de vues (les deux vues sont des onglets, plus de navigation croisée modale/tiroir). / EN: a full-width page card, no modal; the cross-navigation button is gone (the Accomplishments tab replaces it). */
+    <div className="pilier-carte" role="region" aria-label="Carrière">
+      <h3>
+        <span>Carrière</span>
+        {membership && <span style={{ fontWeight: "normal", color: "#b7b3a8" }}>{membership.displayName}</span>}
+      </h3>
+
+      {!membership && (
+        <p style={{ fontSize: "0.85rem", color: "#7d7a70", margin: "0 0 0.6rem" }}>
+          Connectez-vous pour afficher les statistiques de votre compte.
+        </p>
+      )}
       {enCours && <p style={{ margin: "0 0 0.6rem" }}>⏳ Chargement de votre carrière…</p>}
       {erreur && (
         <p style={{ margin: "0 0 0.6rem", color: "#e08070" }}>
           Une partie des données n'a pas pu être chargée : {erreur}. Les sections disponibles s'affichent ci-dessous.
         </p>
       )}
-
-      {/* FR : ⚠️ SUPPRIMÉ (21/10/2026, demande de l'utilisateur : « la partie Compte peut disparaître ») - la section « Compte » (pseudo Bungie, plateformes liées, date de première connexion) n'existe plus. Le pseudo reste affiché dans le bloc Connexion. / EN: ⚠️ REMOVED - the "Account" section. */}
 
       <Section titre="Temps de jeu">
         <Ligne libelle="Total" valeur={totalMinutes != null ? formaterDuree(totalMinutes * 60) ?? NON_DISPONIBLE : NON_DISPONIBLE} />
@@ -184,7 +168,7 @@ export default function ModaleCarriere({ onFermer, membership, personnages, prof
         ) : (
           <Ligne libelle="Éliminations, précision, K/D…" valeur={enCours ? "…" : NON_DISPONIBLE} />
         )}
-        {/* FR : ⚠️ CHANGÉ (21/10/2026, retour de l'utilisateur : « le diagnostic statIds retournés ne s'ouvre pas ») - bouton À BASCULE (il s'ouvre et se ferme) dont le contenu s'affiche TOUJOURS : avant, une liste vide donnait un texte vide, donc RIEN à l'écran, et l'erreur de la requête était avalée. Le diagnostic dit maintenant : statIds retournés (ou AUCUN), requête, erreur, structure de la réponse. Réservé au développement. / EN: ⚠️ CHANGED - a real toggle whose content always shows (before: an empty list showed nothing). Dev only. */}
+        {/* FR : ⚠️ CHANGÉ (21/10/2026, retour de l'utilisateur : « le diagnostic statIds retournés ne s'ouvre pas ») - bouton À BASCULE (il s'ouvre et se ferme) dont le contenu s'affiche TOUJOURS : avant, une liste vide donnait un texte vide, donc RIEN à l'écran, et l'erreur de la requête était avalée. Le diagnostic dit maintenant : statIds retournés (ou AUCUN), requête, erreur, structure de la réponse. Réservé au développement. / EN: a real toggle whose content always shows. Dev only. */}
         {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.statIdsCarriere && donnees && (
           <div style={{ marginTop: "0.5rem" }}>
             <button type="button" aria-expanded={diagOuvert} aria-controls="diagnostic-statids-carriere" data-diagnostic-statids-bouton="" onClick={() => setDiagOuvert((o) => !o)} style={{ fontSize: "0.7rem" }}>
@@ -196,8 +180,7 @@ export default function ModaleCarriere({ onFermer, membership, personnages, prof
           </div>
         )}
       </Section>
-
-    </Modale>
+    </div>
   );
 }
 

@@ -629,14 +629,6 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 - **confidentialité** : le pseudo Bungie est public, mais il part dans tout fichier ou image partagé ; si un utilisateur ne le souhaite pas, prévoir une case « inclure mon pseudo dans les exports » (à décider avec la phase 2, ouverture à des tiers) ;
 - affichage de l'auteur dans le futur onglet « Load-out » (§ 16).
 
-### 25. Boutons « Carrière » et « Accomplissements » : la pop-up ne s'ouvre pas hors Build Analyzer (21/10/2026)
-
-**Retour de l'utilisateur (21/10/2026, branche `draft-legendarium`)** : les boutons « Carrière » et « Accomplissements » apparaissent PARTOUT (au-dessus du sélecteur de vue), mais en cliquant dessus dans « Load-out », « Forge » ou « Legendarium », **la pop-up ne s'ouvre pas**. Dans « Build Analyzer » (vue par défaut), cela fonctionne.
-
-**Diagnostic** : les boutons étaient rendus dans le bloc « Connexion » (`DashboardPage.tsx`, ligne 516), qui est **masqué** (`display: none`) quand la vue Build Analyzer n'est pas active — les clics sur les autres vues ne pouvaient donc rien déclencher. La modale « Carrière » (`ModaleCarriere`) et le tiroir « Accomplissements » (`PanneauTriomphes`) sont montés HORS des vues (lignes 672-681), donc le problème n'était que le **bouton**, pas la cible.
-
-**Piste de correction (à valider)** : déplacer le rendu de `BoutonsVuesCompte` au-dessus du sélecteur de vue (`SelecteurVues`), hors de tout bloc masqué — ainsi les boutons restent visibles et cliquables dans TOUTES les vues. **⚠️ À valider en `npm run dev`** : vérifier que la mise en page reste correcte (les boutons ne doivent pas décaler le sélecteur de vue ni le bloc Connexion).
-
 ### 26. Legendarium — bibliothèque de Lore en lecture passive (spécification verrouillée le 19/10/2026)
 
 🟡 **Important** — chantier **LIVRÉ sur `main` le 22/10/2026** (v0.5.0, merge `draft-legendarium` → `main`, commit `821a785`). La branche `draft-legendarium` reste en place (historique du chantier). La spécification complète (décisions verrouillées, palette, interactions, critères d'acceptation, plan de découpage) est dans `documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md` — **ce document fait foi** ; toute divergence doit être signalée avant codage.

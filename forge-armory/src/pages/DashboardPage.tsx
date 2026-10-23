@@ -19,7 +19,8 @@ import { BuildDraft, GearPiece, SubclassConfig, poserPieceDansBuild } from "../t
 import PilierCarte from "../components/PilierCarte";
 import BlocContexte from "../components/BlocContexte";
 import PanneauTriomphes from "../components/PanneauTriomphes";
-import ModaleCarriere from "../components/ModaleCarriere";   // ⚠️ AJOUT (20/10/2026, v0.4.14) : vue « Carrière » du compte
+import VueCarriere from "../components/VueCarriere";   // ⚠️ CHANGÉ (22/10/2026, TODO §25) : page « Carrière » du compte (remplace l'ancienne modale du compte)
+import VueAccomplissements from "../components/VueAccomplissements";   // ⚠️ AJOUT (22/10/2026, TODO §25) : page « Accomplissements » du compte
 import { recupererProfilTriomphes } from "../lib/bungie/triomphes";
 import { EVENEMENT_SESSION_EXPIREE, redirigerVersAutorisation, deconnecter, etatSession, SessionExpiree, expirerSessionPourTest, estBureau, connecterViaBureau } from "../lib/bungie/oauth";
 import {
@@ -73,10 +74,6 @@ export default function DashboardPage() {
   // données ne changent qu'après avoir terminé un donjon, inutile de les
   // recharger à chaque changement d'équipement.
   const [profilTriomphes, setProfilTriomphes] = useState<unknown | null>(null);
-  // FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - vue « CARRIÈRE » du compte (spécification du 14/10/2026) : modale ouverte par le bouton « Carrière » du bloc Connexion (connecté uniquement, sous la coche verte). Aucun appel réseau avant le clic ; aucun état persisté — la modale se ferme et se rouvre sans toucher au reste de l'appli. / EN: ⚠️ ADDED - account "Career" modal state.
-  const [carriereOuverte, setCarriereOuverte] = useState(false);
-  // FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - état d'ouverture du tiroir « Solo sans mourir », délégué ici pour la navigation croisée Carrière ↔ Accomplissements : le bouton « Accomplissements » de la Carrière l'ouvre, et ce tiroir garde un bouton « Carrière » (retour) ; les deux vues conservent leur état. / EN: ⚠️ ADDED - external state of the Accomplishments drawer for the cross-navigation.
-  const [tiroirTriomphesOuvert, setTiroirTriomphesOuvert] = useState<boolean | undefined>(undefined);
   const [db, setDb] = useState<Database | null>(null);
   // FR : ⚠️ AJOUT (06/10/2026) - mode diagnostic (réglable depuis le pied de page, actif aussi dans l'appli installée) : voir lib/modeDiagnostic.ts.
   const modeDiagnostic = useModeDiagnostic();
@@ -512,8 +509,8 @@ export default function DashboardPage() {
         </div>
 
         {erreurTest && <p style={{ color: "#e08080", margin: "0.5rem 0 0" }}>⚠️ {erreurTest}</p>}
-        {/* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur, capture annotée) - « Carrière » (au-dessus) et « Accomplissements » : même taille, alignés, placés entre le titre et le statut (grille `pilier-carte--connexion`), MASQUÉS hors connexion (bloc `connecte &&`). Le composant `BoutonsVuesCompte` porte la taille et le cadre communs. ⚠️ 21/10 (suite 8) : le déplacement hors du bloc Connexion (testé en suite 7) est ANNULÉ — régression signalée par l'utilisateur ; le bug « pop-up qui ne s'ouvre pas hors Build Analyzer » est à traiter séparément (TODO main §25). / EN: CHANGED - the two buttons: same size, aligned, between the title and the status; hidden when not connected. The move outside the Connection block (tried in suite 7) is REVERTED - user-reported regression. */}
-        {connecte && <BoutonsVuesCompte onCarriere={() => setCarriereOuverte(true)} onAccomplissements={() => setTiroirTriomphesOuvert(true)} />}
+        {/* FR : ⚠️ CHANGÉ (22/10/2026, TODO §25) - « Carrière » (au-dessus) et « Accomplissements » ouvrent chacun un ONGLET du sélecteur de vues (pages dédiées), plus une pop-up ni un tiroir. Le bloc Connexion et les onglets restent affichés : le bug §25 (la pop-up ne s'ouvrait pas hors Build Analyzer) est résolu par construction. ⚠️ 21/10 (suite 8) : le déplacement hors du bloc Connexion (testé en suite 7) reste ANNULÉ — régression signalée par l'utilisateur. / EN: the two buttons now open tabs (dedicated pages); the Connection block and the tabs stay visible. */}
+        {connecte && <BoutonsVuesCompte onCarriere={() => setVue("carriere")} onAccomplissements={() => setVue("accomplissements")} />}
 
         {memberships.length > 1 && (
           <p style={{ fontSize: "0.8rem", color: "#b7b3a8", margin: "0.5rem 0 0" }}>
@@ -551,6 +548,12 @@ export default function DashboardPage() {
           db={db}
         />
       )}
+
+      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Carrière » : PAGE dédiée aux statistiques du compte (remplace la modale de la v0.4.14). Le bloc Connexion et le sélecteur de vues restent affichés : le bug §25 (pop-up qui ne s'ouvrait pas hors Build Analyzer) est résolu par construction. Lecture seule, chargée à l'ouverture de l'onglet (aucun appel réseau au chargement de l'appli). / EN: the Career page. */}
+      {vue === "carriere" && <VueCarriere membership={memberships[0] ?? null} personnages={personnages} profil={profilTriomphes} />}
+
+      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte (la vitrine « Solo sans mourir » en pleine page). Le tiroir latéral du Build Analyzer est conservé à part. / EN: the Accomplishments page. */}
+      {vue === "accomplissements" && <VueAccomplissements profil={profilTriomphes} db={db} />}
 
       {/* FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - la vue Build Analyzer est
       MASQUÉE (display: none) et non retirée quand la Bibliothèque est
@@ -669,17 +672,8 @@ export default function DashboardPage() {
       EN: ⚠️ ADDED - "Solo Flawless" showcase, LEFT sliding panel mirroring
       the loadouts on the right. Also `fixed`, so its JSX position doesn't
       affect where it appears. */}
-      {/* FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - vue « Carrière » du compte : modale (même habillage que les fenêtres Détails existantes, choix de la spécification) ouverte par le bouton du bloc Connexion. Aucune persistance : rafraîchie à chaque ouverture. / EN: ⚠️ ADDED - Career modal. */}
-      {carriereOuverte && connecte && memberships[0] && (
-        <ModaleCarriere
-          onFermer={() => setCarriereOuverte(false)}
-          membership={memberships[0]}
-          personnages={personnages}
-          profil={profilTriomphes}
-          onOuvrirAccomplissements={() => setTiroirTriomphesOuvert(true)}
-        />
-      )}
-      <PanneauTriomphes profil={profilTriomphes} db={db} ouvertExterieur={tiroirTriomphesOuvert} onOuvertChange={setTiroirTriomphesOuvert} onOuvrirCarriere={connecte ? () => setCarriereOuverte(true) : undefined} />
+      {/* FR : ⚠️ CHANGÉ (22/10/2026, TODO §25) - le tiroir « Solo sans mourir » RETROUVE son état interne (plus de navigation croisée Carrière ↔ Accomplissements : les deux vues du compte sont des ONGLETS). / EN: the drawer is self-contained again. */}
+      <PanneauTriomphes profil={profilTriomphes} db={db} />
 
       <PanneauLoadouts
         objetsPossedes={objetsPossedes}

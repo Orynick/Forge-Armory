@@ -13,6 +13,8 @@ ok("le message du Manifest chargé parle du Legendarium", avec.includes("le Lege
 ok("plus aucune trace de « Bibliothèque » à l'écran (page avec ou sans Manifest)", !/biblioth/i.test(sans) && !/biblioth/i.test(avec), [sans, avec]);
 const sel = renderToStaticMarkup(<SelecteurVues vue="analyseur" onChanger={() => {}} />);
 const boutons = [...sel.matchAll(/<button[^>]*>/g)].map((m) => m[0]);
-ok("le SÉLECTEUR a quatre boutons dont les noms accessibles sont, dans l'ordre : Build Analyzer, Load-outs, Forge, Legendarium", JSON.stringify(boutons.map((b) => /aria-label="([^"]*)"/.exec(b)?.[1])) === JSON.stringify(["Build Analyzer", "Load-outs", "Forge", "Legendarium"]), boutons);
+// ⚠️ 22/10/2026 (TODO §25) : SIX boutons depuis l'ajout des onglets « Carrière » et « Accomplissements ».
+ok("le SÉLECTEUR a six boutons dont les noms accessibles sont, dans l'ordre : Build Analyzer, Load-outs, Forge, Legendarium, Carrière, Accomplissements", JSON.stringify(boutons.map((b) => /aria-label="([^"]*)"/.exec(b)?.[1])) === JSON.stringify(["Build Analyzer", "Load-outs", "Forge", "Legendarium", "Carrière", "Accomplissements"]), boutons);
+ok("⚠️ 22/10/2026 (TODO §25) : les deux derniers boutons du sélecteur portent les identifiants internes « carriere » et « accomplissements »", /data-vue="carriere"/.test(boutons[4]) && /data-vue="accomplissements"/.test(boutons[5]), boutons.slice(4));
 ok("le quatrième bouton garde l'identifiant interne « bibliotheque » (vue mémorisée) mais utilise les images Legendarium : bouton-legendarium.svg et bouton-legendarium-selectionne.svg", /data-vue="bibliotheque"/.test(boutons[3]) && sel.includes("bouton-legendarium.svg") && sel.includes("bouton-legendarium-selectionne.svg") && !/biblioth/i.test(sel.replace(/data-vue="bibliotheque"/g, "")), sel.match(/src="[^"]*"/g));
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`); process.exit(res.every(Boolean) ? 0 : 1);

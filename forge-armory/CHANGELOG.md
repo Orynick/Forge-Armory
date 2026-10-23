@@ -1,3 +1,38 @@
+## 22/10/2026 — TODO §25 RÉSOLU : « Carrière » et « Accomplissements » deviennent des PAGES (onglets dédiés)
+
+**Demande de l'utilisateur (22/10/2026, TODO §25)** : « On va changer d'approche. On garde le tiroir des Solo sans Mourir pour le moment. Les boutons Carrière et Accomplissements devront chacun ouvrir un onglet spécifique (le bloc de Connexion reste affiché, tout comme les 4 onglets qui se trouvent en dessous). Carrière : n'affiche plus une pop-up mais une page dédiée aux statistiques du compte. Accomplissements : n'agit plus sur le tiroir latéral gauche mais ouvre une page dédiée aux Triomphes du compte. »
+
+**Pourquoi** : le bug §25 (la pop-up « Carrière » ne s'ouvrait pas hors Build Analyzer, car les boutons étaient rendus dans le bloc Connexion masqué `display: none` hors vue analyseur) est résolu **par construction** : il n'y a plus de pop-up, plus de tiroir commandé depuis le bloc Connexion — les deux boutons ouvrent des **onglets** du sélecteur de vues, et le bloc Connexion comme les onglets restent affichés.
+
+**Fait** :
+- **`src/components/SelecteurVues.tsx`** (⚠️ CHANGÉ) —
+  - `VueApp` gagne `"carriere"` et `"accomplissements"` ; le sélecteur compte **SIX onglets** : Build Analyzer, Load-outs, Forge, Legendarium, **Carrière**, **Accomplissements** (dans cet ordre).
+  - Les deux nouveaux onglets utilisent les visuels du bloc Connexion (cadre **4897 x 1024** : `selecteur.carriere-large.*` et `selecteur.accomplissements.*`) via un nouveau champ `large` (`bouton-vue--large`), sinon ils seraient réduits pour tenir dans le cadre 4316 / 1024 des quatre autres.
+- **`src/index.css`** (⚠️ CHANGÉ) — le sélecteur autorise le retour à la ligne à toutes les largeurs (`flex-wrap: wrap`) : à six boutons (deux en cadre 4897), une seule ligne demanderait ~1540 px à 56 px de haut, et même à la hauteur minimale de la charte (40 px) ~1117 px — impossible dans les 1032 px de la page. Le sélecteur passe sur **deux rangées alignées** ; la hauteur commune (`--hauteur-logo-titre`) garde les mêmes bornes (2,6 rem – 3,5 rem).
+- **`src/components/VueCarriere.tsx`** (⚠️ AJOUT) — **page « Carrière »** du compte (remplace `ModaleCarriere.tsx`, **supprimé**) : carte pleine largeur (`pilier-carte`, région « Carrière »), contenu repris tel quel de l'ancienne modale (spécification du 14/10/2026 : temps de jeu total et par classe, personnages, 10 dernières activités, statistiques « Carrière » du compte — lecture seule, chargée à l'ouverture de l'onglet, « non disponible » jamais d'estimation, icônes `IconeClasse`, diagnostic statIds dev). Le bouton « Accomplissements » de l'ancienne modale est **retiré** (l'onglet du même nom remplace la navigation croisée).
+- **`src/components/VueAccomplissements.tsx`** (⚠️ AJOUT) — **page « Accomplissements »** : la vitrine « Solo sans mourir » en pleine page (page dédiée aux Triomphes du compte), sans tiroir latéral.
+- **`src/components/VitrineSoloFlawless.tsx`** (⚠️ AJOUT) — contenu de la vitrine « Solo sans mourir » (liste des 11 donjons, diagnostics dev), extrait pour être partagé par le tiroir et la page Accomplissements.
+- **`src/components/IconeCrane.tsx`** (⚠️ AJOUT) — icône « crâne » extraite de `PanneauTriomphes.tsx` (partagée tiroir / page).
+- **`src/components/PanneauTriomphes.tsx`** (⚠️ CHANGÉ) — le tiroir « Solo sans mourir » **retrouve son comportement d'origine** (état d'ouverture interne) : les props `ouvertExterieur` / `onOuvertChange` / `onOuvrirCarriere` et le bouton « Carrière » de la v0.4.14 sont supprimés. **Le tiroir est conservé** (demande de l'utilisateur).
+- **`src/components/Modale.tsx`** (⚠️ CHANGÉ) — la prop `apresTitre` (21/10/2026, bouton « Accomplissements » à droite du titre de la modale) est retirée ; l'en-tête redevient un simple titre + croix.
+- **`src/pages/DashboardPage.tsx`** (⚠️ CHANGÉ) —
+  - Les états `carriereOuverte` et `tiroirTriomphesOuvert` sont **supprimés** ; les boutons du bloc Connexion appellent `setVue("carriere")` / `setVue("accomplissements")`.
+  - Les deux pages sont montées comme des vues (`vue === "carriere"` / `vue === "accomplissements"`), **hors du bloc Connexion** masqué avec l'analyseur : elles s'affichent dans TOUTES les vues, avec le bloc Connexion et les six onglets au-dessus.
+  - `PanneauTriomphes` est rendu sans props de navigation croisée.
+
+**Tests** :
+- `tests/logique/cablage-forge.test.ts` — 2 nouveaux contrôles (boutons → onglets ; pages montées comme des vues, modale et état de tiroir externe supprimés).
+- `tests/ui/selecteur.py` + `entree-selecteur.tsx` — sélecteur à SIX boutons : ordre, deux rangées max, pas de défilement horizontal, visuels 4897 x 1024 des deux nouveaux onglets, pages Carrière/Accomplissements affichées avec le bloc Connexion et le sélecteur visibles, retour au Build Analyzer.
+- `tests/ui/vue-carriere.py` + `entree-vue-carriere.tsx` (remplace `modale-carriere.py`) — **page, pas modale** : aucun `[role=dialog]`, bloc Connexion et sélecteur au-dessus, plus de partie « Compte », plus de bouton « Accomplissements » dans la page, icônes de classes, diagnostic dev (ouverture/fermeture, contenu même en échec 404), navigation par onglet vers la page Accomplissements.
+- `tests/ui/connexion-boutons.py` — câblage mis à jour (les deux boutons ouvrent les onglets).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` batterie complète au vert.
+
+**À valider en `npm run dev`** : les six onglets du sélecteur (deux rangées), le bouton « Carrière » du bloc Connexion → page Carrière (statistiques chargées à l'ouverture), le bouton « Accomplissements » → page Accomplissements (vitrine « Solo sans mourir » en pleine page), le tiroir « Solo sans mourir » toujours disponible depuis le Build Analyzer.
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — CORRECTIF : FILIGRANE CENTRÉ SUR TOUTE LA FICHE (export infographique Legendarium)
 
 **Demande de l'utilisateur** : « le filigrane du logo de Forge Armory qui se trouve dans l'export infographique, je le veux sur l'ensemble de la fiche. À l'image de ce que l'on fait pour l'export infographique des builds. Assure-toi qu'il soit bien centré. »
