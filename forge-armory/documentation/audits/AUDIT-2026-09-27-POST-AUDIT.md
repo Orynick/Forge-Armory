@@ -86,4 +86,4 @@ Les dépendances npm ne sont pas présentes dans l’archive et l’installation
 Corrections de code retenues ; modifications de `README.md` et de
 `GUIDE-DEMARRAGE-INVITE.md` rejetées (versions d'origine rétablies).
 `.env.local` et l'export de loadouts restent dans la copie de travail.
-Détail et points repérés non traités : `CHANGELOG.md`, entrée du 27/09/2026.
+Détail et points repérés non traités : `DEVLOG.md`, entrée du 27/09/2026.

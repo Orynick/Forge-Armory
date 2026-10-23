@@ -25,7 +25,7 @@ NOTES-CONCEPTION.md
 
 # Remarques :
 # - « A-TESTER* » couvre aussi documentation/sources/A-TESTER.md ; « GUIDE-DEMARRAGE* » couvre GUIDE-DEMARRAGE.md et GUIDE-DEMARRAGE-INVITE.md.
-# - CHANGELOG.md et TODO.md restent publiés (décision du 11/10/2026 : ils sont versionnés dans le dépôt).
+# - DEVLOG.md et TODO.md restent publiés (décision du 11/10/2026 : ils sont versionnés dans le dépôt).
 # - Si ces fichiers ont DÉJÀ été envoyés sur GitHub avant l'ajout, le .gitignore ne les retire pas : il faut les retirer du suivi (git rm --cached <fichier>) puis valider, sinon ils restent publics.
 
 # FR : artefacts du lanceur de tests (esbuild), ne pas versionner

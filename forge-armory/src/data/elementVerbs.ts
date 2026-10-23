@@ -199,7 +199,7 @@ export interface VerbeCatalogue {
    * doit rester un vrai payoff) - une exception CIBLÉE, propre à cette
    * capacité précise, est plus sûre qu'un assouplissement général.
    *
-   * Cas trouvés (voir CHANGELOG.md) : "Enfant des dieux anciens" (aspect
+   * Cas trouvés (voir DEVLOG.md) : "Enfant des dieux anciens" (aspect
    * Arcaniste Abyssal) applique bien Neutralisation ("Les combattants
    * affectés PAR L'ÂME sont aussi brièvement neutralisés" - "affectés par"
    * fait référence à l'Âme, pas à la neutralisation elle-même) ; "Tir de
