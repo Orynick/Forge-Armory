@@ -1,3 +1,21 @@
+## 23/10/2026 — MISE À JOUR DE LA DOCUMENTATION (README + NOTICE) — Legendarium livré en v0.5.0
+
+**Constat** (point d'avancement demandé par l'utilisateur) : le README et la NOTICE n'avaient pas été mis à jour après la livraison du Legendarium (v0.5.0, 22/10/2026).
+
+**Fait** :
+- **`README.md`** : la ligne « Legendarium … et Forge : en construction » remplacée par deux entrées à jour — **Legendarium** (bibliothèque de Lore en lecture passive, Grimoire D1, Légendes D2, armes, armures, cosmétiques, export infographique PNG) et **Forge** (collection et inventaire, simulation locale des perks et mods, score en tient compte).
+- **`NOTICE.md`** :
+  - Sommaire : ajout de « Le Legendarium (lire le Lore) ».
+  - Tableau des fonctionnalités : ajout de la ligne **Legendarium** ✅ Fonctionnel (lecture passive, recherche avancée, parcours inverse, bouton « Lire le Lore », export infographique PNG).
+  - Tableau des fonctionnalités : correction « armures à venir » retiré de la Collection Forge (fait depuis v0.4.12).
+  - **Nouvelle section** « Le Legendarium : lire le Lore » après les fonctionnalités : les 4 sections, la recherche avancée (guillemets, `+`, `-`, case « Aa »), le parcours inverse, le bouton « 📖 Lire le Lore » dans les fiches, l'export infographique PNG, le fonctionnement hors-ligne du Grimoire D1.
+
+**Vérifié** : `tsc -b` 0 erreur, `npm run test:logique` **36/36 suites, 708/708 contrôles** ✓ (aucun code modifié, documentation seule).
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — CORRECTIF : FILIGRANE CENTRÉ SUR TOUTE LA FICHE (export infographique Legendarium)
 
 **Demande de l'utilisateur** : « le filigrane du logo de Forge Armory qui se trouve dans l'export infographique, je le veux sur l'ensemble de la fiche. À l'image de ce que l'on fait pour l'export infographique des builds. Assure-toi qu'il soit bien centré. »
