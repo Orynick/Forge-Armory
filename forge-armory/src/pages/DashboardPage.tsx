@@ -785,11 +785,9 @@ export default function DashboardPage() {
           key={p.pilier}
           pilier={p}
           stats={resultat.statsTotales}
-          // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - les ajustements manuels (boutons −/+)
-          // sont aussi sur le graphique du pilier 5 (Statistiques).
-          // EN: manual adjustments (−/+ buttons) are also on pillar 5's chart (Statistics).
-          ajustements={monBuild.ajustementsStats}
-          onChangerAjustement={changerAjustementStat}
+          // FR : ⚠️ CHANGÉ (23/10/2026, branche draft-optimiseur) - le graphique du pilier 5 est en
+          // LECTURE SEULE : les boutons −/+ d'ajustement ont été retirés (la simulation se fait dans
+          // « Mon Build »). / EN: pillar 5's chart is READ-ONLY: the −/+ adjustment buttons were removed.
         />
       ))}
 

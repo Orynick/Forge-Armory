@@ -25,11 +25,12 @@ import { Database } from "sql.js";
 import { BuildDraft, GearPiece, SlotArme, SlotArmure, StatKey } from "../types/build";
 import { LIBELLES_ELEMENT_FR as LIBELLES_ELEMENT } from "../data/libellesElements";
 import { LIBELLES_SLOT, LIBELLES_CATEGORIE } from "../data/libellesUI";
-import { STAT_MAX, sommerStatsArmure, PAS_AJUSTEMENT_STAT } from "../lib/scoring/stats";
+import { STAT_MAX, sommerStatsArmure, PAS_AJUSTEMENT_STAT, appliquerAjustementsStats, aDesAjustementsStats } from "../lib/scoring/stats";
 import { obtenirChampionsCouverts } from "../lib/scoring/verbes";
 import { obtenirBonusSetsActifs } from "../lib/scoring/armorSets";
 import RappelDoctrine from "./RappelDoctrine";
 import BadgeSimule from "./BadgeSimule";   // ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) : badge extrait pour réutilisation dans PilierCarte
+import { recommanderArchetype } from "../data/recommandationArchetype";   // ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) : bouton « Recommandation » sous les stats (simulation active)
 import { surlignerVerbesConnus, IconeElementArme, IconeMunitionArme } from "./RenduTextePerk";
 
 // FR : ⚠️ AJOUT (24/08/2026) - isole les mentions d'impact sur les stats
@@ -127,6 +128,10 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
   const [rappelDoctrineOuvert, setRappelDoctrineOuvert] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [succes, setSucces] = useState<string | null>(null);
+  // FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - état ouvert/fermé du panneau
+  // « Recommandation » d'archétype (affiché sous les stats, uniquement si simulation).
+  // EN: open/closed state of the archetype "Recommendation" panel (under the stats, simulation only).
+  const [recoOuverte, setRecoOuverte] = useState(false);
 
   useEffect(() => {
     if (personnages.length > 0 && !personnages.some((p) => p.characterId === personnageCible)) {
@@ -904,6 +909,53 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                 <div style={{ fontSize: "0.62rem", color: "#7d7a70", marginTop: "0.3rem" }} title="Plafond Armor 3.0 : 175 sans mods (archétype + masterwork + tuning), 200 avec mods (5× Majeur +10). Les surcharges liées aux charges d'armure (Fonts) ne sont PAS comptabilisées ici : elles apparaissent dans le pilier « Effets du Build ».">
                   Plafond 200 (avec mods) · les surcharges de charges d'armure ne sont pas comptées ici (voir Effets du Build)
                 </div>
+                {/* FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - bouton « Recommandation » :
+                affiché UNIQUEMENT quand une simulation de stats est active (ajustementsStats non nul,
+                décision utilisateur : les stats se simulent dans « Mon Build »). Au clic, affiche
+                l'archétype d'armure à rechercher pour approcher les stats souhaitées. Calcul par le
+                module pur data/recommandationArchetype.ts (table Armor 3.0 de la knowledge-base) :
+                les stats RÉELLES (armure + bonus doctrine, comme les barres) sont comparées aux
+                CIBLES (totaux ajustés affichés ci-dessus).
+                EN: "Recommendation" button: shown ONLY when a stat simulation is active. On click,
+                shows the armor archetype to look for to reach the desired stats. Computed by the
+                pure module (Armor 3.0 archetype table from the knowledge base): REAL stats (armor +
+                doctrine bonus, same as the bars) compared to TARGETS (the adjusted totals above). */}
+                {aDesAjustementsStats(build.ajustementsStats) && (
+                  <div style={{ marginTop: "0.4rem" }} data-bloc-recommandation="">
+                    <button
+                      type="button"
+                      data-bouton-recommandation=""
+                      aria-expanded={recoOuverte}
+                      onClick={() => setRecoOuverte((v) => !v)}
+                      style={{ fontSize: "0.68rem", padding: "0.15rem 0.5rem" }}
+                    >
+                      Recommandation
+                    </button>
+                    {recoOuverte && (() => {
+                      // FR : mêmes totaux RÉELS que les barres (armure + bonus doctrine), puis
+                      // CIBLES = totaux ajustés affichés (même clamp [0, 200] que les barres).
+                      // EN: same REAL totals as the bars (armor + doctrine bonus), then TARGETS =
+                      // the adjusted totals shown above (same [0, 200] clamp as the bars).
+                      const totauxReels = sommerStatsArmure(build.armure);
+                      if (db) {
+                        const bonusDoctrine = obtenirBonusStatsDoctrine(db, build.subclass);
+                        for (const [cle, valeur] of Object.entries(bonusDoctrine) as [StatKey, number][]) {
+                          totauxReels[cle] = (totauxReels[cle] ?? 0) + valeur;
+                        }
+                      }
+                      const cibles = appliquerAjustementsStats(totauxReels, build.ajustementsStats);
+                      const reco = recommanderArchetype(totauxReels, cibles);
+                      return (
+                        <div
+                          data-recommandation-archetype={reco.archetype.id}
+                          style={{ marginTop: "0.35rem", fontSize: "0.72rem", color: "#e8c547" }}
+                        >
+                          <strong>« {reco.archetype.nomFr} »</strong> ({reco.archetype.nomEn}) — {reco.explication}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             </div>
           )}
