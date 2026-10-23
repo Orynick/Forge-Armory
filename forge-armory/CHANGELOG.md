@@ -1,3 +1,16 @@
+## 23/10/2026 — DÉPENDANCES : ÉLECTRON 44 → 45 (majeur, sécurité) — `draft-deps`, palier 2bis
+
+**Demande** : mise à jour d'Electron exigée avant toute mise en ligne ou diffusion (question de sécurité — décision de l'utilisateur du 22/10).
+
+**Fait** (`draft-deps`, pas de changement de version de l'appli) :
+
+- `electron` 44.9.3 → **45.0.0** (publiée le 21/10/2026, montée majeure) dans `package.json` + `package-lock.json` ; `electron-builder` 26.15.3 inchangé (compatible).
+- `documentation/suivi/MAJ-DEPENDANCES.md` : palier 2bis documenté, tableau d'état des lieux mis à jour.
+
+**Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 708/708 contrôles réussis.
+
+**Non vérifié** : le lancement réel de l'appli installée avec Electron 45 (le conteneur d'intégration n'a pas les bibliothèques fenêtre/GTK, ni l'empaquetage NSIS Windows). **L'installateur fabriqué avec la v45 doit être lancé une fois sur Windows avant toute diffusion.** Reste aussi à faire dans ce chantier : palier 3 (React 18 → 19 + `react-router-dom` 7).
+
 ## 23/10/2026 — MISE À JOUR DE LA DOCUMENTATION (README + NOTICE) — Legendarium livré en v0.5.0
 
 **Constat** (point d'avancement demandé par l'utilisateur) : le README et la NOTICE n'avaient pas été mis à jour après la livraison du Legendarium (v0.5.0, 22/10/2026).

@@ -21,7 +21,7 @@ d'un éventuel problème. Ce chantier est dédié, sur sa propre branche `draft-
 | `@vitejs/plugin-react` | **5.2.0** ✅ | 6.1.2 | **5.2.0** | Palier 2 terminé (accepte Vite 4→8) |
 | `vite-plugin-mkcert` | **2.1.0** ✅ | 2.1.0 | 2.x | Palier 2 terminé (compatible Vite >=3) |
 | `typescript` | 5.9.3 | 7.0.2 | 5.9.x (conservateur) | TS 7 est très récent — attendre la maturité |
-| `electron` | **44.9.3** ✅ | 44.9.3 | 44.9.3 (patch) | Palier 1 terminé |
+| `electron` | **45.0.0** ✅ | 45.0.0 | 45.0.0 (majeur) | Palier 2bis terminé — voir ci-dessous |
 | `sql.js` | **1.15.1** ✅ | 1.15.1 | 1.15.1 (patch) | Palier 1 terminé |
 
 ## Stratégie recommandée (par paliers)
@@ -32,6 +32,22 @@ d'un éventuel problème. Ce chantier est dédié, sur sa propre branche `draft-
 - `typescript` 5.9.3 → **5.9.3** (déjà à jour, pas de changement nécessaire) ✅
 
 **Résultat** : `npx tsc -b` OK, `npx vite build` OK, 36/36 suites de tests, 708/708 contrôles réussis.
+
+### Palier 2bis — Electron 44 → 45 (majeur, sécurité) ✅ **TERMINÉ** (22/10/2026)
+- `electron` 44.9.3 → **45.0.0** ✅ (publiée le 21/10/2026 — montée de version
+  majeure de sécurité : décision de l'utilisateur du 22/10, **aucune mise en
+  ligne ni diffusion de l'installateur sans ça**)
+- `package.json` + `package-lock.json` mis à jour (`electron-builder` 26.15.3
+  inchangé, compatible)
+
+**Résultat** : `npx tsc -b` OK, `npm run build` OK, 36/36 suites de tests,
+708/708 contrôles réussis.
+
+**Non vérifié ici** : le lancement réel de l'appli installée avec Electron 45
+(le conteneur d'intégration n'a pas les bibliothèques système de Fenêtre/GTK,
+ni l'empaquetage NSIS Windows). **L'installateur fabriqué avec la v45 doit être
+lancé une fois sur Windows avant toute diffusion** — le chantier des tests UI
+Playwright (non exécutés en CI, voir entrée du 21/10) reste la marche à suivre.
 
 ### Palier 2 — Vite 5 → 7 (majeur, mais plugin-react 5.2.0 compatible) ✅ **TERMINÉ**
 - `vite` 5.4.21 → **7.3.7** ✅

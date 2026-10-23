@@ -14,19 +14,19 @@
     "electron:build": "npm run build && electron-builder"
   },
   "dependencies": {
+    "fflate": "^0.8.2",
+    "idb": "^8.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.0",
-    "idb": "^8.0.0",
-    "sql.js": "^1.15.1",
-    "fflate": "^0.8.2"
+    "sql.js": "^1.15.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@types/sql.js": "^1.4.11",
     "@vitejs/plugin-react": "^5.2.0",
-    "electron": "^44.9.3",
+    "electron": "^45.0.0",
     "electron-builder": "^26.15.3",
     "typescript": "^5.9.3",
     "vite": "^7.3.7",
