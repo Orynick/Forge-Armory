@@ -15,7 +15,8 @@ Application pour étudier et scorer des builds Destiny 2 selon 5 piliers pondér
 - **Loadouts** : sauvegarde, export/import, équipement en jeu.
 - **Fiche du build et partage** : fichier JSON, texte, image (JPEG/PNG) et PDF.
 - **Artefact** : sélecteur des perks avec leurs contraintes de tiers.
-- **Legendarium** (consultation du lore ; anciennement « Bibliothèque ») et **Forge** : en construction.
+- **Legendarium** : bibliothèque de Lore en lecture passive (Grimoire D1, Légendes D2, armes, armures, cosmétiques), avec export infographique PNG.
+- **Forge** : collection et inventaire des armes et armures, simulation locale des perks et mods (le score en tient compte).
 
 ## Démarrage rapide
 
