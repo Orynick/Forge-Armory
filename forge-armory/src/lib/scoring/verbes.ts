@@ -9,6 +9,7 @@ import { Database } from "sql.js";
 import { obtenirDefinition } from "../manifest/download";
 import { normaliser, positionsMotCleStrict } from "../manifest/search";
 import { CATALOGUE_VERBES, VerbeCatalogue } from "../../data/elementVerbs";
+import type { DetailLigne } from "../../types/build";
 import { BuildDraft } from "../../types/build";
 import { ARTEFACTS } from "../../data/artefacts";
 import { analyserTexte } from "./sourcePayoff";
@@ -39,6 +40,17 @@ export interface VerbeDetecte {
    * built by extraireTextesEffetsBuild, no extra Manifest read.
    */
   sources: string[];
+  /**   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - sous-ensemble de `sources`
+   * provenant d'un PERK SIMULÉ dans la Forge (l'arme porte `perksSimules`). Sert au badge
+   * « simulé » dans le pilier « Effets du Build » : un verbe déclenché UNIQUEMENT par
+   * des perks simulés est marqué. Si le verbe a AUSSI une source réelle, le badge n'est PAS
+   * posé (l'effet existe réellement en jeu).
+   * EN: subset of `sources` coming from a SIMULATED perk (the weapon carries `perksSimules`).
+   * Used for the "simulated" badge in the "Effects of the Build" pillar: a verb triggered
+   * ONLY by simulated perks is marked. If the verb ALSO has a real source, no badge (the
+   * effect really exists in game).
+   */
+  sourcesSimulees: string[];
   /**
    * FR : ⚠️ AJOUT (26/08/2026) - expose le rôle "indéterminé" séparément,
    * jusqu'ici une variable locale de `detecterVerbes`. Nécessaire pour
@@ -95,7 +107,9 @@ function calculerConfiance(aSourceEffectif: boolean, aPayoff: boolean, aIndeterm
  */
 export function detecterVerbes(
   textes: string[],
-  catalogue: VerbeCatalogue[] = CATALOGUE_VERBES
+  catalogue: VerbeCatalogue[] = CATALOGUE_VERBES,
+  /** FR : drapeaux parallèles à `textes` (même longueur) : true = le texte provient d'un perk SIMULÉ (Forge). Absent = aucun texte simulé (comportement historique). / EN: flags parallel to `textes` (same length): true = the text comes from a SIMULATED perk (Forge). Absent = no simulated text (historical behaviour). */
+  textesSimules?: boolean[]
 ): VerbeDetecte[] {
   const textesNormalises = textes.map(normaliser);
 
@@ -125,6 +139,20 @@ export function detecterVerbes(
     const sources = [
       ...new Set(
         indexTextesCorrespondants
+          .map((i) => textes[i].split(" — ")[0]?.trim())
+          .filter((nom): nom is string => !!nom)
+      ),
+    ];
+    // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - sources SIMULÉES : les textes
+    // correspondants marqués `simule` (perk choisi dans la Forge). Le badge « simulé » ne se
+    // pose que si le verbe n'a AUCUNE source réelle (sinon l'effet existe réellement en jeu).
+    // EN: SIMULATED sources: matching texts flagged `simule` (perk chosen in the Forge). The
+    // "simulated" badge is only shown when the verb has NO real source (otherwise the effect
+    // really exists in game).
+    const sourcesSimulees = [
+      ...new Set(
+        indexTextesCorrespondants
+          .filter((i) => textesSimules?.[i] === true)
           .map((i) => textes[i].split(" — ")[0]?.trim())
           .filter((nom): nom is string => !!nom)
       ),
@@ -204,7 +232,7 @@ export function detecterVerbes(
     // to `!aSource && !aPayoff && !aIndetermine`.
     const confiance = calculerConfiance(aSource, aPayoff, aIndetermine);
 
-    return { verbe, nbMentions, aSource, aPayoff, aIndetermine, sources, confiance };
+    return { verbe, nbMentions, aSource, aPayoff, aIndetermine, sources, sourcesSimulees, confiance };
   });
 }
 
@@ -288,8 +316,20 @@ export function extraireTextesDoctrineBuild(build: BuildDraft, db: Database): st
   return textes;
 }
 
+/** FR : un texte extrait d'un build, avec son drapeau « simulé » (perk choisi dans la Forge). / EN: a text extracted from a build, with its "simulated" flag (perk chosen in the Forge). */
+export interface TexteExtrait {
+  texte: string;
+  simule: boolean;
+}
+
 export function extraireTextesEffetsBuild(build: BuildDraft, db: Database): string[] {
-  const textes: string[] = extraireTextesDoctrineBuild(build, db);
+  return extraireTextesEffetsBuildMarques(build, db).map((t) => t.texte);
+}
+
+/** FR : comme `extraireTextesEffetsBuild`, mais chaque texte porte son drapeau « simulé » (perk Forge). / EN: like `extraireTextesEffetsBuild`, but each text carries its "simulated" flag (Forge perk). */
+export function extraireTextesEffetsBuildMarques(build: BuildDraft, db: Database): TexteExtrait[] {
+  const textesMarques: TexteExtrait[] = extraireTextesDoctrineBuild(build, db).map((texte) => ({ texte, simule: false }));
+  const textes = textesMarques;
 
   // FR : ⚠️ AJOUT (24/08/2026) - fonction locale réintroduite après la
   // refactorisation ci-dessus : `ajouterDepuisHash` vit désormais dans le
@@ -307,14 +347,14 @@ export function extraireTextesEffetsBuild(build: BuildDraft, db: Database): stri
   // EN: ⚠️ FIXED - same fix as the copy above in
   // `extraireTextesDoctrineBuild` - uses `obtenirDescriptionComplete`
   // instead of the raw field, for consistency and safety.
-  function ajouterDepuisHash(hash: number, table: string) {
+  function ajouterDepuisHash(hash: number, table: string, simule = false) {
     if (!hash) return;
     const def = obtenirDefinition<{ displayProperties?: { name?: string } }>(db, table, hash);
     const nom = def?.displayProperties?.name;
     if (!nom) return;
     const { description } = obtenirDescriptionComplete(db, hash);
     const texte = [nom, description].filter(Boolean).join(" — ");
-    if (texte) textes.push(texte);
+    if (texte) textes.push({ texte, simule });
   }
 
   // FR : ⚠️ CORRIGÉ (04/08/2026) - BUG MAJEUR. Les perks d'objets étaient
@@ -331,7 +371,14 @@ export function extraireTextesEffetsBuild(build: BuildDraft, db: Database): stri
   // text was ever extracted from weapons or armor: Pillar 2 only ever
   // analysed the subclass.
   for (const piece of [...build.armes, ...build.armure]) {
-    for (const h of piece.perkHashes) ajouterDepuisHash(h, "DestinyInventoryItemDefinition");
+    // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - sur une pièce SIMULÉE (Forge), on
+    // marque chaque texte extrait : le verbe déclenché portera le badge « simulé » dans le
+    // pilier « Effets du Build ». L'armure n'est jamais simulée (seules les armes le sont).
+    // EN: on a SIMULATED piece (Forge), each extracted text is marked: the verb it triggers
+    // will carry the "simulated" badge in the "Effects of the Build" pillar. Armor is never
+    // simulated (weapons only).
+    const simule = piece.perksSimules === true;
+    for (const h of piece.perkHashes) ajouterDepuisHash(h, "DestinyInventoryItemDefinition", simule);
   }
 
   // FR : ⚠️ CORRIGÉ (04/08/2026) - `artifact.perkHashes` est l'ANCIEN champ,
@@ -347,7 +394,7 @@ export function extraireTextesEffetsBuild(build: BuildDraft, db: Database): stri
     const nomPerk = resteNom.join(":");
     const artefact = ARTEFACTS.find((a) => a.id === idArtefact);
     const perk = artefact?.perksParTier[Number(tier) as 1 | 2 | 3]?.find((p) => p.nom === nomPerk);
-    if (perk) textes.push(`${perk.nom} — ${perk.description}`);
+    if (perk) textes.push({ texte: `${perk.nom} — ${perk.description}`, simule: false });
   }
 
   // FR : ⚠️ AJOUT (25/08/2026) - BONUS DE SET, jusqu'ici JAMAIS lus par la
@@ -371,7 +418,7 @@ export function extraireTextesEffetsBuild(build: BuildDraft, db: Database): stri
   // ONLY ACTIVE bonuses are injected: injecting every tier regardless of the
   // threshold would detect verbs the build doesn't actually produce.
   for (const bonus of obtenirBonusSetsActifs(build.armure, db)) {
-    textes.push(`${bonus.nom} — ${bonus.description}`);
+    textes.push({ texte: `${bonus.nom} — ${bonus.description}`, simule: false });
   }
 
   return textes;
@@ -404,8 +451,17 @@ export function extraireTextesEffetsBuild(build: BuildDraft, db: Database): stri
  * "Indeterminate" gets half credit rather than penalising the user for a
  * limitation of OUR detection.
  */
-export function scoreVerbesDetectes(verbesDetectes: VerbeDetecte[]): { score: number; details: string[] } {
+export function scoreVerbesDetectes(verbesDetectes: VerbeDetecte[]): { score: number; details: string[]; detailsMarques: DetailLigne[] } {
   const details: string[] = [];
+  // FR : version annotée des lignes (badge « simulé » dans PilierCarte). On la construit EN
+  // MÊME TEMPS que `details` : même contenu, chaque ligne sait si elle vient d'un perk simulé.
+  // EN: annotated version of the lines (the "simulated" badge in PilierCarte). Built AT THE
+  // SAME TIME as `details`: same content, each line knows if it comes from a simulated perk.
+  const detailsMarques: DetailLigne[] = [];
+  const pousse = (texte: string, simule = false) => {
+    details.push(texte);
+    detailsMarques.push({ texte, simule });
+  };
   const boucles = verbesDetectes.filter((v) => v.confiance === "boucle");
   const sourcesSeules = verbesDetectes.filter((v) => v.confiance === "source_seule");
   const orphelins = verbesDetectes.filter((v) => v.confiance === "payoff_orphelin");
@@ -415,6 +471,7 @@ export function scoreVerbesDetectes(verbesDetectes: VerbeDetecte[]): { score: nu
     return {
       score: 20,
       details: ["Aucun verbe d'élément détecté dans les aspects/fragments/perks du build"],
+      detailsMarques: [{ texte: "Aucun verbe d'élément détecté dans les aspects/fragments/perks du build", simule: false }],
     };
   }
 
@@ -430,7 +487,7 @@ export function scoreVerbesDetectes(verbesDetectes: VerbeDetecte[]): { score: nu
   // verbs one per line.
   function ajouterGroupe(icone: string, commentaire: string, verbes: VerbeDetecte[]) {
     if (verbes.length === 0) return;
-    details.push(`${icone} ${commentaire}`);
+    pousse(`${icone} ${commentaire}`);
     // FR : ⚠️ CORRIGÉ (04/08/2026) - le "• " devant chaque verbe créait une
     // DOUBLE PUCE : chaque `details[i]` est déjà rendu dans un <li> par
     // PilierCarte, qui affiche sa propre puce via le CSS de la liste. Un
@@ -455,7 +512,17 @@ export function scoreVerbesDetectes(verbesDetectes: VerbeDetecte[]): { score: nu
         (s) => normaliser(s) !== normaliser(v.verbe.nomFr) && normaliser(s) !== normaliser(v.verbe.nomEn)
       );
       const suffixe = sourcesUtiles.length > 0 ? ` (${sourcesUtiles.join(", ")})` : "";
-      details.push(`  ${v.verbe.nomFr}${suffixe}`);
+      // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - BADGE « simulé » : le verbe
+      // n'est déclenché QUE par des perks simulés (aucune source réelle) → la ligne est
+      // marquée (PilierCarte affiche le badge) et le texte porte le suffixe « 🔨 simulé »
+      // (fiche/export texte). Si le verbe a AUSSI une source réelle, pas de badge : l'effet
+      // existe réellement en jeu.
+      // EN: "simulated" badge: the verb is triggered ONLY by simulated perks (no real
+      // source) → the line is flagged (PilierCarte shows the badge) and the text carries
+      // the « 🔨 simulated » suffix (sheet/text export). If the verb ALSO has a real
+      // source, no badge: the effect really exists in game.
+      const simule = v.sourcesSimulees.length > 0 && v.sources.length === v.sourcesSimulees.length;
+      pousse(`  ${v.verbe.nomFr}${suffixe}${simule ? " · 🔨 simulé" : ""}`, simule);
     }
   }
 
@@ -525,7 +592,7 @@ export function scoreVerbesDetectes(verbesDetectes: VerbeDetecte[]): { score: nu
     0,
     Math.min(100, boucles.length * 35 + sourcesSeules.length * 12 + indetermines.length * 18 + orphelins.length * 6)
   );
-  return { score, details };
+  return { score, details, detailsMarques };
 }
 
 /**

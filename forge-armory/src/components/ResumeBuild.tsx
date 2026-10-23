@@ -29,6 +29,7 @@ import { STAT_MAX, sommerStatsArmure } from "../lib/scoring/stats";
 import { obtenirChampionsCouverts } from "../lib/scoring/verbes";
 import { obtenirBonusSetsActifs } from "../lib/scoring/armorSets";
 import RappelDoctrine from "./RappelDoctrine";
+import BadgeSimule from "./BadgeSimule";   // ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) : badge extrait pour réutilisation dans PilierCarte
 import { surlignerVerbesConnus, IconeElementArme, IconeMunitionArme } from "./RenduTextePerk";
 
 // FR : ⚠️ AJOUT (24/08/2026) - isole les mentions d'impact sur les stats
@@ -330,9 +331,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
               </span>
               {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - BADGE « simulé » : cette arme porte des perks choisis dans la Forge (ils comptent dans le score, pas en jeu). / EN: ⚠️ ADDED - "simulated" badge. */}
               {piece.perksSimules && (
-                <span data-badge-simule="" title={`${piece.nbColonnesSimulees} colonne(s) de perks simulées dans la Forge : prises en compte dans le score, pas appliquées en jeu.`} style={{ fontSize: "0.7rem", color: "#e8c547", border: "1px solid #e8c547", borderRadius: 999, padding: "0 0.4rem", cursor: "help" }}>
-                  🔨 simulé
-                </span>
+                <BadgeSimule title={`${piece.nbColonnesSimulees} colonne(s) de perks simulées dans la Forge : prises en compte dans le score, pas appliquées en jeu.`} />
               )}
               {/* FR : ⚠️ AJOUT (04/08/2026) - repère 🛡️ aussi dans "Mon
               Build" (il n'existait que dans l'Inventaire/Coffre), demande

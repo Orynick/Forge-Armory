@@ -20,7 +20,7 @@ import { ORDRE_PILIERS } from "../../data/piliers";
 import { BuildDraft, BuildScoreResult, PillarScore } from "../../types/build";
 import { ExigenceStat, scoreStats, sommerStatsArmure, ContexteBuild } from "./stats";
 import { scoreBonusSetsReels } from "./armorSets";
-import { detecterVerbes, extraireTextesEffetsBuild, scoreVerbesDetectes, obtenirChampionsCouverts, detecterChainesVerbes, detecterRessourcesGenerees, enrichirAvecChaines } from "./verbes";
+import { detecterVerbes, extraireTextesEffetsBuild, extraireTextesEffetsBuildMarques, scoreVerbesDetectes, obtenirChampionsCouverts, detecterChainesVerbes, detecterRessourcesGenerees, enrichirAvecChaines } from "./verbes";
 import { obtenirBonusStatsDoctrine, obtenirElementArme } from "../manifest/doctrine";
 import { LIBELLES_CHAMPION } from "../../components/icones/IconeAntiChampion";
 
@@ -261,8 +261,16 @@ function scoreVerbesElement(build: BuildDraft, db?: Database, contexte: Contexte
     };
   }
 
-  const textes = extraireTextesEffetsBuild(build, db);
-  const verbesDetectes = detecterVerbes(textes);
+  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - version MARQUÉE de l'extraction :
+  // chaque texte sait s'il vient d'un perk SIMULÉ (Forge), pour le badge « simulé » dans le
+  // pilier « Effets du Build ». `textes` (texte seul) alimente les chaînes/ressources, inchangé.
+  // EN: MARKED version of the extraction: each text knows if it comes from a SIMULATED perk
+  // (Forge), for the "simulated" badge in the "Effects of the Build" pillar. `textes` (text
+  // only) feeds chains/resources, unchanged.
+  const textesMarques = extraireTextesEffetsBuildMarques(build, db);
+  const textes = textesMarques.map((t) => t.texte);
+  const textesSimules = textesMarques.map((t) => t.simule);
+  const verbesDetectes = detecterVerbes(textes, undefined, textesSimules);
 
   // FR : ⚠️ CHANGÉ (26/08/2026) - les chaînes sont désormais calculées AVANT
   // le score (pas seulement en affichage informatif après-coup), pour
@@ -274,7 +282,7 @@ function scoreVerbesElement(build: BuildDraft, db?: Database, contexte: Contexte
   // now settled - see the full reasoning on `enrichirAvecChaines`.
   const maillons = detecterChainesVerbes(verbesDetectes, textes);
   const verbesEnrichis = enrichirAvecChaines(verbesDetectes, maillons);
-  const { score: scoreBoucles, details } = scoreVerbesDetectes(verbesEnrichis);
+  const { score: scoreBoucles, details, detailsMarques } = scoreVerbesDetectes(verbesEnrichis);
 
   // FR : ⚠️ CHANGÉ (06/09/2026) - regroupées par SOURCE, plus par cible.
   // Motif : demande de l'utilisateur après test réel, où "Charge d'armure"
@@ -378,10 +386,20 @@ function scoreVerbesElement(build: BuildDraft, db?: Database, contexte: Contexte
       details.push(`✨ +${bonus} pts pour la génération active de ressources (${nbTypesDistincts} type(s) distinct(s))`);
     }
     const scoreFinal = Math.max(0, Math.min(100, scoreBoucles + bonus));
-    return { pilier: "verbes_element", score: scoreFinal, poids: poidsPilier("verbes_element", contexte), details };
+    return { pilier: "verbes_element", score: scoreFinal, poids: poidsPilier("verbes_element", contexte), details, ...marquerSiSimule(detailsMarques, details) };
   }
 
-  return { pilier: "verbes_element", score: scoreBoucles, poids: poidsPilier("verbes_element", contexte), details };
+  return { pilier: "verbes_element", score: scoreBoucles, poids: poidsPilier("verbes_element", contexte), details, ...marquerSiSimule(detailsMarques, details) };
+}
+
+/** FR : n'attache `detailsMarques` au pilier que si AU MOINS une ligne est marquée simulée ;
+ * les lignes ajoutées après (chaînes, ressources, bonus) ne sont pas marquées et sont
+ * ajoutées en fin de liste avec `simule: false`. / EN: only attach `detailsMarques` to the
+ * pillar when AT LEAST one line is flagged simulated; lines added afterwards (chains,
+ * resources, bonus) are not flagged and are appended with `simule: false`. */
+function marquerSiSimule(detailsMarques: { texte: string; simule: boolean }[], details: string[]): { detailsMarques?: { texte: string; simule: boolean }[] } {
+  const complet = details.map((texte, i) => detailsMarques[i] ?? { texte, simule: false });
+  return complet.some((l) => l.simule) ? { detailsMarques: complet } : {};
 }
 
 /**

@@ -61,6 +61,8 @@ const { db } = creerFausseDb({ [T_OBJET]: {
   100: { displayProperties: { name: "Canon neutre", description: "Améliore la portée." }, itemTypeDisplayName: "Canon" },
   200: { displayProperties: { name: "Chargeur neutre", description: "Plus de balles." }, itemTypeDisplayName: "Chargeur" },
   201: { displayProperties: { name: "Chargeur incendiaire", description: "Les tirs de précision infligent Blessure solaire aux cibles." }, itemTypeDisplayName: "Chargeur" },
+  // FR : ⚠️ AJOUT (20/10/2026) - perk RÉEL mentionnant le MÊME verbe, sur une AUTRE arme : sert au cas « mixte » (verbe déclenché par un perk réel ET un perk simulé → pas de badge, l'effet existe réellement en jeu).
+  300: { displayProperties: { name: "Canon explosif", description: "Les tirs de précision infligent Blessure solaire aux cibles." }, itemTypeDisplayName: "Canon" },
 } });
 const arme2: GearPiece = arme("w1", [[1, 100], [2, 200]]);
 const buildReel = construire([arme2]);
@@ -73,4 +75,21 @@ const aucunVerbe = /Aucun verbe/i;
 ok("LE SCORE CHANGE en temps réel : le pilier des verbes d'élément passe de « aucun verbe détecté » (build réel) à un score plus HAUT avec le perk simulé (Blessure solaire), et le score global monte", aucunVerbe.test(JSON.stringify(pilierVerbes(scoreReel).details)) && !aucunVerbe.test(JSON.stringify(pilierVerbes(scoreSimule).details)) && pilierVerbes(scoreSimule).score > pilierVerbes(scoreReel).score && scoreSimule.scoreGlobal > scoreReel.scoreGlobal, [pilierVerbes(scoreReel).score, pilierVerbes(scoreSimule).score, scoreReel.scoreGlobal, scoreSimule.scoreGlobal]);
 const apresRetour = evaluerBuild(appliquerSimulations(buildReel, SIMULATIONS_VIDES()), demoExigences, db);
 ok("…et supprimer la simulation ramène EXACTEMENT le score réel (mêmes scores de pilier, même score global) : le retour au roll réel est sans reste", apresRetour.scoreGlobal === scoreReel.scoreGlobal && JSON.stringify(apresRetour.piliers.map((p) => [p.pilier, p.score])) === JSON.stringify(scoreReel.piliers.map((p) => [p.pilier, p.score])));
+// ---------- 4 bis. BADGE « simulé » sur les effets du pilier ----------
+// FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - le pilier « Effets du Build » marque
+// les lignes provenant UNIQUEMENT de perks simulés (badge « ������ simulé » dans PilierCarte,
+// suffixe dans le texte pour la fiche/export). Trois cas : build réel (aucun marquage), build
+// simulé (ligne marquée), build MIXTE réel+simulé (pas de marquage : l'effet existe
+// réellement en jeu). NB : le repère `perksSimules` est au niveau de la PIÈCE, pas du perk :
+// le cas mixte met donc le perk réel sur une AUTRE arme (non simulée).
+ok("BADGE RÉEL : un build sans simulation n'a AUCUNE ligne marquée (detailsMarques absent du pilier)", pilierVerbes(scoreReel).detailsMarques === undefined, pilierVerbes(scoreReel).detailsMarques);
+const pSim = pilierVerbes(scoreSimule), dmSim = pSim.detailsMarques;
+ok("BADGE SIMULÉ : le pilier porte detailsMarques, aligné ligne à ligne sur details", !!dmSim && dmSim.length === pSim.details.length, [dmSim?.length, pSim.details.length]);
+const iScorch = dmSim?.findIndex((l) => l.texte.includes("Blessure solaire")) ?? -1;
+const suffixeSimule = " · " + String.fromCodePoint(0x1F528) + " simulé";
+ok("BADGE SIMULÉ : la ligne du verbe déclenché UNIQUEMENT par le perk simulé est marquée (badge UI + suffixe « · [marteau] simulé » dans le texte)", iScorch >= 0 && dmSim![iScorch].simule === true && pSim.details[iScorch].endsWith(suffixeSimule), [iScorch, pSim.details]);
+ok("BADGE SIMULÉ : les autres lignes du pilier ne sont PAS marquées", !!dmSim && dmSim.every((l, i) => l.simule === (i === iScorch)), dmSim);
+const scoreMixte = evaluerBuild(appliquerSimulations(construire([arme("w1", [[1, 100], [2, 200]]), arme("w2", [[1, 300]])]), sim("w1", { 2: [201, 201] })), demoExigences, db);
+const pMixte = pilierVerbes(scoreMixte);
+ok("BADGE MIXTE : un verbe déclenché par un perk RÉEL (autre arme) et un perk simulé n'est PAS marqué ; le verbe est bien détecté", pMixte.details.some((l) => l.includes("Blessure solaire")) && pMixte.detailsMarques === undefined && !pMixte.details.some((l) => l.includes(suffixeSimule)), pMixte.details);
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`); process.exit(res.every(Boolean) ? 0 : 1);

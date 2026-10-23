@@ -1,6 +1,7 @@
 import { PillarScore, StatBlock } from "../types/build";
 import TitreCategorie, { CategorieTitre } from "./TitreCategorie";
 import StatsBarChart from "./StatsBarChart";
+import BadgeSimule from "./BadgeSimule";   // ⚠️ AJOUT (20/10/2026, branche draft-optimiseur)
 // FR : ⚠️ CHANGÉ (06/09/2026) - les libellés étaient redéclarés ici, en
 // 3e copie indépendante. Importés depuis la source unique désormais.
 // EN: ⚠️ CHANGED - labels were redeclared here as a 3rd independent copy.
@@ -29,14 +30,24 @@ export default function PilierCarte({ pilier, stats }: Props) {
   // `verbes.ts` commençant par 2 espaces est une sous-ligne du dernier titre.
   // EN: ⚠️ ADDED - groups details into "heading + sub-lines" for a REAL indent
   // (nested sub-list) rather than leading spaces that barely shifted anything.
-  const groupes: { titre: string; sousLignes: string[] }[] = [];
-  for (const ligne of pilier.details) {
+  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - si le pilier porte des lignes
+  // MARQUÉES (`detailsMarques`, même longueur que `details`), on garde le drapeau `simule` par
+  // ligne : une ligne « effet » marquée affiche le badge « simulé » (même badge que Mon
+  // Build). Sans `detailsMarques`, tout est non simulé (affichage texte inchangé).
+  // EN: if the pillar carries MARKED lines (`detailsMarques`, same length as `details`),
+  // we keep each line's `simule` flag: a marked "effect" line shows the "simulated" badge
+  // (same badge as Mon Build). Without `detailsMarques`, everything is not simulated
+  // (text display unchanged).
+  const marques = pilier.detailsMarques;
+  const simuleLigne = (i: number) => marques?.[i]?.simule === true;
+  const groupes: { titre: string; titreSimule: boolean; sousLignes: { texte: string; simule: boolean }[] }[] = [];
+  pilier.details.forEach((ligne, i) => {
     if (ligne.startsWith("  ") && groupes.length > 0) {
-      groupes[groupes.length - 1].sousLignes.push(ligne.trim());
+      groupes[groupes.length - 1].sousLignes.push({ texte: ligne.trim(), simule: simuleLigne(i) });
     } else {
-      groupes.push({ titre: ligne, sousLignes: [] });
+      groupes.push({ titre: ligne, titreSimule: simuleLigne(i), sousLignes: [] });
     }
-  }
+  });
 
   return (
     <div className="pilier-carte">
@@ -62,10 +73,14 @@ export default function PilierCarte({ pilier, stats }: Props) {
         {groupes.map((g, i) => (
           <li key={i}>
             {g.titre}
+            {g.titreSimule && <BadgeSimule />}
             {g.sousLignes.length > 0 && (
               <ul style={{ marginTop: "0.15rem" }}>
                 {g.sousLignes.map((s, j) => (
-                  <li key={j}>{s}</li>
+                  <li key={j}>
+                    {s.texte}
+                    {s.simule && <BadgeSimule />}
+                  </li>
                 ))}
               </ul>
             )}

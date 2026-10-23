@@ -197,6 +197,25 @@ export interface PillarScore {
   /** FR : ⚠️ CHANGÉ (04/08/2026) - le poids n'est plus fixe à 0.20 : il dépend du CONTEXTE du build (voir lib/scoring/stats.ts et lib/scoring/pillars.ts). / EN: no longer a flat 0.20 - depends on the build CONTEXT. */
   poids: number;
   details: string[]; // justification lisible (ex: "Grenade au palier T10 requis par Caresse du Ver : OK")
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - version ANNOTÉE des lignes de
+   * `details` : chaque ligne porte un drapeau `simule` (un effet provenant d'un perk choisi
+   * dans la Forge). Présent UNIQUEMENT quand au moins un effet est simulé ; sinon
+   * l'affichage retombe sur `details` (texte seul). Sert au badge « simulé » dans
+   * PilierCarte (même badge que dans Mon Build). Le texte porte AUSSI le suffixe
+   * « 🔨 simulé » dans `details`, pour la fiche/export texte.
+   * EN: annotated version of `details` lines: each line carries a `simule` flag (an effect
+   * coming from a perk chosen in the Forge). Present ONLY when at least one effect is
+   * simulated; otherwise the display falls back to `details`. Used for the "simulated"
+   * badge in PilierCarte (same badge as in Mon Build).
+   */
+  detailsMarques?: DetailLigne[];
+}
+
+/** FR : une ligne de détail d'un pilier, avec son drapeau « simulé ». / EN: a pillar detail line, with its "simulated" flag. */
+export interface DetailLigne {
+  texte: string;
+  simule: boolean;
 }
 
 export interface BuildScoreResult {
