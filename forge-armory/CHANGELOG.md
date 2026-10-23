@@ -12,7 +12,7 @@
 
 **Tests** : `tests/logique/sceaux.test.ts` **31/31** (24 existants inchangés + 7 nouveaux : racine fournie par le profil, secours par constantes, sous-nœuds, scan global hors Lore, nom de racine). `npx tsc -b` 0 erreur, `npm run build` ✓, `npm run test:logique` **37/37 suites, 747/747 contrôles** ✓, pages UI construites ✓. **À valider en `npm run dev`** (le bac à sable ne peut pas lancer le navigateur ni appeler l'API Bungie).
 
-**Version inchangée (0.5.0).**
+**Version : branche de livraison 0.5.1** (correctif sur la livraison v0.5.1).
 
 ---
 
