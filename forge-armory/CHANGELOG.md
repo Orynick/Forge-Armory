@@ -3,6 +3,12 @@
 > **Ce fichier est désormais un changelog orienté utilisateur.**
 > L'historique complet et détaillé du développement (DEVLOG) se trouve dans [`DEVLOG.md`](DEVLOG.md).
 
+## v0.5.3 — 23/10/2026
+
+- **Correctif** : la connexion à Bungie ne répondait plus après le clic sur la plateforme (Steam, PlayStation, Xbox, Google, Epic…) : la fenêtre de connexion restait blanche. Corrigé.
+
+→ Détails complets : [DEVLOG.md](DEVLOG.md)
+
 ## v0.5.1 — 23/10/2026
 
 - **Legendarium** : bibliothèque de Lore complète (Grimoire D1, Légendes D2, armes, armures, cosmétiques) avec export infographique PNG.

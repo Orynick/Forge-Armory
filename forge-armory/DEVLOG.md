@@ -4,6 +4,30 @@
 
 ---
 
+## 23/10/2026 — v0.5.3 : CORRECTIF BLOQUANT — fenêtre blanche à la connexion Bungie (retour utilisateur)
+
+**Retour de l'utilisateur** : « Bug de connexion. Sur la dernière version, quand j'installe l'app : la fenêtre de connexion à Bungie s'ouvre, je clique sur la plateforme pour me connecter, et ça ne réagit pas, fenêtre blanche. »
+
+**Diagnostic** : la fenêtre de connexion (`bungie:connexion`, `electron/main.cjs`) partageait la `session.defaultSession`. Or, dans le logiciel installé, `restreindreReseauSessionPrincipale()` (défense XSS, ajoutée le 21/10/2026, branche draft-sec) pose un `webRequest.onBeforeRequest({ urls: ["*://*/*"] })` qui annule toute requête hors liste blanche. **`onBeforeRequest` filtre AUSSI les navigations de page** (resourceType `mainFrame`), pas seulement les requêtes de ressources/fetch — un commentaire du code disait le contraire, et c'est ce commentaire erroné qui a induit le bug. Conséquence : la page Bungie s'affichait (bungie.net est dans la liste), mais le clic sur la plateforme (Steam, PlayStation, Xbox, Google, Epic…) déclenchait une navigation vers le fournisseur d'identité, **hors de la liste blanche** : la navigation était annulée, et la fenêtre restait sur un fond blanc. Le mode navigateur et le mode développement n'étaient pas concernés (pas de filtre en dev).
+
+**Correction** (`electron/main.cjs`) :
+- La fenêtre de connexion a désormais sa **PROPRE session** (`partition: "connexion-bungie"`, fonction `preparerSessionConnexion()`), **hors du filtre liste blanche** de la session principale. Cette session est préparée AVANT le chargement de la page.
+- Cette session dédiée n'a **AUCUNE liste blanche d'hôtes** (les fournisseurs d'identité et leurs CDN sont imprévisibles ; en bloquer un re-créerait le bug). Seuls garde-fous : le web uniquement (http/https — `file:`, `chrome:`, etc. annulés) et le refus de TOUTE permission matérielle.
+- La partition est **en mémoire** (sans `persist:`) : aucun cookie Bungie ne touche le disque.
+- Les autres protections de la fenêtre sont inchangées : `sandbox: true`, `contextIsolation`, `nodeIntegration: false`, aucun preload, URL initiale validée (https + www.bungie.net), redirection de retour interceptée et jamais chargée.
+- Le **commentaire erroné** de la section « liste blanche » est corrigé (FR + EN) : `onBeforeRequest` filtre aussi les navigations (`mainFrame`).
+- Le filtre liste blanche de la session principale est **conservé tel quel** (défense XSS, logiciel installé uniquement).
+
+**Tests** : nouveau `tests/logique/cablage-connexion-bungie.test.ts` (15 contrôles, lit le texte de `electron/main.cjs`) : partition dédiée déclarée, session préparée avant `loadURL`, aucune liste blanche dans la session dédiée, http/https uniquement, permissions refusées, partition sans `persist:`, filtre principal conservé et limité au logiciel installé, sandbox/preload/validation d'URL conservés, commentaire erroné corrigé. **Le test échoue sur l'ancien code (7/15)** : il attrape bien le bug.
+
+**Vérifié** : `node --check electron/main.cjs` OK ; `npm run build` (tsc -b + vite) OK ; `npm run test:logique` **38/38 suites, 762/762 contrôles** OK (37 suites d'origine + la nouvelle).
+
+**NON vérifié** (impossible sans le logiciel installé + un vrai compte Bungie) : la connexion complète dans l'installateur Windows. **À tester par l'utilisateur** : installer la v0.5.3, ouvrir la connexion Bungie, cliquer sur sa plateforme — la page du fournisseur d'identité doit s'afficher, et le retour automatique après connexion.
+
+**Version : 0.5.2 → 0.5.3.** `package.json`, `package-lock.json`, `TODO.md` (version courante du PDF de tests) mis à jour. CHANGELOG : ligne « Correctif : la connexion à Bungie ne répondait plus après le clic sur la plateforme … fenêtre blanche. Corrigé. »
+
+---
+
 ## 23/10/2026 — NOUVEAU LOGO : l'en-tête, l'icône Windows et les favicons utilisent désormais le logo à cristaux cyan (paquet refait sur la v0.5.2)
 
 **Demande de l'utilisateur** : « Vérifie quelle est le logo+titre de Forge Armory qui est utilisé. Montre moi le fichier. » puis « Oui, il faut utiliser le nouveau logo. Régénère le ZIP en ce sens. » **Version inchangée (0.5.2).**
