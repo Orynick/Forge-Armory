@@ -569,8 +569,8 @@ export default function DashboardPage() {
       supprimée avec la section « 10 dernières activités » — la page ne lit plus que le profil et les stats). */}
       {vue === "carriere" && <VueCarriere membership={memberships[0] ?? null} profil={profilComplet} />}
 
-      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte, ouverte par le bouton « Accomplissements » du bloc Connexion. ⚠️ CHANGÉ (22/10/2026, retour utilisateur) : la page n'affiche PAS la vitrine « Solo sans mourir » (elle reste dans le tiroir latéral du Build Analyzer) : elle affichera plus tard tous les triomphes obtenus et à obtenir. / EN: the Accomplishments page (placeholder for the account Triumphs; no Solo Flawless showcase here). */}
-      {vue === "accomplissements" && <VueAccomplissements />}
+      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte, ouverte par le bouton « Accomplissements » du bloc Connexion. ⚠️ CHANGÉ (22/10/2026, retour utilisateur) : la page n'affiche PAS la vitrine « Solo sans mourir » (elle reste dans le tiroir latéral du Build Analyzer). ⚠️ CHANGÉ (23/10/2026, TODO n°23) : la page reçoit le PROFIL DES TRIOMPHES (`profilTriomphes`, composant 900 → records du compte) et le MANIFEST (`db`) pour les noms/descriptions FR des triomphes et des sceaux. / EN: the Accomplishments page (no Solo Flawless showcase here). CHANGED - the page gets the TRIUMPHS PROFILE (`profilTriomphes`, component 900) and the Manifest (`db`) for the FR names/descriptions. */}
+      {vue === "accomplissements" && <VueAccomplissements profil={profilTriomphes} db={db} />}
 
       {/* FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - la vue Build Analyzer est
       MASQUÉE (display: none) et non retirée quand la Bibliothèque est
