@@ -40,6 +40,8 @@ window.fetch = (async (url: RequestInfo | URL) => {
 // sous-objet `Response`). C'est ce profil (composant 200) que la page Carrière reçoit via `profilComplet`.
 // `?sans-profil=1` : aucun profil (composant 200 absent) → la page doit retomber sur la stat `secondsPlayed`.
 const profil = { characters: { data: { "1": { classType: 0, minutesPlayedTotal: "6000" }, "2": { classType: 1, minutesPlayedTotal: "4500" }, "3": { classType: 2, minutesPlayedTotal: "3000" } } } };
+// ⚠️ AJOUT (23/10/2026, TODO n°23) : profil des triomphes (composant 900) pour la page Accomplissements : AUCUN record et pas de Manifest (db=null) : la page doit afficher son avertissement « non disponible » sans planter.
+const profilTriomphes = { Response: { profileRecords: { data: { records: {} } } } };
 const sansProfil = params.has("sans-profil");
 const membership = { membershipId: "4611686018000000001", membershipType: 3, displayName: "Orygamer#4497" } as never;
 
@@ -59,7 +61,7 @@ function App() {
       </div>
       <SelecteurVues vue={vue === "carriere" || vue === "accomplissements" ? "analyseur" : vue} onChanger={setVue} />
       {vue === "carriere" && <VueCarriere membership={membership} profil={sansProfil ? null : profil} />}
-      {vue === "accomplissements" && <VueAccomplissements />}
+      {vue === "accomplissements" && <VueAccomplissements profil={profilTriomphes} db={null} />}
       {(vue === "analyseur" || vue === "loadouts" || vue === "forge" || vue === "bibliotheque") && <p style={{ color: "#7d7a70" }}>vue « {vue} » (hors périmètre de ce test)</p>}
     </div>
   );
