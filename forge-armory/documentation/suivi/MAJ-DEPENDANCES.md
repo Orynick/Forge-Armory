@@ -21,15 +21,17 @@ d'un éventuel problème. Ce chantier est dédié, sur sa propre branche `draft-
 | `@vitejs/plugin-react` | 4.7.0 | 6.1.2 | **5.2.0** | 5.2.0 accepte Vite 4→8 (peer `^4.2.0 \|\| ^5.0.0 \|\| ^6.0.0 \|\| ^7.0.0 \|\| ^8.0.0`) |
 | `vite-plugin-mkcert` | 1.17.12 | 2.1.0 | 2.x (optionnel) | Vérifier compatibilité Vite 7 |
 | `typescript` | 5.9.3 | 7.0.2 | 5.9.x (conservateur) | TS 7 est très récent — attendre la maturité |
-| `electron` | 44.9.0 | 44.9.1 | 44.9.1 (patch) | Mise à jour mineure, sans risque |
-| `sql.js` | 1.15.0 | 1.15.1 | 1.15.1 (patch) | Mise à jour mineure, sans risque |
+| `electron` | **44.9.3** ✅ | 44.9.3 | 44.9.3 (patch) | Palier 1 terminé |
+| `sql.js` | **1.15.1** ✅ | 1.15.1 | 1.15.1 (patch) | Palier 1 terminé |
 
 ## Stratégie recommandée (par paliers)
 
-### Palier 1 — Mises à jour mineures (sûr, rapide)
-- `electron` 44.9.0 → 44.9.1
-- `sql.js` 1.15.0 → 1.15.1
-- `typescript` 5.9.3 → 5.9.x (dernier patch)
+### Palier 1 — Mises à jour mineures (sûr, rapide) ✅ **TERMINÉ**
+- `electron` 44.9.0 → **44.9.3** ✅
+- `sql.js` 1.15.0 → **1.15.1** ✅
+- `typescript` 5.9.3 → **5.9.3** (déjà à jour, pas de changement nécessaire) ✅
+
+**Résultat** : `npx tsc -b` OK, `npx vite build` OK, 36/36 suites de tests, 708/708 contrôles réussis.
 
 ### Palier 2 — Vite 5 → 7 (majeur, mais plugin-react 5.2.0 compatible)
 - `vite` 5.4.21 → **7.3.7**
