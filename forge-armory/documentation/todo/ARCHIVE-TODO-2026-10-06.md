@@ -1,6 +1,6 @@
 # Archive de la TODO — passages retirés ou condensés le 06/10/2026
 
-Nettoyage de la TODO demandé par l'utilisateur le 06/10/2026. Les passages ci-dessous sont recopiés **mot pour mot** (extraits automatiquement du fichier, sans retranscription) avant d'être retirés, condensés ou remplacés dans `TODO.md`. Raisons : un ordre de marche dépassé, des sections marquées « en test » alors que l'utilisateur les a validées (Electron : tests renvoyés le 02/10/2026 ; renommage : tests du logiciel installé le 06/10/2026), un détail terminé qui vit désormais dans `CHANGELOG.md`, et un point d'« abandon » devenu faux (icônes des perks d'artefact). Les règles permanentes (identifiants à ne jamais renommer, dossier de données) sont conservées dans `TODO.md`.
+Nettoyage de la TODO demandé par l'utilisateur le 06/10/2026. Les passages ci-dessous sont recopiés **mot pour mot** (extraits automatiquement du fichier, sans retranscription) avant d'être retirés, condensés ou remplacés dans `TODO.md`. Raisons : un ordre de marche dépassé, des sections marquées « en test » alors que l'utilisateur les a validées (Electron : tests renvoyés le 02/10/2026 ; renommage : tests du logiciel installé le 06/10/2026), un détail terminé qui vit désormais dans `DEVLOG.md`, et un point d'« abandon » devenu faux (icônes des perks d'artefact). Les règles permanentes (identifiants à ne jamais renommer, dossier de données) sont conservées dans `TODO.md`.
 
 
 ---
@@ -16,7 +16,7 @@ Priorités :
 - 🔵 **Confort / plus tard**
 
 Ce fichier ne liste que ce qui **reste à faire**. Ce qui est terminé est
-décrit dans `CHANGELOG.md` (avec les explications de chaque changement) ;
+décrit dans `DEVLOG.md` (avec les explications de chaque changement) ;
 l'état complet de la TODO avant son tri du 30/09/2026 est conservé mot pour
 mot dans `documentation/todo/ARCHIVE-TODO-2026-09-30.md`. Conception du
 scoring : section « Le scoring » du `README.md`. Tests en cours :
@@ -59,7 +59,7 @@ GitHub.
   44.5.1, et `electron-builder` de 25 à 26.15.3 (seuls changements de
   cette étape). Changements incompatibles des versions 33 à 44 passés en
   revue un par un contre le code : aucun ne concerne le logiciel (détail
-  dans `CHANGELOG.md`). Restent, en étapes SÉPARÉES :
+  dans `DEVLOG.md`). Restent, en étapes SÉPARÉES :
   - **Vite / esbuild** (vulnérabilité modérée, serveur de développement
     seulement) : `vite` 5 → une version corrigée (l'audit propose 8.x,
     changement majeur à préparer, avec `@vitejs/plugin-react`) ;

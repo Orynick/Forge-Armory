@@ -6,7 +6,7 @@ Priorités :
 - 🔵 **Confort / plus tard**
 
 Ce fichier ne liste que ce qui **reste à faire**. Ce qui est terminé est
-décrit dans `CHANGELOG.md` (avec les explications de chaque changement) ;
+décrit dans `DEVLOG.md` (avec les explications de chaque changement) ;
 l'état complet de la TODO avant son tri du 30/09/2026 est conservé mot
 pour mot dans `documentation/todo/ARCHIVE-TODO-2026-09-30.md`, et les
 passages retirés ou condensés lors du nettoyage du 06/10/2026 dans
@@ -76,7 +76,7 @@ doctrine, scoring des 5 piliers, partage et exports).
 ✅ **Electron mis à niveau (32 → 44.5.1) et `electron-builder` (25 → 26.15.3) : validé.** Livré en v0.3.0
 le 30/09/2026 ; tests renvoyés par l'utilisateur le 02/10/2026 (archivés dans `documentation/tests/`, archive supprimée le 14/10/2026 à sa demande).
 `npm.cmd ci` validé le 30/09/2026 (479 paquets installés à l'identique depuis `package-lock.json`). Détail
-et revue des changements incompatibles : `CHANGELOG.md`.
+et revue des changements incompatibles : `DEVLOG.md`.
 
 ✅ **TERMINÉ en v0.5.1 (23/10/2026, chantier `draft-deps`).** `npm audit` : **0 vulnérabilité** (contre 18 au départ, 4 le 30/09).
 - ✅ **Vite / esbuild** : `vite` 5 → **7.3.7** (+ `@vitejs/plugin-react` 4 → 5, `vite-plugin-mkcert` 1 → 2) ;
@@ -361,7 +361,7 @@ site de suivi ; celle de la 9.7.0.1 n'a pas été retrouvée.
 - **Bouton « Lire le Lore » aussi dans la pop-up Détails du BUILD ANALYZER** (`SelecteurInventaire.tsx` : prop `onLireLore?` sur `LigneObjet` + le composant `BoutonLireLore` sous la croix, passé par `DashboardPage`) ; l'action est la même `ouvrirLoreDepuisObjet` (provenance `origine: "analyseur"`). ⚠️ **RÉSOLU (suite 9, diagnostic retourné)** : le vrai Manifest utilise **`loreHash`** (pas `lore`) sur les objets et **`displayProperties.description`** (pas `body`) sur les Lores — diagnostic : 3 514 Lores, 38 894 objets, 0 avec les anciens noms. **Corrigé** : `hashLoreDe()` lit `loreHash` (secours `lore`), `corpsLore()` lit `displayProperties.description` (secours `body`). Tests de régression suite 9 (structure exacte du vrai Manifest). À valider en `npm run dev` : le bouton « Lire le Lore » doit apparaître dans les fiches (Inventaire, Coffre, Mon Build, Forge).
 - **Boutons « Carrière » / « Accomplissements » ne s'ouvraient pas hors Build Analyzer** (retour utilisateur 21/10, suite 7) : ils étaient rendus dans le bloc Connexion (masqué `display:none` hors vue analyseur). **Une première correction (déplacement au-dessus du sélecteur de vue) a été ANNULÉE en suite 8** — l'utilisateur l'a signalée comme une régression (sortie de la section Connexion sans son accord). Les boutons sont REMIS dans le bloc Connexion. **Le bug reste OUVERT** : il est noté dans le TODO de **main** (§23) pour être traité séparément, avec l'accord de l'utilisateur.
 
-**✅️ Navigation par livres FAITE (21/10/2026, suite 10, demande de l’utilisateur)** : la section « Légendes D2 » affiche désormais la hiérarchie **en jeu** — catégorie → livre (couverture + nombre de pages) → pages — lue dans l’arbre `DestinyPresentationNodeDefinition` (racine « Légendes » = hash 4077680549). Vérifié sur le VRAI Manifest FR : **4 catégories / 108 livres / 1 076 pages** ; ex: « Ces terres maudites » ∈ « La Frontière sans foi ni loi » (14 pages, couverture) ∈ « La Lumière ». La colonne latérale affiche une **grille de couvertures** (comme l’onglet Lore du jeu) ; la zone de lecture affiche la couverture en haut + l’œilleton « catégorie · livre ». **Repli** si l’arbre est absent : liste plate « Tomes de Légendes » (comportement d’avant). Les sections Grimoire D1 / armes et armures / cosmétiques sont INCHANGÉES (liste plate). Les 109 lores aussi portés par des objets le sont par des objets factices (exclus du parcours inverse) : les pages des livres n’affichent pas de bloc « objets porteurs », comme en jeu. Tests : `legendarium-modele` **78/78**, `legendarium-page` **45/45**. À valider en `npm run dev` (voir CHANGELOG suite 10).
+**✅️ Navigation par livres FAITE (21/10/2026, suite 10, demande de l’utilisateur)** : la section « Légendes D2 » affiche désormais la hiérarchie **en jeu** — catégorie → livre (couverture + nombre de pages) → pages — lue dans l’arbre `DestinyPresentationNodeDefinition` (racine « Légendes » = hash 4077680549). Vérifié sur le VRAI Manifest FR : **4 catégories / 108 livres / 1 076 pages** ; ex: « Ces terres maudites » ∈ « La Frontière sans foi ni loi » (14 pages, couverture) ∈ « La Lumière ». La colonne latérale affiche une **grille de couvertures** (comme l’onglet Lore du jeu) ; la zone de lecture affiche la couverture en haut + l’œilleton « catégorie · livre ». **Repli** si l’arbre est absent : liste plate « Tomes de Légendes » (comportement d’avant). Les sections Grimoire D1 / armes et armures / cosmétiques sont INCHANGÉES (liste plate). Les 109 lores aussi portés par des objets le sont par des objets factices (exclus du parcours inverse) : les pages des livres n’affichent pas de bloc « objets porteurs », comme en jeu. Tests : `legendarium-modele` **78/78**, `legendarium-page` **45/45**. À valider en `npm run dev` (voir DEVLOG suite 10).
 
 **✅ Suite 11 FAITE (22/10/2026, retours utilisateur sur l’étape 3)** : groupes **repliables, repliés par défaut** (catégories Légendes D2 + groupes objets/cosmétiques), **pas d’images dans le menu de sélection**, label « Armes et **A**rmures », **armes classées par type** (Cinétiques → Énergétiques → Lourdes), **armures groupées par PROVENANCE** (1 livre par ensemble, ex: « Armure de Sekris » = raid Léviathan, via `collectibleHash` → nœud parent), **ensembles ordonnés par saison de sortie**, **cosmétiques par type** (Spectres → Vaisseaux → Passereaux). ⚠️ **BUG RÉEL CORRIGÉ** : `saisonDeLObjet` testait le hash signé seul, mais le JSON de DIM stocke les hashes en **non signé** — 50 % des objets (dont TOUTES les armures avec collectible) ne trouvaient jamais leur saison. Corrigé (les deux formes testées) : 100 % des 4 418 objets avec lore sont maintenant datés. ⚠️ **AUTRE CORRECTION** : classement des porteurs par bucket réel (pas `itemType !== 3`) — sinon 1 178 ornements d’armure étaient classés « armes ». Tests : `legendarium-modele` **89/89**, `legendarium-page` **51/51**, `saisons-sources` **20/20**. Validé sur le VRAI Manifest FR : 455 pages armes, 1 041 pages armures (144 ensembles), 939 pages cosmétiques.
 
@@ -384,7 +384,7 @@ site de suivi ; celle de la 9.7.0.1 n'a pas été retrouvée.
 ### 12. « Équiper » : cas que l'appli ne gère pas encore
 
 Section RESTAURÉE le 01/10/2026 : créée le 30/09, elle avait été effacée par
-erreur le 01/10 lors d'une mise à jour de la section 12 (voir `CHANGELOG.md`).
+erreur le 01/10 lors d'une mise à jour de la section 12 (voir `DEVLOG.md`).
 
 « Équiper » gère : objet dans le coffre, sur un autre personnage, déjà sur la
 cible, démantelé (message), et depuis le 01/10/2026 (**validé par l'utilisateur**) l'**arme
@@ -491,7 +491,7 @@ de l'intégration de ce travail.
 ### 18. Icônes des perks d'artefact + classeur « Endgame Analysis » (05/10/2026)
 
 ✅ **Terminé : les 147 perks d'artefact ont leur icône** (v0.3.4, 06/10/2026) : 128 trouvées directement dans le Manifest de l'utilisateur et 19 **choisies en jeu par l'utilisateur** avec le panneau « Départager » (13 ambigus ; 6 perks dont le nom de nos données diffère d'une faute de celui du jeu ; 19 sur 19 tranchés, fichier conservé dans
-`knowledge-base/sources-externes/choix-icones-ambigues_2026-10-06.json`). Chemins d'icônes de Bungie, figés dans `src/data/iconesPerksArtefact.ts` (l'en-tête du fichier détaille l'origine) ; affichées dans la grille, les emplacements équipés, le récapitulatif, la fenêtre « Voir » et les exports. Historique : `CHANGELOG.md` (0.3.0 à 0.3.4).
+`knowledge-base/sources-externes/choix-icones-ambigues_2026-10-06.json`). Chemins d'icônes de Bungie, figés dans `src/data/iconesPerksArtefact.ts` (l'en-tête du fichier détaille l'origine) ; affichées dans la grille, les emplacements équipés, le récapitulatif, la fenêtre « Voir » et les exports. Historique : `DEVLOG.md` (0.3.0 à 0.3.4).
 
 ⚠️ **DISCORDANCE NON EXPLIQUÉE, à revérifier** : pour les 6 perks à nom différent (« Combo tempêtes de lames », « Tactique de meute », « Surealimentation élémentaire », « Appel tempête », « Tirs soutenu », « Rayon de souffle »), les icônes que l'utilisateur a choisies le soir du 06/10 sont **exactement celles enregistrées en 0.3.1**, qu'il avait jugées fausses en jeu le matin. Ses choix du soir font foi ; un test de la liste 0.3.4 lui demande de les recomparer dans l'appli. Interrogé, l'utilisateur répond : « je ne sais pas, c'était peut-être la fatigue » : une erreur de comparaison du matin est donc probable, mais non prouvée (le test reste dans la liste). S'il les juge encore fausses : lui demander ce qu'il voit en jeu, et regarder si l'écart vient de l'affichage (taille, cadre) plutôt que du chemin d'icône.
 
@@ -527,7 +527,7 @@ fragment dans le Manifest trancherait l'encodage.
 des « Colis » qui imitent une arme. Ils sont masqués par défaut en Recherche (sélectionnables par la catégorie
 « Objets factices »). **Validé par l'utilisateur** : Le Lapin de Jade, Dualité et la Lance de Polaris n'apparaissent
 plus qu'une fois, en tant qu'arme réelle ; sa seconde Lance de Polaris (copie factice possédée) garde son icône de
-type et affiche son anti-champion. Détail : `CHANGELOG.md` (0.3.1 et 0.3.2) et
+type et affiche son anti-champion. Détail : `DEVLOG.md` (0.3.1 et 0.3.2) et
 `knowledge-base/28_ARMES_EXOTIQUES_ANTI_CHAMPION.md`.
 
 ✅ **CLOS le 06/10/2026 (soir) : « Tueur de souhaits »**. La vraie arme (objet 814876684) figurait bien dans les résultats de la 0.3.3 (capture de l'utilisateur : icône d'arc, anti-champion, source, « + Ajouter au build ») ; interrogé, l'utilisateur a confirmé qu'il s'agissait d'une **erreur de lecture de sa part** (« Exactement… Oups »). Rien à corriger. ⚠️ Ce que j'avais ajouté pour ce point (liste des résultats masqués, recherche tolérante `normaliserRecherche`, index `v3`) **n'est pas démontré nécessaire** : on ignore même si l'arme manquait vraiment en 0.3.1. Ces ajouts sont conservés parce qu'ils sont utiles en eux-mêmes (rien ne disparaît plus en silence ; « coeur » retrouve « cœur », validé), pas parce qu'ils auraient réglé un défaut prouvé.
@@ -561,23 +561,23 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 
 ---
 
-**Items retirés le 22/10/2026 (nettoyage de la TODO)** — tous documentés dans `CHANGELOG.md` :
+**Items retirés le 22/10/2026 (nettoyage de la TODO)** — tous documentés dans `DEVLOG.md` :
 
 - ~~11. Legendarium (ancienne entrée, chantier en cours)~~ → **remplacé par l'item 11 ci-dessus** (livraison complète en v0.5.0)
-- ~~23. Boutons « Carrière » et « Accomplissements »~~ → ✅ **RÉSOLU sur cette branche** (onglets dédiés, voir CHANGELOG 22/10/2026)
-- ~~12. Renommage « Forge Armory »~~ → ✅ validé le 06/10/2026 (CHANGELOG : « Renommage officiel »)
-- ~~16. Onglet « Load-outs » : gérer ses Loadouts en grand~~ → ✅ 3 livraisons faites et validées (CHANGELOG v0.3.8, v0.3.9, v0.3.16)
-- ~~16 bis. Visuels illustrés~~ → ✅ fait v0.3.13 à v0.3.17 (CHANGELOG)
+- ~~23. Boutons « Carrière » et « Accomplissements »~~ → ✅ **RÉSOLU sur cette branche** (onglets dédiés, voir DEVLOG 22/10/2026)
+- ~~12. Renommage « Forge Armory »~~ → ✅ validé le 06/10/2026 (DEVLOG : « Renommage officiel »)
+- ~~16. Onglet « Load-outs » : gérer ses Loadouts en grand~~ → ✅ 3 livraisons faites et validées (DEVLOG v0.3.8, v0.3.9, v0.3.16)
+- ~~16 bis. Visuels illustrés~~ → ✅ fait v0.3.13 à v0.3.17 (DEVLOG)
 - ~~21. Police personnalisée « D2 Build Analyzer Vector »~~ → ❌ **ABANDONNÉE** le 06/10/2026 (voir « Pistes abandonnées »)
-- ~~22. Logo de fond et mode diagnostic~~ → ✅ validés le 06/10/2026 (CHANGELOG v0.3.2)
-- ~~24. Auteur des builds~~ → ✅ fait et validé le 06/10/2026, v0.3.3 (CHANGELOG)
+- ~~22. Logo de fond et mode diagnostic~~ → ✅ validés le 06/10/2026 (DEVLOG v0.3.2)
+- ~~24. Auteur des builds~~ → ✅ fait et validé le 06/10/2026, v0.3.3 (DEVLOG)
 
 
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 
 
 - **Police personnalisée « D2 Build Analyzer Vector »** — abandonnée (06/10/2026) :
-  retirée de la TODO §21 (Confort) lors du nettoyage du 22/10/2026. Voir CHANGELOG pour l'historique.
+  retirée de la TODO §21 (Confort) lors du nettoyage du 22/10/2026. Voir DEVLOG pour l'historique.
 
 - **Icônes des 21 perks par artefact, par la table d'extraction** — abandonné (26/08) : la table lue par
   l'extraction (`DestinyArtifactDefinition`) ne décrit que l'ancien système d'artefact. ⚠️ **L'objectif a été
@@ -587,7 +587,7 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
   dépriorisé (26/08) : les marqueurs textuels précis suffisent (3,4 % de
   cas ambigus) ; à revisiter seulement si de nouveaux cas s'accumulent.
 
-Détails dans l'archive de la TODO et dans `CHANGELOG.md`.
+Détails dans l'archive de la TODO et dans `DEVLOG.md`.
 
 ---
 
@@ -595,7 +595,7 @@ Détails dans l'archive de la TODO et dans `CHANGELOG.md`.
 
 - **Nom du fichier de tests** (règle de l'utilisateur, 06/10/2026) : le PDF de la liste de tests porte le **numéro de version de l'appli** : `A-TESTER-<version>.pdf` (par exemple `A-TESTER-0.3.3.pdf`) (généré par `documentation/sources/outil-a-tester-pdf.py`, qui lit la version dans `package.json`). Le zip, lui, garde `forge-armory-ver_0_3_1.zip`.
 
-- Un item **résolu** est retiré d'ici et décrit dans `CHANGELOG.md` — pas
+- Un item **résolu** est retiré d'ici et décrit dans `DEVLOG.md` — pas
   laissé barré : la liste doit rester lisible.
 - Un item qui **attend une information** précise l'action attendue, pas
   seulement le problème.
