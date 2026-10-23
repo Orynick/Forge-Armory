@@ -187,6 +187,12 @@ function blocEntete(f: FicheBuild): string {
     `${htmlLogoContexte(f.contexteCle)}${echapper(f.contexte)}`,
   ].filter((x): x is string => Boolean(x));
   if (f.auteur) segments.push(`<span class="auteur">par ${echapper(f.auteur)}</span>`);
+  // FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - badge « 🔨 simulé » dans l'en-tête quand
+  // la fiche est le fruit d'une simulation (ajustements de stats, perks simulés, optimiseur).
+  // Mêmes couleurs que le badge de l'appli (#e8c547) pour la cohérence visuelle.
+  // EN: "🔨 simulated" badge in the header when the sheet is the result of a simulation. Same
+  // colors as the app's badge (#e8c547) for visual consistency.
+  if (f.estSimulation) segments.push(`<span class="badge-simule" data-badge-simule="">${String.fromCodePoint(0x1F528)} simulé</span>`);
   const sousTitre = segments.join(`<span class="sep">·</span>`);
   return `
 <header class="carte entete">
@@ -445,6 +451,7 @@ body{position:relative;width:${LARGEUR_EXPORT}px;padding:28px 28px 20px;backgrou
 .sous-titre{margin-top:8px;font-size:14.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#78a9ff}
 .sous-titre .sep{color:#78a9ff;margin:0 9px}
 .sous-titre .auteur{text-transform:none;letter-spacing:.2px;font-weight:600;overflow-wrap:anywhere}
+.badge-simule{text-transform:none;letter-spacing:.2px;font-weight:600;color:#e8c547;border:1px solid #e8c547;border-radius:999px;padding:0 6px;font-size:12px;white-space:nowrap}
 .entete>div:first-child{min-width:0}
 .marque{text-align:right;white-space:nowrap;flex:0 0 auto}
 .marque b{display:block;font-size:12px;letter-spacing:.6px;color:#9298a5}

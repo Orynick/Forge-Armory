@@ -34,6 +34,7 @@ import { exporterVersDim } from "../lib/dim/export";
 import RechercheManifest from "../components/RechercheManifest";
 import SelecteurInventaire, { CibleInventaire } from "../components/SelecteurInventaire";
 import ResumeBuild from "../components/ResumeBuild";
+import PageOptimiseur from "../components/PageOptimiseur";   // ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) : page dédiée de l'optimiseur de build v2
 import GrilleDoctrine from "../components/GrilleDoctrine";
 // FR : ⚠️ AJOUT (31/08/2026) - diagnostic du Pilier 2 (voir verbes.ts).
 // EN: ⚠️ ADDED - Pillar 2 diagnostic (see verbes.ts).
@@ -592,6 +593,23 @@ export default function DashboardPage() {
       {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte, ouverte par le bouton « Accomplissements » du bloc Connexion. ⚠️ CHANGÉ (22/10/2026, retour utilisateur) : la page n'affiche PAS la vitrine « Solo sans mourir » (elle reste dans le tiroir latéral du Build Analyzer) : elle affichera plus tard tous les triomphes obtenus et à obtenir. / EN: the Accomplishments page (placeholder for the account Triumphs; no Solo Flawless showcase here). */}
       {vue === "accomplissements" && <VueAccomplissements />}
 
+      {/* FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - vue « optimiseur » : PAGE DÉDIÉE de
+      l'optimiseur de build v2, ouverte par le bouton « ⚙️ Optimiser » de « Mon Build » (pas un onglet
+      du sélecteur : pas de doublon). HORS SCORING : la page ne lit pas le score et ne modifie pas le
+      build courant ; sa seule écriture est « Enregistrer comme build simulé » (flux Load-outs).
+      EN: the "optimizer" view: DEDICATED page of the build optimizer v2, opened by "Mon Build"'s
+      "⚙️ Optimize" button (not a selector tab: no duplicate). OUTSIDE scoring: the page neither
+      reads the score nor modifies the current build; its only write is "Save as simulated build". */}
+      {vue === "optimiseur" && (
+        <PageOptimiseur
+          build={monBuild}
+          membership={memberships[0] ?? null}
+          db={db}
+          auteur={connecte ? (nomBungie ?? resume?.compte ?? null) : null}
+          onRetour={() => setVue("analyseur")}
+        />
+      )}
+
       {/* FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - la vue Build Analyzer est
       MASQUÉE (display: none) et non retirée quand la Bibliothèque est
       affichée. Sinon, chaque aller-retour effacerait l'inventaire chargé,
@@ -678,6 +696,7 @@ export default function DashboardPage() {
           contexte={monBuild.contexte ?? "neutre"}
           onChangerContexte={(valeur) => setMonBuild((b) => ({ ...b, contexte: valeur }))}
           onChangerAjustement={changerAjustementStat}
+          onOuvrirOptimiseur={() => setVue("optimiseur")}
         />
       </div>
 

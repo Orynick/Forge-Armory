@@ -135,6 +135,12 @@ export interface FicheBuild {
   elementCle?: Exclude<DamageElement, null>;
   /** FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - adresse de l'icône OFFICIELLE de l'élément (Manifest, www.bungie.net), absente sans Manifest ou en Prismatique : l'export utilise alors un dessin. / EN: official element icon URL, when known. */
   elementIcone?: string;
+  /** FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - vrai si le loadout est le fruit d'une
+   * SIMULATION (ajustements de stats, perks simulés, ou ensemble proposé par l'optimiseur de build) :
+   * l'infographie affiche alors le badge « 🔨 simulé » dans l'en-tête. / EN: true when the loadout is
+   * the result of a SIMULATION (stat adjustments, simulated perks, or a set proposed by the build
+   * optimizer): the infographic then shows the "🔨 simulated" badge in its header. */
+  estSimulation?: boolean;
   contexte: string;
   /** FR : ⚠️ AJOUT (v0.2.5) - clé du contexte, pour savoir s'il est « neutre » (masqué dans l'en-tête de l'export). / EN: context key. */
   contexteCle: "neutre" | "roaming" | "dps" | "pvp";
@@ -354,6 +360,10 @@ export function construireFiche(loadout: Loadout, db: Database | null): FicheBui
   return {
     nom: loadout.nom,
     description: loadout.description,
+    // FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - le marquage « simulé » remonte dans la
+    // fiche : l'infographie affichera le badge 🔨 (voir exportFiche.ts). / EN: the "simulated" flag
+    // rises into the sheet: the infographic shows the 🔨 badge (see exportFiche.ts).
+    estSimulation: loadout.estSimulation === true || undefined,
     classe: classe ? LIBELLES_CLASSE[classe] : undefined,
     element: element ? LIBELLES_ELEMENT_FR[element] ?? element : undefined,
     classeCle: classe ?? undefined,

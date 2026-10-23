@@ -97,6 +97,15 @@ interface Props {
    * EN: the −/+ button right of each stat bar (manual adjustments, 5-point granularity). Optional.
    */
   onChangerAjustement?: (cle: StatKey, delta: number) => void;
+  /**
+   * FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - bouton « Optimiser » (sous le titre de
+   * « Mon Build », à côté de « ✕ Réinitialiser ») : ouvre la page dédiée de l'optimiseur de build v2.
+   * Facultatif : sans lui, le bouton n'apparaît pas. L'optimiseur ne modifie JAMAIS le build courant :
+   * sa seule passerelle est son propre bouton « Enregistrer comme build simulé ».
+   * EN: the "Optimize" button (under "Mon Build"'s title, next to "✕ Reset"): opens the dedicated
+   * build optimizer v2 page. Optional. The optimizer NEVER modifies the current build.
+   */
+  onOuvrirOptimiseur?: () => void;
 }
 
 // FR : ⚠️ AJOUT (24/08/2026) - détermine si un objet est déjà sur le
@@ -118,7 +127,7 @@ function calculerSetsActifsResume(build: BuildDraft, db: Database) {
   return [...parSet.values()];
 }
 
-export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge, onChangerAjustement }: Props) {
+export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge, onChangerAjustement, onOuvrirOptimiseur }: Props) {
   const setsAvecBonusActif = useMemo(() => db ? calculerSetsActifsResume(build, db) : [], [build, db]);
   const [personnageCible, setPersonnageCible] = useState<string>(personnages[0]?.characterId ?? "");
   const [enCours, setEnCours] = useState<string | null>(null);
@@ -708,6 +717,23 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
         {onReinitialiser && (
           <button onClick={onReinitialiser} style={{ fontSize: "0.8rem" }}>
             ✕ Réinitialiser Mon Build
+          </button>
+        )}
+        {/* FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - bouton « Optimiser » : ouvre la
+        PAGE DÉDIÉE de l'optimiseur de build v2 (ensembles d'armures par paliers, hors scoring).
+        L'optimiseur ne touche pas au build courant : sa seule écriture passe par son propre
+        bouton « Enregistrer comme build simulé » (flux de sauvegarde des Load-outs).
+        EN: the "Optimize" button: opens the DEDICATED build optimizer v2 page (tier-based armor
+        sets, outside scoring). The optimizer does NOT touch the current build. */}
+        {onOuvrirOptimiseur && (
+          <button
+            type="button"
+            data-bouton-optimiseur=""
+            onClick={onOuvrirOptimiseur}
+            style={{ fontSize: "0.8rem" }}
+            title="Proposer les meilleurs ensembles d'armures (coffre + personnages) pour des minimums de stats — hors scoring, le build courant n'est pas modifié"
+          >
+            ⚙️ Optimiser
           </button>
         )}
       </div>
