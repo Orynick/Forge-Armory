@@ -4,6 +4,16 @@
 
 ---
 
+## 23/10/2026 — PROPAGATION : PR #18 (renommage CHANGELOG → DEVLOG) répertutée sur les branches de chantier
+
+**Propagation** : le renommage `CHANGELOG.md` → `DEVLOG.md` (PR #18) a été répertuté sur les 7 branches de chantier actives : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `draft-update-triomphes`, `test`.
+
+**Conflits résolus** : `CHANGELOG.md` en conflit (rename/delete côté main vs modify côté branche) sur 3 branches (`draft-armure-score`, `draft-netlify`, `draft-update-triomphes`) — résolu en supprimant `CHANGELOG.md` et transférant les entrées spécifiques à la branche dans `DEVLOG.md`. Les 4 autres branches : merge propre.
+
+**Version inchangée (0.5.1).**
+
+---
+
 ## 23/10/2026 — RENOMMAGE : `CHANGELOG.md` → `DEVLOG.md`
 
 **Demande de l'utilisateur** : le fichier `CHANGELOG.md` devient `DEVLOG.md` pour garder l'historique du développement. Un nouveau `CHANGELOG.md` minimal est créé pour les utilisateurs (changements visibles uniquement).
