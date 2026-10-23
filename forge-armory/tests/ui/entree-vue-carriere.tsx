@@ -27,7 +27,13 @@ window.fetch = (async (url: RequestInfo | URL) => {
   return new Response("{}", { status: 404 });
 }) as typeof window.fetch;
 
+// ⚠️ 22/10/2026 (retour utilisateur : « non disponible » pour le temps de jeu) : cette fixture reproduit la
+// FORME RÉELLE du profil passé par `DashboardPage` : `data.Response` de `recupererProfilComplet`
+// (composants 100, 102, 200, …) — `characters.data[*].minutesPlayedTotal` en HAUT NIVEAU (pas dans un
+// sous-objet `Response`). C'est ce profil (composant 200) que la page Carrière reçoit via `profilComplet`.
+// `?sans-profil=1` : aucun profil (composant 200 absent) → la page doit retomber sur la stat `secondsPlayed`.
 const profil = { characters: { data: { "1": { classType: 0, minutesPlayedTotal: "6000" }, "2": { classType: 1, minutesPlayedTotal: "4500" }, "3": { classType: 2, minutesPlayedTotal: "3000" } } } };
+const sansProfil = params.has("sans-profil");
 const membership = { membershipId: "4611686018000000001", membershipType: 3, displayName: "Orygamer#4497" } as never;
 const personnages = [{ characterId: "1", classe: "Titan", lumiere: 1990 }, { characterId: "2", classe: "Chasseur", lumiere: 1985 }, { characterId: "3", classe: "Arcaniste", lumiere: 1980 }];
 
@@ -46,7 +52,7 @@ function App() {
         <BoutonsVuesCompte onCarriere={() => { w.__clics.push("carriere"); setVue("carriere"); }} onAccomplissements={() => { w.__clics.push("accomplissements"); setVue("accomplissements"); }} />
       </div>
       <SelecteurVues vue={vue === "carriere" || vue === "accomplissements" ? "analyseur" : vue} onChanger={setVue} />
-      {vue === "carriere" && <VueCarriere membership={membership} personnages={personnages} profil={profil} />}
+      {vue === "carriere" && <VueCarriere membership={membership} personnages={personnages} profil={sansProfil ? null : profil} />}
       {vue === "accomplissements" && <VueAccomplissements />}
       {(vue === "analyseur" || vue === "loadouts" || vue === "forge" || vue === "bibliotheque") && <p style={{ color: "#7d7a70" }}>vue « {vue} » (hors périmètre de ce test)</p>}
     </div>

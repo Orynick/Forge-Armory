@@ -28,6 +28,8 @@ ok("CODE : PAS DE DOUBLON — le sélecteur de vues garde QUATRE onglets (Build 
    'valeur: "carriere"' not in sel and 'valeur: "accomplissements"' not in sel and len(re.findall(r'\{ valeur: "', sel)) == 4)
 ok("CODE : les autres fenêtres ne changent pas : l'en-tête de `Modale` est redevenu un simple titre + croix (la prop `apresTitre` du 21/10 est retirée)",
    "apresTitre" not in sans_com(gen) and 'alignItems: "flex-start"' in gen)
+ok("CODE : ⚠️ 22/10 (retour utilisateur : « des stats non-disponibles » alors que le temps de jeu est dans les stats et la saison dans l'en-tête) — « Saison en cours » n'est PLUS en dur « non disponible » : la page lit la saison en cours dans la table `SAISONS` (entrée `fin === null`) ; et le Total du temps de jeu retombe sur la stat `secondsPlayed` (GetHistoricalStatsForAccount) si le profil n'a pas le composant 200",
+   'libelle="Saison en cours" valeur={NON_DISPONIBLE}' not in code_vue and "SAISONS" in code_vue and "libelleSaisonEnCours" in code_vue and "fin === null" in code_vue and 'x.statId === "secondsPlayed"' in code_vue, code_vue[:200])
 
 def ouvrir(pg, page, params=""):
     pg.goto(SORTIE + page + ".html" + params); pg.wait_for_function("window.__pret===true"); pg.wait_for_timeout(900)
@@ -67,6 +69,22 @@ with sync_playwright() as p:
     attendu = [("Éliminations", "123 456"), ("Morts", "23 456"), ("Éliminations de précision", "54 321"), ("Assistances", "9 876"), ("Temps de jeu", "2 500 h 00"), ("K/D", "5,26"), ("statInconnueDeTest", "42"), ("Durée d'activité", "1 h 30")]
     ok("TOUTES LES STATS : la section affiche les 8 stats de la réponse (ni plus ni moins), dans l'ordre ; les statIds connus ont leur libellé FR ; l'inconnue affiche son statId brut ; « secondsPlayed » est en « 2 500 h 00 » et non en secondes", len(lignes_stats) == 8 and [l["libelle"] for l in lignes_stats] == [a[0] for a in attendu] and [l["valeur"] for l in lignes_stats] == [a[1] for a in attendu], lignes_stats)
     ok("TOUTES LES STATS : le compte « 8 statistiques » est affiché au-dessus de la grille", "8 statistiques" in pg.get_by_role("region", name="Carrière").inner_text())
+    # ---------- 3c. ⚠️ 22/10 (retour utilisateur : « non disponible » pour le temps de jeu et la saison) ----------
+    # FR : la fixture passe le VRAI profil (composant 200 : minutesPlayedTotal 6000/4500/3000 min, forme
+    # `data.Response` comme dans `DashboardPage` via `profilComplet`) : Total = 13 500 min = « 225 h 00 ».
+    lire_lignes = """(titre) => [...document.querySelectorAll('[role=region][aria-label="Carrière"] section')].map((s) => s.querySelector('strong').textContent === titre ? [...s.querySelectorAll('div > div')].map((d) => ({ libelle: d.children[0].textContent.trim(), valeur: d.children[1].textContent.trim() })) : null).filter(Boolean)[0]"""
+    lignes_tj = pg.evaluate(lire_lignes, "Temps de jeu")
+    ok("TEMPS DE JEU : le Total est la SOMME des classes du profil (13 500 min = « 225 h 00 ») et une ligne PAR CLASSE s'affiche (Titan « 100 h 00 », Chasseur « 75 h 00 », Arcaniste « 50 h 00 ») — PLUS de « non disponible »",
+       lignes_tj == [{"libelle": "Total", "valeur": "225 h 00"}, {"libelle": "Titan", "valeur": "100 h 00"}, {"libelle": "Chasseur", "valeur": "75 h 00"}, {"libelle": "Arcaniste", "valeur": "50 h 00"}], lignes_tj)
+    lignes_pj = pg.evaluate(lire_lignes, "Personnages")
+    ok("SAISON EN COURS : affichée depuis la table `SAISONS` (« Season of Lawless (saison 28, Renegades) » — l'entrée `fin === null`), après les puissances des personnages — PLUS « non disponible »",
+       lignes_pj == [{"libelle": "Titan", "valeur": "puissance 1990"}, {"libelle": "Chasseur", "valeur": "puissance 1985"}, {"libelle": "Arcaniste", "valeur": "puissance 1980"}, {"libelle": "Saison en cours", "valeur": "Season of Lawless (saison 28, Renegades)"}], lignes_pj)
+    # ---------- 3d. repli : sans profil (composant 200 absent), le Total retombe sur la stat `secondsPlayed` ----------
+    ouvrir(pg, "vue-carriere", "?sans-profil=1"); pg.get_by_role("button", name="Carrière").click(); pg.wait_for_timeout(300)
+    lignes_tj2 = pg.evaluate(lire_lignes, "Temps de jeu")
+    ok("REPLI SANS PROFIL (`?sans-profil=1`) : « Par classe » repasse à « non disponible » (le composant 200 manque), mais le Total RESTE affiché grâce à la stat `secondsPlayed` de GetHistoricalStatsForAccount (9 000 000 s = « 2500 h 00 ») — jamais une estimation",
+       lignes_tj2 == [{"libelle": "Total", "valeur": "2500 h 00"}, {"libelle": "Par classe", "valeur": "non disponible"}], lignes_tj2)
+    ouvrir(pg, "vue-carriere"); pg.get_by_role("button", name="Carrière").click(); pg.wait_for_timeout(300)
     # ---------- 4. navigation par le bloc Connexion ----------
     pg.get_by_role("button", name="Accomplissements").click(); pg.wait_for_timeout(300); g = pg.evaluate(GEO)
     ok("CLIC SUR « ACCOMPLISSEMENTS » (bloc Connexion) : la page Carrière est remplacée par la page Accomplissements (page dédiée aux Triomphes : PAS de vitrine « Solo sans mourir », un emplacement réservé « Bientôt »), le bloc Connexion et le sélecteur restent affichés, aucun tiroir latéral",

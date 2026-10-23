@@ -8,6 +8,29 @@ import { chargerCarriere, DonneesCarriere, formaterDiagnosticCarriere } from "..
 import type { DestinyMembership, Personnage } from "../lib/bungie/api";
 import IconeClasse from "./icones/IconeClasse";   // ⚠️ AJOUT (21/10/2026, demande de l'utilisateur : « utilise les assets d'icônes de classes de personnages »)
 import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
+import { SAISONS, SaisonFA } from "../data/saisons";
+
+// FR : ⚠️ AJOUT (22/10/2026, retour utilisateur en test : « Saison en cours » affichait « non disponible »
+// alors que l'en-tête de l'appli indique la saison) - la saison en cours vient de la table `SAISONS`
+// (`src/data/saisons.ts`, socle dérivé de d2-additional-info/DIM) : c'est l'entrée dont la date de fin
+// est `null` (la dernière ligne, mise à jour manuellement à chaque saison). AUCUN appel réseau, aucune
+// base de données : c'est une donnée statique du dépôt. ⚠️ Le Manifest (`lib/manifest/saison.ts`) reste
+// la source PRINCIPALE pour le NOM d'une saison donnée ; ici on n'a que la saison EN COURS, que la
+// table locale suffit à désigner. ⚠️ Le nom de `VERSION_JEU` (« Monument of Triumph », badge de l'en-tête)
+// est le nom de la VERSION 9.7.0 (patch du 9 juin 2026), PAS celui de la saison en cours (« Season of
+// Lawless », n°28, depuis le 2 décembre 2025) : ce ne sont pas les mêmes libellés, on affiche donc la
+// SAISON (numéro + nom + extension), cohérente avec la table des saisons.
+// EN: ADDED - the current season comes from the SAISONS table (the entry with `fin === null`).
+function saisonEnCours(): SaisonFA | undefined {
+  return SAISONS.find((s) => s.fin === null);
+}
+
+function libelleSaisonEnCours(): string {
+  const s = saisonEnCours();
+  if (!s) return NON_DISPONIBLE;
+  const type = s.type === "episode" ? "épisode" : "saison";
+  return `${s.nom} (${type} ${s.numero}${s.extension ? `, ${s.extension}` : ""})`;
+}
 
 // FR : ⚠️ CHANGÉ (22/10/2026, demande de l'utilisateur : « il reste à afficher les stats du compte. Toutes les stats. ») - la page affiche DÉSORMAIS **TOUTES** les stats retournées par l'API (`donnees.stats`, ordre de la réponse), plus une sélection figée. Les statIds connus gardent leur libellé FR (table ci-dessous, figée depuis la réponse réelle de l'API pour ce compte) ; une stat inconnue affiche son **statId brut** (jamais omise, jamais renommée à l'aveugle). Les statIds de DURÉES (secondes) sont affichés en « X h Y min » (et non en secondes brutes) ; les ratios gardent 2 décimales.
 // EN: CHANGED - the page now shows ALL the stats returned by the API; known statIds keep their French label, unknown ones show their raw statId; duration statIds are shown as hours/minutes.
@@ -103,8 +126,19 @@ export default function VueCarriere({ membership, personnages, profil }: Props) 
     charger();
   }, [charger]);
 
+  // FR : ⚠️ CHANGÉ (22/10/2026, retour utilisateur : « le temps de jeu est récupéré dans les stats plus bas ») -
+  // le Total vient du PROFIL (composant 200, `minutesPlayedTotal` par personnage, somme des classes) ;
+  // si le profil ne le porte pas (composant 200 absent), on retombe sur la stat `secondsPlayed` de
+  // GetHistoricalStatsForAccount (agrégat « Carrière » du jeu, compte entier) — JAMAIS une estimation.
+  // EN: CHANGED - Total from the profile (component 200); fallback: the `secondsPlayed` stat.
   const totalMinutes =
-    donnees?.minutesParClasse?.reduce((acc, l) => acc + (Number.isFinite(l.minutes) ? l.minutes : 0), 0) ?? null;
+    donnees?.minutesParClasse?.reduce((acc, l) => acc + (Number.isFinite(l.minutes) ? l.minutes : 0), 0) ??
+    (() => {
+      const s = donnees?.stats.find((x) => x.statId === "secondsPlayed");
+      const brut = s?.valeur ?? s?.precision;
+      return brut != null && Number.isFinite(brut) && brut > 0 ? brut / 60 : null;
+    })() ??
+    null;
 
   return (
     /* FR : ⚠️ CHANGÉ (22/10/2026, TODO §25) - une PAGE (carte pleine largeur, comme la page Forge), plus de modale : le bloc Connexion et le sélecteur de vues restent affichés au-dessus. ⚠️ 21/10/2026 : le bouton « Accomplissements » qui était à droite du titre de la modale est RETIRÉ — la navigation vers les Accomplissements se fait par le BOUTON du même nom dans le bloc Connexion (plus de navigation croisée modale/tiroir). / EN: a full-width page card, no modal; the cross-navigation button is gone (the Connection block's button replaces it). */
@@ -143,7 +177,7 @@ export default function VueCarriere({ membership, personnages, profil }: Props) 
         ) : (
           <Ligne libelle="Niveaux" valeur={NON_DISPONIBLE} />
         )}
-        <Ligne libelle="Saison en cours" valeur={NON_DISPONIBLE} />
+        <Ligne libelle="Saison en cours" valeur={libelleSaisonEnCours()} />
       </Section>
 
       <Section titre="10 dernières activités">

@@ -1,3 +1,22 @@
+## 22/10/2026 — CORRECTIFS (retour de l'utilisateur en test) : page « Carrière » — plus de « non disponible » pour le temps de jeu et la saison en cours
+
+**Retour de l'utilisateur (22/10/2026, en test)** : « Ca fonctionne ! Maintenant il faut comprendre pourquoi ici il y a des stats non-disponibles. Le temps de jeu est récupéré dans les stats plus bas, et l'en-tête de l'app indique la saison et même la version du jeu. » — capture de la page Carrière avec « non disponible » pour Temps de jeu → Total, Temps de jeu → Par classe et Personnages → « Saison en cours ».
+
+**Deux causes, deux correctifs** :
+
+1. **Temps de jeu « non disponible »** — la page recevait le MAUVAIS profil : `DashboardPage` lui passait `profilTriomphes`, qui est `GetProfile` avec le **composant 900 seul** (triomphes) — il ne contient **pas** le composant 200 (`characters.data[*].minutesPlayedTotal`, temps de jeu par personnage). Les données existaient pourtant déjà : `recupererResumeEtPersonnages` télécharge le profil complet (composants 100, 102, **200**, …) mais le jetait après en avoir dérivé le résumé. **Corrigé** : `recupererResumeEtPersonnages` (`src/lib/bungie/api.ts`, ⚠️ CHANGÉ) retourne aussi le profil brut (`profil`), `DashboardPage` le stocke dans un nouvel état `profilComplet` (réinitialisé à la déconnexion et au re-test) et le passe à `VueCarriere` (`profil={profilComplet}`) — **aucun appel réseau en plus** (c'est le même profil, déjà téléchargé). ⚠️ En complément (l'indice de l'utilisateur : « le temps de jeu est récupéré dans les stats plus bas »), le **Total** retombe désormais sur la stat `secondsPlayed` de `GetHistoricalStatsForAccount` (agrégat « Carrière » du jeu) quand le profil ne porte pas le composant 200 ; le **par classe** reste « non disponible » dans ce cas (les stats historiques n'ont pas le temps de jeu par personnage). Jamais d'estimation.
+2. **« Saison en cours » « non disponible »** — la ligne était en dur (`valeur={NON_DISPONIBLE}`, jamais implémentée). **Corrigé** : `VueCarriere` (⚠️ CHANGÉ) lit la saison en cours dans la table `SAISONS` (`src/data/saisons.ts`, socle dérivé de d2-additional-info/DIM) : l'entrée dont la date de fin est `null` — actuellement « Season of Lawless (saison 28, Renegades) ». Aucun appel réseau. ⚠️ Le nom affiché est celui de la **saison** (table des saisons), pas celui de la **version** 9.7.0 (« Monument of Triumph ») du badge de l'en-tête : ce ne sont pas les mêmes libellés (la version 9.7.0 est le patch du 9 juin 2026, la saison 28 « Lawless » a débuté le 2 décembre 2025).
+
+**Tests** :
+- `tests/logique/cablage-forge.test.ts` — le regex de montage attend `profil={profilComplet}` (+ `setProfilComplet(profil)`).
+- `tests/ui/entree-vue-carriere.tsx` — la fixture précise la FORME RÉELLE du profil (`data.Response`, `characters.data` en haut niveau, comme passé par `DashboardPage`) ; nouveau mode `?sans-profil=1` (profil absent → repli sur `secondsPlayed`).
+- `tests/ui/vue-carriere.py` — +1 contrôle source (saison depuis `SAISONS`, repli `secondsPlayed`) + 3 contrôles navigateur : temps de jeu Total « 225 h 00 » et par classe (100/75/50 h), « Saison en cours » = « Season of Lawless (saison 28, Renegades) », et repli `?sans-profil=1` (Total « 2500 h 00 » via `secondsPlayed`, « Par classe » « non disponible »).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — CORRECTIFS (retours de l'utilisateur en test) : page « Accomplissements » sans la vitrine « Solo sans mourir » ; parsing des stats « Carrière » corrigé (structure réelle de l'API)
 
 **Retours de l'utilisateur (22/10/2026, en test)** :

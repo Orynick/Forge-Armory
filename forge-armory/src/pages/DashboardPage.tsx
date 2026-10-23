@@ -74,6 +74,13 @@ export default function DashboardPage() {
   // données ne changent qu'après avoir terminé un donjon, inutile de les
   // recharger à chaque changement d'équipement.
   const [profilTriomphes, setProfilTriomphes] = useState<unknown | null>(null);
+  // FR : ⚠️ AJOUT (22/10/2026, retour utilisateur en test : « non disponible » pour le temps de jeu sur
+  // la page Carrière) : le PROFIL COMPLET brut (composant 200 : `characters.data[*].minutesPlayedTotal`),
+  // tel que retourné par `recupererResumeEtPersonnages` (MÊME appel réseau que le résumé : rien en plus).
+  // C'est LUI qui alimente la page Carrière en temps de jeu ; le `profilTriomphes` (composant 900 seul)
+  // ne contient pas le temps de jeu, d'où les « non disponible » constatés.
+  // EN: ADDED - the raw full profile (component 200, per-character playtime), for the Career page.
+  const [profilComplet, setProfilComplet] = useState<unknown | null>(null);
   const [db, setDb] = useState<Database | null>(null);
   // FR : ⚠️ AJOUT (06/10/2026) - mode diagnostic (réglable depuis le pied de page, actif aussi dans l'appli installée) : voir lib/modeDiagnostic.ts.
   const modeDiagnostic = useModeDiagnostic();
@@ -309,6 +316,7 @@ export default function DashboardPage() {
     setEnCours(true);
     setErreurTest(null);
     setResume(null);
+    setProfilComplet(null);
     try {
       const { memberships: comptes, nomBungie: nom } = await recupererComptesBungie();
       setMemberships(comptes);
@@ -321,9 +329,10 @@ export default function DashboardPage() {
       // vous jouez sur plusieurs plateformes non reliées par Cross Save.
       // EN: we take the first linked account for simplicity; refine if you
       // play on several platforms not linked via Cross Save.
-      const { resume: resumeProfil, personnages: listePersonnages } = await recupererResumeEtPersonnages(comptes[0]);
+      const { resume: resumeProfil, personnages: listePersonnages, profil } = await recupererResumeEtPersonnages(comptes[0]);
       setResume(resumeProfil);
       setPersonnages(listePersonnages);
+      setProfilComplet(profil);
 
       // FR : ⚠️ AJOUT (24/08/2026) - triomphes pour la vitrine « Solo sans
       // mourir ». Erreur volontairement ISOLÉE dans son propre try : c'est
@@ -363,6 +372,7 @@ export default function DashboardPage() {
     setResume(null);
     setNomBungie(null);
     setProfilTriomphes(null);
+    setProfilComplet(null);
   }
 
   async function gererExportDim() {
@@ -550,7 +560,10 @@ export default function DashboardPage() {
       )}
 
       {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Carrière » : PAGE dédiée aux statistiques du compte (remplace la modale de la v0.4.14), ouverte par le bouton « Carrière » du bloc Connexion. Le bloc Connexion et le sélecteur de vues (4 onglets, sans ces pages) restent affichés : le bug §25 (pop-up qui ne s'ouvrait pas hors Build Analyzer) est résolu par construction. Lecture seule, chargée à l'ouverture de la page (aucun appel réseau au chargement de l'appli). / EN: the Career page. */}
-      {vue === "carriere" && <VueCarriere membership={memberships[0] ?? null} personnages={personnages} profil={profilTriomphes} />}
+      {/* FR : ⚠️ CHANGÉ (22/10/2026, retour utilisateur en test) : la page Carrière reçoit le PROFIL COMPLET
+      (`profilComplet`, composant 200 → temps de jeu par classe) et NON plus `profilTriomphes` (composant 900
+      seul : sans temps de jeu → « non disponible »). / EN: the Career page gets the full profile (playtime). */}
+      {vue === "carriere" && <VueCarriere membership={memberships[0] ?? null} personnages={personnages} profil={profilComplet} />}
 
       {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte, ouverte par le bouton « Accomplissements » du bloc Connexion. ⚠️ CHANGÉ (22/10/2026, retour utilisateur) : la page n'affiche PAS la vitrine « Solo sans mourir » (elle reste dans le tiroir latéral du Build Analyzer) : elle affichera plus tard tous les triomphes obtenus et à obtenir. / EN: the Accomplishments page (placeholder for the account Triumphs; no Solo Flawless showcase here). */}
       {vue === "accomplissements" && <VueAccomplissements />}
