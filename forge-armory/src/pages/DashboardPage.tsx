@@ -12,7 +12,7 @@ import { Database } from "sql.js";
 import { evaluerBuild } from "../lib/scoring/pillars";
 // FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - lien Forge → score : les simulations de la Forge (magasin partagé) sont appliquées au build pour le SCORE et l'affichage de Mon Build ; le build réel (enregistrement, partage, équipement en jeu) n'est jamais modifié. / EN: Forge → score link: simulations applied to the build for scoring and display only.
 import { useSimulations } from "../lib/forge/storeSimulations";
-import { appliquerSimulations, pieceReelle, nbArmesSimulees } from "../lib/forge/appliquerSimulation";
+import { appliquerSimulations, pieceReelle, nbArmesSimulees, nbArmuresSimulees } from "../lib/forge/appliquerSimulation";
 import type { CibleForge } from "../components/InventaireArmes";
 import { demoBuild, demoExigences } from "../data/demoBuild";
 import { BuildDraft, GearPiece, SubclassConfig, poserPieceDansBuild } from "../types/build";
@@ -92,9 +92,11 @@ export default function DashboardPage() {
   const [ponderations, setPonderations] = useState<EtatPonderations>(lirePonderations);
 
   // FR : ⚠️ CHANGÉ (14/10/2026, v0.4.9) - le score est calculé sur le build AVEC la simulation de la Forge (`buildEffectif`) : il se met à jour en temps réel à chaque changement de simulation (critère 7 de la spécification). Même objet que `monBuild` quand rien n'est simulé : aucun calcul de plus.
+  // ⚠️ CHANGÉ (branche draft-mod-armures) : la simulation couvre désormais les ARMES **et** les ARMURES (mods) ; `db` est transmis pour le recalcul des statistiques des armures simulées (pilier stats_2_0).
   const simulations = useSimulations();
-  const buildEffectif = useMemo(() => appliquerSimulations(monBuild, simulations), [monBuild, simulations]);
+  const buildEffectif = useMemo(() => appliquerSimulations(monBuild, simulations, db), [monBuild, simulations, db]);
   const nbSimulees = nbArmesSimulees(buildEffectif);
+  const nbArmuresSim = nbArmuresSimulees(buildEffectif);
   const idsDansBuild = useMemo(() => new Set(monBuild.armes.map((a) => a.itemInstanceId).filter((i): i is string => !!i)), [monBuild]);
   const resultat = useMemo(
     () => evaluerBuild(buildEffectif, demoExigences, db ?? undefined, poidsActifsEnFractions(ponderations)),
@@ -723,6 +725,12 @@ export default function DashboardPage() {
         {nbSimulees > 0 && (
           <div data-score-simule="" title="Les perks choisis dans la Forge (vue Inventaire) remplacent ceux de vos armes pour le calcul du score. L'enregistrement, le partage et l'équipement en jeu gardent vos perks réels." style={{ fontSize: "0.85rem", color: "#e8c547", cursor: "help" }}>
             🔨 Score calculé avec des perks simulés ({nbSimulees} arme{nbSimulees > 1 ? "s" : ""})
+          </div>
+        )}
+        {/* ⚠️ AJOUT (branche draft-mod-armures) - même bandeau quand des MODS d'armure sont simulés : le score (pilier stats + Pilier 2) en tient compte. */}
+        {nbArmuresSim > 0 && (
+          <div data-score-simule-armures="" title="Les mods choisis dans la Forge (ou la pop-up Détails) remplacent ceux de vos armures pour le calcul du score (statistiques recalculées + effets des mods). L'enregistrement, le partage et l'équipement en jeu gardent vos mods réels." style={{ fontSize: "0.85rem", color: "#e8c547", cursor: "help" }}>
+            🔨 Score calculé avec des mods d'armure simulés ({nbArmuresSim} armure{nbArmuresSim > 1 ? "s" : ""})
           </div>
         )}
         <div

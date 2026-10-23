@@ -11,7 +11,7 @@ import { obtenirBonusSet } from "../lib/manifest/doctrine";
 import { normaliser } from "../lib/manifest/search";
 import { colonnesArmure, diagnosticArmure, statsSimulees, regrouperColonnesArmure } from "../lib/forge/armure";
 import type { ColonneArmure, PlugArmure, GroupeColonneArmure } from "../lib/forge/armure";
-import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees, Simulations } from "../lib/forge/simulation";
+import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees, armuresSimulees, Simulations } from "../lib/forge/simulation";
 import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 import { LIBELLES_SLOT, LIBELLES_STAT, ORDRE_STATS } from "../data/libellesUI";
 import IconeSaison from "./IconeSaison";
@@ -77,7 +77,7 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
     }
   }
 
-  const nbSim = (p: GearPiece) => (p.itemInstanceId ? nbColonnesSimulees(simulations, p.itemInstanceId) : 0);
+  const nbSim = (p: GearPiece) => (p.itemInstanceId ? nbColonnesSimulees(simulations, p.itemInstanceId, "armures") : 0);
   /** FR : nom de l'ensemble d'armure (Armor 3.0), lu une fois par armure. / EN: armor set name, read once per piece. */
   const ensembles = useMemo(() => {
     const m = new Map<GearPiece, string | undefined>();
@@ -95,22 +95,23 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
   const ensemblesDistincts = useMemo(() => [...new Set((pieces ?? []).map((p) => ensembles.get(p)).filter((n): n is string => !!n))].sort((a, b) => a.localeCompare(b, "fr")), [pieces, ensembles]);
 
   const instance = ouverte?.itemInstanceId;
-  const choixOuverte = instance ? simulations.armes[instance] : undefined;
+  const choixOuverte = instance ? simulations.armures?.[instance] : undefined;
   const colonnes = useMemo(() => (db && ouverte ? colonnesArmure(db, ouverte, voirCosmetiques) : []), [db, ouverte, voirCosmetiques]);
   const stats = useMemo(() => (db && ouverte ? statsSimulees(db, ouverte, choixOuverte) : null), [db, ouverte, choixOuverte]);
 
   function choisirPlug(col: ColonneArmure, plug: PlugArmure) {
     if (!instance || !col.modifiable) return;
-    if (plug.hash === col.equipe.hash || choixOuverte?.[col.socketIndex]?.choisi === plug.hash) appliquer((s) => retirerColonne(s, instance, col.socketIndex));
-    else appliquer((s) => choisir(s, instance, col.socketIndex, { choisi: plug.hash, effectif: plug.hash }));
+    if (plug.hash === col.equipe.hash || choixOuverte?.[col.socketIndex]?.choisi === plug.hash) appliquer((s) => retirerColonne(s, instance, col.socketIndex, "armures"));
+    else appliquer((s) => choisir(s, instance, col.socketIndex, { choisi: plug.hash, effectif: plug.hash }, "armures"));
   }
   // FR : ⚠️ AJOUT (19/10/2026) - un clic sur le plug d'un GROUPE de prises identiques simule la PREMIÈRE prise non simulée du groupe : chaque prise reste simulée séparément (le magasin de simulations est par prise), mais l'utilisateur ne voit la liste qu'une seule fois. / EN: a click on a grouped socket's plug simulates the first unsimulated socket of the group.
   function choisirPlugGroupe(groupe: GroupeColonneArmure, plug: PlugArmure) {
     const cible = groupe.colonnes.find((c) => choixOuverte?.[c.socketIndex]?.choisi !== plug.hash) ?? groupe.colonnes[0];
     choisirPlug(cible, plug);
   }
-  /** FR : efface les simulations des ARMURES chargées (pas celles des armes). / EN: clears the loaded armor pieces' simulations only. */
+  /** FR : ⚠️ CHANGÉ (branche draft-mod-armures) - efface les simulations des ARMURES chargées (bloc `armures`, pas celui des armes). / EN: clears the loaded armor pieces' simulations only (`armures` block). */
   const idsAvecSimulation = (pieces ?? []).filter((p) => p.itemInstanceId && nbSim(p) > 0).map((p) => p.itemInstanceId as string);
+  const nbArmuresSim = armuresSimulees(simulations).length;
 
   if (!membership) return <p style={{ margin: 0, fontSize: "0.85rem", color: "#e0c080" }}>⚠️ Vous n'êtes pas connecté à Bungie : connectez-vous (bloc « Connexion à Bungie ») pour voir vos armures.</p>;
   if (!db) return <p style={{ margin: 0, fontSize: "0.85rem", color: "#e0c080" }}>⚠️ Manifest pas encore chargé. Chargez-le depuis Build Analyzer, dans le bloc « Recherche dans le Manifest ».</p>;
@@ -122,7 +123,8 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
       </p>
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
         <button onClick={charger} disabled={enCours}>{enCours ? "Chargement…" : pieces ? "↻ Recharger mon inventaire" : "Charger mon inventaire"}</button>
-        {idsAvecSimulation.length > 0 && <button onClick={() => appliquer((s) => idsAvecSimulation.reduce((acc, id) => reinitialiserArme(acc, id), s))} data-effacer-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer les simulations d'armures ({idsAvecSimulation.length})</button>}
+        {idsAvecSimulation.length > 0 && <button onClick={() => appliquer((s) => idsAvecSimulation.reduce((acc, id) => reinitialiserArme(acc, id, "armures"), s))} data-effacer-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer les simulations d'armures ({idsAvecSimulation.length})</button>}
+        {nbArmuresSim > idsAvecSimulation.length && <button onClick={() => appliquer((s) => armuresSimulees(s).reduce((acc, id) => reinitialiserArme(acc, id, "armures"), s))} data-effacer-toutes-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer TOUTES les simulations d'armures ({nbArmuresSim})</button>}
       </div>
       {erreur && <p role="alert" style={{ fontSize: "0.8rem", color: "#e0a080", margin: "0 0 0.5rem" }}>⚠️ {erreur}</p>}
       {pieces && (
@@ -223,8 +225,8 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
               <label style={{ fontSize: "0.8rem", display: "inline-flex", gap: "0.4rem", alignItems: "center" }}>
                 <input type="checkbox" checked={voirCosmetiques} onChange={(e) => setVoirCosmetiques(e.target.checked)} /> Afficher les emplacements cosmétiques
               </label>
-              <span data-nb-simulees={instance ? nbColonnesSimulees(simulations, instance) : 0} style={{ fontSize: "0.78rem", color: "#e8c547" }}>{instance && nbColonnesSimulees(simulations, instance) > 0 ? `${nbColonnesSimulees(simulations, instance)} emplacement${nbColonnesSimulees(simulations, instance) > 1 ? "s" : ""} simulé${nbColonnesSimulees(simulations, instance) > 1 ? "s" : ""}` : "aucune simulation"}</span>
-              <button disabled={!instance || nbColonnesSimulees(simulations, instance) === 0} onClick={() => instance && appliquer((s) => reinitialiserArme(s, instance))} style={{ fontSize: "0.78rem" }}>↺ Revenir à l'équipement réel</button>
+              <span data-nb-simulees={instance ? nbColonnesSimulees(simulations, instance, "armures") : 0} style={{ fontSize: "0.78rem", color: "#e8c547" }}>{instance && nbColonnesSimulees(simulations, instance, "armures") > 0 ? `${nbColonnesSimulees(simulations, instance, "armures")} emplacement${nbColonnesSimulees(simulations, instance, "armures") > 1 ? "s" : ""} simulé${nbColonnesSimulees(simulations, instance, "armures") > 1 ? "s" : ""}` : "aucune simulation"}</span>
+              <button disabled={!instance || nbColonnesSimulees(simulations, instance, "armures") === 0} onClick={() => instance && appliquer((s) => reinitialiserArme(s, instance, "armures"))} style={{ fontSize: "0.78rem" }}>↺ Revenir à l'équipement réel</button>
             </div>
             {import.meta.env.DEV && (
               <div style={{ marginBottom: "0.6rem" }}>
