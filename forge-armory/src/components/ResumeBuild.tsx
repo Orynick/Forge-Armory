@@ -25,7 +25,7 @@ import { Database } from "sql.js";
 import { BuildDraft, GearPiece, SlotArme, SlotArmure, StatKey } from "../types/build";
 import { LIBELLES_ELEMENT_FR as LIBELLES_ELEMENT } from "../data/libellesElements";
 import { LIBELLES_SLOT, LIBELLES_CATEGORIE } from "../data/libellesUI";
-import { STAT_MAX, sommerStatsArmure } from "../lib/scoring/stats";
+import { STAT_MAX, sommerStatsArmure, PAS_AJUSTEMENT_STAT } from "../lib/scoring/stats";
 import { obtenirChampionsCouverts } from "../lib/scoring/verbes";
 import { obtenirBonusSetsActifs } from "../lib/scoring/armorSets";
 import RappelDoctrine from "./RappelDoctrine";
@@ -89,6 +89,13 @@ interface Props {
    * FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - bouton « Forge » de la fenêtre Détails d'une ARME possédée (spécification du 12/10/2026, §1) : envoie l'arme à la vue Inventaire de la Forge (absent : pas de bouton). `build` est ici le build AVEC la simulation appliquée (armes marquées `perksSimules`) : le badge « simulé » et l'avertissement à l'équipement en dépendent. / EN: ⚠️ ADDED - Forge button of a weapon's Details window; `build` here has the simulation applied.
    */
   onOuvrirForge?: (piece: GearPiece) => void;
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - bouton −/+ à droite de chaque barre de
+   * stat (ajustements manuels, granularité 5). Facultatif : sans lui, les barres restent en lecture seule.
+   * Reçoit la stat et le NOUVEAU delta (multiple de 5, le total ajusté étant clampé à [0, 200]).
+   * EN: the −/+ button right of each stat bar (manual adjustments, 5-point granularity). Optional.
+   */
+  onChangerAjustement?: (cle: StatKey, delta: number) => void;
 }
 
 // FR : ⚠️ AJOUT (24/08/2026) - détermine si un objet est déjà sur le
@@ -110,7 +117,7 @@ function calculerSetsActifsResume(build: BuildDraft, db: Database) {
   return [...parSet.values()];
 }
 
-export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge }: Props) {
+export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge, onChangerAjustement }: Props) {
   const setsAvecBonusActif = useMemo(() => db ? calculerSetsActifsResume(build, db) : [], [build, db]);
   const [personnageCible, setPersonnageCible] = useState<string>(personnages[0]?.characterId ?? "");
   const [enCours, setEnCours] = useState<string | null>(null);
@@ -790,7 +797,21 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                       totaux[cle] = (totaux[cle] ?? 0) + valeur;
                     }
                   }
+                  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - ajustements manuels : le
+                  // delta saisi par l'utilisateur (multiple de 5) est affiché à côté de la valeur réelle
+                  // ("150 (+15)"), et deux petits boutons −/+ sont alignés AVEC la barre (même ligne que
+                  // le libellé/valeur), pas à sa droite visuelle : ils encadrent la barre. Le clamp [0, 200]
+                  // est appliqué sur le TOTAL ajusté (voir appliquerAjustementsStats).
+                  // EN: manual adjustments: the entered delta (multiple of 5) shows next to the real value
+                  // ("150 (+15)"), and two small −/+ buttons sit ON the bar's row (same line as the
+                  // label/value), framing the bar.
+                  const ajustements = build.ajustementsStats ?? {};
                   return ORDRE.map((cle) => {
+                    const delta = Math.round((ajustements[cle] ?? 0) / PAS_AJUSTEMENT_STAT) * PAS_AJUSTEMENT_STAT;
+                    const ajuste = delta !== 0;
+                    const totalAjuste = Math.max(0, Math.min(STAT_MAX, (totaux[cle] ?? 0) + delta));
+                    const peutMonter = onChangerAjustement ? totalAjuste + PAS_AJUSTEMENT_STAT <= STAT_MAX : false;
+                    const peutDescendre = onChangerAjustement ? totalAjuste - PAS_AJUSTEMENT_STAT >= 0 : false;
                     // FR : ⚠️ AJOUT (04/08/2026) - barres de progression,
                     // demande de l'utilisateur. On réutilise STAT_MAX du
                     // module de scoring plutôt qu'un 200 codé en dur ici :
@@ -801,7 +822,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                     // rather than hardcoding 200 here: if the cap changes
                     // (Bungie has done it before), bars and score stay in
                     // agreement.
-                    const valeur = totaux[cle];
+                    const valeur = ajuste ? totalAjuste : totaux[cle];
                     // FR : ⚠️ CORRIGÉ (24/08/2026) - signalé par l'utilisateur :
                     // une stat négative affichait une barre bien visible au
                     // lieu d'une barre vide. Cause : `Math.min(100, ...)`
@@ -825,20 +846,64 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                     const estNegatif = valeur < 0;
                     return (
                       <div key={cle} style={{ marginBottom: "3px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: "0.6rem", fontSize: "0.72rem" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.4rem", fontSize: "0.72rem" }}>
                           <span style={{ color: "#b7b3a8" }}>{LIBELLES[cle]}</span>
-                          <span style={{ color: estNegatif ? "#e08080" : undefined }}>{valeur}</span>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+                            {onChangerAjustement && (
+                              <button
+                                type="button"
+                                data-ajustement-moins={cle}
+                                aria-label={`Diminuer ${LIBELLES[cle]} de ${PAS_AJUSTEMENT_STAT} (simulation)`}
+                                title={`−${PAS_AJUSTEMENT_STAT} ${LIBELLES[cle]} (ajustement simulé : le total réel reste ${totaux[cle]})`}
+                                disabled={!peutDescendre}
+                                onClick={() => onChangerAjustement(cle, delta - PAS_AJUSTEMENT_STAT)}
+                                style={{ fontSize: "0.62rem", lineHeight: 1, padding: "0 0.3rem", minWidth: "1.1rem", cursor: peutDescendre ? "pointer" : "default", opacity: peutDescendre ? 1 : 0.4 }}
+                              >
+                                −
+                              </button>
+                            )}
+                            <span style={{ color: estNegatif ? "#e08080" : undefined }} data-valeur-stat={cle}>
+                              {valeur}
+                              {ajuste && (
+                                <span style={{ color: "#e8c547" }} data-delta-stat={cle}>
+                                  {` (${delta > 0 ? "+" : ""}${delta})`}
+                                </span>
+                              )}
+                            </span>
+                            {onChangerAjustement && (
+                              <button
+                                type="button"
+                                data-ajustement-plus={cle}
+                                aria-label={`Augmenter ${LIBELLES[cle]} de ${PAS_AJUSTEMENT_STAT} (simulation)`}
+                                title={`+${PAS_AJUSTEMENT_STAT} ${LIBELLES[cle]} (ajustement simulé : le total réel reste ${totaux[cle]})`}
+                                disabled={!peutMonter}
+                                onClick={() => onChangerAjustement(cle, delta + PAS_AJUSTEMENT_STAT)}
+                                style={{ fontSize: "0.62rem", lineHeight: 1, padding: "0 0.3rem", minWidth: "1.1rem", cursor: peutMonter ? "pointer" : "default", opacity: peutMonter ? 1 : 0.4 }}
+                              >
+                                +
+                              </button>
+                            )}
+                            {ajuste && <BadgeSimule title={`Ajustement simulé (${delta > 0 ? "+" : ""}${delta}) : pris en compte dans le score, pas appliqué en jeu. Total réel : ${totaux[cle]}.`} />}
+                          </span>
                         </div>
                         <div
                           style={{ height: 4, background: "#2a2e38", borderRadius: 2, overflow: "hidden" }}
-                          title={`${valeur} / ${STAT_MAX}`}
+                          title={`${valeur} / ${STAT_MAX}${ajuste ? ` (réel : ${totaux[cle]}, ajustement ${delta > 0 ? "+" : ""}${delta})` : ""}`}
                         >
-                          <div style={{ width: `${pourcent}%`, height: "100%", background: estNegatif ? "#8b4a4a" : "#7aa2f7" }} />
+                          <div style={{ width: `${pourcent}%`, height: "100%", background: estNegatif ? "#8b4a4a" : ajuste ? "#e8c547" : "#7aa2f7" }} />
                         </div>
                       </div>
                     );
                   });
                 })()}
+                {/* FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - note sur les PLAFONDS et les
+                surcharges : 175 max sans mods (archétype+masterwork+tuning), 200 avec mods (5× Majeur +10) ;
+                les surcharges de charges d'armure (Fonts) ne sont PAS dans ces barres, elles vivent dans le
+                pilier « Effets du Build ». Aide à visualiser l'impact des surcharges.
+                EN: note on CAPS and overcharges. */}
+                <div style={{ fontSize: "0.62rem", color: "#7d7a70", marginTop: "0.3rem" }} title="Plafond Armor 3.0 : 175 sans mods (archétype + masterwork + tuning), 200 avec mods (5× Majeur +10). Les surcharges liées aux charges d'armure (Fonts) ne sont PAS comptabilisées ici : elles apparaissent dans le pilier « Effets du Build ».">
+                  Plafond 200 (avec mods) · les surcharges de charges d'armure ne sont pas comptées ici (voir Effets du Build)
+                </div>
               </div>
             </div>
           )}

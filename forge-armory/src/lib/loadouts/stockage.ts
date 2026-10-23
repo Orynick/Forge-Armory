@@ -26,6 +26,7 @@
 
 import { buildExportable } from "./pieceExportable";   // ⚠️ AJOUT (14/10/2026, v0.4.9)
 import { BuildDraft, GearPiece } from "../../types/build";
+import { aDesAjustementsStats } from "../scoring/stats";
 
 const CLE_STOCKAGE = "d2-build-analyzer.loadouts.v1";
 
@@ -65,6 +66,18 @@ export interface Loadout {
    * SUPPRIME le champ au lieu d'écrire `false`). Un fichier d'échange d'UN build ne le contient jamais : le build d'un ami n'arrive pas « stocké dans MON jeu ». / EN: ⚠️ ADDED - manual "stored in game" memo; optional; never exported with a single shared build.
    */
   stockeEnJeu?: boolean;
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - le loadout est le fruit d'une SIMULATION
+   * (ajustements manuels de stats et/ou perks simulés dans la Forge) : il est enregistré AVEC ses
+   * ajustements (`build.ajustementsStats` voyagent dans le build cloné) et porte le badge « simulé »
+   * dans la liste des loadouts. FACULTATIF : absent = build réel (les loadouts enregistrés avant
+   * l'ajout restent valides). Il PART avec le build dans un fichier d'échange (comme `auteur`) : c'est
+   * une qualité du build lui-même, le receveur verra le badge (voir `serialiserUnLoadout`).
+   * EN: the loadout is the result of a SIMULATION (manual stat adjustments and/or Forge-simulated perks):
+   * it is saved WITH its adjustments and carries the "simulated" badge in the loadout list. OPTIONAL.
+   * It TRAVELS with the build in an exchange file (like `auteur`).
+   */
+  estSimulation?: boolean;
   build: BuildDraft;
 }
 
@@ -173,7 +186,7 @@ function ecrire(loadouts: Loadout[]): { ok: boolean; erreur?: string } {
  * EN: ⚠️ EXTRACTED - builds a loadout IN MEMORY without saving it; shared by
  * saving and by the "share build" block, so both produce the same object.
  */
-export function construireLoadout(nom: string, build: BuildDraft, description = "", iconeChoisie = "", auteur = ""): Loadout {
+export function construireLoadout(nom: string, build: BuildDraft, description = "", iconeChoisie = "", auteur = "", estSimulation?: boolean): Loadout {
   // FR : structuredClone pour figer une COPIE de l'état du build. Sans ça
   // le loadout garderait une référence vers l'objet vivant et se
   // modifierait tout seul quand on continue à éditer le build en cours.
@@ -190,20 +203,25 @@ export function construireLoadout(nom: string, build: BuildDraft, description = 
     auteur: nettoyerAuteur(auteur),
     // FR : ⚠️ CHANGÉ (14/10/2026, v0.4.9) - `buildExportable` : ni la liste des perks DISPONIBLES mais non sélectionnés, ni un perk simulé ne sont enregistrés (demande de l'utilisateur : seuls les perks sélectionnés, réels). / EN: ⚠️ CHANGED - only selected, real perks are saved.
     build: structuredClone(buildExportable(build)),
+    // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - marqueur « simulation » : détecté
+    // automatiquement si le build porte des ajustements de stats, ou forcé par l'appelant (perks simulés).
+    // `buildExportable` conserve `ajustementsStats` (c'est un champ du build, pas un repère de copie).
+    // EN: "simulation" marker: auto-detected if the build carries stat adjustments, or forced by the caller.
+    estSimulation: estSimulation === true || aDesAjustementsStats(build.ajustementsStats) || undefined,
   };
 }
 
 /** FR : ⚠️ AJOUT (07/10/2026, v0.3.10) - message renvoyé quand on tente d'enregistrer un build SANS NOM. Même texte que celui affiché par les fenêtres « Modifier » et « Enregistrer le build ». / EN: ⚠️ ADDED - error returned when saving a build with no name. */
 export const ERREUR_NOM_VIDE = "Le nom ne peut pas être vide.";
 
-export function enregistrerLoadout(nom: string, build: BuildDraft, description = "", iconeChoisie = "", auteur = ""): { ok: boolean; erreur?: string } {
+export function enregistrerLoadout(nom: string, build: BuildDraft, description = "", iconeChoisie = "", auteur = "", estSimulation?: boolean): { ok: boolean; erreur?: string } {
   // FR : ⚠️ AJOUT (07/10/2026, v0.3.10) - le NOM EST OBLIGATOIRE, partout (demande de l'utilisateur : aligner la zone de l'onglet et la fenêtre du Build Analyzer, que l'une acceptait vide et l'autre non). Les deux écrans le vérifient déjà (bouton
   // grisé) ; ce refus est la garde de fond : plus aucun chemin ne peut créer un build « Sans nom ». Rien n'est écrit et aucun événement n'est émis. `construireLoadout` garde son repli « Sans nom » : il sert aussi à construire EN MÉMOIRE le
   // loadout du bloc de partage (qui a son propre nom par défaut), jamais à enregistrer.
   // EN: ⚠️ ADDED - the NAME IS REQUIRED everywhere; this is the backstop. Nothing is written, no event emitted.
   if (!nom.trim()) return { ok: false, erreur: ERREUR_NOM_VIDE };
   const loadouts = listerLoadouts();
-  const nouveau = construireLoadout(nom, build, description, iconeChoisie, auteur);
+  const nouveau = construireLoadout(nom, build, description, iconeChoisie, auteur, estSimulation);
   return ecrire([nouveau, ...loadouts]);
 }
 
@@ -435,6 +453,11 @@ export function serialiserUnLoadout(loadout: Loadout): { contenu: string; nomFic
   const { ordre, stockeEnJeu, ...partage } = loadout;
   void ordre;
   void stockeEnJeu;
+  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - `estSimulation` PART avec le build
+  // (comme `auteur`) : c'est une qualité du build lui-même, le receveur verra le badge. Nettoyé : seule
+  // la valeur `true` est reprise.
+  // EN: `estSimulation` TRAVELS with the build (like `auteur`): it is a quality of the build itself.
+  partage.estSimulation = partage.estSimulation === true ? true : undefined;
   // FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - le fichier d'échange ne contient que les perks SÉLECTIONNÉS (réels), même pour un build enregistré avant cette version. / EN: ⚠️ ADDED - the exchange file only holds the selected, real perks.
   partage.build = buildExportable(partage.build);
   return {
@@ -483,6 +506,7 @@ export function importerLoadouts(json: string): { ok: boolean; nombre?: number; 
         ...l,
         ordre: Number.isFinite(l.ordre) ? baseOrdre + Math.max(0, Math.trunc(l.ordre as number)) : undefined,
         stockeEnJeu: l.stockeEnJeu === true ? true : undefined,
+        estSimulation: l.estSimulation === true ? true : undefined,
         id: `loadout-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         enregistreLe: l.enregistreLe ?? new Date().toISOString(),
         // FR : ⚠️ AJOUT (06/10/2026) - le pseudo d'auteur du fichier est CONSERVÉ (c'est celui de l'auteur du build, pas de celui qui importe), mais nettoyé : un champ absent, vide, de mauvais type ou démesuré est écarté.

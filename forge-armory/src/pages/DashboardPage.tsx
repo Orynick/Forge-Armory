@@ -15,7 +15,7 @@ import { useSimulations } from "../lib/forge/storeSimulations";
 import { appliquerSimulations, pieceReelle, nbArmesSimulees } from "../lib/forge/appliquerSimulation";
 import type { CibleForge } from "../components/InventaireArmes";
 import { demoBuild, demoExigences } from "../data/demoBuild";
-import { BuildDraft, GearPiece, SubclassConfig, poserPieceDansBuild } from "../types/build";
+import { BuildDraft, GearPiece, StatKey, SubclassConfig, poserPieceDansBuild } from "../types/build";
 import PilierCarte from "../components/PilierCarte";
 import BlocContexte from "../components/BlocContexte";
 import PanneauTriomphes from "../components/PanneauTriomphes";
@@ -52,6 +52,9 @@ import TitreCategorie from "../components/TitreCategorie";
 import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic";
 import Bibliotheque from "../components/Bibliotheque";
 import { EtatPonderations, lirePonderations, poidsActifsEnFractions } from "../lib/scoring/ponderations";
+// FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - ajustements manuels des stats (boutons −/+ des barres).
+// EN: manual stat adjustments (the −/+ bar buttons).
+import { PAS_AJUSTEMENT_STAT, aDesAjustementsStats } from "../lib/scoring/stats";
 
 export default function DashboardPage() {
   // FR : le build n'est plus une constante figée - on garde une copie
@@ -120,6 +123,24 @@ export default function DashboardPage() {
   function changerSubclass(maj: Partial<SubclassConfig>) {
     setMonBuild((b) => ({ ...b, subclass: { ...b.subclass, ...maj } }));
   }
+
+  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - ajuste les stats du build EN COURS
+  // (boutons −/+ des barres de Mon Build). Le delta est un multiple de 5 ; le build réel (armure lue)
+  // n'est PAS modifié : seul `ajustementsStats` évolue, et le score le reflète (badge « simulé »).
+  // EN: adjusts the CURRENT build's stats (the −/+ bar buttons). Delta is a multiple of 5. The real build
+  // (read armor) is NOT modified: only `ajustementsStats` changes, and the score reflects it.
+  function changerAjustementStat(cle: StatKey, delta: number) {
+    setMonBuild((b) => {
+      const ajustements = { ...(b.ajustementsStats ?? {}) };
+      const nouveau = Math.round(delta / PAS_AJUSTEMENT_STAT) * PAS_AJUSTEMENT_STAT;
+      if (nouveau === 0) delete ajustements[cle];
+      else ajustements[cle] = nouveau;
+      return { ...b, ajustementsStats: Object.keys(ajustements).length === 0 ? undefined : ajustements };
+    });
+  }
+
+  // FR : vrai si le build en cours porte au moins un ajustement manuel de stat (badge « simulé » sur le score global).
+  const statsAjustees = aDesAjustementsStats(monBuild.ajustementsStats);
 
   // FR : ajoute un objet (issu de la recherche OU de l'inventaire réel) à
   // son emplacement dans le build - remplace ce qui s'y trouvait déjà.
@@ -615,6 +636,7 @@ export default function DashboardPage() {
           onReinitialiser={reinitialiserBuild}
           contexte={monBuild.contexte ?? "neutre"}
           onChangerContexte={(valeur) => setMonBuild((b) => ({ ...b, contexte: valeur }))}
+          onChangerAjustement={changerAjustementStat}
         />
       </div>
 
@@ -631,7 +653,17 @@ export default function DashboardPage() {
       l'enregistrer (JSON, texte, JPEG, PNG, PDF), demande de l'utilisateur.
       EN: ⚠️ ADDED - share the current build without saving it. */}
       {/* FR : ⚠️ CHANGÉ (06/10/2026, v0.3.3) - `auteur` : le pseudo affiché dans le bloc Connexion (même expression), seulement si l'on est connecté. / EN: ⚠️ CHANGED - `auteur`: the handle shown in the Connection block, only when connected. */}
-      <BlocPartage build={monBuild} db={db} auteur={connecte ? (nomBungie ?? resume?.compte ?? null) : null} onVoirLoadouts={() => setVue("loadouts")} />
+      <BlocPartage
+        build={monBuild}
+        db={db}
+        auteur={connecte ? (nomBungie ?? resume?.compte ?? null) : null}
+        onVoirLoadouts={() => setVue("loadouts")}
+        // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - le build reçu ici est le build RÉEL
+        // (sans simulation appliquée) : on passe explicitement s'il porte des perks simulés, pour que
+        // l'enregistrement depuis ce bloc soit marqué « simulation ». / EN: the build received here is
+        // the REAL one: we pass explicitly whether it carries simulated perks, so saving from this block is marked.
+        avecPerksSimules={buildEffectif.armes.some((a) => a.perksSimules === true)}
+      />
 
       {/* FR : ⚠️ AJOUT (04/08/2026) - panneau latéral des loadouts. En
       position `fixed`, il suit le défilement de la page (demande de
@@ -656,6 +688,10 @@ export default function DashboardPage() {
         personnages={personnages}
         db={db}
         build={monBuild}
+        // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - le build AVEC simulation appliquée,
+        // pour que la zone d'enregistrement détecte les perks simulés et marque l'enregistrement.
+        // EN: the build WITH the simulation applied, so the save zone detects simulated perks and marks the save.
+        buildAvecSimulation={buildEffectif}
         auteur={connecte ? (nomBungie ?? resume?.compte ?? null) : null}
       />
 
@@ -681,6 +717,15 @@ export default function DashboardPage() {
         {nbSimulees > 0 && (
           <div data-score-simule="" title="Les perks choisis dans la Forge (vue Inventaire) remplacent ceux de vos armes pour le calcul du score. L'enregistrement, le partage et l'équipement en jeu gardent vos perks réels." style={{ fontSize: "0.85rem", color: "#e8c547", cursor: "help" }}>
             🔨 Score calculé avec des perks simulés ({nbSimulees} arme{nbSimulees > 1 ? "s" : ""})
+          </div>
+        )}
+        {/* FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - ajustements manuels de stats actifs :
+        le score global reflète une hypothèse (mods/masterwork simulés), pas l'équipement réel. Même badge
+        que les perks simulés. / EN: manual stat adjustments active: the global score reflects a
+        hypothesis, not the real loadout. Same badge as simulated perks. */}
+        {statsAjustees && (
+          <div data-score-simule="" title="Les ajustements de stats (boutons −/+ des barres) sont pris en compte dans le score. L'enregistrement, le partage et l'équipement en jeu gardent vos stats réelles." style={{ fontSize: "0.85rem", color: "#e8c547", cursor: "help" }}>
+            ������ Score calculé avec des ajustements de stats simulés
           </div>
         )}
         <div
@@ -736,7 +781,16 @@ export default function DashboardPage() {
       />
 
       {resultat.piliers.map((p) => (
-        <PilierCarte key={p.pilier} pilier={p} stats={resultat.statsTotales} />
+        <PilierCarte
+          key={p.pilier}
+          pilier={p}
+          stats={resultat.statsTotales}
+          // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - les ajustements manuels (boutons −/+)
+          // sont aussi sur le graphique du pilier 5 (Statistiques).
+          // EN: manual adjustments (−/+ buttons) are also on pillar 5's chart (Statistics).
+          ajustements={monBuild.ajustementsStats}
+          onChangerAjustement={changerAjustementStat}
+        />
       ))}
 
       <div style={{ marginTop: "2rem", display: "flex", gap: "0.75rem" }}>

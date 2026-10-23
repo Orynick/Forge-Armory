@@ -1,6 +1,7 @@
 import { PillarScore, StatBlock } from "../types/build";
 import TitreCategorie, { CategorieTitre } from "./TitreCategorie";
 import StatsBarChart from "./StatsBarChart";
+import type { StatKey } from "../types/build";
 import BadgeSimule from "./BadgeSimule";   // ⚠️ AJOUT (20/10/2026, branche draft-optimiseur)
 // FR : ⚠️ CHANGÉ (06/09/2026) - les libellés étaient redéclarés ici, en
 // 3e copie indépendante. Importés depuis la source unique désormais.
@@ -12,6 +13,15 @@ interface Props {
   pilier: PillarScore;
   /** FR : Stats à afficher en graphique - fourni seulement pour le pilier 5. / EN: Stats to chart - only provided for pillar 5. */
   stats?: Partial<StatBlock>;
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - ajustements manuels par stat (boutons −/+,
+   * granularité 5) : transmis au graphique du pilier 5 pour afficher les boutons alignés avec chaque barre.
+   * Facultatif : sans lui, le graphique reste en lecture seule.
+   * EN: manual per-stat adjustments (the −/+ buttons, 5-point granularity), forwarded to pillar 5's chart.
+   */
+  ajustements?: Partial<Record<StatKey, number>>;
+  /** FR : callback −/+ d'une stat (même contrat que ResumeBuild). / EN: per-stat −/+ callback (same contract as ResumeBuild). */
+  onChangerAjustement?: (cle: StatKey, delta: number) => void;
 }
 
 /** FR : ⚠️ AJOUT (07/10/2026, v0.3.15) - le titre illustré de chaque pilier. / EN: ⚠️ ADDED - each pillar's illustrated title. */
@@ -23,7 +33,7 @@ const TITRE_PAR_PILIER: Partial<Record<PillarScore["pilier"], CategorieTitre>> =
   stats_2_0: "pilier-5",
 };
 
-export default function PilierCarte({ pilier, stats }: Props) {
+export default function PilierCarte({ pilier, stats, ajustements, onChangerAjustement }: Props) {
   // FR : ⚠️ AJOUT (04/08/2026) - regroupe les détails en "titre + sous-lignes"
   // pour un VRAI retrait visuel (sous-liste imbriquée), plutôt que de simples
   // espaces en début de texte qui ne décalaient presque rien. Une ligne de
@@ -68,7 +78,17 @@ export default function PilierCarte({ pilier, stats }: Props) {
           ⛓️ Chaîne de verbes détectée · 🔋 Énergie d'aptitude générée
         </p>
       )}
-      {pilier.pilier === "stats_2_0" && stats && <StatsBarChart stats={stats} />}
+      {pilier.pilier === "stats_2_0" && stats && (
+        <StatsBarChart stats={stats} ajustements={ajustements} onChangerAjustement={onChangerAjustement} />
+      )}
+      {/* FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - le pilier 5 marqué « simulé »
+      (ajustements de stats actifs) porte le badge dans son titre, en plus du badge par ligne de détail.
+      EN: pillar 5 flagged "simulated" (active stat adjustments) also carries the badge in its title. */}
+      {pilier.pilier === "stats_2_0" && pilier.detailsMarques?.some((l) => l.simule) && (
+        <span style={{ marginLeft: "0.3rem" }}>
+          <BadgeSimule title="Ce pilier reflète des ajustements de stats simulés (boutons −/+), pas votre équipement réel." />
+        </span>
+      )}
       <ul>
         {groupes.map((g, i) => (
           <li key={i}>

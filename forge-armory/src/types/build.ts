@@ -160,6 +160,21 @@ export interface BuildDraft {
   // pas une pièce en plus — sinon ses stats sont exclues du calcul du
   // pilier 5 (bug détecté par les tests du 01/08/2026, corrigé ici).
   armure: GearPiece[];
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - AJUSTEMENTS MANUELS des stats du build
+   * (boutons −/+ à côté de chaque barre, granularité 5 points) : c'est un DELTA appliqué aux stats
+   * réelles du build (armure + bonus de fragments), simulant par exemple des mods non équipés ou un
+   * masterwork hypothétique. Borné : le TOTAL ajusté est clampé à [0, 200] (STAT_MAX) par stat - les
+   * surcharges liées aux charges d'armure (Fonts) ne sont PAS comptées ici, elles restent dans le pilier
+   * « Effets du Build ». Quand au moins un ajustement est non nul, le score lié est marqué du badge
+   * « simulé ». `undefined` ou vide = aucun ajustement (comportement historique, score inchangé).
+   * EN: MANUAL stat adjustments (the −/+ buttons next to each bar, 5-point granularity): a DELTA applied to
+   * the build's real stats (armor + fragment bonuses), simulating e.g. unequipped mods or a hypothetical
+   * masterwork. Clamped: the ADJUSTED total is clamped to [0, 200] (STAT_MAX) per stat - Armor Charge
+   * overcharges (Fonts) are NOT counted here, they stay in the "Effects of the Build" pillar. When at
+   * least one adjustment is non-zero, the related score carries the "simulated" badge.
+   */
+  ajustementsStats?: Partial<Record<StatKey, number>>;
 }
 
 

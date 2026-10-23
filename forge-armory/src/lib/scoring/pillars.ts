@@ -18,7 +18,7 @@ import { normaliser, positionsMotCleStrict } from "../manifest/search";
 // EN: ⚠️ ADDED - single source for pillar order.
 import { ORDRE_PILIERS } from "../../data/piliers";
 import { BuildDraft, BuildScoreResult, PillarScore } from "../../types/build";
-import { ExigenceStat, scoreStats, sommerStatsArmure, ContexteBuild } from "./stats";
+import { ExigenceStat, scoreStats, sommerStatsArmure, ContexteBuild, appliquerAjustementsStats, aDesAjustementsStats } from "./stats";
 import { scoreBonusSetsReels } from "./armorSets";
 import { detecterVerbes, extraireTextesEffetsBuild, extraireTextesEffetsBuildMarques, scoreVerbesDetectes, obtenirChampionsCouverts, detecterChainesVerbes, detecterRessourcesGenerees, enrichirAvecChaines } from "./verbes";
 import { obtenirBonusStatsDoctrine, obtenirElementArme } from "../manifest/doctrine";
@@ -726,7 +726,7 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
  * Pilier 5 - Statistiques 2.0 : voir lib/scoring/stats.ts pour le détail des
  * paliers T1-T20 et des exigences d'exotiques (ex: Caresse du Ver -> T10 Grenade).
  */
-function scoreStats2(stats: ReturnType<typeof sommerStatsArmure>, exigences: ExigenceStat[], contexte: ContexteBuild = "neutre"): PillarScore {
+function scoreStats2(stats: ReturnType<typeof sommerStatsArmure>, exigences: ExigenceStat[], contexte: ContexteBuild = "neutre", simule = false): PillarScore {
   // FR : ⚠️ CORRIGÉ (24/08/2026) - le contexte n'était pas transmis à
   // `scoreStats`, qui l'accepte pourtant en paramètre : la pondération PAR
   // STAT (POIDS_STATS - Arme à 1.7 en DPS, Santé à 1.8 en PvP, etc.)
@@ -737,7 +737,17 @@ function scoreStats2(stats: ReturnType<typeof sommerStatsArmure>, exigences: Exi
   // it: PER-STAT weighting always fell back to "neutre" even once the
   // pillar's GLOBAL weight was correctly contextualised.
   const { score, details } = scoreStats(stats, exigences, contexte);
-  return { pilier: "stats_2_0", score, poids: poidsPilier("stats_2_0", contexte), details };
+  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - si le build porte des AJUSTEMENTS
+  // MANUELS de stats (boutons −/+), ce pilier est marqué du badge « simulé » : le score reflète
+  // une hypothèse (mods/masterwork simulés), pas l'équipement réel. Chaque ligne de détail est
+  // marquée ; le texte porte le suffixe « · • simulé » pour la fiche/export (le badge visuel est
+  // rendu par PilierCarte via `detailsMarques`).
+  // EN: if the build carries MANUAL stat adjustments (−/+ buttons), this pillar is flagged with the
+  // "simulated" badge: the score reflects a hypothesis (simulated mods/masterwork), not the real loadout.
+  if (!simule) return { pilier: "stats_2_0", score, poids: poidsPilier("stats_2_0", contexte), details };
+  const S = String.fromCodePoint(0x1F528); // évite d'écrire l'emoji en dur (surrogate pairs)
+  const detailsMarques = details.map((texte) => ({ texte: `${texte} · ${S} simulé`, simule: true }));
+  return { pilier: "stats_2_0", score, poids: poidsPilier("stats_2_0", contexte), details: detailsMarques.map((d) => d.texte), detailsMarques };
 }
 
 /**
@@ -874,6 +884,15 @@ export function evaluerBuild(
     }
   }
 
+  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - les AJUSTEMENTS MANUELS
+  // (`build.ajustementsStats`, boutons −/+ des barres) s'appliquent APRÈS les bonus de fragments :
+  // ils simulent des mods/masterwork EN PLUS de l'équipement réel. `statsTotales` (retourné à l'UI)
+  // reflète alors le total ajusté, clampé à [0, 200] par stat. Sans ajustement, le même objet.
+  // EN: MANUAL adjustments apply AFTER fragment bonuses (they simulate mods/masterwork ON TOP of the
+  // real gear). `statsTotales` (returned to the UI) then reflects the adjusted total.
+  const statsAjustees = appliquerAjustementsStats(statsTotales, build.ajustementsStats);
+  const statsSimulees = aDesAjustementsStats(build.ajustementsStats);
+
   // FR : ⚠️ RÉORGANISÉ (06/09/2026) - l'ordre de ce tableau détermine
   // l'ordre d'affichage des cartes de piliers. Il suit désormais
   // `ORDRE_PILIERS` (`data/piliers.ts`), la source unique partagée avec le
@@ -896,7 +915,7 @@ export function evaluerBuild(
     scoreLootCoherence(build, db, contexte),
     scorePerksArtefact(build, db, contexte),
     scoreVerbesElement(build, db, contexte),
-    scoreStats2(statsTotales, exigencesExotiques, contexte),
+    scoreStats2(statsAjustees, exigencesExotiques, contexte, statsSimulees),
   ];
 
   // FR : ⚠️ AJOUT (06/09/2026) - garde-fou contre la désynchronisation qui
@@ -933,7 +952,7 @@ export function evaluerBuild(
     buildId: build.id,
     scoreGlobal,
     piliers: piliersPonderes,
-    statsTotales,
+    statsTotales: statsAjustees,
     completion: calculerCompletion(build, db),
   };
 }

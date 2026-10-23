@@ -38,6 +38,48 @@ export function palier(valeur: number): number {
   return Math.min(Math.ceil(v / STAT_TIER_SIZE), STAT_MAX_TIER) || (v > 0 ? 1 : 0);
 }
 
+/**
+ * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - applique les AJUSTEMENTS MANUELS
+ * (`build.ajustementsStats`, boutons −/+ des barres, granularité 5) aux stats réelles d'un build.
+ * Le delta est d'abord borné pour que le TOTAL ajusté reste dans [0, STAT_MAX] par stat (les
+ * surcharges de charges d'armure ne sont PAS comptées ici) ; les ajustements sont arrondis à des
+ * multiples de 5 (décision utilisateur). Renvoie le MÊME objet si aucun ajustement n'est défini.
+ * Fonction PURE : le build passé n'est jamais modifié.
+ * EN: applies the MANUAL adjustments (`build.ajustementsStats`, the −/+ bar buttons, 5-point
+ * granularity) to a build's real stats. The delta is first clamped so the ADJUSTED total stays in
+ * [0, STAT_MAX] per stat (Armor Charge overcharges are NOT counted here); adjustments are rounded
+ * to multiples of 5 (user decision). Returns the SAME object when no adjustment is set. PURE.
+ */
+export const PAS_AJUSTEMENT_STAT = 5;
+
+export function appliquerAjustementsStats(stats: StatBlock, ajustements?: Partial<Record<StatKey, number>>): StatBlock {
+  if (!ajustements) return stats;
+  let change = false;
+  const resultat: StatBlock = { ...stats };
+  for (const cle of Object.keys(stats) as StatKey[]) {
+    const brut = ajustements[cle];
+    if (!brut) continue;
+    const delta = Math.round(brut / PAS_AJUSTEMENT_STAT) * PAS_AJUSTEMENT_STAT;
+    if (delta === 0) continue;
+    // FR : le clamp porte sur le TOTAL (réel + delta), pas sur le delta seul : on ne peut ni descendre
+    // sous 0 ni dépasser le plafond de 200 surcharges exclues.
+    // EN: the clamp is on the TOTAL (real + delta), not on the delta alone.
+    const total = Math.max(0, Math.min(STAT_MAX, (stats[cle] ?? 0) + delta));
+    if (total !== stats[cle]) {
+      resultat[cle] = total;
+      change = true;
+    }
+  }
+  return change ? resultat : stats;
+}
+
+/** FR : vrai si au moins un ajustement manuel est non nul (après arrondi au pas de 5). Sert à poser
+ * le badge « simulé » sur le score lié. / EN: true if at least one manual adjustment is non-zero. */
+export function aDesAjustementsStats(ajustements?: Partial<Record<StatKey, number>>): boolean {
+  if (!ajustements) return false;
+  return Object.values(ajustements).some((v) => Math.round((v ?? 0) / PAS_AJUSTEMENT_STAT) * PAS_AJUSTEMENT_STAT !== 0);
+}
+
 export function libellePalier(valeur: number): string {
   return `T${palier(valeur)}`;
 }

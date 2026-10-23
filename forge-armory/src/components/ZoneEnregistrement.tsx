@@ -10,6 +10,9 @@
 import { useState } from "react";
 import { BuildDraft } from "../types/build";
 import { ERREUR_NOM_VIDE, enregistrerLoadout } from "../lib/loadouts/stockage";
+// FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - détection d'une simulation (ajustements de
+// stats sur le build en cours) pour l'enregistrement marqué. / EN: simulation detection for the marked save.
+import { aDesAjustementsStats } from "../lib/scoring/stats";
 import { doctrineManquante, messageDoctrineIncomplete } from "../lib/loadouts/doctrineIncomplete";
 import SelecteurIconeLoadout from "./SelecteurIconeLoadout";
 
@@ -20,9 +23,16 @@ interface Props {
   auteur: string | null;
   /** FR : appelé avec le résultat de l'enregistrement et le message à afficher en cas de succès (le panneau recharge sa liste et affiche le message). / EN: called with the save result and the success message. */
   onResultat: (resultat: { ok: boolean; erreur?: string }, messageSucces: string) => void;
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - vrai si le build en cours porte des PERKS
+   * SIMULÉS (Forge) : l'enregistrement est alors marqué « simulation » même sans ajustement de stats.
+   * Défaut : détection automatique sur les ajustements de stats seuls. / EN: true if the current build
+   * carries SIMULATED perks (Forge): the save is then marked "simulation" even without stat adjustments.
+   */
+  avecPerksSimules?: boolean;
 }
 
-export default function ZoneEnregistrement({ build, auteur, onResultat }: Props) {
+export default function ZoneEnregistrement({ build, auteur, onResultat, avecPerksSimules = false }: Props) {
   const [nomSaisi, setNomSaisi] = useState("");
   const [descriptionSaisie, setDescriptionSaisie] = useState("");
   const [iconeSaisie, setIconeSaisie] = useState("");
@@ -34,7 +44,12 @@ export default function ZoneEnregistrement({ build, auteur, onResultat }: Props)
     if (nomVide) return;
     const manquants = doctrineManquante(build);
     if (manquants.length > 0 && !window.confirm(messageDoctrineIncomplete(manquants))) return;
-    const resultat = enregistrerLoadout(nomSaisi, build, descriptionSaisie, iconeSaisie, auteur ?? "");
+    // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - enregistrement marqué « simulation »
+    // quand le build porte des ajustements de stats ou des perks simulés : le loadout enregistré garde
+    // les ajustements (`ajustementsStats` dans le build) et porte le badge « simulé » dans la liste.
+    // EN: marked "simulation" save when the build carries stat adjustments or simulated perks.
+    const estSimulation = avecPerksSimules || aDesAjustementsStats(build.ajustementsStats);
+    const resultat = enregistrerLoadout(nomSaisi, build, descriptionSaisie, iconeSaisie, auteur ?? "", estSimulation || undefined);
     onResultat(resultat, `Loadout "${nomSaisi.trim()}" enregistré.`);
     if (resultat.ok) {
       setNomSaisi("");
@@ -44,8 +59,15 @@ export default function ZoneEnregistrement({ build, auteur, onResultat }: Props)
     }
   }
 
+  // FR : indicateur discret quand l'enregistrement partira marqué « simulation ».
+  const simulationActive = avecPerksSimules || aDesAjustementsStats(build.ajustementsStats);
   return (
     <div data-zone-enregistrement="">
+      {simulationActive && (
+        <div style={{ fontSize: "0.68rem", color: "#e8c547", marginBottom: "0.4rem" }} title="Le build en cours porte des éléments simulés (perks Forge et/ou ajustements de stats) : le loadout enregistré sera marqué du badge « simulé » et les ajustements de stats seront conservés.">
+          ������ Ce build contient des éléments simulés : le loadout enregistré sera marqué « simulé ».
+        </div>
+      )}
       <div style={{ display: "flex", gap: "0.3rem", marginBottom: "0.6rem" }}>
         <input
           value={nomSaisi}

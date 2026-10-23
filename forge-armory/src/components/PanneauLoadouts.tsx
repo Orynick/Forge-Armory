@@ -26,6 +26,7 @@ import { telechargerFichierTexte } from "../lib/telechargement";
 import { construireFiche } from "../lib/loadouts/fiche";
 import { obtenirIconeElementDoctrine, obtenirIconePerkDoctrine, obtenirNomPerkDoctrine } from "../lib/manifest/doctrine";
 import BarreRechercheLoadouts from "./BarreRechercheLoadouts";
+import BadgeSimule from "./BadgeSimule";   // ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) : badge « simulé » d'un loadout issu d'une simulation
 import ZoneEnregistrement from "./ZoneEnregistrement";
 import { CRITERES_VIDES, CriteresLoadouts, construireIndexRecherche, criteresActifs, filtrerLoadouts, valeursDisponibles } from "../lib/loadouts/recherche";
 import { DamageElement } from "../types/build";
@@ -53,6 +54,13 @@ interface Props {
    * EN: ⚠️ CORRECTED - the current build and the author's handle, ONLY for the SIDE DRAWER's save area (the user had mixed up "drawer" and "tab"); the new Load-outs tab (page mode) has none. Optional.
    */
   build?: BuildDraft;
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - le build AVEC la simulation appliquée
+   * (perks simulés marqués), pour la zone d'enregistrement : elle détecte les perks simulés et marque
+   * l'enregistrement « simulation ». Défaut : `build` (comportement historique).
+   * EN: the build WITH the simulation applied, for the save zone (detects simulated perks). Defaults to `build`.
+   */
+  buildAvecSimulation?: BuildDraft;
   auteur?: string | null;
   /** FR : objets réellement possédés, pour repérer les pièces manquantes d'un loadout. null tant que l'inventaire n'est pas chargé. / EN: actually owned items, to spot a loadout's missing pieces. null until inventory is loaded. */
   objetsPossedes: GearPiece[] | null;
@@ -73,7 +81,7 @@ interface Props {
 }
 
 /** FR : première lettre en majuscule. Les éléments sont stockés en minuscules ("abyssal") mais s'affichent capitalisés. / EN: capitalises the first letter. */
-export default function PanneauLoadouts({ objetsPossedes, onChargerLoadout, membership, personnages = [], db = null, auteur = null, build, mode = "tiroir", onApresCharger }: Props) {
+export default function PanneauLoadouts({ objetsPossedes, onChargerLoadout, membership, personnages = [], db = null, auteur = null, build, buildAvecSimulation, mode = "tiroir", onApresCharger }: Props) {
   const [ouvert, setOuvert] = useState(false);
 
   /**
@@ -395,7 +403,17 @@ export default function PanneauLoadouts({ objetsPossedes, onChargerLoadout, memb
       {/* FR : ⚠️ CORRIGÉ (07/10/2026, v0.3.11) - la ZONE D'ENREGISTREMENT (nom, palette d'icônes, description, « + Enregistrer ») est dans le TIROIR latéral repliable (comme depuis longtemps) et PAS dans le nouvel onglet « Load-outs » (mode « page ») :
       l'utilisateur avait mélangé « tiroir » et « onglet » (retirée du tiroir en v0.3.8, mise dans l'onglet en v0.3.9 : les deux à l'envers). L'autre chemin d'enregistrement reste le bouton « 💾 Enregistrer le build… » du bloc « Sauvegarde et partage du Build ».
       EN: ⚠️ CORRECTED - the save area is in the SIDE DRAWER (as it long was) and NOT in the new Load-outs tab. */}
-      {!enPage && build && <ZoneEnregistrement build={build} auteur={auteur} onResultat={rafraichir} />}
+      {!enPage && build && (
+        <ZoneEnregistrement
+          build={build}
+          auteur={auteur}
+          onResultat={rafraichir}
+          // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - `build` est le build AVEC la
+          // simulation appliquée : s'il porte des perks simulés, l'enregistrement est marqué.
+          // EN: `build` is the build WITH the simulation applied: if it carries simulated perks, the save is marked.
+          avecPerksSimules={(buildAvecSimulation ?? build).armes.some((a) => a.perksSimules === true)}
+        />
+      )}
 
       {/* FR : ⚠️ SUPPRIMÉ (01/10/2026, v0.3.0) - le menu global « Équiper sur : » : le personnage
       est déterminé par la classe du build, ou choisi dans une fenêtre si besoin.
@@ -701,7 +719,13 @@ aspectHashes: [${(l.build.subclass.aspectHashes ?? []).join(", ")}]`}
                 })}
               </span>
             </div>
-            <div style={{ fontSize: "0.8rem", marginBottom: l.auteur ? "0.1rem" : "0.3rem" }}>{l.nom}</div>
+            <div style={{ fontSize: "0.8rem", marginBottom: l.auteur ? "0.1rem" : "0.3rem", display: "flex", alignItems: "center", gap: "0.3rem", flexWrap: "wrap" }}>
+              {l.nom}
+              {/* FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - badge « simulé » : ce loadout est
+              le fruit d'une simulation (ajustements de stats et/ou perks simulés). Même badge que Mon Build.
+              EN: "simulated" badge: this loadout is the result of a simulation. */}
+              {l.estSimulation === true && <BadgeSimule title="Ce loadout est le fruit d'une simulation (ajustements de stats et/ou perks simulés dans la Forge) : pris en compte dans le score, pas appliqué en jeu." />}
+            </div>
             {/* FR : ⚠️ AJOUT (06/10/2026) - auteur du build, s'il est connu (les builds enregistrés avant l'ajout n'en ont pas : rien ne s'affiche). / EN: ⚠️ ADDED - the build's author, when known. */}
             {l.auteur && (
               <div style={{ fontSize: "0.68rem", color: "#7d7a70", marginBottom: "0.3rem" }} title="Auteur du build (pseudo Bungie au moment de l'enregistrement)" data-auteur="">
