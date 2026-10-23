@@ -1,8 +1,8 @@
 // FR : ⚠️ AJOUT (22/10/2026, bonus Legendarium, demande de l'utilisateur) - EXPORT INFOGRAPHIQUE d'une page de Lore (JPEG/PNG). L'utilisateur a demandé : « pouvoir générer un export infographique (JPEG/PNG) de la page de lore sélectionnée : le bouton sera affiché en haut à droite de la page. L'export affichera tout ce qui se trouve sur la page de Lore (l'encart bleu ou ambre). Sur l'export, tu pourras mettre en filigrane le logo de Forge Armory en précisant en bas de l'image que c'est une mise en image, et en créditant Bungie et Destiny ou Destiny 2 (que tout le monde puisse savoir que c'est eux qui ont créé cet univers). »
-// Implémentation : rendu NATIF sur <canvas> (aucune bibliothèque ajoutée — le projet n'en a pas et l'ajout d'une dépendance pour un seul export serait disproportionné). Le canvas reprend la PALETTE verrouillée (Parchemin D1 / Hologramme D2) : fond, bordure, œilleton (catégorie · livre · section · compteur page X/Y), titre de la page, sous-titre, libellé chronologique, texte du Lore (avec retour à la ligne), parcours inverse (objets porteurs). En BAS : le logo Forge Armory (emblème) en FILIGRANE + la mention « mise en image » créditant Bungie et Destiny / Destiny 2. Le texte est dessiné avec retour à la ligne (mesure par ctx.measureText). La couverture du livre est dessinée en haut à gauche (comme dans l'appli), le texte commence à sa droite puis continue dessous (même logique que le flottant CSS).
+// Implémentation : rendu NATIF sur <canvas> (aucune bibliothèque ajoutée — le projet n'en a pas et l'ajout d'une dépendance pour un seul export serait disproportionné). Le canvas reprend la PALETTE verrouillée (Parchemin D1 / Hologramme D2) : fond, bordure, œilleton (catégorie · livre · section · compteur page X/Y), titre de la page, sous-titre, libellé chronologique, texte du Lore (avec retour à la ligne), parcours inverse (objets porteurs). FILIGRANE : l'emblème Forge Armory (logo) centré sur TOUTE la fiche à très faible opacité (identique aux exports de builds — dessiné derrière le contenu). En BAS : la mention « mise en image » créditant Bungie et Destiny / Destiny 2. Le texte est dessiné avec retour à la ligne (mesure par ctx.measureText). La couverture du livre est dessinée en haut à gauche (comme dans l'appli), le texte commence à sa droite puis continue dessous (même logique que le flottant CSS).
 // LECTURE PASSIVE : cette fonction ne lit que des données en mémoire, n'écrit rien (le téléchargement du fichier est déclenché par le clic de l'utilisateur sur le bouton, via un lien <a download> créé à la volée — aucun état persistant).
 // EN: ADDED - INFOGRAPHIC EXPORT of a lore page (JPEG/PNG). User request: "generate an infographic export (JPEG/PNG) of the selected lore page: the button is shown at the top right of the page. The export shows everything on the lore page (the blue or amber panel). On the export, put the Forge Armory logo as a watermark and note at the bottom that it is an image rendering, crediting Bungie and Destiny or Destiny 2 (so everyone knows they created this universe)."
-// Implementation: NATIVE <canvas> rendering (no library added — the project has none and adding a dependency for a single export would be disproportionate). The canvas reuses the LOCKED palette (Parchment D1 / Hologram D2): background, border, eyebrow (category · book · section · page X/Y counter), page title, subtitle, chronological label, lore text (wrapped), reverse path (carrier items). At the BOTTOM: the Forge Armory logo (emblem) as a WATERMARK + the "image rendering" note crediting Bungie and Destiny / Destiny 2. Text is drawn with line wrapping (measured with ctx.measureText). The book cover is drawn top-left (as in the app), the text starts to its right then continues below (same logic as the CSS float).
+// Implementation: NATIVE <canvas> rendering (no library added — the project has none and adding a dependency for a single export would be disproportionate). The canvas reuses the LOCKED palette (Parchment D1 / Hologram D2): background, border, eyebrow (category · book · section · page X/Y counter), page title, subtitle, chronological label, lore text (wrapped), reverse path (carrier items). WATERMARK: the Forge Armory emblem (logo) centred over the WHOLE sheet at very low opacity (same as the build exports — drawn behind the content). At the BOTTOM: the "image rendering" note crediting Bungie and Destiny / Destiny 2. Text is drawn with line wrapping (measured with ctx.measureText). The book cover is drawn top-left (as in the app), the text starts to its right then continues below (same logic as the CSS float).
 // PASSIVE READING: this function only reads in-memory data, writes nothing (the file download is triggered by the user's click on the button, via a throwaway <a download> link — no persisted state).
 import type { LivreLore, PageLore, SectionLegendarium } from "./types";
 import { PALETTE, ereDeSection } from "./palette";
@@ -39,8 +39,9 @@ const INTERLIGNE_CORPS = 30;         // FR : interligne du texte (px). / EN: bod
 const INTERLIGNE_PETIT = 22;
 const COUVERTURE_MAX_LARGEUR = 320;   // FR : largeur max de la couverture (px). / EN: max cover width (px).
 const COUVERTURE_ESPacement = 24;     // FR : espace entre la couverture et le texte. / EN: gap between cover and text.
-const PIED_HAUTEUR = 96;              // FR : hauteur réservée en bas pour le filigrane + le crédit. / EN: height reserved at the bottom for the watermark + credit.
-const FILIGRANE_OPACITE = 0.22;       // FR : opacité du logo en filigrane. / EN: watermark logo opacity.
+const PIED_HAUTEUR = 96;              // FR : hauteur réservée en bas pour le crédit (le filigrane est centré sur toute la fiche, pas dans le pied). / EN: height reserved at the bottom for the credit (the watermark is centred over the whole sheet, not in the footer).
+const FILIGRANE_OPACITE = 0.07;       // FR : opacité du filigrane centré (identique aux exports de builds — le texte reste net). / EN: opacity of the centred watermark (same as build exports — text stays sharp).
+const LARGEUR_FILIGRANE = 1000;       // FR : largeur du filigrane centré (~5/6 de la largeur de l'image, comme les 760 px sur 900 px des exports de builds). / EN: width of the centred watermark (~5/6 of the image width, like the 760 px on 900 px of build exports).
 
 /** FR : découpe un texte en lignes tenant dans `largeurMax` (mesure réelle via le contexte canvas). EXPORTÉE pour les tests (fonction pure sur le principe, seul le contexte sert à mesurer). / EN: wraps a text into lines fitting `maxWidth` (real measurement via the canvas context). EXPORTED for tests (pure in principle, only the context is used to measure). */
 export function decouperTexte(ctx: CanvasRenderingContext2D, texte: string, largeurMax: number): string[] {
@@ -177,6 +178,32 @@ export async function rendreExportLore(donnees: DonneesExportLore): Promise<Resu
   ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
   ctx.shadowBlur = 0;
 
+  // FR : FILIGRANE CENTRÉ sur toute la fiche (demande de l'utilisateur, 22/10/2026) : emblème Forge Armory
+  // en filigrane, centré horizontalement ET verticalement, à très faible opacité (comme les exports de builds).
+  // Dessiné AVANT le contenu (derrière), il ne gêne pas la lecture. / EN: CENTRED WATERMARK over the whole sheet
+  // (user request): the Forge Armory emblem as a watermark, centred horizontally AND vertically, at very low
+  // opacity (like the build exports). Drawn BEFORE the content (behind), it doesn't hinder reading.
+  const logoFiligrane = await new Promise<HTMLImageElement | null>((res) => {
+    const img = new Image();
+    img.onload = () => res(img);
+    img.onerror = () => res(null);
+    img.src = `${import.meta.env.BASE_URL}logo-forge-armory-embleme.png`;
+  });
+  if (logoFiligrane) {
+    const ratio = logoFiligrane.naturalHeight / logoFiligrane.naturalWidth;
+    const hauteurFiligrane = Math.round(LARGEUR_FILIGRANE * ratio);
+    ctx.save();
+    ctx.globalAlpha = FILIGRANE_OPACITE;
+    ctx.drawImage(
+      logoFiligrane,
+      (canvas.width - LARGEUR_FILIGRANE) / 2,      // FR : centré horizontalement / EN: centred horizontally
+      (canvas.height - hauteurFiligrane) / 2,     // FR : centré verticalement / EN: centred vertically
+      LARGEUR_FILIGRANE,
+      hauteurFiligrane
+    );
+    ctx.restore();
+  }
+
   let y = MARGE;
 
   // --- Œilleton : « CATÉGORIE · LIVRE · SECTION » + « page X/Y » à droite ---
@@ -260,25 +287,10 @@ export async function rendreExportLore(donnees: DonneesExportLore): Promise<Resu
     }
   }
 
-  // --- Pied : filigrane du logo Forge Armory + mention « mise en image » créditant Bungie / Destiny ---
+  // --- Pied : mention « mise en image » créditant Bungie / Destiny (le filigrane centré est déjà dessiné derrière le contenu) ---
   const yPied = canvas.height - PIED_HAUTEUR;
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.fillRect(0, yPied, canvas.width, PIED_HAUTEUR);
-
-  // FR : filigrane = emblème Forge Armory, centré, translucide. / EN: watermark = the Forge Armory emblem, centred, translucent.
-  const logo = await new Promise<HTMLImageElement | null>((res) => {
-    const img = new Image();
-    img.onload = () => res(img);
-    img.onerror = () => res(null);
-    img.src = `${import.meta.env.BASE_URL}logo-forge-armory-embleme.png`;
-  });
-  ctx.save();
-  ctx.globalAlpha = FILIGRANE_OPACITE;
-  if (logo) {
-    const taille = 64;
-    ctx.drawImage(logo, (canvas.width - taille) / 2, yPied + 8, taille, taille);
-  }
-  ctx.restore();
 
   // FR : mention en bas : « mise en image » + crédit Bungie / Destiny. Le libellé D1/D2 dépend de la section. / EN: footer note: "image rendering" + Bungie / Destiny credit. The D1/D2 wording depends on the section.
   ctx.font = POLICE_PIED;
