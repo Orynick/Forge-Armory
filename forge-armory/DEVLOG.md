@@ -4,6 +4,42 @@
 
 ---
 
+## 23/10/2026 — v0.5.2 : LIVRAISON FINALE DU CHANTIER « ACCOMPLISSEMENTS » (TODO n°23, branche `draft-update-triomphes`)
+
+**Validation de l'utilisateur** : « C'est validé pour moi. Chantier complet. » — après test en `npm run dev` de la page Accomplissements en cartes.
+
+**Contenu de cette livraison** (sur `draft-update-triomphes`, resynchronisée sur `main` après le merge de la PR #17) :
+- **Présentation en CARTES** (`src/components/VueAccomplissements.tsx`) : grille CSS (`display: grid`, `repeat(auto-fill, minmax(10rem, 1fr))`) — plusieurs sceaux par ligne, hauteur verticale divisée. Chaque carte : icône (32 px) + nom + titre centrés (bouton cliquable), **barre de progression EN-DESSOUS** (pleine largeur), **pourcentage EN-DESSOUS** (ex. « 50 % »). Le clic **déplie les triomphes DANS la carte** (panneau sous la barre, défilable `max-height: 16rem`).
+- **Tests** : `tests/ui/vue-accomplissements.py` mis à jour (nouveaux contrôles navigateur : grille `display:grid` + cartes sur la même ligne, barre sous le bouton, « 50 % » sous la barre, panneau des triomphes DANS la carte sous la barre).
+
+**Documentation** : DEVLOG (cette entrée + l'entrée « cartes » précédente), CHANGELOG (v0.5.2), TODO.md (item 23 LIVRÉ VALIDÉ, retiré de la liste), NOTICE.md (section Accomplissements : cartes en grille), README.md (ligne Accomplissements).
+
+**Vérifié** : `npx tsc -b` 0 erreur, `npm run build` ✓, `npm run test:logique` **37/37 suites, 747/747 contrôles** ✓, pages UI construites ✓, `ast.parse` OK. CI verte sur la branche.
+
+**Livraison** : merge `draft-update-triomphes` → `main`, tag `v0.5.2`, propagation aux branches de chantier, suppression de la branche.
+
+**Version : 0.5.1 → 0.5.2.**
+
+---
+
+## 23/10/2026 — PAGE « ACCOMPLISSEMENTS » : les sceaux en CARTES (grille), barre sous la carte, pourcentage en dessous (TODO n°23)
+
+**Demande de l'utilisateur (23/10/2026, après validation du correctif « Aucun sceau trouvé »)** : « Affiche les cartes des Sceaux et met la barre de progression en-dessous, le pourcentage de complétion sous la barre. Objectif : afficher plus de Sceaux sur une ligne, et gagner de la place verticalement. »
+
+**Changement** (`src/components/VueAccomplissements.tsx`) :
+- Les sceaux s'affichent désormais en **CARTES dans une GRILLE CSS** (`display: grid`, `repeat(auto-fill, minmax(10rem, 1fr))`) : plusieurs sceaux par ligne, hauteur verticale divisée.
+- Chaque carte : **icône (32 px) + nom + titre du sceau centrés** (bouton cliquable, `aria-expanded`), puis **barre de progression EN-DESSOUS de la carte** (pleine largeur), puis **pourcentage EN-DESSOUS de la barre** (ex. « 50 % »).
+- Le clic sur une carte **déplie les triomphes DANS la carte** (panneau sous la barre, défilable `max-height: 16rem`) : la carte grandit verticalement au lieu d'empiler des sections pleine largeur.
+- Inchangés : compteur global, recherche avancée (`""`, `+`, `-`, casse « Aa »), tri progression/nom, replis (sans profil / sans Manifest / aucun sceau / aucune correspondance), pas de vitrine « Solo sans mourir ».
+
+**Tests** : `tests/ui/vue-accomplissements.py` mis à jour (nouveaux contrôles navigateur : grille `display:grid` + cartes sur la même ligne, barre sous le bouton, « 50 % » sous la barre, panneau des triomphes DANS la carte sous la barre). `npx tsc -b` 0 erreur, `npm run build` ✓, `npm run test:logique` **37/37 suites, 747/747 contrôles** ✓, pages UI construites ✓. **À valider en `npm run dev`.**
+
+**Branche `draft-update-triomphes`** : resynchronisée sur `main` (la PR #17 ayant été mergée entre-temps, la branche ne contenait plus que ce changement par rapport à main ; elle reste ouverte en attendant le retour des tests utilisateur).
+
+**Version inchangée (0.5.1).**
+
+---
+
 ## 23/10/2026 — PROPAGATION : PR #17 (TODO n°23, page Accomplissements) répertutée sur les branches de chantier
 
 **Propagation** : la livraison TODO n°23 (PR #17, page « Accomplissements » — Triomphes du compte par sceau) a été répertutée sur les 6 branches de chantier actives : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`. Merge propre sans conflit sur les 6 branches.
