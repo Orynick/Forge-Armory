@@ -183,9 +183,9 @@ version.
 
 ---
 
-## 🔵 Confort / plus tard
+## 🟢 Confort / plus tard
 
-### 5. Capacités de doctrine anti-champion — d'autres verbes à confirmer ?
+### 5. Capacités de doctrine anti-champion — autres verbes à confirmer ?
 
 La 3e source anti-champion est implémentée avec 10 verbes confirmés par
 citation en jeu. Les autres verbes du catalogue n'ont pas de champion
@@ -202,6 +202,7 @@ actuellement. Pas de double comptage à craindre si le cas se présente (un
 bonus de set n'est couvert par aucune des 3 sources actuelles). À ajouter
 si un exemple réel est rencontré en jeu.
 
+
 ### 6. Armatures d'armes encore inconnues
 
 `ARMATURE_VERS_CHAMPION` couvre 21 armatures. Le tableau EN/FR complet
@@ -213,6 +214,7 @@ Destinypedia connue (`interruption`, `attaque`).
 **Pour chaque armature rencontrée avec un repère « ? »** : transmettre le
 nom d'armature (au survol) et le champion affiché en jeu.
 
+
 ### 7. Vérifications ponctuelles notées mais non traitées
 
 - **Ergo Sum** (épée exotique à perk variable) : les 3 perks observés
@@ -223,6 +225,7 @@ nom d'armature (au survol) et le champion affiché en jeu.
   (Outillage de sécurité, Encensoir). Sans impact sur la détection, à
   corriger si ces fichiers sont réutilisés.
 
+
 ### 8. Archétypes d'armure — pour une future recommandation
 
 Les 12 archétypes et leurs paires de stats sont confirmés en jeu (tableau
@@ -231,6 +234,7 @@ complet FR/EN dans `knowledge-base/08_GAME_MECHANICS.md`, section « Armor
 réelles) ; **conservés pour une future RECOMMANDATION** (décision de
 l'utilisateur), du type « pour ce build grenade, cherchez plutôt du bon
 archétype ».
+
 
 ### 9. Vitrine « Solo sans mourir » — ajouter les exotiques de raid obtenues
 
@@ -252,6 +256,7 @@ Demande de l'utilisateur (24/09/2026) : afficher dans l'onglet vitrine les
   atteste d'un exploit solo, l'autre d'une obtention.)
 - Les hashes devront être relevés via les outils de diagnostic existants,
   comme pour les emblèmes — pas recopiés de mémoire.
+
 
 ### 10. Patch notes de Bungie dans la knowledge-base
 
@@ -336,78 +341,49 @@ majeure : changer `numero`, `nom` et `datePatch`, repartir d'une liste vide. C'e
 la déduit pas de la knowledge-base. Dates : 9.7.0.4 sur la page d'état officielle de Bungie ; 9.7.0.2 et 9.7.0.3 d'après un
 site de suivi ; celle de la 9.7.0.1 n'a pas été retrouvée.
 
-### 11. Legendarium (ex-Bibliothèque, renommé le 13/10/2026) — consultation du lore
 
-🟢 **Lancée le 28/09/2026 (v0.2.8), étape 1 faite.** Outil annexe demandé
-par l'utilisateur, accessible par le sélecteur placé sous le bloc
-Connexion (« Build Analyzer », position par défaut à chaque lancement, ou
-« Bibliothèque », devenu « Legendarium » le 13/10/2026). Pour l'instant, la page annonce son contenu et indique
-si le Manifest est chargé (`src/components/Bibliotheque.tsx`).
+### 11. Legendarium — bibliothèque de Lore en lecture passive ✅ LIVRÉ en v0.5.0 (22/10/2026)
 
-**Périmètre :** toutes les légendes de Destiny 2 (livres de lore, armes,
-armures, coques de Spectre, vaisseaux), puis à moyen/long terme le
-Grimoire de Destiny 1.
+🟡 **Important** — chantier **LIVRÉ sur `main` le 22/10/2026** (v0.5.0, merge `draft-legendarium` → `main`, commit `821a785`). La branche `draft-legendarium` reste en place (historique du chantier). La spécification complète (décisions verrouillées, palette, interactions, critères d'acceptation, plan de découpage) est dans `documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md` — **ce document fait foi** ; toute divergence doit être signalée avant codage.
 
-**Consignes de l'utilisateur (27/09/2026) :**
-- armures rangées **par classe, sans jamais mélanger** : le set du
-  Chasseur, celui du Titan et celui de l'Arcaniste sont trois histoires
-  indépendantes ;
-- ordre de lecture d'un set : **casque → gants → torse → jambes → objet de
-  classe** ;
-- objets sans légende **masqués par défaut** ;
-- rééditions **dédoublonnées** (même légende réutilisée) ;
-- armures exotiques rangées par classe, **dans une section à part** ;
-- Grimoire D1 : l'utilisateur revérifiera la source le moment venu (l'API
-  D1 ne répond peut-être plus ; des copies d'archive existent).
+**Résumé** : remplacer le panneau « en construction » de la page Legendarium (vue `bibliotheque`, `src/components/Bibliotheque.tsx`) par une bibliothèque de Lore en **lecture passive** (aucune écriture, aucun état persistant, aucun impact sur le scoring ni le build). Sources : `DestinyLoreDefinition` (Légendes D2) et champ `lore` de `DestinyItemDefinition` (objets) via le **cache manifeste existant** (`src/lib/manifest/download.ts`) ; Grimoire D1 via l'API legacy Bungie (repli : données statiques Ishtar Collective). Ordre global : Grimoire D1 → Légendes D2 → armes et armures → cosmétiques (Spectres, Vaisseaux, Passereaux). Armures : casque → gants → torse → jambes → objet de classe, regroupées par classe. Mise en page en trois zones (bandeau titre + recherche + indicateur de cache ; colonne latérale sections puis livres ; zone de lecture avec précédent/suivant). Palette verrouillée « Parchemin / Hologramme » (D1 serif ivoire sur brun, D2 sans-serif cyan sur bleu-noir ; repli ambre/bleu acier ; code couleur par section exclu). Bouton « Lire le Lore » dans les fiches Détails (haut de fiche, justifié à droite, sous la croix, uniquement si l'objet a un Lore), lien profond vers la page, bouton de retour vers l'objet, parcours inverse page → objets porteurs.
 
-**Découpage proposé :** 1) lore D2 depuis le Manifest (livres, armes,
-armures, coques, vaisseaux) avec navigation et recherche par mots-clés ;
-2) recherche par thème (thèmes à définir, aucune étiquette fournie par
-Bungie) ; 3) Grimoire D1.
+**✅ Étape 1 FAITE (20/10/2026, fondations, lecture seule)** : `src/types/manifest.ts` (champ `lore`, `redacted`, type `DestinyLoreDefinition`) ; `src/lib/legendarium/types.ts` (modèle + identifiants stables de liens profonds) ; `src/lib/legendarium/palette.ts` (palette verrouillée centralisée, repli en un échange de constante) ; `src/lib/legendarium/modele.ts` (lecture des tables via le cache existant, règle des ensembles, recherche, lien profond, parcours inverse) ; test `legendarium-modele` **28/28**. `tsc` zéro erreur, `npm run build` strict ✓.
 
-**Point à régler avant l'étape 2 :** le Manifest est chargé par le bloc
-« Recherche dans le Manifest » de la vue Build Analyzer. Au démarrage, il
-se charge tout seul s'il est en cache et à jour ; sinon, il faut
-aujourd'hui repasser par Build Analyzer pour lancer le téléchargement.
-À envisager : sortir ce chargement des deux vues.
+**✅ Étape 2 FAITE (21/10/2026, page Legendarium)** : `src/components/Bibliotheque.tsx` réécrit — les TROIS ZONES de la spécification verrouillée §4 (bandeau titre + recherche toujours accessible + indicateur de cache ; colonne latérale sections → livres dans l'ordre global verrouillé ; zone de lecture avec œilleton/titre/sous-titre/libellé chrono/texte + navigation précédent/suivant), palette « Parchemin / Hologramme » verrouillée §5 appliquée à la zone de lecture (`data-ere="d1"` parchemin #2b2116 pour le Grimoire D1, `data-ere="d2"` hologramme #0d1520 pour le reste), parcours inverse (bloc « Objets portant ce Lore »), bouton de retour vers l'objet (provenance, prêt pour l'étape 5), recherche par mots-clés avec résultats cliquables (plafond 50). Le Grimoire D1 = **repli statique embarqué (6 livres / 834 cartes FR) lu via `import()` dynamique** — le chunk `grimoire-*.js` (~935 Ko) n'est chargé qu'à l'ouverture de la page, hors du bundle principal ; sections D2 depuis le Manifest via le cache existant. ÉTAT EN MÉMOIRE UNIQUEMENT (section, page, mot-clé — aucune persistance, lecture passive). ⚠️ REFACTOR PERF (même commit) : `modele.ts` gagne un INDEX des porteurs construit en UN SEUL balayage de la table des objets, mis en cache par base (WeakMap) — sans lui, la construction des livres re-balayait la table (~60 000 lignes) pour CHAQUE porteur (milliers de balayages, la page figerait). Tests : `legendarium-page` **24/24** (nouveau : 3 zones, ordre verrouillé, palette d1/d2, prev/next désactivés aux extrémités, parcours inverse, bouton retour, recherche, plafond 50) ; `legendarium-modele` **43/43** (2 nouveaux : 1 seul balayage + contenu identique) ; `legendarium` **5/5** ; `legendarium-fixtures` **18/18** ; `legendarium-grimoire` **23/23**. `tsc` zéro erreur, `npm run build` strict ✓.
 
-### 12. Renommage « Forge Armory » : ✅ validé le 06/10/2026
+**✅ Étape 4 PRÉPARÉE (20/10/2026, Grimoire D1)** : `src/lib/legendarium/grimoire.ts` (endpoint legacy `X-API-Key` + conversion livres → cartes + repli statique) ; test `legendarium-grimoire` **11/11** (contrat réseau vérifié : URL exacte + en-tête). **Retour réel de l'utilisateur (20/10)** : l'endpoint répond `ApiKeyMissingFromRequest` (ErrorCode 2102) — il EXISTE mais exige une clé `X-API-Key` valide. ⚠️ **CLARIFIÉ (20/10/2026, suite 3)** : le test de l'utilisateur était fait depuis son NAVIGATEUR (sans en-tête `X-API-Key`) — l'`ApiKeyMissingFromRequest` est attendu sans clé, l'endpoint est vivant. **Diagnostic ajouté** : `diagnostiquerGrimoire()` (`grimoire.ts`) + panneau dev `<details data-diagnostic-grimoire>` dans l'onglet Legendarium (`Bibliotheque.tsx`, `import.meta.env.DEV` uniquement) ; test `legendarium-grimoire` **15/15**. **✅ RÉSOLU (21/10/2026, diagnostic retourné)** : `{"clePresente":true,"statutHttp":200,"ok":true,"livres":0,"cartes":0}` — clé acceptée mais **AUCUN contenu** : Bungie ne sert plus le Grimoire via l'API D1. **Repli statique ACTIVÉ** : `scripts/generer-repli-grimoire.mjs` génère `src/data/grimoire-d1-repli.json` (930 Ko minifié) depuis The Grimoire Archive (`aureliendossantos/destiny-grimoire`, définitions D1 officielles de Bungie) — **6 livres / 834 cartes FR**, ordre officiel, HTML nettoyé, texte uniquement ; wrapper `src/data/grimoire-d1.ts`. `REPLI_GRIMOIRE_STATIQUE` alimenté ; un 200-vide retombe sur le repli peuplé ; diagnostic avec `contenuVide` + compteurs du repli. Test `legendarium-grimoire` **23/23**. Hors-ligne OK (JSON versionné, aucun téléchargement runtime). ⚠️ À l'étape 2 : charger le repli par `import()` dynamique (isoler les 930 Ko dans un chunk, pas dans le bundle principal).
 
-✅ **Forge Armory** est le nom officiel ; **Destiny 2 Build Analyzer** est son sous-titre (livré en v0.3.0 le
-05/10/2026 ; description complète : `CHANGELOG.md`). **Validé par l'utilisateur le 06/10/2026, dans le logiciel
-installé** : ses données (builds, pondérations, cache du Manifest) sont conservées après installation par-dessus
-l'ancienne version et après relance ; entrée Windows et raccourcis ; nom de l'installateur ; titre de la fenêtre
-et pied de page ; en-tête et pied de page des exports et copie en texte ; connexion Bungie sans rien
-reconfigurer ; import d'un fichier d'export fait avant le renommage.
+**✅ Classement chronologique AJOUTÉ (20/10/2026, demande de l'utilisateur)** : les pages de Lore se classent **par défaut par ordre de sortie des extensions/saisons** — `rangChronoObjet` (Manifest `seasonHash` → `DestinySeasonDefinition.seasonNumber`, secours table DIM `saisonDeLObjet`, jamais estimé), `trierPagesChrono` (datées d'abord, rang croissant ; non datées en dernier par titre). ⚠️ Le livre **« Lore des armes »** et **« Cosmétiques »** sont classés chronologiquement ; **« Ensembles d'armures » garde la règle verrouillée** (classe → casque → gants → torse → jambes → objet de classe). Chaque page porte `rangChrono`/`libelleChrono` (affichable).
 
-⚠️ **RÈGLE PERMANENTE — À NE JAMAIS renommer (identifiants internes)** : sinon l'utilisateur croirait avoir perdu ses données.
-- clés de stockage `d2-build-analyzer.loadouts.v1` (builds), `d2-build-analyzer.ponderations.v1`, `d2ba.bungie.tokens`
-  (session Bungie), base `d2-build-analyzer` du cache du Manifest, identifiant DIM `d2-build-analyzer-…` ;
-- `appId` (`com.orynick.d2buildanalyzer`) : Windows y verrait une AUTRE application, installée à côté de l'ancienne au
-  lieu de la remplacer ; `name` de `package.json` (`d2-build-analyzer`) ; schéma interne `app://local` et adresse de
-  retour Bungie `https://127.0.0.1:5173/auth/callback` (aucune clé OAuth à changer) ;
-- (le nom du dossier du projet et du zip n'en fait PAS partie : libre, renommé en `forge-armory` le 05/10/2026 ; une première version de cette section l'avait rangé ici à tort.)
+**✅ Étape 5 FAITE (21/10/2026, bouton « Lire le Lore » + lien profond + retour)** : `src/components/BoutonLireLore.tsx` (composant pur, bouton UNIQUEMENT si l'objet a un Lore lisible, haut de fiche, justifié à droite, sous la croix) ; `aLore(db, itemHash)` dans `modele.ts` (lecture LÉGÈRE, 2 définitions ciblées, AUCUN balayage) ; prop `onLireLore?` dans les 4 fiches Détails (`InventaireArmes`, `InventaireArmures`, `CollectionArmes`, `CollectionArmures`) + remontée `PageForge` → `DashboardPage` ; lien profond fiche → Legendarium (`cibleLegendarium = { pageId: "item:<hashObjet>", provenance }`, bascule de vue interne, état en mémoire, vues d'origine montées) ; `retourDepuisLegendarium()` restaure la vue d'origine. Tests : `legendarium-modele` **50/50** (7 nouveaux `aLore`), `legendarium-page` **29/29** (5 nouveaux bouton), `cablage-forge` **21/21**. `tsc` zéro erreur, `npm run build` strict ✓.
 
-⚠️ **RÈGLE PERMANENTE — Dossier de données** : Electron range les builds, pondérations, cache du Manifest et
-session dans un dossier de `%APPDATA%` dont le nom dépend du nom de l'application. `electron/dossierDonnees.cjs`
-regarde lequel des deux noms possibles (`d2-build-analyzer` ou `D2 Build Analyzer`) existe et contient des
-données, et `main.cjs` dit à Electron de continuer à l'utiliser (`userData` et `sessionData`), avant que
-l'application soit prête. Rien n'est déplacé, copié ni supprimé. **Ne pas modifier ce mécanisme, ni le
-`productName`, sans un essai sur un poste qui a des données** ; en cas de doute, demander d'abord un
-« ⬇ Exporter tout » de sécurité. Texte complet d'origine : `documentation/todo/ARCHIVE-TODO-2026-10-06.md`.
+**⚠️ Retours utilisateur TRAITÉS (21/10/2026, suite 7)** :
+- **Navigation Précédent/Suivant AU-DESSUS et EN-DESSOUS de la page** (pas DANS) : `ZoneLecture` (`Bibliotheque.tsx`) a désormais deux barres centrées (`data-nav-haut` avant l'œilleton, `data-nav-bas` après le parcours inverse), mêmes boutons/attributs. Tests `legendarium-page` **33/33**.
+- **Bouton « Lire le Lore » aussi dans la pop-up Détails du BUILD ANALYZER** (`SelecteurInventaire.tsx` : prop `onLireLore?` sur `LigneObjet` + le composant `BoutonLireLore` sous la croix, passé par `DashboardPage`) ; l'action est la même `ouvrirLoreDepuisObjet` (provenance `origine: "analyseur"`). ⚠️ **RÉSOLU (suite 9, diagnostic retourné)** : le vrai Manifest utilise **`loreHash`** (pas `lore`) sur les objets et **`displayProperties.description`** (pas `body`) sur les Lores — diagnostic : 3 514 Lores, 38 894 objets, 0 avec les anciens noms. **Corrigé** : `hashLoreDe()` lit `loreHash` (secours `lore`), `corpsLore()` lit `displayProperties.description` (secours `body`). Tests de régression suite 9 (structure exacte du vrai Manifest). À valider en `npm run dev` : le bouton « Lire le Lore » doit apparaître dans les fiches (Inventaire, Coffre, Mon Build, Forge).
+- **Boutons « Carrière » / « Accomplissements » ne s'ouvraient pas hors Build Analyzer** (retour utilisateur 21/10, suite 7) : ils étaient rendus dans le bloc Connexion (masqué `display:none` hors vue analyseur). **Une première correction (déplacement au-dessus du sélecteur de vue) a été ANNULÉE en suite 8** — l'utilisateur l'a signalée comme une régression (sortie de la section Connexion sans son accord). Les boutons sont REMIS dans le bloc Connexion. **Le bug reste OUVERT** : il est noté dans le TODO de **main** (§23) pour être traité séparément, avec l'accord de l'utilisateur.
 
-À faire / à décider :
-- **par l'utilisateur** : renommer l'application sur le portail développeur de Bungie (facultatif ; SANS en créer une nouvelle, elle aurait de nouvelles clés) ; ~~dépôt GitHub~~ ✅ fait le 11/10/2026 : dépôt `Orynick/Forge-Armory` créé (public), ancien dossier `d2-build-analyzer` supprimé, branche `test` créée pour la prévisualisation, `TODO.md` et `CHANGELOG.md` versionnés (détail : `CHANGELOG.md`, 11/10/2026) ;
-- **mise à jour par-dessus** : Windows réutilise le dossier d'installation de l'ancienne version (cosmétique : il
-  peut encore s'appeler « D2 Build Analyzer »), et l'épingle de la barre des tâches est à refaire ;
-- **sélecteur « Build Analyzer / Bibliothèque »** : libellés inchangés (la forme « Forge Armory - Build Analyzer »
-  envisagée le 29/09 n'a pas été retenue) ;
-- **identité visuelle (essai validé par l'utilisateur le 02/10/2026)** : décider de retirer l'ancien logo de `src/` (composants
-  `IconeCryptarque` et `IconeFantome`, inutilisés) ou le garder en archive seulement ; réglage du filigrane si besoin :
-  `OPACITE_FILIGRANE` (`src/data/emblemeForgeArmory.ts`), `LARGEUR_FILIGRANE` (`exportFiche.ts`) et la largeur de
-  `<Filigrane />` (`FicheBuild.tsx`). Détail : `ressources-installateur/forge-armory/LISEZ-MOI.md`.
+**✅️ Navigation par livres FAITE (21/10/2026, suite 10, demande de l’utilisateur)** : la section « Légendes D2 » affiche désormais la hiérarchie **en jeu** — catégorie → livre (couverture + nombre de pages) → pages — lue dans l’arbre `DestinyPresentationNodeDefinition` (racine « Légendes » = hash 4077680549). Vérifié sur le VRAI Manifest FR : **4 catégories / 108 livres / 1 076 pages** ; ex: « Ces terres maudites » ∈ « La Frontière sans foi ni loi » (14 pages, couverture) ∈ « La Lumière ». La colonne latérale affiche une **grille de couvertures** (comme l’onglet Lore du jeu) ; la zone de lecture affiche la couverture en haut + l’œilleton « catégorie · livre ». **Repli** si l’arbre est absent : liste plate « Tomes de Légendes » (comportement d’avant). Les sections Grimoire D1 / armes et armures / cosmétiques sont INCHANGÉES (liste plate). Les 109 lores aussi portés par des objets le sont par des objets factices (exclus du parcours inverse) : les pages des livres n’affichent pas de bloc « objets porteurs », comme en jeu. Tests : `legendarium-modele` **78/78**, `legendarium-page` **45/45**. À valider en `npm run dev` (voir CHANGELOG suite 10).
 
-### 12 bis. « Équiper » : cas que l'appli ne gère pas encore
+**✅ Suite 11 FAITE (22/10/2026, retours utilisateur sur l’étape 3)** : groupes **repliables, repliés par défaut** (catégories Légendes D2 + groupes objets/cosmétiques), **pas d’images dans le menu de sélection**, label « Armes et **A**rmures », **armes classées par type** (Cinétiques → Énergétiques → Lourdes), **armures groupées par PROVENANCE** (1 livre par ensemble, ex: « Armure de Sekris » = raid Léviathan, via `collectibleHash` → nœud parent), **ensembles ordonnés par saison de sortie**, **cosmétiques par type** (Spectres → Vaisseaux → Passereaux). ⚠️ **BUG RÉEL CORRIGÉ** : `saisonDeLObjet` testait le hash signé seul, mais le JSON de DIM stocke les hashes en **non signé** — 50 % des objets (dont TOUTES les armures avec collectible) ne trouvaient jamais leur saison. Corrigé (les deux formes testées) : 100 % des 4 418 objets avec lore sont maintenant datés. ⚠️ **AUTRE CORRECTION** : classement des porteurs par bucket réel (pas `itemType !== 3`) — sinon 1 178 ornements d’armure étaient classés « armes ». Tests : `legendarium-modele` **89/89**, `legendarium-page` **51/51**, `saisons-sources` **20/20**. Validé sur le VRAI Manifest FR : 455 pages armes, 1 041 pages armures (144 ensembles), 939 pages cosmétiques.
+
+**✅ Suite 12 FAITE (22/10/2026, retours utilisateur sur la suite 11)** : (1) **couverture flottante en haut à gauche** de la page de lecture (`float:left`, `max-width:45%`, `height:auto`, jamais agrandie → **plus de pixellisation**), le texte s'écoule à droite puis continue dessous, `clear:both` sur le parcours inverse et la nav du bas (pas de superposition, pas de « colonne » réservée) ; (2) **repliables de NOMS D'OBJETS** (repliés par défaut) pour **Cinétiques, Énergétiques, Lourdes** et **Spectres, Vaisseaux, Passereaux, Autres** — chaque nom ouvre directement la page de Lore de l'objet (`LivreLore.listePages`, nouveau `GroupePages`) ; le groupe « Lore des armes » est supprimé ; les armures restent groupées par ensemble (« Ensembles d'armures ») ; (3) **compteur de pages sur UNE LIGNE, justifié à droite** (`margin-left:auto`) pour toutes les lignes de livres (nouveau `LigneLivre` partagé, titre tronqué `nowrap`+`ellipsis`). Validé sur le VRAI Manifest FR : Cinétiques 161p, Énergétiques 186p, Lourdes 109p, Spectres 73p, Vaisseaux 97p, Passereaux 102p, Autres 667p. Tests : `legendarium-page` **56/56**, `legendarium-modele` **89/89**, `legendarium-fixtures` **18/18**. Batterie logique 34/34 au vert. `tsc` 0, build strict ✓.
+
+**✅ Suite 13 FAITE (22/10/2026, remarque avant test de la suite 12)** : (1) **compteur « page X/Y »** dans l'œilleton de la zone de lecture — **au même niveau que le titre du livre, justifié à droite** (ex: « La Lumière · La Frontière sans foi ni loi » … « page 1/14 ») ; (2) **ensembles d'armures : DEUX NIVEAUX REPLIABLES** — niveau 1 = l'ensemble (replié par défaut), niveau 2 = la **CLASSE** (Titan/Chasseur/Arcaniste, ordre verrouillé, **icône** : Manifest `DestinyClassDefinition.displayProperties.icon` quand présent, sinon **icône locale `IconeClasse`** disque coloré + SVG) repliée par défaut, niveau 3 = la liste des **noms de pièces** (clic direct vers la page de Lore) — chemin : **Ensemble → Classe → sélection de la page à lire** ; (3) cosmétiques : **même logique que les armes** (déjà fait en suite 12). ⚠️ **VALIDÉ VRAI Manifest FR** : `DestinyClassDefinition` a `hasIcon: false` (aucune icône) → repli `IconeClasse` local ; **145/145 ensembles** ont `groupesPages`, ex « Armure de BrayTech » = Titan 5 → Chasseur 5 → Arcaniste 5, **0 perte de pages**. ⚠️ **CORRIGÉ en validation** : la classe se lit sur le Lore (pas sur le hash d'item) — sinon les ensembles avec réédition perdaient des pièces (« Armure de Rull » : 5 pages → 3 groupes au lieu de 5). Tests : `legendarium-modele` **94/94**, `legendarium-page` **64/64**. `tsc` 0, build strict ✓.
+
+**✅ Suite 14 FAITE (22/10/2026, correction d'un malentendu sur la suite 13)** : (1) **ensembles d'armures : hiérarchie INVERSÉE** — UN SEUL livre « Ensembles d'armures » (compteur = total des pages) avec un repliable par **CLASSE** (Titan/Chasseur/Arcaniste, icône Manifest ou locale `IconeClasse`, replié par défaut), puis un repliable par **NOM D'ENSEMBLE** (dans l'ordre chronologique de sortie des saisons, replié par défaut), puis les **noms de pièces** (clic direct) — chemin : **Classe → Ensemble → pièces** (l'utilisateur avait demandé Classe → Ensemble → pièces, la suite 13 faisait Ensemble → Classe → pièces). Le livre garde `pages` (ordre verrouillé global classe → slots) pour la lecture. (2) **Cosmétiques « Autres » classés par CLASSE** : le livre « Autres » (doctrines : Brise-soleil, Grâce survoltée, Lame de l'aube, Voie abyssale…) est un repliable de classes (Titan/Chasseur/Arcaniste, icône) → **noms d'objets** (clic direct) ; les cosmétiques sans classe connue (artefacts, ornements) dans un groupe « Sans classe » en dernier. Nouveau type `GroupeClassePages` (`ensembles?` OU `pages?`, classe optionnelle). Recherche : les noms de sous-groupes (classes, ensembles) sont cherchés, ET une requête multi-mots (ex: « raid A ») correspond si chaque mot est trouvé dans le livre ou ses pages. Tests : `legendarium-modele` **96/96**, `legendarium-page` **64/64**, `legendarium-fixtures` **19/19**. `tsc` 0, build strict ✓.
+
+**✅ Étape 6 FAITE (22/10/2026, vérification des 9 critères d'acceptation)** : nouveau test `tests/logique/legendarium-acceptation.test.ts` (**34/34 contrôles**) vérifiant UN PAR UN les 9 critères de la spécification verrouillée §7 — (1) Légendes D2 + Grimoire D1 regroupés par livres comme en jeu ; (2) ordre global D1 → D2 → armes/armures → cosmétiques ; (3) armures casque → gants → torse → jambes → marque par classe (Titan → Chasseur → Arcaniste) ; (4) recherche par mots-clés (+ avancée suite 15 : guillemets/`+`/`-`/`Aa`) ; (5) bouton « Lire le Lore » uniquement si Lore présent, haut de fiche, justifié à droite, sous la croix, dans les 5 fiches ; (6) parcours inverse page → objets porteurs + lien profond `item:<hash>` ; (7) Spectres/Vaisseaux/Passereaux listés avec leur Lore ; (8) **lecture passive vérifiée** : aucun import scoring/build, aucun POST/PUT/DELETE réseau (que des GET), aucun stockage persistant, composant bouton pur, cible en `useState` (mémoire) ; (9) cache manifeste réutilisé (pas de second téléchargement), Grimoire D1 en `import()` dynamique, dépendance à sens unique (le cache n'importe rien du Legendarium). Batterie logique complète : **35/35 suites, 686/686 contrôles**. `tsc` 0, build strict ✓. **Le chantier Legendarium est TERMINÉ** (étapes 1-6 du plan de la spécification).
+
+**✅ Bonus FAIT (22/10/2026, demande utilisateur « pour plus tard » : export infographique)** : **export PNG d'une page de Lore** — `src/lib/legendarium/exportImage.ts` (rendu **natif `<canvas>`**, aucune bibliothèque ajoutée) : reprend la **palette verrouillée** (parchemin D1 / hologramme D2), l'**œilleton** (catégorie · livre · section · « page X/Y » à droite), le **titre**, le **sous-titre**, le **libellé chrono**, le **texte avec retour à la ligne**, le **parcours inverse** (objets porteurs), la **couverture** en haut à gauche (taille naturelle, texte à droite puis dessous). **Pied de l'image** : **filigrane du logo Forge Armory** (emblème, opacité 0.22) + « **Mise en image par Forge Armory** » + « **Texte du Lore © Bungie, Inc. — Destiny/Destiny 2 est une marque de Bungie, Inc. Forge Armory est un projet de fan, non affilié à Bungie.** » (Destiny pour le Grimoire D1, Destiny 2 sinon). Bouton **« ⟳ Exporter en image » EN HAUT À DROITE de la page** (`ZoneLecture`, prop `avecExport`, passé à `true` dans la page Legendarium). Téléchargement par lien `<a download>` à la volée — **aucun état persistant** (lecture passive respectée). Tests : `legendarium-export` **17/17** (fonctions pures + lecture passive vérifiée) ; `legendarium-page` **69/69** (bouton haut-droite, absent par défaut, retour à gauche + export à droite). Batterie : **36/36 suites, 706/706 contrôles**. `tsc` 0, build strict ✓. À valider en `npm run dev` : onglet Legendarium → page de Lore → « ⟳ Exporter en image ».
+
+**✅ Suite 15 FAITE (22/10/2026, demande utilisateur avant test : « pour la recherche, il faudrait pouvoir utiliser les guillemets, + et -, ainsi que respecter la casse »)** : (1) **guillemets** `"…"` (ou `« … »`) = **phrase exacte** (sous-chaîne contiguë) ; guillemet non fermé toléré ; (2) **`+terme`** = terme **obligatoire** (ET), `+"phrase"` = phrase exacte obligatoire ; (3) **`-terme`** / `-"phrase"` = **exclu** (page rejetée si présente) ; une requête avec UNIQUEMENT des exclusions remonte toutes les pages qui ne les contiennent pas ; (4) termes libres = **OU** (au moins un) seulement s'il n'y a ni obligatoire ni exacte (type Google) ; (5) **case « Aa »** (`data-respecter-casse`) dans le bandeau, à droite du champ de recherche, **décochée par défaut** = comportement historique (insensible à la casse) ; cochée = **respect de la casse** (les accents restent ignorés, é = e, dans les deux modes). Implémentation : `parserRecherche()` + `correspondRecherche()` dans `modele.ts`, `rechercherPages(…, { respecterCasse })`, état `respecterCasse` EN MÉMOIRE uniquement (lecture passive). Tests : `legendarium-modele` **107/107**, `legendarium-page` **66/66** (case « Aa » présente/décochée/cochée), `legendarium-fixtures` **19/19**. `tsc` 0, build strict ✓. À valider en `npm run dev` : barre de recherche de l'onglet Legendarium.
+
+**Reste à faire (étape 3 du plan de la spécification — l'étape 6 est FAITE)** : **validation en `npm run dev`** avec un vrai Manifest : la navigation par livres dans la section Légendes D2 (4 catégories **repliées par défaut**, dépliage au clic, pages dans l’ordre du jeu), le contenu D2 dans les autres sections (**armes : repliables de noms Cinétiques/Énergétiques/Lourdes ; armures : UN livre « Ensembles d’armures » replié → repliable par CLASSE (Titan/Chasseur/Arcaniste, icône) → repliable par ENSEMBLE (nom) → noms de pièces (clic direct) ; cosmétiques : repliables de noms Spectres/Vaisseaux/Passereaux ; « Autres » = repliable de CLASSES (Titan/Chasseur/Arcaniste) → noms d'objets, « Sans classe » en dernier**), la **couverture flottante en haut à gauche** (lisible, texte à droite puis dessous), le **compteur de pages sur une ligne justifié à droite** dans le menu, le **compteur « page X/Y » au niveau du titre du livre** dans la zone de lecture, le bouton « Lire le Lore » dans TOUTES les fiches (Inventaire, Coffre, Mon Build, Forge — Collection et Inventaire, armes et armures), et le parcours fiche → Legendarium → retour . **Étape 6 FAITE** : les 9 critères d’acceptation sont vérifiés par `legendarium-acceptation.test.ts` (34/34, dont la lecture passive : aucun espion de score, aucun journal réseau d’écriture).
+
+---
+
+### 12. « Équiper » : cas que l'appli ne gère pas encore
 
 Section RESTAURÉE le 01/10/2026 : créée le 30/09, elle avait été effacée par
 erreur le 01/10 lors d'une mise à jour de la section 12 (voir `CHANGELOG.md`).
@@ -433,6 +409,7 @@ un message clair en attendant :
   (`Destiny2.EquipItems`) plutôt qu'une par une, pour réduire les appels et
   les conflits d'unicité entre exotiques.
 
+
 ### 13. Pilier 2 — points de surveillance
 
 - Le Saut (`sautHash`) est bien suivi dans
@@ -448,7 +425,8 @@ s'avère avoir un effet de debuff/buff qui mériterait d'être capté.
   orphelin" à tort après ce correctif, transmettre le texte EXACT affiché
   en jeu pour cette aptitude, pour ajuster précisément plutôt que deviner.
 
-### 13 bis. Anti-champion des armes exotiques : liste de référence
+
+### 14. Anti-champion des armes exotiques : liste de référence
 
 Fait le 01/10/2026 : pour une arme exotique, l'appli utilise **la liste de l'utilisateur** (relevée dans le
 jeu, `knowledge-base/28_ARMES_EXOTIQUES_ANTI_CHAMPION.md`, données dans `src/data/exotiquesAntiChampion.ts`)
@@ -468,7 +446,8 @@ l'archiver (`false`) ensuite.
 - les **115 « non détectés »** du rapport sont normaux : la déduction de repli ne les voit pas, c'est la liste qui les gère ;
 - à chaque nouvelle exotique de Bungie : l'ajouter à la liste (sinon, la déduction de repli s'applique).
 
-### 13 ter. Interface : pistes en attente de décision
+
+### 15. Interface : pistes en attente de décision
 
 - ✅ **Boutons d'élément de la Doctrine sur UNE ligne : validé dans le logiciel installé (06/10/2026)**, avec
   trois niveaux de compacité selon la place disponible. En `npm.cmd run dev` ils restent sur deux lignes :
@@ -479,7 +458,8 @@ l'archiver (`false`) ensuite.
   singulier, restées telles quelles (le 05/10/2026, deux fautes certaines ont été corrigées : « fficace » et une
   phrase en minuscule) ; à uniformiser si l'utilisateur le confirme.
 
-### 14. Filtres par type d'arme : une seule entrée « Lance-grenades »
+
+### 16. Filtres par type d'arme : une seule entrée « Lance-grenades »
 
 Depuis le 01/10/2026 (v0.3.0), l'icône de type d'arme distingue les deux lance-grenades (spécial,
 lourd) par leur TYPE DE MUNITIONS partout où une arme précise est affichée. Les **filtres par type**
@@ -488,7 +468,8 @@ l'icône spéciale, puisque le texte du type est le même pour les deux. Pour le
 filtres, il faudrait un filtre par munitions (principales, spéciales, lourdes) ou deux entrées
 « Lance-grenades (spécial / lourd) » : à proposer si l'utilisateur le souhaite.
 
-### 15. Export DIM
+
+### 17. Export DIM
 
 📌 **Précisé le 25/08** : ce chantier est désormais **optionnel**, pas
 bloquant. L'équipement direct depuis l'appli (transfert + équipement,
@@ -508,40 +489,8 @@ de l'intégration de ce travail.
 
 ---
 
-### 16. Onglet « Load-outs » : gérer ses Loadouts en grand (demande du 05/10/2026) — LES TROIS LIVRAISONS SONT FAITES ET VALIDÉES
 
-✅ **Livraison 1 (v0.3.5) validée** : troisième bouton du sélecteur (« Load-outs », entre « Build Analyzer » et « Bibliothèque »), qui ouvre le panneau des loadouts en pleine page, cartes en grille : c'est le même `PanneauLoadouts` que le tiroir, en mode `page` ; « Charger » ramène au Build Analyzer et amène « Mon Build » à l'écran ; les deux instances se tiennent à jour par l'événement `d2ba:loadouts-modifies` du stockage.
-✅ **Livraison 2 (v0.3.7) validée** : recherche par mots-clés (nom, description, auteur, classe, élément, contexte, armes, armures, artefact et ses perks, Doctrine **Manifest chargé seulement**) et filtres classe, élément, contexte avec leur nombre.
-✅ **Livraison 3 (v0.3.12) validée le 07/10/2026 (21 tests sur 21 avec la 0.3.16) : ordre modifiable et « stocké en jeu »** : rang d'affichage (`ordre`) et mémo (`stockeEnJeu`), champs facultatifs sans migration ; boutons ◀ ▶ **et** glisser-déposer (choix de l'utilisateur : « les deux ») ; l'ordre ne se modifie que sans recherche ni filtre actif ; un build neuf arrive en tête ; la case « stocké en jeu » est un **mémo à cocher à la main** avec sa légende (décision du 05/10/2026) ; le fichier d'échange d'UN build ne contient ni rang ni mémo, « Exporter tout » les garde. Détail : `CHANGELOG.md` (0.3.12). Le tiroir est inchangé.
-
-**Pistes, non demandées, à proposer si besoin** (la liste de tests 0.3.12 pose trois questions) :
-- la case « stocké en jeu » **dans le tiroir** (aujourd'hui l'onglet seulement) ;
-- un **filtre « stocké en jeu / pas stocké »** dans la barre de recherche (le mécanisme des filtres existe) ;
-- le glisser-déposer **au doigt** (écran tactile) : le glisser-déposer HTML natif ne le gère pas ; il faudrait des événements « pointeur » ; les boutons ◀ ▶ couvrent déjà ce besoin ;
-- piste ultérieure, SANS engagement : enregistrer réellement un build dans un emplacement de **loadout du jeu**. L'API de Bungie le permet (vérifié le 05/10/2026 : `EquipLoadout`, `SnapshotLoadout`, `UpdateLoadoutIdentifiers`, `ClearLoadout`, même autorisation que « Équiper »), mais un loadout du jeu ne porte que des objets (armes, armure, mods) : jamais la Doctrine ni l'artefact, et il appartient à un personnage. La case actuelle resterait alors un mémo, ou pourrait être cochée automatiquement.
-
-**À prévoir aussi** : l'archive des boutons contient trois icônes seules (cercle + icône, sans cadre ni titre : `ressources-installateur/forge-armory/boutons-selecteur/icones/`), non utilisées pour l'instant ; elles pourraient servir de repères dans l'interface.
-
-### 16 bis. Visuels illustrés : titres, boutons, icônes (07/10/2026, v0.3.13 à v0.3.17)
-
-✅ **L'archive « forge-armory-app-assets » (60 SVG, catalogue, charte) est intégrée et validée (0.3.16 : 21 tests sur 21)** (`public/assets/`, `src/data/forge/forgeAssets.ts`, `src/lib/visuelsForge.ts`). Les visuels sont **retouchés** par `scripts/retoucher-visuels.mjs` (archive d'origine intacte, script à relancer après tout remplacement de fichier ; détail : `documentation/identite-visuelle/RETOUCHES-VISUELS.md`).
-**Retours de l'utilisateur du 07/10/2026, traités en 0.3.17 et VALIDÉS le 08/10/2026 (10 tests sur 10)** : titres à la taille des onglets (56 px, variable CSS commune `--hauteur-logo-titre`) ; **soulignage** épaissi (il était plus fin qu'un pixel dans les 24 titres) ; ligne « Contexte du Build » supprimée, **boutons de contexte dans « Mon Build »** ; bloc renommé **« Classe et Doctrine »** (confirmé : le bloc sous « Mon Inventaire ») ; **Connexion et Manifest non repliables** (titres sans losange) ; icône de la carte du pilier 1 à la proportion de celle du bloc Doctrine, billes agrandies.
-**Renumérotation du Scoring (08/10/2026, 0.3.18, en test)** : pour suivre l'ordre des blocs au-dessus du Scoring, **1. Doctrine élémentaire** (ex « Élément et Doctrine »), **2. Armes et Armures** (ex 3), **3. Artefact** (ex 2), 4. Effets du Build, 5. Statistiques ; mêmes logos, chiffre et position changés. Source unique : `data/piliers.ts` (`ORDRE_PILIERS`, `LIBELLES_PILIER`) + ordre du tableau du moteur (`lib/scoring/pillars.ts`) ; scores, poids et score global **strictement inchangés** (testé contre l'ancien moteur). Les textes des titres (tracés) sont **recomposés avec les lettres de l'utilisateur** par `scripts/retoucher-visuels.mjs` (étape 4, outil `scripts/glyphes-titres.mjs`) : **à relire à l'œil** ; nouveaux fichiers `titre-1-doctrine-elementaire`, `titre-2-armes-armures`, `titre-3-artefact` (anciens fichiers supprimés ; catalogue : complément `forgeAssetsComplement.ts`).
-**⚠️ À savoir : deux numérotations coexistent.** Les « Pilier N » des COMMENTAIRES, du README, de la base de connaissances et de cette TODO suivent l'**ANCIENNE** numérotation d'avant le 06/09/2026 (ancien Pilier 1 = Élément et Doctrine, **2 = Verbes d'Élément** (aujourd'hui « 4. Effets du Build »), 3 = Perks d'Artefact, 4 = Loot et cohérence, 5 = Statistiques), jamais renumérotée ; ils ne sont **pas** modifiés (ils sont exacts pour l'ancien numéro). Table de correspondance dans `data/piliers.ts`. En cas de doute, se fier à la clé interne. **Incohérence ancienne, non traitée** : le mode diagnostic affiche « 🔍 Diagnostic Pilier 2 (ce que le score lit vraiment) » : c'est l'ancien numéro des verbes, alors que l'écran affiche maintenant « 4. Effets du Build » ; à corriger si l'utilisateur le demande.
-**✅ « Classe et Doctrine » : on GARDE le logo** (décision de l'utilisateur, 08/10/2026 : « On garde le logo »). L'image dessine « DOCTRINE ET ÉLÉMENT » ; le nom lu par les lecteurs d'écran est « Classe et Doctrine ». **Plus rien à fournir** pour ce bloc (la demande de logo de la 0.3.17 est annulée).
-**Réponses de l'utilisateur (08/10/2026) aux questions de la liste 0.3.17** :
-- ✅ **« Classe et Doctrine » = le bloc placé sous « Mon Inventaire »** (celui des cartes Chasseur / Titan / Arcaniste) : confirmé, mon interprétation était la bonne ;
-- ✅ **épaisseur du soulignage** : « c'est bon comme ça » (08/10/2026) : validée, plus de question ;
-- ✅ **billes de l'icône du bloc « Classe et Doctrine »** : « Oui », on les grossit pour égaler celles de la carte « 1. Doctrine élémentaire » : fait en 0.3.19 (25 → 30, masque 42 → 47, deux états du bloc) ; les deux icônes sont maintenant identiques (en test) ;
-- ⏸️ **où utiliser les 19 icônes** (tiroirs repliés, onglets) : en attente ;
-- ✅ **titre illustré pour le panneau « Solo sans mourir » : OUI.** Pas de demande pour les autres (tiroir « Loadouts », vues Bibliothèque et Load-outs) : à ne reposer que si le besoin revient ;
-- toujours **sans réponse** : une mention discrète « Pilier 1 / Pilier 3 » à côté des titres ; la casse des textes lus par les lecteurs d'écran est acceptée tacitement.
-**⏳ À FOURNIR PAR L'UTILISATEUR : le logo + titre « Solo sans mourir »** (même style que les autres : logo, plaque, titre, soulignage et cristal). **Contrainte à trancher AVANT de le dessiner** : aujourd'hui ce panneau (`PanneauTriomphes.tsx`) affiche, dans son en-tête ouvert, une petite icône de crâne + le texte « Solo sans mourir », et, replié, un onglet vertical « 💀 Solo (n/11) » sur le bord gauche. Le panneau ouvert fait **320 px de large** (296 px utiles). Un titre au cadre des titres fixes (7505 × 1024) à la taille des onglets (56 px) ferait **410 px** : il ne tiendrait pas ; même à la taille minimale (41,6 px) il ferait 305 px, juste trop large. Trois façons de faire, à choisir avec l'utilisateur : (a) dessiner ce titre avec un **cadre plus étroit** (environ 5,3 × 1 pour tenir à 56 px dans 296 px, ce qui convient à un titre court comme « SOLO SANS MOURIR ») ; (b) **élargir le panneau** (par exemple 440 px) ; (c) l'afficher **plus petit** que les autres titres (environ 39 px de haut), ce qui rompt la règle « même taille que les onglets ». Pour l'onglet vertical replié, une **icône seule** (comme celles de l'archive, 19 icônes non encore placées) irait mieux qu'un titre horizontal : c'est lié à la question des icônes, en attente.
-**Décision de l'utilisateur sur la largeur du panneau (08/10/2026)** : « on va voir en fonction du logo » : **aucune des trois options n'est retenue pour l'instant** ; elles seront tranchées à la réception du logo (cadre plus étroit d'environ 5,3 pour 1, panneau élargi à environ 440 px, ou titre plus petit). Rien à faire côté code d'ici là.
-**⚠️ À faire avant toute diffusion publique de l'appli (phases 2 et 3 de la feuille de route) : vérifier la LICENCE du logo « Artefact »**, que la notice de l'archive dit repris d'un SVG de SVG Repo (« shield-artifact ») ; et celle de toute autre ressource tierce.
-**À savoir, non traité** : à 420 px de large, le sélecteur de classe du bloc Doctrine (`.carte-classe`) dépasse la fenêtre de 31 px (antérieur aux titres ; à traiter seulement si demandé). **Conservé tel que dessiné par l'utilisateur** : la carte « 1. Élément et Doctrine ».
-
-### 17. Icônes des perks d'artefact + classeur « Endgame Analysis » (05/10/2026)
+### 18. Icônes des perks d'artefact + classeur « Endgame Analysis » (05/10/2026)
 
 ✅ **Terminé : les 147 perks d'artefact ont leur icône** (v0.3.4, 06/10/2026) : 128 trouvées directement dans le Manifest de l'utilisateur et 19 **choisies en jeu par l'utilisateur** avec le panneau « Départager » (13 ambigus ; 6 perks dont le nom de nos données diffère d'une faute de celui du jeu ; 19 sur 19 tranchés, fichier conservé dans
 `knowledge-base/sources-externes/choix-icones-ambigues_2026-10-06.json`). Chemins d'icônes de Bungie, figés dans `src/data/iconesPerksArtefact.ts` (l'en-tête du fichier détaille l'origine) ; affichées dans la grille, les emplacements équipés, le récapitulatif, la fenêtre « Voir » et les exports. Historique : `CHANGELOG.md` (0.3.0 à 0.3.4).
@@ -552,7 +501,8 @@ de l'intégration de ce travail.
 
 **Plus tard** : exploiter le classeur « Endgame Analysis » (recoupements en `knowledge-base/23_RESSOURCES_EXTERNES.md`) ; son CSV « Artifact Mods » (147 lignes) recoupe nos données : 146 perks sur 147 avec le même nom et le même palier. Archiver le drapeau `controleIconesPerksArtefact` une fois la discordance réglée.
 
-### 18. À vérifier : stats des fragments qui dépendent de la classe (05/10/2026)
+
+### 19. À vérifier : stats des fragments qui dépendent de la classe (05/10/2026)
 
 **Constat** : certains fragments retirent une stat DIFFÉRENTE selon la classe : Echo of Persistence et Spark of Focus,
 `-10 Weapons` (Chasseur), `-10 Health` (Titan), `-10 Class` (Arcaniste). Deux sources concordent : la fiche
@@ -571,7 +521,8 @@ classe, des objets distincts, ou autre).
 Si l'appli baisse les trois : corriger `obtenirBonusStatsPlug` (conditionnel et classe). Un diagnostic du JSON brut de ce
 fragment dans le Manifest trancherait l'encodage.
 
-### 19. Objets FACTICES du Manifest, et « Tueur de souhaits » (06/10/2026)
+
+### 20. Objets FACTICES du Manifest, et « Tueur de souhaits » (06/10/2026)
 
 ✅ **Élucidé, corrigé et validé (06/10/2026)** : la catégorie **3109687656** est celle des objets **factices**
 (`itemType` 20, « Dummy ») : des copies d'armes (« Le Lapin de Jade » 11, « Lance de Polaris » 7, « Dualité » 1) et
@@ -585,7 +536,8 @@ type et affiche son anti-champion. Détail : `CHANGELOG.md` (0.3.1 et 0.3.2) et
 
 **À surveiller** : d'autres objets de type 30 (16 définitions) et 19 (9), des ornements, emblèmes et étapes de quête apparaissent dans le rapport des exotiques ; ils sont déjà classés ailleurs ou sans emplacement.
 
-### 20. Vérification avant livraison : ce que l'assistant ne peut pas faire (05/10/2026)
+
+### 21. Vérification avant livraison : ce que l'assistant ne peut pas faire (05/10/2026)
 
 **Leçon du 05/10/2026** : l'utilisateur n'a pas pu installer le logiciel à cause d'une erreur `TS2540` (`RangeeBoutonsEgaux.tsx` : `refMesure.current = el`), que ma
 vérification n'avait pas vue. **Cause** : elle utilise un substitut de React écrit à la main (`/home/claude/stubs/react.d.ts`) faute des vrais paquets (pas d'Internet dans
@@ -596,20 +548,8 @@ n'apparaît qu'à `npm run build`.
 **Ce qui reste invérifiable ici** et ne peut être confirmé que par l'utilisateur : le vrai `npm run build`, l'installateur (NSIS, Windows), le comportement réel d'Electron (dossier
 de données, impression PDF), le Manifest réel, la police de Windows. Toute livraison doit le dire explicitement, et la liste de tests commence par `npm.cmd run build`.
 
-### 21. Police personnalisée « D2 Build Analyzer Vector » — ABANDONNÉE (06/10/2026)
 
-**Décision de l'utilisateur** : « laisse tomber » : cette police est standard (dérivée de Lato) ; il voulait une
-police **inspirée par le titre « Forge Armory » du logo**. Ne pas y revenir sans demande. Constats (couverture des
-caractères, manques pour l'interface, licence) : `documentation/todo/ARCHIVE-TODO-2026-10-06.md`.
-
-### 22. Logo de fond et mode diagnostic (06/10/2026) — validés
-
-✅ **Logo de l'application en arrière-plan** (`components/FondLogo.tsx`, monté dans `App.tsx`) : validé par l'utilisateur le 06/10/2026 (4 tests : visible, fixe, ne gêne rien, tiroirs et fenêtres opaques). Opacité 10 % (`OPACITE_FOND_APP`), sans remarque de sa part ; `.pilier-carte` translucide (0,86). ✅ **Mode diagnostic** activable en pied de page, aussi dans l'appli installée (`lib/modeDiagnostic.ts`) : validé (3 tests) ; il concerne seulement les outils ACTIFS (`DashboardPage`, `RechercheManifest`, `GrilleDoctrine`) ; les autres usages de `import.meta.env.DEV` (outils archivés) n'ont pas été touchés.
-✅ **`run dev` : l'écart de la 0.3.1 ne s'est pas reproduit en 0.3.3** (la catégorie « Objets factices », la ligne `[dev]` et le panneau « Départager » y apparaissent, et la Doctrine y tient sur une ligne). **Sa cause reste inconnue** (hypothèses jamais vérifiées : cache du navigateur ou de Vite, fichiers partiellement remplacés à l'extraction) ; s'il revient, demander ce que montre le pied de page, la console (F12) et le contenu du dossier.
-
-**Piste** : si le mode diagnostic devait aussi servir à l'ouverture à des tiers (phase 2 de la feuille de route), décider s'il reste visible en pied de page.
-
-### 23. Lien « Contact » en pied de page : rapports de bugs et suggestions des utilisateurs (demande du 06/10/2026)
+### 22. Lien « Contact » en pied de page : rapports de bugs et suggestions des utilisateurs (demande du 06/10/2026)
 
 Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » qui permette de recueillir **les rapports de bugs ET les suggestions** des utilisateurs. À rapprocher de la phase 2 « Ouverture » de la feuille de route (logiciel utilisable par des tiers, diffusion restreinte, phase 3 : prise en compte des retours et résolution des bugs). Le pied de page porte déjà le crédit, la version et le réglage « Outils de diagnostic » : le lien se place à côté, discret.
 **Rien n'est décidé ni développé**. Décisions à prendre avant de coder :
@@ -620,57 +560,26 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 - **message de confidentialité** : dire clairement ce qui est transmis et à qui.
 À prévoir ensuite : libellé du lien, test du lien dans l'appli installée (ouverture du navigateur ou de la messagerie), et une phrase dans le guide de démarrage pour les invités.
 
-### 24. Auteur des builds (fait et validé le 06/10/2026, v0.3.3)
-
-✅ **Fait et validé par l'utilisateur (5 tests)** : un build enregistré porte le pseudo de son auteur (`auteur`, facultatif, figé à l'enregistrement) : celui du bloc Connexion, seulement si l'on est connecté ; affiché sur la carte, dans « Voir », dans la copie texte et les exports, et dans le bloc « Partage du build » ; il voyage avec le fichier d'échange et reste celui de l'auteur à l'import. Détail et vérifications : `CHANGELOG.md` (0.3.3). **Aucune migration** : les builds existants n'ont pas d'auteur.
-**Pistes, non demandées, à proposer si besoin** :
-- **attribuer les anciens builds à l'utilisateur** : une action explicite (« Ces builds sont les miens ») plutôt qu'une attribution automatique : on ne peut pas savoir si un ancien build a été importé d'un ami ;
-- **éditer l'auteur** dans la fenêtre « Modifier... » (créditer quelqu'un d'autre, corriger après un changement de pseudo) ;
-- **confidentialité** : le pseudo Bungie est public, mais il part dans tout fichier ou image partagé ; si un utilisateur ne le souhaite pas, prévoir une case « inclure mon pseudo dans les exports » (à décider avec la phase 2, ouverture à des tiers) ;
-- affichage de l'auteur dans le futur onglet « Load-out » (§ 16).
-
-### 26. Legendarium — bibliothèque de Lore en lecture passive (spécification verrouillée le 19/10/2026)
-
-🟡 **Important** — chantier **LIVRÉ sur `main` le 22/10/2026** (v0.5.0, merge `draft-legendarium` → `main`, commit `821a785`). La branche `draft-legendarium` reste en place (historique du chantier). La spécification complète (décisions verrouillées, palette, interactions, critères d'acceptation, plan de découpage) est dans `documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md` — **ce document fait foi** ; toute divergence doit être signalée avant codage.
-
-**Résumé** : remplacer le panneau « en construction » de la page Legendarium (vue `bibliotheque`, `src/components/Bibliotheque.tsx`) par une bibliothèque de Lore en **lecture passive** (aucune écriture, aucun état persistant, aucun impact sur le scoring ni le build). Sources : `DestinyLoreDefinition` (Légendes D2) et champ `lore` de `DestinyItemDefinition` (objets) via le **cache manifeste existant** (`src/lib/manifest/download.ts`) ; Grimoire D1 via l'API legacy Bungie (repli : données statiques Ishtar Collective). Ordre global : Grimoire D1 → Légendes D2 → armes et armures → cosmétiques (Spectres, Vaisseaux, Passereaux). Armures : casque → gants → torse → jambes → objet de classe, regroupées par classe. Mise en page en trois zones (bandeau titre + recherche + indicateur de cache ; colonne latérale sections puis livres ; zone de lecture avec précédent/suivant). Palette verrouillée « Parchemin / Hologramme » (D1 serif ivoire sur brun, D2 sans-serif cyan sur bleu-noir ; repli ambre/bleu acier ; code couleur par section exclu). Bouton « Lire le Lore » dans les fiches Détails (haut de fiche, justifié à droite, sous la croix, uniquement si l'objet a un Lore), lien profond vers la page, bouton de retour vers l'objet, parcours inverse page → objets porteurs.
-
-**✅ Étape 1 FAITE (20/10/2026, fondations, lecture seule)** : `src/types/manifest.ts` (champ `lore`, `redacted`, type `DestinyLoreDefinition`) ; `src/lib/legendarium/types.ts` (modèle + identifiants stables de liens profonds) ; `src/lib/legendarium/palette.ts` (palette verrouillée centralisée, repli en un échange de constante) ; `src/lib/legendarium/modele.ts` (lecture des tables via le cache existant, règle des ensembles, recherche, lien profond, parcours inverse) ; test `legendarium-modele` **28/28**. `tsc` zéro erreur, `npm run build` strict ✓.
-
-**✅ Étape 2 FAITE (21/10/2026, page Legendarium)** : `src/components/Bibliotheque.tsx` réécrit — les TROIS ZONES de la spécification verrouillée §4 (bandeau titre + recherche toujours accessible + indicateur de cache ; colonne latérale sections → livres dans l'ordre global verrouillé ; zone de lecture avec œilleton/titre/sous-titre/libellé chrono/texte + navigation précédent/suivant), palette « Parchemin / Hologramme » verrouillée §5 appliquée à la zone de lecture (`data-ere="d1"` parchemin #2b2116 pour le Grimoire D1, `data-ere="d2"` hologramme #0d1520 pour le reste), parcours inverse (bloc « Objets portant ce Lore »), bouton de retour vers l'objet (provenance, prêt pour l'étape 5), recherche par mots-clés avec résultats cliquables (plafond 50). Le Grimoire D1 = **repli statique embarqué (6 livres / 834 cartes FR) lu via `import()` dynamique** — le chunk `grimoire-*.js` (~935 Ko) n'est chargé qu'à l'ouverture de la page, hors du bundle principal ; sections D2 depuis le Manifest via le cache existant. ÉTAT EN MÉMOIRE UNIQUEMENT (section, page, mot-clé — aucune persistance, lecture passive). ⚠️ REFACTOR PERF (même commit) : `modele.ts` gagne un INDEX des porteurs construit en UN SEUL balayage de la table des objets, mis en cache par base (WeakMap) — sans lui, la construction des livres re-balayait la table (~60 000 lignes) pour CHAQUE porteur (milliers de balayages, la page figerait). Tests : `legendarium-page` **24/24** (nouveau : 3 zones, ordre verrouillé, palette d1/d2, prev/next désactivés aux extrémités, parcours inverse, bouton retour, recherche, plafond 50) ; `legendarium-modele` **43/43** (2 nouveaux : 1 seul balayage + contenu identique) ; `legendarium` **5/5** ; `legendarium-fixtures` **18/18** ; `legendarium-grimoire` **23/23**. `tsc` zéro erreur, `npm run build` strict ✓.
-
-**✅ Étape 4 PRÉPARÉE (20/10/2026, Grimoire D1)** : `src/lib/legendarium/grimoire.ts` (endpoint legacy `X-API-Key` + conversion livres → cartes + repli statique) ; test `legendarium-grimoire` **11/11** (contrat réseau vérifié : URL exacte + en-tête). **Retour réel de l'utilisateur (20/10)** : l'endpoint répond `ApiKeyMissingFromRequest` (ErrorCode 2102) — il EXISTE mais exige une clé `X-API-Key` valide. ⚠️ **CLARIFIÉ (20/10/2026, suite 3)** : le test de l'utilisateur était fait depuis son NAVIGATEUR (sans en-tête `X-API-Key`) — l'`ApiKeyMissingFromRequest` est attendu sans clé, l'endpoint est vivant. **Diagnostic ajouté** : `diagnostiquerGrimoire()` (`grimoire.ts`) + panneau dev `<details data-diagnostic-grimoire>` dans l'onglet Legendarium (`Bibliotheque.tsx`, `import.meta.env.DEV` uniquement) ; test `legendarium-grimoire` **15/15**. **✅ RÉSOLU (21/10/2026, diagnostic retourné)** : `{"clePresente":true,"statutHttp":200,"ok":true,"livres":0,"cartes":0}` — clé acceptée mais **AUCUN contenu** : Bungie ne sert plus le Grimoire via l'API D1. **Repli statique ACTIVÉ** : `scripts/generer-repli-grimoire.mjs` génère `src/data/grimoire-d1-repli.json` (930 Ko minifié) depuis The Grimoire Archive (`aureliendossantos/destiny-grimoire`, définitions D1 officielles de Bungie) — **6 livres / 834 cartes FR**, ordre officiel, HTML nettoyé, texte uniquement ; wrapper `src/data/grimoire-d1.ts`. `REPLI_GRIMOIRE_STATIQUE` alimenté ; un 200-vide retombe sur le repli peuplé ; diagnostic avec `contenuVide` + compteurs du repli. Test `legendarium-grimoire` **23/23**. Hors-ligne OK (JSON versionné, aucun téléchargement runtime). ⚠️ À l'étape 2 : charger le repli par `import()` dynamique (isoler les 930 Ko dans un chunk, pas dans le bundle principal).
-
-**✅ Classement chronologique AJOUTÉ (20/10/2026, demande de l'utilisateur)** : les pages de Lore se classent **par défaut par ordre de sortie des extensions/saisons** — `rangChronoObjet` (Manifest `seasonHash` → `DestinySeasonDefinition.seasonNumber`, secours table DIM `saisonDeLObjet`, jamais estimé), `trierPagesChrono` (datées d'abord, rang croissant ; non datées en dernier par titre). ⚠️ Le livre **« Lore des armes »** et **« Cosmétiques »** sont classés chronologiquement ; **« Ensembles d'armures » garde la règle verrouillée** (classe → casque → gants → torse → jambes → objet de classe). Chaque page porte `rangChrono`/`libelleChrono` (affichable).
-
-**✅ Étape 5 FAITE (21/10/2026, bouton « Lire le Lore » + lien profond + retour)** : `src/components/BoutonLireLore.tsx` (composant pur, bouton UNIQUEMENT si l'objet a un Lore lisible, haut de fiche, justifié à droite, sous la croix) ; `aLore(db, itemHash)` dans `modele.ts` (lecture LÉGÈRE, 2 définitions ciblées, AUCUN balayage) ; prop `onLireLore?` dans les 4 fiches Détails (`InventaireArmes`, `InventaireArmures`, `CollectionArmes`, `CollectionArmures`) + remontée `PageForge` → `DashboardPage` ; lien profond fiche → Legendarium (`cibleLegendarium = { pageId: "item:<hashObjet>", provenance }`, bascule de vue interne, état en mémoire, vues d'origine montées) ; `retourDepuisLegendarium()` restaure la vue d'origine. Tests : `legendarium-modele` **50/50** (7 nouveaux `aLore`), `legendarium-page` **29/29** (5 nouveaux bouton), `cablage-forge` **21/21**. `tsc` zéro erreur, `npm run build` strict ✓.
-
-**⚠️ Retours utilisateur TRAITÉS (21/10/2026, suite 7)** :
-- **Navigation Précédent/Suivant AU-DESSUS et EN-DESSOUS de la page** (pas DANS) : `ZoneLecture` (`Bibliotheque.tsx`) a désormais deux barres centrées (`data-nav-haut` avant l'œilleton, `data-nav-bas` après le parcours inverse), mêmes boutons/attributs. Tests `legendarium-page` **33/33**.
-- **Bouton « Lire le Lore » aussi dans la pop-up Détails du BUILD ANALYZER** (`SelecteurInventaire.tsx` : prop `onLireLore?` sur `LigneObjet` + le composant `BoutonLireLore` sous la croix, passé par `DashboardPage`) ; l'action est la même `ouvrirLoreDepuisObjet` (provenance `origine: "analyseur"`). ⚠️ **RÉSOLU (suite 9, diagnostic retourné)** : le vrai Manifest utilise **`loreHash`** (pas `lore`) sur les objets et **`displayProperties.description`** (pas `body`) sur les Lores — diagnostic : 3 514 Lores, 38 894 objets, 0 avec les anciens noms. **Corrigé** : `hashLoreDe()` lit `loreHash` (secours `lore`), `corpsLore()` lit `displayProperties.description` (secours `body`). Tests de régression suite 9 (structure exacte du vrai Manifest). À valider en `npm run dev` : le bouton « Lire le Lore » doit apparaître dans les fiches (Inventaire, Coffre, Mon Build, Forge).
-- **Boutons « Carrière » / « Accomplissements » ne s'ouvraient pas hors Build Analyzer** (retour utilisateur 21/10, suite 7) : ils étaient rendus dans le bloc Connexion (masqué `display:none` hors vue analyseur). **Une première correction (déplacement au-dessus du sélecteur de vue) a été ANNULÉE en suite 8** — l'utilisateur l'a signalée comme une régression (sortie de la section Connexion sans son accord). Les boutons sont REMIS dans le bloc Connexion. **Le bug reste OUVERT** : il est noté dans le TODO de **main** (§25) pour être traité séparément, avec l'accord de l'utilisateur.
-
-**✅️ Navigation par livres FAITE (21/10/2026, suite 10, demande de l’utilisateur)** : la section « Légendes D2 » affiche désormais la hiérarchie **en jeu** — catégorie → livre (couverture + nombre de pages) → pages — lue dans l’arbre `DestinyPresentationNodeDefinition` (racine « Légendes » = hash 4077680549). Vérifié sur le VRAI Manifest FR : **4 catégories / 108 livres / 1 076 pages** ; ex: « Ces terres maudites » ∈ « La Frontière sans foi ni loi » (14 pages, couverture) ∈ « La Lumière ». La colonne latérale affiche une **grille de couvertures** (comme l’onglet Lore du jeu) ; la zone de lecture affiche la couverture en haut + l’œilleton « catégorie · livre ». **Repli** si l’arbre est absent : liste plate « Tomes de Légendes » (comportement d’avant). Les sections Grimoire D1 / armes et armures / cosmétiques sont INCHANGÉES (liste plate). Les 109 lores aussi portés par des objets le sont par des objets factices (exclus du parcours inverse) : les pages des livres n’affichent pas de bloc « objets porteurs », comme en jeu. Tests : `legendarium-modele` **78/78**, `legendarium-page` **45/45**. À valider en `npm run dev` (voir CHANGELOG suite 10).
-
-**✅ Suite 11 FAITE (22/10/2026, retours utilisateur sur l’étape 3)** : groupes **repliables, repliés par défaut** (catégories Légendes D2 + groupes objets/cosmétiques), **pas d’images dans le menu de sélection**, label « Armes et **A**rmures », **armes classées par type** (Cinétiques → Énergétiques → Lourdes), **armures groupées par PROVENANCE** (1 livre par ensemble, ex: « Armure de Sekris » = raid Léviathan, via `collectibleHash` → nœud parent), **ensembles ordonnés par saison de sortie**, **cosmétiques par type** (Spectres → Vaisseaux → Passereaux). ⚠️ **BUG RÉEL CORRIGÉ** : `saisonDeLObjet` testait le hash signé seul, mais le JSON de DIM stocke les hashes en **non signé** — 50 % des objets (dont TOUTES les armures avec collectible) ne trouvaient jamais leur saison. Corrigé (les deux formes testées) : 100 % des 4 418 objets avec lore sont maintenant datés. ⚠️ **AUTRE CORRECTION** : classement des porteurs par bucket réel (pas `itemType !== 3`) — sinon 1 178 ornements d’armure étaient classés « armes ». Tests : `legendarium-modele` **89/89**, `legendarium-page` **51/51**, `saisons-sources` **20/20**. Validé sur le VRAI Manifest FR : 455 pages armes, 1 041 pages armures (144 ensembles), 939 pages cosmétiques.
-
-**✅ Suite 12 FAITE (22/10/2026, retours utilisateur sur la suite 11)** : (1) **couverture flottante en haut à gauche** de la page de lecture (`float:left`, `max-width:45%`, `height:auto`, jamais agrandie → **plus de pixellisation**), le texte s'écoule à droite puis continue dessous, `clear:both` sur le parcours inverse et la nav du bas (pas de superposition, pas de « colonne » réservée) ; (2) **repliables de NOMS D'OBJETS** (repliés par défaut) pour **Cinétiques, Énergétiques, Lourdes** et **Spectres, Vaisseaux, Passereaux, Autres** — chaque nom ouvre directement la page de Lore de l'objet (`LivreLore.listePages`, nouveau `GroupePages`) ; le groupe « Lore des armes » est supprimé ; les armures restent groupées par ensemble (« Ensembles d'armures ») ; (3) **compteur de pages sur UNE LIGNE, justifié à droite** (`margin-left:auto`) pour toutes les lignes de livres (nouveau `LigneLivre` partagé, titre tronqué `nowrap`+`ellipsis`). Validé sur le VRAI Manifest FR : Cinétiques 161p, Énergétiques 186p, Lourdes 109p, Spectres 73p, Vaisseaux 97p, Passereaux 102p, Autres 667p. Tests : `legendarium-page` **56/56**, `legendarium-modele` **89/89**, `legendarium-fixtures` **18/18**. Batterie logique 34/34 au vert. `tsc` 0, build strict ✓.
-
-**✅ Suite 13 FAITE (22/10/2026, remarque avant test de la suite 12)** : (1) **compteur « page X/Y »** dans l'œilleton de la zone de lecture — **au même niveau que le titre du livre, justifié à droite** (ex: « La Lumière · La Frontière sans foi ni loi » … « page 1/14 ») ; (2) **ensembles d'armures : DEUX NIVEAUX REPLIABLES** — niveau 1 = l'ensemble (replié par défaut), niveau 2 = la **CLASSE** (Titan/Chasseur/Arcaniste, ordre verrouillé, **icône** : Manifest `DestinyClassDefinition.displayProperties.icon` quand présent, sinon **icône locale `IconeClasse`** disque coloré + SVG) repliée par défaut, niveau 3 = la liste des **noms de pièces** (clic direct vers la page de Lore) — chemin : **Ensemble → Classe → sélection de la page à lire** ; (3) cosmétiques : **même logique que les armes** (déjà fait en suite 12). ⚠️ **VALIDÉ VRAI Manifest FR** : `DestinyClassDefinition` a `hasIcon: false` (aucune icône) → repli `IconeClasse` local ; **145/145 ensembles** ont `groupesPages`, ex « Armure de BrayTech » = Titan 5 → Chasseur 5 → Arcaniste 5, **0 perte de pages**. ⚠️ **CORRIGÉ en validation** : la classe se lit sur le Lore (pas sur le hash d'item) — sinon les ensembles avec réédition perdaient des pièces (« Armure de Rull » : 5 pages → 3 groupes au lieu de 5). Tests : `legendarium-modele` **94/94**, `legendarium-page` **64/64**. `tsc` 0, build strict ✓.
-
-**✅ Suite 14 FAITE (22/10/2026, correction d'un malentendu sur la suite 13)** : (1) **ensembles d'armures : hiérarchie INVERSÉE** — UN SEUL livre « Ensembles d'armures » (compteur = total des pages) avec un repliable par **CLASSE** (Titan/Chasseur/Arcaniste, icône Manifest ou locale `IconeClasse`, replié par défaut), puis un repliable par **NOM D'ENSEMBLE** (dans l'ordre chronologique de sortie des saisons, replié par défaut), puis les **noms de pièces** (clic direct) — chemin : **Classe → Ensemble → pièces** (l'utilisateur avait demandé Classe → Ensemble → pièces, la suite 13 faisait Ensemble → Classe → pièces). Le livre garde `pages` (ordre verrouillé global classe → slots) pour la lecture. (2) **Cosmétiques « Autres » classés par CLASSE** : le livre « Autres » (doctrines : Brise-soleil, Grâce survoltée, Lame de l'aube, Voie abyssale…) est un repliable de classes (Titan/Chasseur/Arcaniste, icône) → **noms d'objets** (clic direct) ; les cosmétiques sans classe connue (artefacts, ornements) dans un groupe « Sans classe » en dernier. Nouveau type `GroupeClassePages` (`ensembles?` OU `pages?`, classe optionnelle). Recherche : les noms de sous-groupes (classes, ensembles) sont cherchés, ET une requête multi-mots (ex: « raid A ») correspond si chaque mot est trouvé dans le livre ou ses pages. Tests : `legendarium-modele` **96/96**, `legendarium-page` **64/64**, `legendarium-fixtures` **19/19**. `tsc` 0, build strict ✓.
-
-**✅ Étape 6 FAITE (22/10/2026, vérification des 9 critères d'acceptation)** : nouveau test `tests/logique/legendarium-acceptation.test.ts` (**34/34 contrôles**) vérifiant UN PAR UN les 9 critères de la spécification verrouillée §7 — (1) Légendes D2 + Grimoire D1 regroupés par livres comme en jeu ; (2) ordre global D1 → D2 → armes/armures → cosmétiques ; (3) armures casque → gants → torse → jambes → marque par classe (Titan → Chasseur → Arcaniste) ; (4) recherche par mots-clés (+ avancée suite 15 : guillemets/`+`/`-`/`Aa`) ; (5) bouton « Lire le Lore » uniquement si Lore présent, haut de fiche, justifié à droite, sous la croix, dans les 5 fiches ; (6) parcours inverse page → objets porteurs + lien profond `item:<hash>` ; (7) Spectres/Vaisseaux/Passereaux listés avec leur Lore ; (8) **lecture passive vérifiée** : aucun import scoring/build, aucun POST/PUT/DELETE réseau (que des GET), aucun stockage persistant, composant bouton pur, cible en `useState` (mémoire) ; (9) cache manifeste réutilisé (pas de second téléchargement), Grimoire D1 en `import()` dynamique, dépendance à sens unique (le cache n'importe rien du Legendarium). Batterie logique complète : **35/35 suites, 686/686 contrôles**. `tsc` 0, build strict ✓. **Le chantier Legendarium est TERMINÉ** (étapes 1-6 du plan de la spécification).
-
-**✅ Bonus FAIT (22/10/2026, demande utilisateur « pour plus tard » : export infographique)** : **export PNG d'une page de Lore** — `src/lib/legendarium/exportImage.ts` (rendu **natif `<canvas>`**, aucune bibliothèque ajoutée) : reprend la **palette verrouillée** (parchemin D1 / hologramme D2), l'**œilleton** (catégorie · livre · section · « page X/Y » à droite), le **titre**, le **sous-titre**, le **libellé chrono**, le **texte avec retour à la ligne**, le **parcours inverse** (objets porteurs), la **couverture** en haut à gauche (taille naturelle, texte à droite puis dessous). **Pied de l'image** : **filigrane du logo Forge Armory** (emblème, opacité 0.22) + « **Mise en image par Forge Armory** » + « **Texte du Lore © Bungie, Inc. — Destiny/Destiny 2 est une marque de Bungie, Inc. Forge Armory est un projet de fan, non affilié à Bungie.** » (Destiny pour le Grimoire D1, Destiny 2 sinon). Bouton **« ⟳ Exporter en image » EN HAUT À DROITE de la page** (`ZoneLecture`, prop `avecExport`, passé à `true` dans la page Legendarium). Téléchargement par lien `<a download>` à la volée — **aucun état persistant** (lecture passive respectée). Tests : `legendarium-export` **17/17** (fonctions pures + lecture passive vérifiée) ; `legendarium-page` **69/69** (bouton haut-droite, absent par défaut, retour à gauche + export à droite). Batterie : **36/36 suites, 706/706 contrôles**. `tsc` 0, build strict ✓. À valider en `npm run dev` : onglet Legendarium → page de Lore → « ⟳ Exporter en image ».
-
-**✅ Suite 15 FAITE (22/10/2026, demande utilisateur avant test : « pour la recherche, il faudrait pouvoir utiliser les guillemets, + et -, ainsi que respecter la casse »)** : (1) **guillemets** `"…"` (ou `« … »`) = **phrase exacte** (sous-chaîne contiguë) ; guillemet non fermé toléré ; (2) **`+terme`** = terme **obligatoire** (ET), `+"phrase"` = phrase exacte obligatoire ; (3) **`-terme`** / `-"phrase"` = **exclu** (page rejetée si présente) ; une requête avec UNIQUEMENT des exclusions remonte toutes les pages qui ne les contiennent pas ; (4) termes libres = **OU** (au moins un) seulement s'il n'y a ni obligatoire ni exacte (type Google) ; (5) **case « Aa »** (`data-respecter-casse`) dans le bandeau, à droite du champ de recherche, **décochée par défaut** = comportement historique (insensible à la casse) ; cochée = **respect de la casse** (les accents restent ignorés, é = e, dans les deux modes). Implémentation : `parserRecherche()` + `correspondRecherche()` dans `modele.ts`, `rechercherPages(…, { respecterCasse })`, état `respecterCasse` EN MÉMOIRE uniquement (lecture passive). Tests : `legendarium-modele` **107/107**, `legendarium-page` **66/66** (case « Aa » présente/décochée/cochée), `legendarium-fixtures` **19/19**. `tsc` 0, build strict ✓. À valider en `npm run dev` : barre de recherche de l'onglet Legendarium.
-
-**Reste à faire (étape 3 du plan de la spécification — l'étape 6 est FAITE)** : **validation en `npm run dev`** avec un vrai Manifest : la navigation par livres dans la section Légendes D2 (4 catégories **repliées par défaut**, dépliage au clic, pages dans l’ordre du jeu), le contenu D2 dans les autres sections (**armes : repliables de noms Cinétiques/Énergétiques/Lourdes ; armures : UN livre « Ensembles d’armures » replié → repliable par CLASSE (Titan/Chasseur/Arcaniste, icône) → repliable par ENSEMBLE (nom) → noms de pièces (clic direct) ; cosmétiques : repliables de noms Spectres/Vaisseaux/Passereaux ; « Autres » = repliable de CLASSES (Titan/Chasseur/Arcaniste) → noms d'objets, « Sans classe » en dernier**), la **couverture flottante en haut à gauche** (lisible, texte à droite puis dessous), le **compteur de pages sur une ligne justifié à droite** dans le menu, le **compteur « page X/Y » au niveau du titre du livre** dans la zone de lecture, le bouton « Lire le Lore » dans TOUTES les fiches (Inventaire, Coffre, Mon Build, Forge — Collection et Inventaire, armes et armures), et le parcours fiche → Legendarium → retour . **Étape 6 FAITE** : les 9 critères d’acceptation sont vérifiés par `legendarium-acceptation.test.ts` (34/34, dont la lecture passive : aucun espion de score, aucun journal réseau d’écriture).
 
 ---
 
+**Items retirés le 22/10/2026 (nettoyage de la TODO)** — tous documentés dans `CHANGELOG.md` :
+
+- ~~11. Legendarium (ancienne entrée, chantier en cours)~~ → **remplacé par l'item 11 ci-dessus** (livraison complète en v0.5.0)
+- ~~23. Boutons « Carrière » et « Accomplissements »~~ → ✅ **RÉSOLU sur cette branche** (onglets dédiés, voir CHANGELOG 22/10/2026)
+- ~~12. Renommage « Forge Armory »~~ → ✅ validé le 06/10/2026 (CHANGELOG : « Renommage officiel »)
+- ~~16. Onglet « Load-outs » : gérer ses Loadouts en grand~~ → ✅ 3 livraisons faites et validées (CHANGELOG v0.3.8, v0.3.9, v0.3.16)
+- ~~16 bis. Visuels illustrés~~ → ✅ fait v0.3.13 à v0.3.17 (CHANGELOG)
+- ~~21. Police personnalisée « D2 Build Analyzer Vector »~~ → ❌ **ABANDONNÉE** le 06/10/2026 (voir « Pistes abandonnées »)
+- ~~22. Logo de fond et mode diagnostic~~ → ✅ validés le 06/10/2026 (CHANGELOG v0.3.2)
+- ~~24. Auteur des builds~~ → ✅ fait et validé le 06/10/2026, v0.3.3 (CHANGELOG)
+
+
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
+
+
+- **Police personnalisée « D2 Build Analyzer Vector »** — abandonnée (06/10/2026) :
+  retirée de la TODO §21 (Confort) lors du nettoyage du 22/10/2026. Voir CHANGELOG pour l'historique.
 
 - **Icônes des 21 perks par artefact, par la table d'extraction** — abandonné (26/08) : la table lue par
   l'extraction (`DestinyArtifactDefinition`) ne décrit que l'ancien système d'artefact. ⚠️ **L'objectif a été

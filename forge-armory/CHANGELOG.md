@@ -29,6 +29,49 @@
 
 **À valider en `npm run dev`** : les six onglets du sélecteur (deux rangées), le bouton « Carrière » du bloc Connexion → page Carrière (statistiques chargées à l'ouverture), le bouton « Accomplissements » → page Accomplissements (vitrine « Solo sans mourir » en pleine page), le tiroir « Solo sans mourir » toujours disponible depuis le Build Analyzer.
 
+---
+
+## 23/10/2026 — MISE À JOUR DE LA DOCUMENTATION (README + NOTICE) — Legendarium livré en v0.5.0
+
+**Constat** (point d'avancement demandé par l'utilisateur) : le README et la NOTICE n'avaient pas été mis à jour après la livraison du Legendarium (v0.5.0, 22/10/2026).
+
+**Fait** :
+- **`README.md`** : la ligne « Legendarium … et Forge : en construction » remplacée par deux entrées à jour — **Legendarium** (bibliothèque de Lore en lecture passive, Grimoire D1, Légendes D2, armes, armures, cosmétiques, export infographique PNG) et **Forge** (collection et inventaire, simulation locale des perks et mods, score en tient compte).
+- **`NOTICE.md`** :
+  - Sommaire : ajout de « Le Legendarium (lire le Lore) ».
+  - Tableau des fonctionnalités : ajout de la ligne **Legendarium** ✅ Fonctionnel (lecture passive, recherche avancée, parcours inverse, bouton « Lire le Lore », export infographique PNG).
+  - Tableau des fonctionnalités : correction « armures à venir » retiré de la Collection Forge (fait depuis v0.4.12).
+  - **Nouvelle section** « Le Legendarium : lire le Lore » après les fonctionnalités : les 4 sections, la recherche avancée (guillemets, `+`, `-`, case « Aa »), le parcours inverse, le bouton « 📖 Lire le Lore » dans les fiches, l'export infographique PNG, le fonctionnement hors-ligne du Grimoire D1.
+
+**Vérifié** : `tsc -b` 0 erreur, `npm run test:logique` **36/36 suites, 708/708 contrôles** ✓ (aucun code modifié, documentation seule).
+
+---
+
+## 22/10/2026 — NETTOYAGE DE LA TODO (section « Confort / plus tard »)
+
+**Demande de l'utilisateur** : relire en détail la partie 🟢 Confort / plus tard du TODO — il y a des doublons. Vérifier que les items terminés sont documentés dans le CHANGELOG, puis nettoyer.
+
+**Vérification faite** — tous les items retirés sont bien documentés dans le CHANGELOG :
+- ~~12. Renommage « Forge Armory »~~ → ✅ CHANGELOG : « Renommage officiel : « Forge Armory » » (v0.3.0) + validation le 06/10/2026
+- ~~16. Onglet « Load-outs »~~ → ✅ CHANGELOG : v0.3.8 (livraison 1), v0.3.9 (livraison 2), v0.3.16 (livraison 3 + validation)
+- ~~16 bis. Visuels illustrés~~ → ✅ CHANGELOG : v0.3.13 à v0.3.17
+- ~~21. Police personnalisée~~ → ❌ ABANDONNÉE le 06/10/2026
+- ~~22. Logo de fond et mode diagnostic~~ → ✅ CHANGELOG : v0.3.2 (logo de fond + mode diagnostic)
+- ~~24. Auteur des builds~~ → ✅ CHANGELOG : v0.3.3
+- ~~11. Legendarium (ancienne entrée)~~ → doublon de l'item 26 (livraison complète en v0.5.0)
+
+**Nettoyage fait** :
+- **Suppression des doublons** : l'ancien item 11 (Legendarium chantier en cours) est supprimé — remplacé par l'item 11 actuel (Legendarium ✅ LIVRÉ en v0.5.0, ex-item 26)
+- **Suppression des items terminés** : 12 (renommage), 16 (Load-outs), 16 bis (visuels illustrés), 22 (logo de fond + mode diagnostic), 24 (auteur des builds)
+- **Déplacement vers « Pistes abandonnées »** : 21 (police personnalisée « D2 Build Analyzer Vector »)
+- **Renumérotation** : les items restants sont renumérotés de 5 à 23 (sans trous)
+- **Références mises à jour** : `TODO main §25` → `TODO main §23` dans `DashboardPage.tsx`, `cablage-forge.test.ts` et `TODO.md` (le bug Carrière/Accomplissements)
+- **Note ajoutée** en fin de section Confort listant les items retirés avec leur statut et référence CHANGELOG
+
+**Résultat** : la section « Confort / plus tard » passe de 22 items (5-26) à **19 items (5-23)**, sans doublon, sans item terminé, avec une numérotation continue.
+
+**Vérifié** : `tsc -b` 0 erreur, `npm run test:logique` **36/36 suites, 708/708 contrôles** ✓
+
 **Version inchangée (0.5.0).**
 
 ---
