@@ -6,6 +6,7 @@ import IconeTitreFaconnee from "./IconeTitreFaconnee";   // ⚠️ AJOUT (14/10/
 import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
 import { useEffect, useMemo, useState } from "react";
 import type { Database } from "sql.js";
+import BoutonLireLore from "./BoutonLireLore";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : bouton « Lire le Lore » (fiche → page de Lore)
 import type { DestinyMembership } from "../lib/bungie/api";
 import type { GearPiece } from "../types/build";
 import { listerObjetsPossedes } from "../lib/bungie/inventaire";
@@ -47,9 +48,11 @@ interface Props {
   /** FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - retour à la vue d'origine, proposé DANS la fenêtre de l'arme (le bandeau de la page est masqué par le fond sombre de la fenêtre, qui s'ouvre seule à l'arrivée). `libelleRetour` : le nom de cette vue. / EN: back to the originating view, offered INSIDE the weapon window. */
   onRetour?: () => void;
   libelleRetour?: string;
+  /** FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - clic du bouton « Lire le Lore » (fiche Détails → Legendarium). / EN: ⚠️ ADDED - "Read the Lore" click (Details sheet → Legendarium). */
+  onLireLore?: (itemHash: number, nomObjet: string) => void;
 }
 
-export default function InventaireArmes({ db, membership, cible = null, onAjouterAuBuild, idsDansBuild, onRetour, libelleRetour = "la vue d'origine" }: Props) {
+export default function InventaireArmes({ db, membership, cible = null, onAjouterAuBuild, idsDansBuild, onRetour, libelleRetour = "la vue d'origine", onLireLore }: Props) {
   const [pieces, setPieces] = useState<GearPiece[] | null>(null);
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -201,6 +204,8 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
               </span>
               <button onClick={() => { setOuverte(null); setDiagnostic(null); setMessageBuild(null); }} aria-label="Fermer">✕</button>
             </div>
+            {/* FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - « Lire le Lore » : EN HAUT DE FICHE, JUSTIFIÉ À DROITE, SOUS LA CROIX (spécification §6), affiché UNIQUEMENT si l'objet a un Lore. / EN: ⚠️ ADDED - "Read the Lore": top of sheet, right-justified, under the close cross (spec §6), shown ONLY if the item has a lore. */}
+            {onLireLore && <BoutonLireLore db={db} itemHash={ouverte.itemHash} nomObjet={ouverte.nom ?? ""} onLireLore={onLireLore} />}
             <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0.2rem 0 0.4rem" }}>{[ouverte.typeArme, ouverte.rarete, LIEUX[ouverte.origine ?? ""], ouverte.equipe ? "équipée" : ""].filter(Boolean).join(" · ")} — simulation locale : rien n'est modifié dans le jeu</p>
             <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0 0 0.4rem" }}>Cliquez une perk pour la simuler (une seule par colonne) ; cliquez le roll réel, ou de nouveau la perk simulée, pour revenir au roll réel de la colonne.</p>
             {/* FR : ⚠️ AJOUT (13/10/2026, v0.4.7), demande de l'utilisateur : la LÉGENDE des quatre niveaux de perks. Si la disponibilité sur l'exemplaire n'a pas été lue (inventaire chargé avant la mise à jour, ou donnée absente), on le dit au lieu de griser à tort. / EN: legend of the four perk levels. */}

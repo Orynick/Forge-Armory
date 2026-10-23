@@ -2,7 +2,7 @@
 
 **Destiny 2 Build Analyzer**, par Orynick/Orygamer. Ce document explique comment installer, configurer et utiliser l'application. Pour un aperçu rapide, voir le `README.md`.
 
-**Sommaire** : Démarrage · Créer votre application Bungie · Fabriquer le logiciel installable · Fonctionnalités · Comprendre le score · Télécharger les Manifests · Loadouts.
+**Sommaire** : Démarrage · Créer votre application Bungie · Fabriquer le logiciel installable · Fonctionnalités · Comprendre le score · Télécharger les Manifests · Loadouts · Le Legendarium (lire le Lore) · La page Carrière (vos statistiques).
 
 ---
 
@@ -255,7 +255,7 @@ npm run electron:dev   (fenêtre 2)
 | Bouton **« Aller à »** (recherche du Manifest → Mon Inventaire, filtré sur l'objet) | ✅ Fonctionnel |
 | Export infographique : logos de section, icônes de classe, d'élément et de contexte | ✅ Fonctionnel — logos de section : Doctrine, Armes, Armure, Artefact |
 | Bouton **« Transférer vers »** (Mon Inventaire et Coffre → personnages et Coffre) | ✅ Fonctionnel — objet équipé non transférable, confirmation, un transfert à la fois |
-| Onglet **Forge**, vue **Collection** (toutes les armes du jeu, leurs perks possibles, grisées si jamais obtenues) | ✅ Fonctionnel — consultation seule ; armures à venir |
+| Onglet **Forge**, vue **Collection** (toutes les armes du jeu, leurs perks possibles, grisées si jamais obtenues) | ✅ Fonctionnel — consultation seule |
 | Onglet **Forge**, vue **Inventaire** (vos armes possédées : roll réel et simulation des perks et du mod) | ✅ Fonctionnel — simulation locale, rien n'est modifié dans le jeu ; **le score en tient compte** |
 | Onglet **Forge**, vue **Inventaire** : vos **armures** possédées (emplacements, mods et ajustements, simulation avec statistiques avant → après) | ✅ Fonctionnel — quand votre exemplaire ne liste aucun mod possible, les plugs du modèle du jeu complètent (marqués « possibles ») ; les emplacements identiques sont regroupés (× N) |
 | Onglet **Forge**, vue **Collection** : toutes les **armures** du jeu (grisées si jamais obtenues, ensemble et bonus) | ✅ Fonctionnel — consultation seule |
@@ -264,6 +264,37 @@ npm run electron:dev   (fenêtre 2)
 | **Saison de sortie** en clair sur la fiche d'un résultat de recherche | ✅ Fonctionnel — nom, numéro et dates |
 | **Catégorie de source** en clair sur la fiche (« — Raid — Source: "Last Wish" Raid ») | ✅ Fonctionnel — tables dérivées de d2-additional-info (MIT) |
 | Section **« Crédits »** (pied de page) | ✅ Fonctionnel — pop-up : projet de fan non affilié à Bungie + crédit MIT |
+| Onglet **Legendarium** — bibliothèque de Lore (Grimoire D1, Légendes D2, armes, armures, cosmétiques) | ✅ Fonctionnel — lecture passive, recherche avancée, parcours inverse, bouton « 📖 Lire le Lore » dans les fiches, export infographique PNG |
+| Page **Carrière** — statistiques du compte (bouton du bloc Connexion) | ✅ Fonctionnel — temps de jeu (total + par classe) et toutes les statistiques de carrière (74 libellés traduits en français) |
+| Page **Accomplissements** — Triomphes du compte (bouton du bloc Connexion) | 🚧 En construction — placeholder « Bientôt » (suite sur la branche `draft-update-triomphes`) |
+
+---
+
+## Le Legendarium : lire le Lore
+
+L'onglet **Legendarium** (anciennement « Bibliothèque ») est une bibliothèque de Lore en **lecture passive** : aucune écriture, aucun état persistant, aucun impact sur le scoring ni le build.
+
+- **Quatre sections** : Grimoire D1 (6 livres / 834 cartes FR, hors-ligne), Légendes D2 (navigation par livres comme en jeu, depuis le Manifest), armes et armures (par type, ensemble et classe), cosmétiques (Spectres, Vaisseaux, Passereaux, autres).
+- **Recherche avancée** : mots-clés, guillemets `"…"` pour une phrase exacte, `+mot` pour un terme obligatoire, `-mot` pour exclure, case « Aa » pour respecter la casse.
+- **Parcours inverse** : chaque page de Lore liste les **objets qui la portent** (armes, armures, cosmétiques), avec un clic direct vers la fiche de l'objet.
+- **Bouton « 📖 Lire le Lore »** dans les fiches Détails (Inventaire, Coffre, Mon Build, Forge — armes et armures) : lien profond vers la page du Lore de l'objet, avec bouton de retour.
+- **Export infographique** : bouton « ⟳ Exporter en image » en haut à droite de chaque page — génère un PNG (1200 px) avec la palette de l'ère (parchemin D1 / hologramme D2), le filigrane Forge Armory centré, et le crédit Bungie / Destiny.
+
+Le Legendarium fonctionne **hors-ligne** pour le Grimoire D1 (données embarquées) ; les sections D2 nécessitent le Manifest (chargé automatiquement au démarrage si une connexion Bungie est active).
+
+---
+
+## La page Carrière : vos statistiques de compte
+
+Le bouton **« Carrière »** du bloc Connexion ouvre une page dédiée aux **statistiques de votre compte Bungie** (lecture seule, aucune modification en jeu).
+
+- **Temps de jeu** : total et par classe (Titan, Chasseur, Arcaniste), avec les icônes de classe. Le total est lu depuis votre profil Bungie (composant « personnages »), avec un repli sur la statistique `secondsPlayed` de l'API si le profil ne le porte pas.
+- **Statistiques de carrière** : **toutes les statistiques** retournées par l'API Bungie (`GetHistoricalStatsForAccount`, filtre « Carrière »), dans l'ordre de la réponse. Les libellés connus sont traduits en français (74 statIds : éliminations par type d'arme, distances en mètres, efficacités, scores, durées…). Une statistique inconnue affiche son identifiant brut (jamais renommée à l'aveugle). Les durées en secondes s'affichent en « X h Y min ».
+- La page ne fait **qu'une seule requête réseau** à l'ouverture.
+- Un **compteur** indique le nombre de statistiques affichées.
+- En mode développement (`npm run dev`), un panneau de diagnostic détaille la structure de la réponse API et la source des données lues.
+
+> La page **Accomplissements** (bouton du même bloc) ouvrira prochainement l'affichage de tous vos Triomphes — obtenus et à obtenir. En attendant, elle affiche un emplacement réservé « 🚧 Bientôt ».
 
 ---
 

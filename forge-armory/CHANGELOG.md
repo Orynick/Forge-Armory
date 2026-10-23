@@ -1,3 +1,705 @@
+## 23/10/2026 — v0.5.1 : LIVRAISON COMPLÈTE — Legendarium opérationnel + pages Carrière/Accomplissements + stack à jour
+
+**Passage en version 0.5.1** — consolidation de toutes les livraisons depuis la 0.5.0 (Legendarium, 22/10/2026).
+
+**Pourquoi 0.5.1 ?** La 0.5.0 marquait la livraison du Legendarium (chantier majeur). Depuis, trois livraisons significatives ont été mergées sur `main` :
+1. **Pages « Carrière » et « Accomplissements »** (PR #14, TODO §25) — deux nouvelles pages dédiées : temps de jeu (total + par classe) et **74 statistiques de compte traduites en français**, Accomplissements en placeholder « Bientôt » (suite sur `draft-update-triomphes`).
+2. **Chantier dépendances terminé** (`draft-deps`, PR #7) — Vite 5→7, React 18→19, React Router 6→7, Electron 44→45, TypeScript 5.9. **0 vulnérabilité npm** (contre 4 avant).
+3. **Mise à jour documentation** (PR #15) — README + NOTICE à jour (Legendarium livré, Forge fonctionnel).
+
+**État du Legendarium (vérifié sur `main`)** : bibliothèque de Lore complète et opérationnelle —
+- 4 sections : Grimoire D1 (6 livres / 834 cartes, hors-ligne), Légendes D2 (108 livres / 1 076 pages), armes et armures, cosmétiques
+- Recherche avancée (guillemets, `+`, `-`, case « Aa »)
+- Parcours inverse page → objets porteurs, lien profond fiche ↔ Legendarium avec retour
+- Export infographique PNG (filigrane centré, crédit Bungie)
+- 7 suites de tests : **277/277 contrôles** ✓
+
+**État technique** :
+- `tsc -b` : 0 erreur
+- `npm run build` strict : ✓
+- Batterie logique CI : **36/36 suites, 716/716 contrôles** ✓
+- CI GitHub Actions : verte
+- `npm audit` : **0 vulnérabilité** ✓
+
+**Stack technique** : Vite 7.3.7 · React 19.2.9 · React Router 7.18.4 · Electron 45.0.0 · TypeScript 5.9.3
+
+**Branches** : `draft-update-carriere` et `draft-deps` supprimées (livrées). Nouvelle branche active : `draft-update-triomphes` (suite Accomplissements, TODO §23).
+
+**Fichiers modifiés** : `package.json`, `package-lock.json` (version 0.5.0 → 0.5.1), `CHANGELOG.md`, `TODO.md` (références version + item 1 audit externe marqué terminé).
+
+---
+
+## 23/10/2026 — DÉPENDANCES : CHANTIER `draft-deps` TERMINÉ (merge sur `main`)
+
+Merge de la branche `draft-deps` (PR #7) sur `main` : mise à jour complète des dépendances majeures en 3 paliers + 1 palier intermédiaire.
+
+**Palier 1 — Mises à jour patchs (sûr)** :
+- `electron` 44.9.0 → **44.9.3**, `sql.js` 1.15.0 → **1.15.1**, `typescript` 5.5.4 → **5.9.3**
+
+**Palier 2 — Vite 5 → 7** :
+- `vite` 5.4.21 → **7.3.7**, `@vitejs/plugin-react` 4.7.0 → **5.2.0**, `vite-plugin-mkcert` 1.17.12 → **2.1.0**
+
+**Palier 2bis — Electron 44 → 45 (sécurité)** :
+- `electron` 44.9.3 → **45.0.0** (montée majeure pour la sécurité, exigée avant diffusion)
+
+**Palier 3 — React 18 → 19 (majeur cassant)** :
+- `react` + `react-dom` 18.3.1 → **19.3.1** (montés ensemble)
+- `@types/react` + `@types/react-dom` → **19.3.0**
+- `react-router-dom` 6.30.6 → **7.18.4** (compatible React >=18)
+
+**Vérifications** : `npx tsc -b` OK, `npx vite build` OK (206 modules), **36/36 suites de tests, 708/708 contrôles réussis**, **0 vulnérabilité npm**.
+
+**Note** : snapshot `icones.json` mis à jour (React 19 ajoute `<link rel="preload" as="image">` avant les `<img>` externes dans `renderToStaticMarkup` — comportement attendu, inchangé visuellement).
+
+**Branche `draft-deps` supprimée** après merge. Le chantier est terminé.
+
+---
+
+## 23/10/2026 — PROPAGATION : PR #14 (TODO §25, pages « Carrière »/« Accomplissements ») répercutée sur les branches de chantier
+
+**Propagation** : la PR #14 (merge sur `main`, livraison TODO §25 : pages « Carrière » et « Accomplissements » dédiées, ouvertes par les boutons du bloc Connexion) a été répercutée sur les 6 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `test`.
+
+**Conflits résolus** :
+- `draft-deps`, `draft-netlify` : conflit `CHANGELOG.md` (entrées de la branche vs entrées du 23/10 de main) — résolu en gardant les entrées de la branche puis celles de main.
+- `draft-armure-score`, `draft-legendarium`, `draft-sec`, `test` : merge direct sans conflit.
+
+**Note** : sur `draft-deps`, le contrôle `icones.test.tsx` « element:officielle » échoue **déjà avant** la propagation (pré-existant sur cette branche, hors périmètre de ce merge) — à traiter sur cette branche.
+
+**Branches** : `draft-update-carriere` est **supprimée** (livrée). La suite fonctionnelle (affichage des Triomphes dans « Accomplissements ») démarre sur la nouvelle branche **`draft-update-triomphes`** (nouvel item TODO n°23).
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — LIVRAISON TODO §25 (merge de `draft-update-carriere` sur `main`)
+
+Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carrière » et « Accomplissements » dédiées, toutes les stats traduites (74 statIds), temps de jeu corrigé, sections « Personnages »/« 10 dernières activités »/« Saison » supprimées — voir les entrées du 22/10/2026 ci-dessous.
+
+---
+
+## 22/10/2026 — PAGE « CARRIÈRE » : tous les libellés de stats traduits en français
+
+**Demande de l'utilisateur (22/10/2026, note avant test)** : « Avant test, tout traduire. » — capture de la grille « Statistiques de carrière » : la plupart des stats avaient un libellé FR, mais **46 statIds s'affichaient en ANGLAIS BRUT** (`weaponKillsAutoRifle`, `efficiency`, `score`, `totalKillDistance`, `allParticipantsTimePlayed`, …).
+
+**Changé** (`src/components/VueCarriere.tsx`) : la table `LIBELLES_STATS_CONNUS` est **complétée depuis la RÉPONSE RÉELLE du compte de l'utilisateur** (capture de la grille) — elle passe de 20 à **74 statIds** : les 46 statIds anglais restants ont leur libellé FR (vocabulaire du jeu en français) :
+- **Éliminations par type d'arme** (18) : « Fusil automatique », « Arc », « Glaive », « Fusil à fusion », « Revolver », « Fusil de traçage », « Mitrailleuse », « Fusil à impulsion », « Lance-roquettes », « Fusil éclaireur », « Fusil à pompe », « Fusil de précision », « Pistolet-mitrailleur », « Relique », « Épée », « Grenade », « Lance-grenades » + « **Capacités (armes)** », « **Super (armes)** », « **Mêlée (armes)** » (suffixe « (armes) » pour les distinguer des stats globales « Capacités » / « Super » / « Mêlée »).
+- **Distances** (5, unité précisée en mètres dans le libellé) : « Distance totale d'éliminations (m) », « Distance moyenne d'élimination (m) », « Distance d'élimination la plus longue (m) », « Distance totale de mort (m) », « Distance moyenne de mort (m) ».
+- **Divers** : « Efficacité totale » (`efficiency` — distincte de « Efficacité » = `killsDeathsAssists` : vérifié sur les valeurs réelles 22,54 vs 20,81), « Score », « Score d'équipe (cumulé) », « Meilleures éliminations (une partie) », « Meilleur score (une partie) », « Meilleures précisions (une partie) », « Série d'éliminations la plus longue », « Score moyen par élimination », « Score moyen par vie », « Adversaires vaincus », « Orbes générés », « Orbes ramassés », « Activités gagnées », « Activités en groupe », « Événements publics terminés », « Événements publics héroïques terminés », « Aventures terminées », « Niveau de personnage le plus élevé », « Puissance la plus élevée », « Participants (total) », « Score cumulé des participants », « Completion la plus rapide (ms) » (millisecondes — volontairement **absente** de `STATS_EN_SECONDES` pour ne pas afficher « non disponible » sur un 0 ms valide), « Type d'arme préférée (code brut) » (`weaponBestType` = code, la correspondance code→nom n'est pas dans la réponse de l'API).
+- **Durées** : `STATS_EN_SECONDES` étendu de 2 à **7** statIds (toutes en secondes) : + `totalActivityDurationSeconds` (« Durée totale des activités »), `allParticipantsTimePlayed` (« Temps cumulé des participants »), `longestSingleLife` (« Vie la plus longue »), `remainingTimeAfterQuitSeconds` (« Temps restant après abandon (cumulé) »), `averageLifespan` (« Durée de vie moyenne »).
+
+**Règle inchangée** : une statId **inconnue** continue d'afficher son statId **brut** (jamais renommée à l'aveugle) — la règle du projet « jamais d'estimation » s'applique aussi aux libellés.
+
+**Tests** :
+- `tests/ui/entree-vue-carriere.tsx` — la fixture passe à **16 stats** (les 8 d'origine + 8 statIds RÉELS du compte : `weaponKillsHandCannon`, `efficiency`, `score`, `totalKillDistance`, `totalActivityDurationSeconds`, `averageLifespan`, `longestSingleLife`, `allParticipantsTimePlayed`).
+- `tests/ui/vue-carriere.py` — le contrôle navigateur « TOUTES LES STATS » attend les **16 stats** avec leurs libellés FR (ex. « Revolver » → « 155 285 », « Efficacité totale » → « 22,54 », « Durée totale des activités » → « 4 031 h 08 », « Durée de vie moyenne » → « 4 min ») et le compte « 16 statistiques » ; le diagnostic attend « statIds retournés : 16 » et la structure « merged (allTime : 16 stats) ».
+- Vérification croisée (script) : **les 66 statIds de la capture de l'utilisateur ont TOUS un libellé FR** (aucun manquant, aucun libellé identique au statId brut).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+---
+
+## 23/10/2026 — PROPAGATION : PR #13 (nettoyage TODO) + PR #15 (doc README/NOTICE) répercuteées sur les branches de chantier
+
+**Propagation** : les deux PRs mergées sur `main` (PR #13 : nettoyage de la TODO section Confort ; PR #15 : mise à jour README + NOTICE après livraison Legendarium v0.5.0) ont été répertutées sur les 7 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `draft-update-carriere`, `test`.
+
+**Conflits résolus** :
+- `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec` : conflit `README.md` (ligne Legendarium « en construction » vs nouvelle entrée) — résolu en gardant les lignes spécifiques à la branche + la nouvelle entrée Legendarium.
+- `draft-update-carriere` : conflits `CHANGELOG.md` (entrée Carrière §25 + entrées main), `TODO.md` (item 23 résolu sur cette branche → retiré), `DashboardPage.tsx` et `cablage-forge.test.ts` (code spécifique Carrière conservé). Tests : **36/36 suites, 710/710 contrôles** ✓.
+- `test` : merge direct sans conflit.
+
+---
+
+## 22/10/2026 — PAGE « CARRIÈRE » : suppression de l'affichage de la saison
+
+**Demande de l'utilisateur (22/10/2026)** : « Finalement enlève l'affichage de la saison dans ce menu. »
+
+**Changé** : la section « Saison » (« Saison en cours ») est **supprimée** de la page « Carrière ». La page ne comporte plus que **DEUX sections** : **Temps de jeu** (total + par classe) et **Statistiques de carrière** (toutes les stats de l'API).
+
+**Fait** :
+- **`src/components/VueCarriere.tsx`** (⚠️ CHANGÉ) — la section « Saison » est supprimée, ainsi que `saisonEnCours`/`libelleSaisonEnCours` et l'import `SAISONS` de `src/data/saisons.ts` (aucun code mort). La table `SAISONS` reste utilisée ailleurs dans l'appli (recherche Manifest, infobulles de saison).
+
+**Tests** :
+- `tests/ui/vue-carriere.py` — le contrôle navigateur des sections attend **DEUX** sections (« Temps de jeu », « Statistiques de carrière ») et l'**absence** de « saison » dans le texte ; le contrôle « Saison en cours » est supprimé ; **+1 contrôle source** : plus de `SAISONS`/`libelleSaisonEnCours`/`titre="Saison"` dans le code ; le contrôle « MÊME EN ÉCHEC » n'attend plus la saison.
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — PAGE « CARRIÈRE » : suppression des sections « Personnages » (niveaux) et « 10 dernières activités »
+
+**Demande de l'utilisateur (22/10/2026)** : « Enlève la partie affichant les niveaux de persos ainsi que les 10 dernières activités. »
+
+**Changé** : la page « Carrière » ne comporte plus que TROIS sections : **Temps de jeu** (total + par classe), **Saison** (« Saison en cours » — conservée, déplacée dans sa propre section) et **Statistiques de carrière** (toutes les stats de l'API). Les icônes de classes restent sur les lignes du temps de jeu par classe.
+
+**Fait** :
+- **`src/components/VueCarriere.tsx`** (⚠️ CHANGÉ) — sections « Personnages » (puissances) et « 10 dernières activités » supprimées ; la prop `personnages` est retirée (la page ne prend plus que `membership` et `profil`) ; « Saison en cours » reste, dans une section « Saison » dédiée.
+- **`src/lib/bungie/carriere.ts`** (⚠️ CHANGÉ) — le chargement des historiques d'activités est supprimé avec la section qu'il alimentait : `recupererActivitesPersonnage`, l'interface `ActiviteRecente`, le champ `activites` de `DonneesCarriere` et `erreursActivites` du diagnostic. `chargerCarriere(membership, profil)` ne prend plus `personnages` : la page ne fait plus qu'**UNE SEULE requête réseau** à l'ouverture (`GetHistoricalStatsForAccount`) — les 10 requêtes `GetActivityHistory` par personnage (et leurs erreurs possibles) disparaissent. Le diagnostic n'a plus de ligne « historiques d'activités en échec ».
+- **`src/pages/DashboardPage.tsx`** (⚠️ CHANGÉ) — montage `<VueCarriere membership={memberships[0] ?? null} profil={profilComplet} />` (plus de `personnages`).
+
+**Tests** :
+- `tests/logique/cablage-forge.test.ts` — le regex de montage attend `profil={profilComplet}` sans `personnages`.
+- `tests/logique/diagnostic-carriere.test.ts` — le cas « historiques d'activités en échec » est remplacé par un **contrôle de suppression** : le diagnostic ne contient AUCUNE ligne « historiques d'activités ».
+- `tests/ui/entree-vue-carriere.tsx` — plus de prop `personnages`, plus de handler `/Stats/Activities/` (une telle requête retombe en 404) ; `window.__requetes` enregistre les URL demandées.
+- `tests/ui/vue-carriere.py` — +1 contrôle source (sections supprimées, prop retirée, `chargerCarriere(membership, profil)`, `recupererActivitesPersonnage` absent de `carriere.ts`) ; le contrôle des sections attend **TROIS** sections (« Temps de jeu », « Saison », « Statistiques de carrière ») ; le contrôle « Saison en cours » lit la section « Saison » ; **+1 contrôle navigateur** : UNE SEULE requête réseau à l'ouverture (les stats agrégées), AUCUNE requête `/Stats/Activities/` ; le contrôle « MÊME EN ÉCHEC » attend le temps de jeu et la saison (plus de personnages/historique).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — CORRECTIFS (retour de l'utilisateur en test) : page « Carrière » — plus de « non disponible » pour le temps de jeu et la saison en cours
+
+**Retour de l'utilisateur (22/10/2026, en test)** : « Ca fonctionne ! Maintenant il faut comprendre pourquoi ici il y a des stats non-disponibles. Le temps de jeu est récupéré dans les stats plus bas, et l'en-tête de l'app indique la saison et même la version du jeu. » — capture de la page Carrière avec « non disponible » pour Temps de jeu → Total, Temps de jeu → Par classe et Personnages → « Saison en cours ».
+
+**Deux causes, deux correctifs** :
+
+1. **Temps de jeu « non disponible »** — la page recevait le MAUVAIS profil : `DashboardPage` lui passait `profilTriomphes`, qui est `GetProfile` avec le **composant 900 seul** (triomphes) — il ne contient **pas** le composant 200 (`characters.data[*].minutesPlayedTotal`, temps de jeu par personnage). Les données existaient pourtant déjà : `recupererResumeEtPersonnages` télécharge le profil complet (composants 100, 102, **200**, …) mais le jetait après en avoir dérivé le résumé. **Corrigé** : `recupererResumeEtPersonnages` (`src/lib/bungie/api.ts`, ⚠️ CHANGÉ) retourne aussi le profil brut (`profil`), `DashboardPage` le stocke dans un nouvel état `profilComplet` (réinitialisé à la déconnexion et au re-test) et le passe à `VueCarriere` (`profil={profilComplet}`) — **aucun appel réseau en plus** (c'est le même profil, déjà téléchargé). ⚠️ En complément (l'indice de l'utilisateur : « le temps de jeu est récupéré dans les stats plus bas »), le **Total** retombe désormais sur la stat `secondsPlayed` de `GetHistoricalStatsForAccount` (agrégat « Carrière » du jeu) quand le profil ne porte pas le composant 200 ; le **par classe** reste « non disponible » dans ce cas (les stats historiques n'ont pas le temps de jeu par personnage). Jamais d'estimation.
+2. **« Saison en cours » « non disponible »** — la ligne était en dur (`valeur={NON_DISPONIBLE}`, jamais implémentée). **Corrigé** : `VueCarriere` (⚠️ CHANGÉ) lit la saison en cours dans la table `SAISONS` (`src/data/saisons.ts`, socle dérivé de d2-additional-info/DIM) : l'entrée dont la date de fin est `null` — actuellement « Season of Lawless (saison 28, Renegades) ». Aucun appel réseau. ⚠️ Le nom affiché est celui de la **saison** (table des saisons), pas celui de la **version** 9.7.0 (« Monument of Triumph ») du badge de l'en-tête : ce ne sont pas les mêmes libellés (la version 9.7.0 est le patch du 9 juin 2026, la saison 28 « Lawless » a débuté le 2 décembre 2025).
+
+**Tests** :
+- `tests/logique/cablage-forge.test.ts` — le regex de montage attend `profil={profilComplet}` (+ `setProfilComplet(profil)`).
+- `tests/ui/entree-vue-carriere.tsx` — la fixture précise la FORME RÉELLE du profil (`data.Response`, `characters.data` en haut niveau, comme passé par `DashboardPage`) ; nouveau mode `?sans-profil=1` (profil absent → repli sur `secondsPlayed`).
+- `tests/ui/vue-carriere.py` — +1 contrôle source (saison depuis `SAISONS`, repli `secondsPlayed`) + 3 contrôles navigateur : temps de jeu Total « 225 h 00 » et par classe (100/75/50 h), « Saison en cours » = « Season of Lawless (saison 28, Renegades) », et repli `?sans-profil=1` (Total « 2500 h 00 » via `secondsPlayed`, « Par classe » « non disponible »).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — CORRECTIFS (retours de l'utilisateur en test) : page « Accomplissements » sans la vitrine « Solo sans mourir » ; parsing des stats « Carrière » corrigé (structure réelle de l'API)
+
+**Retours de l'utilisateur (22/10/2026, en test)** :
+1. « Accomplissement ne doit pas afficher la Vitrine Solo sans mourir : elle affichera plus tard tous les triomphes obtenus et à obtenir. »
+2. Le diagnostic de la page Carrière indiquait « statIds retournés : AUCUN » alors que la réponse de l'API contenait `mergedAllCharacters` avec 2 entrées (`clés de la réponse : mergedDeletedCharacters, mergedAllCharacters, characters` / `entrées de « mergedAllCharacters » : 2`).
+
+**Corrigé** :
+- **Page « Accomplissements »** (`src/components/VueAccomplissements.tsx`, ⚠️ CHANGÉ) : la vitrine « Solo sans mourir » (`VitrineSoloFlawless`) est **retirée** de la page — elle reste **uniquement** dans le tiroir « Solo sans mourir » du Build Analyzer (`PanneauTriomphes`, inchangé). La page affiche désormais un emplacement réservé : « 🚧 Bientôt : tous vos Triomphes de compte — obtenus et à obtenir. » Le composant ne prend plus de props (`<VueAccomplissements />` dans `DashboardPage`).
+- **Parsing des stats « Carrière »** (`src/lib/bungie/carriere.ts`, ⚠️ CORRIGÉ) : la structure **réelle** de `GetHistoricalStatsForAccount` est `mergedAllCharacters: { results: { <mode>: { allTime: { <statId>: {...} } } }, merged: { allTime: { <statId>: {...} } } }` — les stats ne sont PAS directement sous `mergedAllCharacters` (une clé par statId), mais imbriquées. La lecture se fait désormais dans **`merged.allTime`** (l'agrégat « Carrière » du jeu, toutes activités confondues), avec **repli** sur la somme des `results.<mode>.allTime` si `merged` est vide (`extraireStatsCarriere`, exportée pour les tests). C'est ce mauvais niveau de lecture qui produisait « statIds retournés : AUCUN ».
+- **Diagnostic enrichi** : il décrit maintenant la **structure réelle** de `mergedAllCharacters` (ex. « merged (allTime : 8 stats) ») et la **source lue** (« merged.allTime (agrégat « Carrière » du jeu) » ou « somme de results.<mode>.allTime »), au lieu du seul « entrées de « mergedAllCharacters » : N ».
+
+**Tests** :
+- `tests/logique/diagnostic-carriere.test.ts` — mis à jour (nouveau diagnostic) + **4 nouveaux contrôles** sur `extraireStatsCarriere` : structure réelle (`merged.allTime` prioritaire), repli (somme des modes), bloc vide (structure décrite, jamais un « AUCUN » muet), champ absent.
+- `tests/logique/cablage-forge.test.ts` — montage `<VueAccomplissements />` à jour + **1 nouveau contrôle** : la page Accomplissements n'affiche plus `VitrineSoloFlawless` (placeholder « Bientôt » ; la vitrine reste dans `PanneauTriomphes`).
+- `tests/ui/entree-vue-carriere.tsx` — la fixture retourne la **structure réelle** de l'API (`mergedAllCharacters: { results: { allPvE, allPvP }, merged: { allTime: <8 stats> } }`, `mergedDeletedCharacters`, `characters`).
+- `tests/ui/vue-carriere.py` — +1 contrôle source (Accomplissements sans vitrine) ; le contrôle navigateur Accomplissements attend le placeholder « Bientôt » et l'**absence** de « Solo sans mourir » ; le diagnostic attend les **clés réelles** de la réponse, la structure « merged (allTime : 8 stats) » et la source lue.
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites, 716/716 contrôles** ✓, pages de test UI reconstruites ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — PAGE « CARRIÈRE » : TOUTES les stats du compte sont affichées (plus de sélection figée)
+
+**Demande de l'utilisateur (22/10/2026)** : « Maintenant il reste à afficher les stats du compte. **Toutes les stats.** »
+
+**Changé** : la page « Carrière » n'affiche plus une sélection figée de 19 statistiques — elle affiche **TOUTES les stats retournées par l'API** (`GetHistoricalStatsForAccount`, filtre « Carrière », toutes périodes confondues), dans l'ordre de la réponse.
+
+**Fait** :
+- **`src/components/VueCarriere.tsx`** (⚠️ CHANGÉ) —
+  - La sélection figée `STATS_AFFICHEES` (19 statIds) est **supprimée** ; la section « Statistiques de carrière » rend désormais `donnees.stats.map(...)` (une ligne par stat de la réponse, grille auto-remplie).
+  - Les statIds **connus** gardent leur libellé FR (`LIBELLES_STATS_CONNUS`, figé depuis la réponse réelle de l'API pour ce compte, + `activityDurationSeconds` = « Durée d'activité ») ; une stat **inconnue** affiche son **statId brut** (jamais omise, jamais renommée à l'aveugle).
+  - Les statIds de **durées** (secondes : `secondsPlayed`, `activityDurationSeconds`) sont affichés en « X h Y min » et non en secondes brutes ; les autres valeurs gardent 2 décimales max (`fr-FR`).
+  - Un compte « N statistiques — filtre « Carrière » (toutes périodes confondues) » est affiché au-dessus de la grille (N = nombre de stats de la réponse).
+- **Tests** : `tests/ui/entree-vue-carriere.tsx` — la fixture retourne 8 stats (dont une inconnue `statInconnueDeTest` et une durée `activityDurationSeconds`) ; `tests/ui/vue-carriere.py` — +1 contrôle source (`STATS_AFFICHEES` absent, `donnees.stats.map`, `LIBELLES_STATS_CONNUS`, `STATS_EN_SECONDES`, `formaterDuree` présents) et +2 contrôles navigateur (les 8 stats affichées ni plus ni moins, dans l'ordre, libellés FR / statId brut / durée formatée ; le compte « 8 statistiques »), et le diagnostic dev est ajusté (8 statIds).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites, 711/711 contrôles** ✓, pages de test UI reconstruites ✓. Les tests navigateur Playwright ne tournent pas dans le sandbox (pas de `libglib-2.0-0`) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — CORRECTIF : « Carrière » et « Accomplissements » ne sont PLUS des onglets du sélecteur (doublon)
+
+**Retour de l'utilisateur (22/10/2026, avant test)** : « Les boutons apparaissent en double. Enlève ceux qui sont entourés de rouge » (capture : les doublons sont les onglets « CARRIÈRE » et « ACCOMPLISSEMENTS » dans le sélecteur de vues, en dessous du bloc Connexion).
+
+**Corrigé** : les pages « Carrière » et « Accomplissements » du compte **ne sont plus des onglets du sélecteur de vues**. Le sélecteur revient à ses **QUATRE onglets** de navigation (Build Analyzer, Load-outs, Forge, Legendarium), avec sa mise en page d'origine (une seule ligne, retour à la ligne sous 810 px, hauteur commune inchangée). Les deux pages restent ouvertes **uniquement** par les boutons « Carrière » et « Accomplissements » du bloc Connexion (qui restent affichés, comme les 4 onglets) : un seul exemplaire de chaque bouton dans toute l'appli.
+
+**Fait** :
+- **`src/components/SelecteurVues.tsx`** (⚠️ CHANGÉ) — `VUES` revient à 4 entrées ; le champ `large` et le modificateur `bouton-vue--large` du sélecteur sont retirés (les visuels 4897 x 1024 restent utilisés par le bloc Connexion via `BoutonsVuesCompte`). Le type `VueApp` garde `"carriere"` et `"accomplissements"` (les pages existent toujours, `DashboardPage` les monte comme des vues).
+- **`src/index.css`** (⚠️ CHANGÉ) — `.selecteur-vues` : retour à `flex-wrap: nowrap` (wrap sous 810 px) et à la hauteur commune d'origine (formule à 4 boutons, bornes 2,6 rem – 3,5 rem).
+- **Tests** : `legendarium.test.tsx` restauré (4 boutons) + nouveau contrôle anti-doublon ; `cablage-forge.test.ts` +1 contrôle anti-doublon ; `selecteur.py` restauré (4 onglets) + contrôle anti-doublon ; `entree-vue-carriere.tsx` réécrit (la page s'ouvre depuis le VRAI bouton du bloc Connexion) ; `vue-carriere.py` mis à jour (clic sur le bouton du bloc Connexion, sélecteur à 4 onglets, un seul exemplaire de chaque bouton).
+- `tsc` 0 erreur, `npm run build` strict ✓, batterie logique au vert.
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — TODO §25 RÉSOLU : « Carrière » et « Accomplissements » deviennent des PAGES dédiées (ouvertes par le bloc Connexion)
+
+**Demande de l'utilisateur (22/10/2026, TODO §25)** : « On va changer d'approche. On garde le tiroir des Solo sans Mourir pour le moment. Les boutons Carrière et Accomplissements devront chacun ouvrir un onglet spécifique (le bloc de Connexion reste affiché, tout comme les 4 onglets qui se trouvent en dessous). Carrière : n'affiche plus une pop-up mais une page dédiée aux statistiques du compte. Accomplissements : n'agit plus sur le tiroir latéral gauche mais ouvre une page dédiée aux Triomphes du compte. »
+
+**Pourquoi** : le bug §25 (la pop-up « Carrière » ne s'ouvrait pas hors Build Analyzer, car les boutons étaient rendus dans le bloc Connexion masqué `display: none` hors vue analyseur) est résolu **par construction** : il n'y a plus de pop-up, plus de tiroir commandé depuis le bloc Connexion — les deux boutons ouvrent des **onglets** du sélecteur de vues, et le bloc Connexion comme les onglets restent affichés.
+
+**Fait** :
+- **`src/components/SelecteurVues.tsx`** (⚠️ CHANGÉ) — le type `VueApp` gagne `"carriere"` et `"accomplissements"` (les deux pages du compte), mais le sélecteur garde ses **QUATRE onglets** de navigation : les pages du compte n'y figurent PAS (elles s'ouvrent par les boutons du bloc Connexion — pas de doublon, retour utilisateur).
+- **`src/components/VueCarriere.tsx`** (⚠️ AJOUT) — **page « Carrière »** du compte (remplace `ModaleCarriere.tsx`, **supprimé**) : carte pleine largeur (`pilier-carte`, région « Carrière »), contenu repris tel quel de l'ancienne modale (spécification du 14/10/2026 : temps de jeu total et par classe, personnages, 10 dernières activités, statistiques « Carrière » du compte — lecture seule, chargée à l'ouverture de l'onglet, « non disponible » jamais d'estimation, icônes `IconeClasse`, diagnostic statIds dev). Le bouton « Accomplissements » de l'ancienne modale est **retiré** (l'onglet du même nom remplace la navigation croisée).
+- **`src/components/VueAccomplissements.tsx`** (⚠️ AJOUT) — **page « Accomplissements »** : la vitrine « Solo sans mourir » en pleine page (page dédiée aux Triomphes du compte), sans tiroir latéral.
+- **`src/components/VitrineSoloFlawless.tsx`** (⚠️ AJOUT) — contenu de la vitrine « Solo sans mourir » (liste des 11 donjons, diagnostics dev), extrait pour être partagé par le tiroir et la page Accomplissements.
+- **`src/components/IconeCrane.tsx`** (⚠️ AJOUT) — icône « crâne » extraite de `PanneauTriomphes.tsx` (partagée tiroir / page).
+- **`src/components/PanneauTriomphes.tsx`** (⚠️ CHANGÉ) — le tiroir « Solo sans mourir » **retrouve son comportement d'origine** (état d'ouverture interne) : les props `ouvertExterieur` / `onOuvertChange` / `onOuvrirCarriere` et le bouton « Carrière » de la v0.4.14 sont supprimés. **Le tiroir est conservé** (demande de l'utilisateur).
+- **`src/components/Modale.tsx`** (⚠️ CHANGÉ) — la prop `apresTitre` (21/10/2026, bouton « Accomplissements » à droite du titre de la modale) est retirée ; l'en-tête redevient un simple titre + croix.
+- **`src/pages/DashboardPage.tsx`** (⚠️ CHANGÉ) —
+  - Les états `carriereOuverte` et `tiroirTriomphesOuvert` sont **supprimés** ; les boutons du bloc Connexion appellent `setVue("carriere")` / `setVue("accomplissements")`.
+  - Les deux pages sont montées comme des vues (`vue === "carriere"` / `vue === "accomplissements"`), **hors du bloc Connexion** masqué avec l'analyseur : elles s'affichent dans TOUTES les vues, avec le bloc Connexion et les 4 onglets du sélecteur au-dessus.
+  - `PanneauTriomphes` est rendu sans props de navigation croisée.
+
+**Tests** :
+- `tests/logique/cablage-forge.test.ts` — 2 nouveaux contrôles (boutons → onglets ; pages montées comme des vues, modale et état de tiroir externe supprimés).
+- `tests/ui/selecteur.py` + `entree-selecteur.tsx` — sélecteur à QUATRE boutons (inchangé) + contrôle anti-doublon (« Carrière » et « Accomplissements » n'y figurent pas).
+- `tests/ui/vue-carriere.py` + `entree-vue-carriere.tsx` (remplace `modale-carriere.py`) — **page, pas modale** : ouverte depuis le bouton « Carrière » du bloc Connexion (qui reste affiché), aucun `[role=dialog]`, sélecteur à 4 onglets (pas de doublon), plus de partie « Compte », icônes de classes, diagnostic dev (ouverture/fermeture, contenu même en échec 404), navigation par le bouton « Accomplissements » du bloc Connexion vers la page Accomplissements.
+- `tests/ui/connexion-boutons.py` — câblage mis à jour (les deux boutons ouvrent les onglets).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` batterie complète au vert.
+
+**À valider en `npm run dev`** : le sélecteur à 4 onglets (inchangé), le bouton « Carrière » du bloc Connexion → page Carrière (statistiques chargées à l'ouverture), le bouton « Accomplissements » → page Accomplissements (vitrine « Solo sans mourir » en pleine page), le tiroir « Solo sans mourir » toujours disponible depuis le Build Analyzer.
+
+---
+
+## 23/10/2026 — MISE À JOUR DE LA DOCUMENTATION (README + NOTICE) — Legendarium livré en v0.5.0
+
+**Constat** (point d'avancement demandé par l'utilisateur) : le README et la NOTICE n'avaient pas été mis à jour après la livraison du Legendarium (v0.5.0, 22/10/2026).
+
+**Fait** :
+- **`README.md`** : la ligne « Legendarium … et Forge : en construction » remplacée par deux entrées à jour — **Legendarium** (bibliothèque de Lore en lecture passive, Grimoire D1, Légendes D2, armes, armures, cosmétiques, export infographique PNG) et **Forge** (collection et inventaire, simulation locale des perks et mods, score en tient compte).
+- **`NOTICE.md`** :
+  - Sommaire : ajout de « Le Legendarium (lire le Lore) ».
+  - Tableau des fonctionnalités : ajout de la ligne **Legendarium** ✅ Fonctionnel (lecture passive, recherche avancée, parcours inverse, bouton « Lire le Lore », export infographique PNG).
+  - Tableau des fonctionnalités : correction « armures à venir » retiré de la Collection Forge (fait depuis v0.4.12).
+  - **Nouvelle section** « Le Legendarium : lire le Lore » après les fonctionnalités : les 4 sections, la recherche avancée (guillemets, `+`, `-`, case « Aa »), le parcours inverse, le bouton « 📖 Lire le Lore » dans les fiches, l'export infographique PNG, le fonctionnement hors-ligne du Grimoire D1.
+
+**Vérifié** : `tsc -b` 0 erreur, `npm run test:logique` **36/36 suites, 708/708 contrôles** ✓ (aucun code modifié, documentation seule).
+
+---
+
+## 22/10/2026 — NETTOYAGE DE LA TODO (section « Confort / plus tard »)
+
+**Demande de l'utilisateur** : relire en détail la partie 🟢 Confort / plus tard du TODO — il y a des doublons. Vérifier que les items terminés sont documentés dans le CHANGELOG, puis nettoyer.
+
+**Vérification faite** — tous les items retirés sont bien documentés dans le CHANGELOG :
+- ~~12. Renommage « Forge Armory »~~ → ✅ CHANGELOG : « Renommage officiel : « Forge Armory » » (v0.3.0) + validation le 06/10/2026
+- ~~16. Onglet « Load-outs »~~ → ✅ CHANGELOG : v0.3.8 (livraison 1), v0.3.9 (livraison 2), v0.3.16 (livraison 3 + validation)
+- ~~16 bis. Visuels illustrés~~ → ✅ CHANGELOG : v0.3.13 à v0.3.17
+- ~~21. Police personnalisée~~ → ❌ ABANDONNÉE le 06/10/2026
+- ~~22. Logo de fond et mode diagnostic~~ → ✅ CHANGELOG : v0.3.2 (logo de fond + mode diagnostic)
+- ~~24. Auteur des builds~~ → ✅ CHANGELOG : v0.3.3
+- ~~11. Legendarium (ancienne entrée)~~ → doublon de l'item 26 (livraison complète en v0.5.0)
+
+**Nettoyage fait** :
+- **Suppression des doublons** : l'ancien item 11 (Legendarium chantier en cours) est supprimé — remplacé par l'item 11 actuel (Legendarium ✅ LIVRÉ en v0.5.0, ex-item 26)
+- **Suppression des items terminés** : 12 (renommage), 16 (Load-outs), 16 bis (visuels illustrés), 22 (logo de fond + mode diagnostic), 24 (auteur des builds)
+- **Déplacement vers « Pistes abandonnées »** : 21 (police personnalisée « D2 Build Analyzer Vector »)
+- **Renumérotation** : les items restants sont renumérotés de 5 à 23 (sans trous)
+- **Références mises à jour** : `TODO main §25` → `TODO main §23` dans `DashboardPage.tsx`, `cablage-forge.test.ts` et `TODO.md` (le bug Carrière/Accomplissements)
+- **Note ajoutée** en fin de section Confort listant les items retirés avec leur statut et référence CHANGELOG
+
+**Résultat** : la section « Confort / plus tard » passe de 22 items (5-26) à **19 items (5-23)**, sans doublon, sans item terminé, avec une numérotation continue.
+
+**Vérifié** : `tsc -b` 0 erreur, `npm run test:logique` **36/36 suites, 708/708 contrôles** ✓
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — CORRECTIF : FILIGRANE CENTRÉ SUR TOUTE LA FICHE (export infographique Legendarium)
+
+**Demande de l'utilisateur** : « le filigrane du logo de Forge Armory qui se trouve dans l'export infographique, je le veux sur l'ensemble de la fiche. À l'image de ce que l'on fait pour l'export infographique des builds. Assure-toi qu'il soit bien centré. »
+
+**Fait** :
+- **`src/lib/legendarium/exportImage.ts`** (⚠️ CHANGÉ) —
+  - Le filigrane (emblème Forge Armory) est maintenant **centré sur TOUTE la fiche** (horizontalement ET verticalement), dessiné **AVANT le contenu** (derrière), à l'opacité **0.07** — identique aux exports de builds (`OPACITE_FILIGRANE = 0.07` dans `src/data/emblemeForgeArmory.ts`).
+  - Largeur du filigrane : **1000 px** sur une image de 1200 px (~5/6, comme les 760 px sur 900 px des exports de builds).
+  - Le logo petit (64 px) dans le pied de l'image est **retiré** — le filigrane centré le remplace.
+  - Le pied de l'image garde la mention « Mise en image par Forge Armory » + le crédit Bungie / Destiny (inchangé).
+  - Constantes mises à jour : `FILIGRANE_OPACITE` 0.22 → 0.07, ajout de `LARGEUR_FILIGRANE = 1000`.
+  - Commentaires FR/EN mis à jour (le filigrane est centré, pas dans le pied).
+- **Tests** : `legendarium-export` **19/19** (2 nouveaux : le filigrane est centré horizontalement ET verticalement via `(canvas.width - LARGEUR_FILIGRANE) / 2` et `(canvas.height - hauteurFiligrane) / 2` ; le filigrane est dessiné avant le contenu, pas dans le pied). `tsc` 0 erreur, `npm run build` strict ✓, batterie logique **36/36 suites, 708/708 contrôles**.
+
+**À valider en `npm run dev`** : onglet Legendarium → une page de Lore → bouton « ⤳ Exporter en image » → vérifier que le filigrane (emblème Forge Armory) est **centré sur toute la fiche** (pas seulement en bas), à faible opacité, derrière le texte.
+
+**Version inchangée (0.5.0).**
+
+**Propagation** : le correctif (PR #12) a été répercuté sur les branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `test`.
+
+---
+
+## 22/10/2026 — v0.5.0 : LIVRAISON LEGENDARIUM — NOUVELLE VERSION MAJEURE
+
+**Passage en version 0.5.0** — livraison du chantier Legendarium complet (bibliothèque de Lore en lecture passive) marquant une étape majeure du projet.
+
+**Pourquoi 0.5.0 ?** Le chantier Legendarium est terminé et livré : 6 étapes du plan + 15 suites de retours utilisateur + bonus export infographique. C'est une fonctionnalité complète qui transforme l'application (ex-« Bibliothèque », renommée « Legendarium »). La convention « 0.5 réservé à la clôture de la Forge » est levée : le Legendarium, chantier majeur livré en parallèle, justifie le passage en 0.5.0.
+
+**Contenu de la 0.5.0** :
+- **Legendarium complet** : navigation par livres hiérarchique (catégorie → livre → pages, couvertures), 4 sections (Grimoire D1, Légendes D2, Armes et armures, Cosmétiques et utilitaires)
+- **Grimoire D1** : repli statique embarqué (6 livres / 834 cartes FR, The Grimoire Archive), chargement dynamique, hors-ligne
+- **Lore D2** : armes (cinétiques/énergétiques/lourdes), armures (145 ensembles), cosmétiques (Spectres, Vaisseaux, Passereaux, Autres) depuis le Manifest
+- **Recherche avancée** : guillemets (phrase exacte), `+` (obligatoire), `-` (exclu), case « Aa » (respecter la casse)
+- **Parcours inverse** : page → objets porteurs du Lore (rééditions comprises)
+- **Bouton « Lire le Lore »** dans les fiches (lien profond fiche ↔ Legendarium + retour)
+- **Export infographique PNG** : filigrane Forge Armory + crédit Bungie/Destiny, canvas natif
+- **9 critères d'acceptation** vérifiés (34/34 contrôles)
+
+**État technique** :
+- `tsc -b` : 0 erreur
+- `npm run build` strict : ✓
+- Batterie logique : **36/36 suites, 706/706 contrôles** ✓
+- CI GitHub Actions : opérationnelle
+
+**Validé sur le VRAI Manifest FR** : 4 catégories / 108 livres / 1 076 pages
+
+**Propagation** : le changement de version 0.4.14 → 0.5.0 a été répercuté sur les branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `test`.
+
+---
+
+## 22/10/2026 — LIVRAISON : branche `draft-legendarium` (Legendarium complet + bonus export infographique) mergée dans `main`
+
+**Livraison du chantier Legendarium** (bibliothèque de Lore en lecture passive, spécification verrouillée `documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md`) :
+
+- **Contenu livré** : étapes 1-6 du plan (fondations, page Legendarium 3 zones, navigation par livres en jeu, bouton « Lire le Lore » + lien profond + retour, suites 7-15 des retours utilisateur) + **bonus export infographique** (PNG d'une page de Lore : canvas natif, filigrane Forge Armory, crédit Bungie / Destiny ou Destiny 2). Spécification complète dans `documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md`.
+- **Grimoire D1** : repli statique embarqué (`src/data/grimoire-d1-repli.json`, 6 livres / 834 cartes FR, généré par `scripts/generer-repli-grimoire.mjs` depuis The Grimoire Archive) chargé par `import()` dynamique — Bungie ne sert plus le Grimoire via l'API D1 (diagnostic : clé acceptée, HTTP 200, 0 livre / 0 carte).
+- **9 critères d'acceptation vérifiés** : `legendarium-acceptation` **34/34** (dont la lecture passive : aucun impact scoring/build, aucun stockage persistant, état en mémoire uniquement).
+- **Vérifié avant livraison** : `tsc -b` zéro erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites, 706/706 contrôles** (legendarium : acceptation 34/34, export 17/17, fixtures 19/19, grimoire 23/23, modele 107/107, page 69/69, composant 5/5 ; saisons-sources 20/20).
+- **Merge** : `origin/main` (`e6a6816`, push intermédiaire : correctif `saisonDeLObjet` + TODO §25 + `.gitignore`) fusionné dans `draft-legendarium` (`821a785`, 4 conflits résolus : CHANGELOG/TODO/saisons/test — bloc branche conservé, doublons main écartés), puis fast-forward `main` → `821a785`.
+- **Reste côté utilisateur** : validation en `npm run dev` avec un vrai Manifest (TODO §26, « Reste à faire »). Le bug des boutons « Carrière » / « Accomplissements » hors Build Analyzer reste ouvert (TODO §25).
+
+## 22/10/2026 (branche `draft-legendarium`, bonus) — EXPORT INFOGRAPHIQUE D'UNE PAGE DE LORE (PNG) : FILIGRANE FORGE ARMORY + CRÉDIT BUNGIE / DESTINY
+
+**Demande de l'utilisateur (note « pour plus tard » du 22/10, suite 12, mise en œuvre)** : « pouvoir générer un **export infographique (JPEG/PNG) de la page de lore sélectionnée** : le bouton sera affiché **en haut à droite de la page**. L'export affichera **tout ce qui se trouve sur la page de Lore** (l'encart bleu ou ambre). Sur l'export, tu pourras mettre **en filigrane le logo de Forge Armory** en précisant **en bas de l'image que c'est une mise en image**, et en **créditant Bungie et Destiny ou Destiny 2** (que tout le monde puisse savoir que c'est eux qui ont créé cet univers). »
+
+**Fait** :
+- **`src/lib/legendarium/exportImage.ts`** (⚠️ AJOUT) — rendu **natif sur `<canvas>`** (aucune bibliothèque ajoutée : le projet n'en a pas, et une dépendance pour un seul export serait disproportionnée) :
+  - Reprend la **palette verrouillée** (Parchemin D1 / Hologramme D2) : fond, bordure, lueur hologramme, œilleton « catégorie · livre · section » + compteur « page X/Y » justifié à droite, titre, sous-titre, libellé chronologique, **texte du Lore avec retour à la ligne** (mesure réelle `ctx.measureText`), **parcours inverse** (objets portant le Lore).
+  - **Couverture du livre** dessinée en haut à gauche (taille naturelle plafonnée, jamais agrandie — pas de pixellisation) ; le texte commence à sa droite puis continue dessous (même logique que le flottant CSS de l'appli). `crossOrigin="anonymous"` (Bungie autorise CORS, sinon le canvas serait « souillé » et `toBlob` échouerait) ; en cas d'indisponibilité : export **sans** image, jamais de blocage.
+  - **Pied de l'image** : **filigrane du logo Forge Armory** (emblème `public/logo-forge-armory-embleme.png`, opacité 0.22, centré) + mention **« Mise en image par Forge Armory »** + **« Texte du Lore © Bungie, Inc. — Destiny/Destiny 2 est une marque de Bungie, Inc. Forge Armory est un projet de fan, non affilié à Bungie. »** (le libellé est « Destiny » pour le Grimoire D1, « Destiny 2 » sinon).
+  - Fonctions pures exportées pour les tests : `decouperTexte`, `eclaircir`, `nomFichierPropre`. Téléchargement par lien `<a download>` créé à la volée (PNG par défaut, JPEG possible) — **aucun état persistant**.
+- **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) — `ZoneLecture` gagne la prop `avecExport` (défaut `false`) et un **bouton « ⟳ Exporter en image » EN HAUT À DROITE de la page** (ligne flex : bouton retour à gauche quand provenance, export à droite). État « export en cours » (désactive le bouton, affiche « Export… ») + message d'erreur inline. Passé à `true` dans le rendu de la page Legendarium.
+- **Tests** : `legendarium-export` **17/17** (nouveau : découpage du texte avec contexte factice, conservation des paragraphes vides, mot trop long jamais tronqué, nom de fichier nettoyé/plafonné, `eclaircir`, **lecture passive vérifiée** : aucun fetch/POST, aucun stockage persistant, crédit Bungie/Destiny présent, filigrane présent, libellé D1/D2) ; `legendarium-page` **69/69** (3 nouveaux : bouton affiché en haut à droite quand `avecExport`, absent par défaut, retour à gauche + export à droite). Batterie logique complète : **36/36 suites, 706/706 contrôles**. `tsc` 0 erreur, `npm run build` strict ✓.
+
+**À valider en `npm run dev`** : onglet Legendarium → une page de Lore → bouton « ⟳ Exporter en image » (haut droite) → télécharger le PNG → vérifier l'encart (parchemin/hologramme), le texte lisible, la couverture, le filigrane + le crédit en bas.
+
+
+## 22/10/2026 (branche `draft-legendarium`, étape 6) — VÉRIFICATION : LES 9 CRITÈRES D'ACCEPTATION SONT AU VERT (34/34)
+
+**Fait** : nouveau test d'acceptation **`tests/logique/legendarium-acceptation.test.ts`** (34 contrôles) qui vérifie les **9 critères d'acceptation** de la spécification verrouillée (`documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md` §7), chacun par lecture du code (comme `cablage-forge.test.ts`) ou exécution du modèle :
+
+1. **Légendes D2 + Grimoire D1 regroupés par livres** (comme en jeu) — ✅ hiérarchie catégorie → livre → pages (suite 10) ; repli D1 = 6 livres / 834 cartes, ordre officiel, ids `grimoire:<idCarte>` + sous-titre chapitre.
+2. **Ordre global respecté** — ✅ Grimoire D1 → Légendes D2 → Armes et Armures → Cosmétiques et utilitaires (`SECTIONS`).
+3. **Ensembles d'armures : ordre casque → gants → torse → jambes → objet de classe, par classe** — ✅ `ORDRE_SLOTS_ARMURE` + `ORDRE_CLASSES` (Titan → Chasseur → Arcaniste), vérifié aussi par le modèle sur un livre « Ensembles d'armures ».
+4. **Recherche par mots-clés** — ✅ retrouve les pages (insensible à la casse), y compris la recherche avancée suite 15 (guillemets = phrase exacte, `-` = exclu).
+5. **Bouton « Lire le Lore » uniquement si Lore présent, haut de fiche, justifié à droite, sous la croix** — ✅ `BoutonLireLore` retourne `null` sans Lore (`aLore`), `justify-content:flex-end`, et dans les **5 fiches** (InventaireArmes/Armures, CollectionArmes/Armures, pop-up Build Analyzer `SelecteurInventaire`) le bouton est DANS LE DOM **après** la croix de fermeture, rendu seulement si `onLireLore` est fourni.
+6. **Parcours inverse page → objets porteurs** — ✅ `porteursDeLore` retrouve tous les porteurs (rééditions comprises, objets masqués exclus) ; lien profond `item:<hash>` résolu vers `lore:<hash>`.
+7. **Spectres, Vaisseaux, Passereaux listés avec leur Lore** — ✅ livres « Spectres » → « Vaisseaux » → « Passereaux » (dans cet ordre, avant « Autres »), objets sans Lore exclus.
+8. **Aucun impact sur le scoring ni le build (lecture passive vérifiée)** — ✅ aucun import scoring/build/simulation dans les modules Legendarium ; les seuls appels réseau sont des **GET** en lecture (Grimoire D1) — **aucun POST/PUT/DELETE** ; **aucun stockage persistant** (pas de localStorage/sessionStorage/indexedDB/cookies) ; le bouton est un composant **pur** (pas de `useState`/`useEffect`) ; la cible Legendarium dans `DashboardPage` est en `useState` (mémoire uniquement) ; le modèle ne fait que **lire** le cache manifeste.
+9. **Cache téléchargé/mis à jour sans casser le catalogue** — ✅ le Legendarium **réutilise** le cache existant (`lib/manifest/download.ts`), aucun second mécanisme de téléchargement ; le Grimoire D1 (JSON 930 Ko) est importé **dynamiquement** (`import()`, hors du bundle principal) ; le cache manifeste n'importe **rien** du Legendarium (dépendance à sens unique).
+
+**Vérifié** : `legendarium-acceptation` **34/34** ; batterie logique complète **35/35 suites, 686/686 contrôles** ; `tsc` 0 erreur ; `npm run build` strict ✓.
+
+
+## 22/10/2026 (branche `draft-legendarium`, suite 15) — RECHERCHE AVANCÉE : GUILLEMETS (PHRASE EXACTE), `+` (OBLIGATOIRE), `-` (EXCLU), CASE « Aa » (RESPECTER LA CASSE)
+
+**Demande de l'utilisateur (avant test de la suite 14)** : « pour la recherche, il faudrait pouvoir utiliser **les guillemets, + et -, ainsi que respecter la casse** ».
+
+**Fait** :
+- **`src/lib/legendarium/modele.ts`** (⚠️ CHANGÉ) —
+  - Nouveau `RequeteRecherche` (`termes`, `exactes`, `obligatoires`, `exclus`) + **`parserRecherche(requete)`** : analyse caractère par caractère. Les guillemets `"…"` (ou `« … »`) donnent une **phrase exacte** (sous-chaîne contiguë, tous les guillemets fermés requis) ; un guillemet non fermé est toléré (la phrase court jusqu'à la fin) ; `+terme` = **terme obligatoire** (ET) ; `+"phrase"` = **phrase exacte obligatoire** ; `-terme` / `-"phrase"` = **exclu** (la page est rejetée si présente).
+  - **`correspondRecherche(haystack, requete, respecterCasse)`** : les exclusions rejettent d'abord ; les obligatoires + exactes sont TOUTES requises ; les termes libres ne forment un OU (au moins un) **que s'il n'y a ni obligatoire ni exacte** (comportement type Google) ; une requête avec UNIQUEMENT des exclusions remonte toutes les pages qui ne les contiennent pas.
+  - **`rechercherPages(livresParSection, motCle, options?: { respecterCasse?: boolean })`** : le `respecterCasse: true` rend la recherche **sensible à la casse** (majuscules/minuscules ; les accents restent ignorés — é = e — via la normalisation NFD dans les deux modes). Par défaut (`false`) : comportement historique (insensible à la casse, accents ignorés).
+- **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) — nouvelle **case « Aa »** (`data-respecter-casse`) dans le bandeau, à droite du champ de recherche (title « Respecter la casse »), **décochée par défaut** ; état `respecterCasse` EN MÉMOIRE uniquement (lecture passive), passé à `rechercherPages` via le `useMemo` des résultats.
+- **Tests** : `legendarium-modele` **107/107** (11 nouveaux suite 15 : découpage du parser, guillemet non fermé, phrase exacte `"casque raid"` vs OU libre, exclusion `-donjon`, `+casque +raid` = ET, `+casque +a`, casse par défaut vs `respecterCasse: true`, `CASQUE` vs `Casque`, requête uniquement-exclue) ; `legendarium-page` **66/66** (2 nouveaux : case « Aa » présente et décochée par défaut, cochée quand actif) ; `legendarium-fixtures` **19/19** ; `legendarium-grimoire` **23/23** ; `legendarium` **5/5**. `tsc` 0 erreur, `npm run build` strict ✓, batterie logique 34/34 suites au vert (les 16 « interface · » Playwright ne tournent pas dans le bac à sable).
+
+
+## 22/10/2026 (branche `draft-legendarium`, suite 14) — CORRECTION MALENTENDU : HIÉRARCHIE ARMURES = CLASSE → ENSEMBLE → PIÈCES ; COSMÉTIQUES « AUTRES » CLASSÉS PAR CLASSE (icônes)
+
+**Remarque de l'utilisateur (malentendu sur la suite 13)** : (1) pour les **ensembles d'armures**, la hiérarchie demandée est **Classe (Titan/Chasseur/Arcaniste, icône) → nom de l'ensemble → noms de pièces, clic direct** — la suite 13 faisait Ensemble → Classe → pièces (inversé) ; (2) pour **Cosmétiques et utilitaires → Autres**, les éléments concernent des **doctrines de classes** (Brise-soleil, Grâce survoltée, Lame de l'aube, Voie abyssale…) : les classer **par classe de personnage, avec icône**.
+
+**Fait** :
+- **`src/lib/legendarium/types.ts`** (⚠️ CHANGÉ) — nouveau type `GroupeClassePages` : un groupe par classe (Titan/Chasseur/Arcaniste, ordre verrouillé, `icône` Manifest quand disponible, `classe` ABSENTE pour le groupe « Sans classe »), portant SOIT `ensembles` (sous-niveau repliable par nom d'ensemble → pièces, pour les armures), SOIT `pages` (liste directe de noms, pour les cosmétiques « Autres »). `LivreLore.groupesPages` devient `GroupeClassePages[]`.
+- **`src/lib/legendarium/modele.ts`** (⚠️ CHANGÉ) —
+  - `livresObjets` : les armures forment désormais **UN SEUL livre « Ensembles d'armures »** (id `objets-armures`, compteur = total des pages, `pages` = ordre verrouillé global classe → slots pour la lecture) avec `groupesPages` = **Classe → Ensemble → pièces** (`groupesArmuresParClasse`) : les ensembles d'une classe sont ordonnés par saison de sortie, les pièces dans l'ordre verrouillé des slots. Les armures sans provenance vont dans l'ensemble « Autres armures ».
+  - `livreCosmetiques` : le livre **« Autres »** porte `groupesPages` = **Classe → noms d'objets** (`groupesCosmetiquesParClasse`) : Titan (Brise-soleil…), Chasseur (Grâce survoltée…), Arcaniste (Lame de l'aube, Voie abyssale…), puis **« Sans classe »** (artefacts, ornements sans classType) en dernier. Spectres/Vaisseaux/Passereaux restent des repliables de noms (`listePages`).
+  - `rechercherPages` : les noms des sous-groupes (classes, ensembles) sont cherchés, ET une requête **multi-mots** (ex: « raid A ») correspond si chaque mot est trouvé dans le livre ou ses pages.
+- **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) — `LivreAvecGroupes` rend un livre `groupesPages` comme un **repliable de classes** (replié par défaut) ; `GroupeClasse` rend le niveau 2 (classe + icône + compteur justifié à droite, replié par défaut) avec SOIT des sous-groupes repliables **par ensemble** (nouveau `SousGroupeEnsemble`, niveau 3 : nom → pièces, clic direct), SOIT la liste directe des noms. Groupe « Sans classe » : pas d'icône, libellé « Sans classe ». `ListeLivresGroupee` gère le nouveau genre `classes` (avant `groupesPages` → `LivreAvecGroupes`).
+- **Tests** : `legendarium-modele` **96/96** (hiérarchie Classe → Ensemble → pièces, cosmétiques par classe, recherche multi-mots, repli sans collectibles) ; `legendarium-page` **64/64** (repliable de classes replié par défaut, coexistence listePages + classes, groupe « Sans classe ») ; `legendarium-fixtures` **19/19**. `tsc` 0 erreur, `npm run build` strict ✓, batterie logique 16/16 suites au vert.
+
+
+## 22/10/2026 (branche `draft-legendarium`, suite 13) — COMPTEUR « page X/Y » DANS L'ŒILleton + ENSEMBLES D'ARMURES : DEUX NIVEAUX REPLIABLES PAR CLASSE (icônes)
+
+**Remarques de l'utilisateur (avant test de la suite 12)** : (1) dans l'espace de lecture, **au même niveau que le titre du livre**, afficher le **compteur de page justifié à droite** (ex: « La Lumière · La Frontière sans foi ni loi » … « page 1/14 ») ; (2) pour les **ensembles d'armures**, ajouter un niveau de **sections repliables indiquant les classes** (Titan, Chasseur, Arcaniste — **avec icônes**) : Ensemble → Classe → sélection de la page à lire ; (3) note cosmétiques : **même logique que les armes** (déjà fait en suite 12 : `listePages`, repliable de noms d'objets, clic direct).
+
+**Fait** :
+- **`src/lib/legendarium/types.ts`** (⚠️ AJOUT) — `LivreLore.groupesPages?` : second niveau repliable par classe (`{ classe, icône?, pages[] }[]`), pour les ensembles d'armures.
+- **`src/lib/legendarium/modele.ts`** (⚠️ AJOUT) —
+  - `iconesClasses(db)` : lit `DestinyClassDefinition.displayProperties.icon` (cache WeakMap). ⚠️ **VALIDÉ VRAI Manifest FR** : `hasIcon: false`, AUCUNE icône pour les 3 classes → `undefined` en pratique, l'UI retombe sur l'icône locale.
+  - `groupesParClasse(db, pages)` : découpe les **pages dédupliquées** d'un ensemble en groupes par classe, dans l'ordre verrouillé **Titan → Chasseur → Arcaniste**. ⚠️ **CORRIGÉ (validation VRAI Manifest)** : la classe se lit sur le **Lore** (via n'importe quel porteur de la page), pas sur le hash d'un item — sinon les ensembles avec réédition perdaient des pièces (ex: « Armure de Rull » : 5 pages mais 3 groupes au lieu de 5, car les réditions sans collectible n'étaient pas retrouvées). Après correction : **145/145 ensembles ont leurs groupesPages, 0 perte de pages**.
+  - `livresObjets` : chaque livre d'armures (ensembles + « Autres armures ») porte `groupesPages`.
+- **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) —
+  - **Compteur « page X/Y »** : l'œilleton (`data-oeilleton`) est une ligne flex — titre du livre à gauche, **`data-compteur-page` « page X/Y » justifié à droite** (`margin-left:auto`). Props `indexPage`/`totalPages` sur `ZoneLecture` (position DANS LE LIVRE, distincte de l'index aplati de la section pour précédent/suivant).
+  - **Nouveau `LivreAvecGroupes`** (niveau 1, replié par défaut) + **nouveau `GroupeClasse`** (niveau 2, replié par défaut, icône Manifest `urlIcone` ou repli **icône locale `IconeClasse`** 14px disque coloré + SVG, compteur de pièces justifié à droite) : le contenu du niveau 2 est la **liste des noms de pièces** (`data-page=<id>`, clic direct vers la page de Lore). Chemin : **Ensemble → Classe → sélection de la page à lire**. Les livres sans `groupesPages` restent des `LigneLivre` classiques.
+  - Import `IconeClasse` (composant existant, source justrealmilk/destiny-icons CC0).
+
+**Validation sur le VRAI Manifest FR** (22/10/2026, lecture seule, modèle réel) : **145/145 ensembles d'armures** ont `groupesPages` ; ex « Armure de BrayTech » (15 pages) = **Titan 5 pièces → Chasseur 5 → Arcaniste 5**, ordre verrouillé dans chaque classe (casque → gants → torse → jambes → marque), **0 perte de pages** (somme des groupes = livre). `DestinyClassDefinition` : 3 entrées, `hasIcon: false`, aucune icône → repli `IconeClasse` local. Cosmétiques inchangés : Spectres 73p, Vaisseaux 97p, Passereaux 102p, Autres 667p.
+
+**Tests** : `legendarium-modele` **94/94** (5 nouveaux suite 13 : `groupesPages` par classe dans l'ordre verrouillé, icône Manifest, sans icône = undefined, armes sans groupesPages) ; `legendarium-page` **64/64** (8 nouveaux suite 13 : compteur « page 1/14 » / « page 3/14 » justifié à droite dans l'œilleton, pas de compteur sans indexPage, groupe Ensembles d'armures replié par défaut masque les 2 niveaux, pas de fuite du niveau 2) ; `legendarium-fixtures` **18/18** ; `saisons-sources` **20/20** ; `legendarium-grimoire` **23/23** ; `legendarium` **5/5**. Batterie complète : 34/34 séries logiques au vert (les 16 « interface · » Playwright ne tournent pas dans le bac à sable). `tsc` zéro erreur, `npm run build` strict ✓.
+
+---
+
+## 22/10/2026 (branche `draft-legendarium`, suite 12) — COUVERTURE FLOTTANTE LISIBLE + REPLIABLES DE NOMS D'OBJETS + COMPTEUR DE PAGES SUR UNE LIGNE
+
+**Retours de l'utilisateur (validation de la suite 11)** : (1) l'image affichée dans une légende est **pixellisée** — l'afficher **en haut à gauche** de la fenêtre de lecture, le texte commence **à droite** de l'image puis **continue sous** l'image (sans jamais se superposer ni faire une « colonne » réservée à l'image) ; (2) dans **Cinétiques, Énergétiques, Lourdes, Spectres, Vaisseaux, Passereaux et autres**, afficher le **nom de chaque objet** ayant une légende (pour trouver plus facilement) — ces intitulés deviennent des **repliables/dépliables** ; (3) le **nombre de pages** d'un livre/armure doit tenir **sur une ligne**, **justifié à droite** du menu de sélection.
+
+**Note pour plus tard (NON implémenté, à faire quand demandé)** : pouvoir générer un **export infographique (JPEG/PNG) de la page de Lore sélectionnée** — bouton affiché **en haut à droite de la page** ; l'export affiche tout ce qui se trouve sur la page (l'encart bleu ou ambre) ; en **filigrane le logo de Forge Armory**, et en bas de l'image une mention « mise en image » créditant **Bungie** et **Destiny / Destiny 2** (que tout le monde sache que c'est eux qui ont créé cet univers).
+
+**Fait** :
+- **`src/lib/legendarium/types.ts`** (⚠️ AJOUT) — `LivreLore.listePages?` : quand VRAI, la colonne latérale affiche ce livre comme un **repliable (replié par défaut) listant le nom de chaque page** (objet porteur) — chaque nom ouvre **directement** la page de Lore de cet objet. Le livre reste un livre pour la lecture (précédent/suivant, ordre aplati, recherche) : seule l'affichage latérale change.
+- **`src/lib/legendarium/modele.ts`** (⚠️ CHANGÉ) — **Armes** : plus de groupe « Lore des armes » ; UN livre `listePages` par type (**Cinétiques → Énergétiques → Lourdes**, puis « Autres armes » si besoin). **Cosmétiques** : UN livre `listePages` par type (**Spectres → Vaisseaux → Passereaux → Autres**). **Armures** : INCHANGÉ (groupe repliable « Ensembles d'armures », un livre par ensemble). Pages chronologiques dans chaque livre.
+- **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) —
+  - **Nouvelle `LigneLivre`** (partagée) : titre tronqué avec « … » (`nowrap` + `ellipsis`) + **compteur de pages justifié à droite** (`margin-left:auto`) **sur une seule ligne** — appliquée à TOUTES les lignes de livres (Grimoire D1, Légendes D2, ensembles d'armures).
+  - **Nouveau `GroupePages`** : repliable (replié par défaut) dont le contenu est la **liste des noms d'objets** (`data-page=<id>`), clic direct vers la page de Lore.
+  - **`ListeLivresGroupee`** : 3 cas dans l'ordre du modèle — livre `listePages` → `GroupePages` ; livres avec `groupe` → `GroupeLivres` (replié par défaut) ; livres sans groupe → liste plate (Grimoire D1).
+  - **Couverture de la page de lecture** : **flottante en haut à gauche** (`float:left`, `max-width:45%`, `height:auto`, **pas de `width` forcée** → jamais agrandie au-delà de sa taille naturelle, **plus de pixellisation**) ; le parcours inverse et la nav du bas portent **`clear:both`** (rien ne remonte à côté de l'image — pas de superposition, pas de « colonne » réservée).
+
+**Validation sur le VRAI Manifest FR** (22/10/2026, lecture seule, modèle réel) : section **objets** = 3 livres `listePages` (**Cinétiques 161p, Énergétiques 186p, Lourdes 109p**) + 145 livres dans le groupe « Ensembles d'armures » (1 648 pages) ; section **cosmétiques** = 4 livres `listePages` (**Spectres 73p, Vaisseaux 97p, Passereaux 102p, Autres 667p**). Ordres vérifiés : armes Cinétiques → Énergétiques → Lourdes ; cosmétiques Spectres → Vaisseaux → Passereaux → Autres ; aucune trace de « Lore des armes ».
+
+**Tests** : `legendarium-modele` **89/89** (tests suite 11 mis à jour : `listePages: true` + pas de groupe pour armes/cosmétiques) ; `legendarium-page` **56/56** (5 nouveaux suite 12 : repliables de noms repliés par défaut avec `data-page`, compteur justifié à droite `margin-left:auto`, liste plate sur une ligne `nowrap`+`ellipsis`, couverture `float:left`/`max-width:45%`/`height:auto` sans `width:100%` ni `object-fit`, `clear:both` sur parcours inverse + nav du bas) ; `legendarium-fixtures` **18/18** ; `saisons-sources` **20/20** ; `legendarium-grimoire` **23/23** ; `legendarium` **5/5**. Batterie complète : 34/34 séries logiques au vert (les 16 « interface · » Playwright ne tournent pas dans le bac à sable). `tsc` zéro erreur, `npm run build` strict ✓.
+
+---
+
+## 22/10/2026 (branche `draft-legendarium`, suite 11) — GROUPES REPLIABLES + CLASSEMENT (armes par type, armures par provenance, cosmétiques par type) + CORRECTION du classement chronologique (hash signé/non signé)
+
+**Retours de l'utilisateur (validation de l'étape 3)** : (1) les images dans le menu de sélection à gauche sont inutiles ; (2) les catégories Légendes D2 (Avant-Garde, La Lumière, Crépuscule et aube, Les Ténèbres) doivent être des sections **repliables, repliées par défaut** ; (3) même chose pour « Armes et **A**rmures » (majuscule) et « Cosmétiques et utilitaires » ; (4) dans « Lore des armes », ordonner par type : **Cinétiques, Énergétiques, Lourdes** (replié) ; (5) « Ensembles d’armures » (1 041 pages) : identifier la **provenance** pour classer (raid Léviathan ensemble, donjon ensemble…), **ordre chronologique de sortie des saisons** ; (6) « Cosmétiques et utilitaires » : ordonner par type : **Spectres, Vaisseaux, Passereaux** (replié).
+
+**Provenance des armures découverte dans le VRAI Manifest FR** (22/10/2026) : `item.collectibleHash` → `DestinyCollectibleDefinition.parentNodeHashes[0]` = nœud **ensemble** (ex: « Armure de Sekris » = 5 collectibles = 5 pièces, raid Léviathan) → le parent de ce nœud est la catégorie (Haut niveau, Monde, Compétitif, Saisons…). **144 ensembles identifiés** parmi les armures avec Lore ; les armures sans collectible tombent dans « Autres armures ».
+
+**Fait** :
+- **`src/types/manifest.ts`** (⚠️ AJOUT) — `DestinyCollectibleDefinition` (hash, displayProperties, `itemHash?`, `parentNodeHashes?`, `sourceString?`, scope, redacted/blacklisted).
+- **`src/lib/legendarium/types.ts`** (⚠️ AJOUT) — `LivreLore.groupe?` : nom du groupe repliable parent dans la colonne latérale.
+- **`src/lib/legendarium/modele.ts`** (⚠️ CHANGÉ) — **Armes** : 3 livres dans le groupe repliable « Lore des armes » : **Cinétiques** (bucket 1498876634, 277 pages), **Énergétiques** (2465295065, 316), **Lourdes** (953998645, 174), dans cet ordre, pages chronologiques dans chaque livre. **Armures** : groupe repliable « Ensembles d’armures » avec **UN LIVRE PAR ENSEMBLE** (provenance = nom du nœud parent du collectible), ensembles ordonnés par saison de sortie, pièces dans l’ordre verrouillé (casque → gants → torse → jambes → marque) ; armures sans provenance dans « Autres armures ». **Cosmétiques** : un livre par type dans l’ordre **Spectres** (itemType 24, 73 pages), **Vaisseaux** (21, 97), **Passereaux** (22, 102), puis « Autres » (ornements, artefacts). Index provenance en un seul balayage (WeakMap). Label section : « Armes et **A**rmures ».
+- **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) — colonne latérale SANS images (titres + compteurs uniquement) ; **catégories Légendes D2 et groupes objets/cosmétiques en sections repliables, REPLIÉES PAR DÉFAUT** (état en mémoire uniquement) ; la couverture reste affichée EN HAUT de la page de lecture.
+- **`src/data/saisons.ts`** (⚠️ CORRIGÉ — BUG RÉEL) — `saisonDeLObjet` teste désormais le hash **signé ET non signé** (`itemHash >>> 0`) : le JSON de DIM stocke les hashes en non signé 32 bits, le Manifest en signé. **Avant : 50 % des objets ne trouvaient JAMAIS leur saison via cette table** (tous les hashes > 0x7FFFFFFF, soit ~29 000 entrées sur 57 439) — dont toutes les armures avec collectible (pas de seasonHash dans le Manifest). Après : **100 %** des 4 418 objets avec lore trouvent leur saison. C’est ce bug qui empêchait l’ordre chronologique des ensembles d’armures. Impacte aussi l’infobulle de saison (IconeSaison) et la recherche Manifest.
+- **`indexPorteurs`** (⚠️ CORRIGÉ, validation VRAI Manifest) — classement par **bucket réel** (arme = cinétique/énergie/lourde, armure = casque/gants/torse/jambes/marque), pas seulement `itemType !== 3` : sinon 1 178 ornements d’armure (itemType 0, « Gantelets ») étaient classés « armes ».
+
+**Validation sur le VRAI Manifest FR** (22/10/2026, lecture seule) : 4 135 porteurs avec lore lisible → après dedup : **455 pages armes** (277 cinétiques, 316 énergétiques, 174 lourdes), **1 041 pages armures** (144 ensembles + « Autres armures »), **939 pages cosmétiques** (73 Spectres, 97 Vaisseaux, 102 Passereaux, 667 autres). **100 %** des porteurs trouvent leur saison (DIM corrigé). Les 1 174 armures avec collectible ont toutes une provenance (nœud ensemble) et une saison.
+
+**Tests** : `legendarium-modele` **89/89** (11 nouveaux suite 11 : groupement armes/armures/cosmétiques, ordre chrono des ensembles, repli sans tables collectibles/nœuds) ; `legendarium-page` **51/51** (6 nouveaux : pas d’image dans le menu, groupes repliés par défaut, liste plate sans groupe, label « Armes et Armures ») ; `legendarium-fixtures` **18/18** ; `saisons-sources` **20/20** (3 nouveaux : hash signé/non signé) ; `legendarium-grimoire` **23/23** ; `legendarium` **5/5**. `tsc` zéro erreur, `npm run build` strict ✓.
+
+---
+
+## 21/10/2026 (branche `draft-legendarium`, suite 10) — NAVIGATION PAR LIVRES (hiérarchie en jeu : catégorie → livre → pages, avec couvertures)
+
+**Demande de l'utilisateur** : dans le Legendarium, on ne pouvait naviguer qu’en faisant une recherche ou via « précédent/suivant » / « lire le Lore ». En jeu, chaque page de Lore D2 (sauf armes et armures) est classée dans un **livre** (ex: « Ces terres maudites » ∈ « La Frontière sans foi ni loi », 14 pages, couverture illustrée ∈ catégorie « La Lumière »).
+
+**Structure découverte dans le VRAI Manifest FR** (téléchargé et inspecté hors-ligne, 21/10/2026) : l’arbre `DestinyPresentationNodeDefinition` depuis la racine « Légendes » (hash **4077680549**, scope 0) : **4 catégories** (L’Avant-garde, La Lumière, Crépuscule et aube, Les Ténèbres) → **108 livres** (1 de moins que les 109 nœuds : un livre n’a aucune page lisible) → **1 076 pages**. Chaque livre = un nœud avec `displayProperties.icon` (la **couverture**) et `children.records` (les pages) ; chaque record a un **`loreHash`** vers `DestinyLoreDefinition`. Ordre = ordre des enfants dans le Manifest (ordre de l’onglet Lore en jeu). Les 109 lores aussi portés par des objets (ex: « Europe – 1 ») le sont par des objets **factices** (itemType 20, catégorie 3109687656) : exclus du parcours inverse, donc les pages des livres n’affichent pas de bloc « objets porteurs » (comme en jeu).
+
+**Fait** :
+- **`src/types/manifest.ts`** (⚠️ AJOUT) — `DestinyPresentationNodeDefinition` (hash, displayProperties, scope, children.presentationNodes/records/collectibles, parentNodeHashes, redacted/blacklisted) et `DestinyRecordDefinition` (hash, displayProperties, **`loreHash?`**, redacted/blacklisted).
+- **`src/lib/legendarium/types.ts`** (⚠️ AJOUT) — `CategorieLore` (hash, titre, icone?, livres[]) ; `LivreLore` gagne **`couvertureUrl?`** (URL complète Bungie) et **`categorie?`** (nom de la catégorie parente, pour l’œilleton et la recherche).
+- **`src/lib/legendarium/modele.ts`** (⚠️ AJOUT) — `categoriesDeLegendes(db)` : lit l’arbre en UNE requête sur `DestinyPresentationNodeDefinition`, construit catégorie → livre → pages (titre = nom du Lore, texte = `displayProperties.description`, ordre du Manifest, couvertures, lores masqués exclus, lores sans corps exclus). `livresLegendes` aplatie cette hiérarchie en livres (pour la zone de lecture + l’ordre précédent/suivant). **REPLI** : si l’arbre est absent (Manifest vieilli), retombe sur l’ancien livre plat « Tomes de Légendes » (trié par titre). `ResultatRechercheLore` gagne `categorie?` ; la recherche cherche aussi dans le **titre du livre et le nom de la catégorie**. `HASH_RACINE_LEGENDES = 4077680549` exporté. Les hashes des nœuds viennent de la **colonne `id` SQLite** (toujours présente), pas du champ `hash` du JSON.
+- **`src/components/Bibliotheque.tsx`** (⚠️ AJOUT) — nouveau sous-composant **`ArbreCategories`** : la colonne latérale de la section « Légendes D2 » affiche désormais les **catégories** (titre + icône) puis une **grille de tuiles-livres** (couverture 16:9 + titre + « N pages », tuile-titre si pas de couverture — pas d’image cassée). `ColonneSections` reçoit une prop `categories?` : présente → arbre, absente → liste plate (repli). `ZoneLecture` : l’œilleton affiche « catégorie · livre » et la **couverture du livre** s’affiche **en haut de la page** (comme l’écran d’ouverture d’un livre en jeu). `ResultatsRecherche` affiche la catégorie. **Les autres sections (Grimoire D1, armes et armures, cosmétiques) sont INCHANGÉES** (liste plate, pas de couverture) — comme demandé (« sauf armes et armures »).
+- **Boutons de diagnostic dev CONSERVÉS** (demande de l’utilisateur) : `data-diagnostic-grimoire` + `data-diagnostic-lore` restent dans l’onglet Legendarium, `import.meta.env.DEV` uniquement (éliminés du build de production par Rollup).
+- **Validation sur le VRAI Manifest FR** (hors-ligne, script de validation) : 4 catégories / 108 livres / 1 076 pages ; « Ces terres maudites » retrouvée dans « La Frontière sans foi ni loi » (14 pages) dans « La Lumière », couverture `https://www.bungie.net/common/destiny2_content/icons/bf2d9748f987ea1dd91d59f0d8dfe43c.png`, texte complet (1 341 caractères) ; recherche « ces terres maudites » → 1 résultat avec catégorie + livre ; lien profond OK ; perf ~15 ms par construction.
+- **Tests** : `legendarium-modele` **78/78** (17 nouveaux suite 10 : hiérarchie fidèle au vrai Manifest — 2 catégories dans l’ordre, icônes, livre masqué exclu, 2 pages dans l’ordre, id `lore:<hash>` + texte, couverture URL Bungie, livre sans couverture, lore d’objet factice gardé en page, aplatissement en 3 livres, ordre de lecture aplati, lien profond, recherche par catégorie et par livre, **REPLI** sans arbre → liste vide + livre plat « Tomes de Légendes », sans Manifest → vide sans erreur) ; `legendarium-page` **45/45** (12 nouveaux : arbre catégories dans l’ordre, icône catégorie, tuiles-livres avec compteurs, couverture image + carré-titre sans couverture, aria-current sur la tuile active, ColonneSections arbre vs liste plate (repli), œilleton catégorie · livre, couverture en haut de page, inchangé pour les autres sections, recherche avec catégorie) ; `legendarium-fixtures` **18/18** ; `legendarium` **5/5** ; `legendarium-grimoire` **23/23** ; `cablage-forge` **25/25**. `tsc` zéro erreur, `npm run build` strict ✓ (bundle principal 1 892,75 kB, chunk grimoire séparé inchangé).
+
+**Version inchangée (0.4.14).**
+
+**À tester côté utilisateur** : `npm run dev` → Legendarium → section « Légendes D2 » → la colonne de gauche affiche les 4 catégories (L’Avant-garde, La Lumière, Crépuscule et aube, Les Ténèbres) avec une **grille de couvertures de livres** (cliquer ouvre le livre) ; ouvrir « La Frontière sans foi ni loi » (14 pages) → la couverture s’affiche en haut de la page, l’œilleton indique « La Lumière · La Frontière sans foi ni loi », et la première page est « Ces terres maudites ». Les sections Grimoire D1 / armes et armures / cosmétiques gardent leur liste plate. Les boutons de diagnostic dev restent en bas de page.
+
+## 21/10/2026 (branche `draft-legendarium`, suite 9) — CORRECTION suite au diagnostic réel : le vrai Manifest utilise `loreHash` (pas `lore`) et `displayProperties.description` (pas `body`)
+
+**Diagnostic de l'utilisateur (retourné, `data-diagnostic-lore`)** : `{ "tableLoreExiste": true, "nbLores": 3514, "nbLoresAvecCorps": 0, "tableObjetsExiste": true, "nbObjets": 38894, "nbObjetsAvecLore": 0, "nbObjetsAvecLoreLisible": 0 }` — la table `DestinyLoreDefinition` **existe** (3 514 entrées) et la table des objets aussi (38 894), mais **aucun objet ne porte le champ `lore`** et **aucun Lore n'a de champ `body`**. Le modèle lisait les mauvais noms de champs.
+
+**Fait** :
+- **`src/types/manifest.ts`** (⚠️ CHANGÉ) — `DestinyItemDefinition.lore?` → **`loreHash?`** (nom réel du champ Bungie) ; `DestinyLoreDefinition.body?` conservé en **secours** (le vrai texte vit dans `displayProperties.description`, structure standard `DestinyDisplayPropertiesDefinition`).
+- **`src/lib/legendarium/modele.ts`** (⚠️ CHANGÉ) — deux helpers :
+  - `hashLoreDe(def)` : lit **`loreHash`** (secours `lore` pour les anciennes fixtures) ;
+  - `corpsLore(lore)` : lit **`displayProperties.description`** (secours `body`).
+  Toutes les fonctions du modèle (`estPorteur`, `pageLoreObjet`, `aLore`, `indexPorteurs`, `loresLegendes`, `livresLegendes`, `diagnostiquerLore`) passent par ces helpers. **Aucun changement de comportement** côté interface : les pages gardent le même id (`lore:<hash>`), le même titre (nom de l'objet), le même sous-titre (`subtitle`).
+- **Fixtures mises à jour** : `test-fixtures/manifest-mock.json` (12 items `lore` → `loreHash`, 24 Lores `body` → `displayProperties.description`, FR + EN) ; tests `legendarium-modele` et `legendarium-page` (helper `lore()` + items inline).
+- **Tests** : `legendarium-modele` **61/61** (6 nouveaux : **régression suite 9** — structure exacte du vrai Manifest `loreHash` + `displayProperties.description` : `aLore` détecte, `pageLoreObjet` construit, livre « Lore des armes » peuplé, section Légendes lit le texte + sous-titre, `diagnostiquerLore` compte correctement, **rétrocompatibilité** `lore`/`body` conservée) ; `legendarium-page` **33/33** ; `legendarium-fixtures` **18/18** ; `legendarium` **5/5** ; `legendarium-grimoire` **23/23** ; `cablage-forge` **25/25**. `tsc` zéro erreur, `npm run build` strict ✓.
+
+**Version inchangée (0.4.14).**
+
+**À tester côté utilisateur** : `npm run dev` → le bouton « 📖 Lire le Lore » doit apparaître dans les fiches Détails (Inventaire, Coffre, Mon Build, Forge — Collection et Inventaire, armes et armures) sur les objets qui ont un Lore (ex. Izanagi's Burden, la plupart des exotiques). Le panneau « 🔍 Diagnostic Lores D2 » (dev) doit maintenant afficher des compteurs **non nuls** (`nbObjetsAvecLoreLisible > 0`). Le Legendarium doit aussi afficher du contenu dans les sections D2 (Légendes, Lore des armes, Ensembles d'armures, Cosmétiques).
+
+## 21/10/2026 (branche `draft-legendarium`, suite 8) — ANNULATION du déplacement Carrière/Accomplissements (régression signalée) + diagnostic dev des Lores D2 (bouton « Lire le Lore » absent)
+
+**⚠️ Annulé (régression signalée par l'utilisateur, suite 7)** :
+- **`src/pages/DashboardPage.tsx`** — le déplacement des boutons « Carrière » et « Accomplissements » au-dessus du sélecteur de vue (hors du bloc Connexion) est **ANNULÉ** : l'utilisateur les a signalés comme sortis de la section « Connexion » **sans son accord**, et le fonctionnement dans Load-outs/Forge/Legendarium était toujours faux. Les boutons sont **remis dans le bloc Connexion**, exactement comme avant la suite 7. **Le bug « la pop-up ne s'ouvre pas hors Build Analyzer » reste OUVERT** : il est noté dans le TODO de **main** (§25), à traiter séparément avec l'accord de l'utilisateur.
+
+**Fait** :
+- **`src/lib/legendarium/modele.ts`** (⚠️ AJOUT) — `diagnostiquerLore(db)` + interface `DiagnosticLore` : diagnostic **dev uniquement** qui vérifie avec le VRAI Manifest si la table `DestinyLoreDefinition` existe, combien elle contient de Lores (avec/sans corps), et combien d'objets portent un champ `lore` lisible (avec 5 exemples hash+nom). Un seul balayage de la table des objets. Ne modifie rien, ne persiste rien. C'est la seule façon de savoir pourquoi le bouton « 📖 Lire le Lore » n'apparaît pas dans les fiches.
+- **`src/components/Bibliotheque.tsx`** (⚠️ AJOUT) — panneau dev `<details data-diagnostic-lore>` dans l'onglet Legendarium (à côté du diagnostic Grimoire D1) : s'exécute une fois quand le Manifest est prêt, en `import.meta.env.DEV` uniquement (éliminé du build de production par Rollup). Résumé en une ligne + JSON complet à copier.
+- **Tests** : `legendarium-modele` **55/55** (5 nouveaux : `diagnostiquerLore` — table Lore existe/2 Lores/1 avec corps, 4 objets/3 avec lore/1 lisible, exemple Izanagi, sans Manifest → null, table vide → 0) ; `cablage-forge` **25/25** (test Carrière/Accomplissements corrigé : boutons DANS le bloc Connexion, déplacement annulé). `tsc` zéro erreur, `npm run build` strict ✓.
+
+**Version inchangée (0.4.14).**
+
+**Conservé de la suite 7** (demandes explicites de l'utilisateur, non annulées) : la navigation « ← Précédent / Suivant → » **au-dessus et en-dessous** de la page de Lore (pas dedans) ; le bouton « 📖 Lire le Lore » dans la **pop-up Détails du Build Analyzer** (`SelecteurInventaire.tsx` + `onLireLore` câblé dans `DashboardPage`).
+
+**À faire côté utilisateur** : `npm run dev` → onglet **Legendarium** → avec le Manifest chargé, copier le panneau **« 🔍 Diagnostic Lores D2 (dev, à copier à Claude) »** (`data-diagnostic-lore`) — il dira si la table `DestinyLoreDefinition` existe dans le vrai Manifest et combien d'objets portent un `lore` lisible.
+
+## 21/10/2026 (branche `draft-legendarium`, suite 7) — RETOURS UTILISATEUR : nav Précédent/Suivant au-dessus/en-dessous de la page + bouton « Lire le Lore » dans la pop-up Détails du Build Analyzer + boutons Carrière/Accomplissements globaux
+
+**Fait** :
+- **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) — la navigation « ← Précédent / Suivant → » est désormais **AU-DESSUS et EN-DESSOUS** de la page de Lore (deux barres centrées `data-nav-haut` / `data-nav-bas`), **PAS DANS** la page (demande de l'utilisateur). Mêmes boutons, mêmes attributs (`data-nav-precedente`/`data-nav-suivante`), même style (palette de l'ère). La barre du bas est placée après le parcours inverse.
+- **`src/components/SelecteurInventaire.tsx`** (⚠️ CHANGÉ) — la pop-up « Détails » du **Build Analyzer** (Mon Inventaire, Coffre, Mon Build) gagne le bouton « 📖 Lire le Lore » : prop `onLireLore?` sur le composant et sur `LigneObjet` (4 usages), composant `BoutonLireLore` rendu en haut de popup, justifié à droite, sous la croix, uniquement si l'objet a un Lore.
+- **`src/pages/DashboardPage.tsx`** (⚠️ CHANGÉ) — `onLireLore={ouvrirLoreDepuisObjet}` passé à `SelecteurInventaire` (même action que les fiches de la Forge : lien profond `item:<hashObjet>` + provenance `origine: "analyseur"`).
+- **`src/pages/DashboardPage.tsx`** (⚠️ CORRIGÉ, retour utilisateur) — les boutons « Carrière » et « Accomplissements » ne s'ouvraient pas hors Build Analyzer : ils étaient rendus dans le bloc Connexion, **masqué** (`display: none`) quand la vue analyseur n'est pas active. `BoutonsVuesCompte` est déplacé **au-dessus du sélecteur de vue** (`SelecteurVues`), une seule fois, visible et cliquable dans **TOUTES** les vues (Load-outs, Forge, Legendarium). Le bug est aussi noté dans le TODO de **main** (§25).
+- **Tests** : `legendarium-page` **33/33** (4 nouveaux : nav `data-nav-haut` avant l'œilleton, `data-nav-bas` après le texte/parcours inverse, 2× les mêmes boutons, barres centrées) ; `cablage-forge` **25/25** (4 nouveaux : `onLireLore` branché sur `SelecteurInventaire` + 4 `LigneObjet`, `BoutonLireLore` rendu dans la popup, `ouvrirLoreDepuisObjet` aiguille vers `bibliotheque`, `BoutonsVuesCompte` global une seule fois avant `SelecteurVues`). `tsc` zéro erreur.
+
+**Version inchangée (0.4.14).**
+
+**⚠️ Reste à investiguer côté utilisateur** : le bouton « Lire le Lore » n'apparaît pas dans la **Forge** (alors que la prop est bien passée par `PageForge` aux 4 fiches) — tester en `npm run dev` avec un objet possédant un Lore (ex. Izanagi's Burden) dans l'Inventaire/Collection de la Forge.
+
+**À tester côté utilisateur** : `npm run dev` → (1) Legendarium : les boutons Précédent/Suivant sont au-dessus et en-dessous de la page, pas dedans ; (2) Build Analyzer → Inventaire/Coffre/Mon Build → Détails d'un objet avec Lore → le bouton « 📖 Lire le Lore » apparaît sous la croix ; (3) dans Load-outs, Forge ou Legendarium, les boutons « Carrière » et « Accomplissements » s'ouvrent bien.
+
+## 21/10/2026 (branche `draft-legendarium`, suite 6) — ÉTAPE 5 FAITE : bouton « Lire le Lore » dans les 4 fiches Détails + lien profond fiche → Legendarium + retour vers l'objet
+
+**Fait** :
+- **`src/components/BoutonLireLore.tsx`** (⚠️ AJOUT) — composant PUR (pas d'état, pas d'effet) : rend une ligne justifiée à droite (`data-ligne-lire-lore`) avec le bouton « 📖 Lire le Lore » (`data-bouton-lire-lore`, `data-item-hash`) UNIQUEMENT si l'objet a un Lore lisible. Clic : remonte l'action `onLireLore(itemHash, nomObjet)`.
+- **`src/lib/legendarium/modele.ts`** : ⚠️ AJOUT `aLore(db, itemHash)` — lecture LÉGÈRE (2 définitions ciblées : objet + Lore, AUCUN balayage de la table des objets) pour le bouton. Appelée à chaque rendu de fiche ouverte : elle reste bon marché (test de comptage des requêtes : 0 balayage).
+- **Les 4 fiches Détails** (`InventaireArmes.tsx`, `InventaireArmures.tsx`, `CollectionArmes.tsx`, `CollectionArmures.tsx`) : prop `onLireLore?` + le bouton placé EN HAUT DE FICHE, JUSTIFIÉ À DROITE, SOUS LA CROIX de fermeture (spécification verrouillée §6).
+- **`src/components/PageForge.tsx`** : prop `onLireLore?` remontée, passée aux 4 fiches (Collection + Inventaire, armes + armures).
+- **`src/pages/DashboardPage.tsx`** : ⚠️ AJOUT — lien profond fiche → Legendarium (piste (a) de la spécification : bascule de vue interne, état en mémoire, PAS de route React Router, aucune persistance). `ouvrirLoreDepuisObjet(itemHash, nomObjet)` mémorise `cibleLegendarium = { pageId: "item:<hashObjet>", provenance: { itemHash, nomObjet, origine: vue } }` et bascule sur la vue `bibliotheque` ; `retourDepuisLegendarium()` restaure la vue d'origine (les vues restent MONTÉES, rien n'est perdu). `<Bibliotheque db={db} pageCible={...} provenance={...} onRetourObjet={...} />` — les props étaient déjà câblés dans la page (étape 2) : la forme `item:<hashObjet>` est résolue par `trouverPage` vers la page dédoublonnée `lore:<hashLore>` ; le bouton « ← Retour vers <objet> » ramène à la fiche.
+- **Tests** : `legendarium-modele` **50/50** (7 nouveaux : `aLore` VRAI/FAUX pour Izanagi, sans lore, masquée, factice, sans Manifest, hash inconnu, lore sans corps + AUCUN balayage de la table) ; `legendarium-page` **29/29** (5 nouveaux : bouton rendu avec lore (ligne flex-end + `data-bouton-lire-lore` + `data-item-hash` + infobulle), RIEN rendu sans lore / lore vide / sans Manifest) ; `cablage-forge` **21/21** (regex assouplie : la prop `onLireLore` est passée aux 2 vues Collection). `legendarium` **5/5**, `legendarium-fixtures` **18/18**, `legendarium-grimoire` **23/23**. `tsc` zéro erreur, `npm run build` strict ✓ (le chunk `grimoire-*.js` 935 Ko reste séparé).
+
+**Version inchangée (0.4.14).**
+
+**À tester côté utilisateur** : `npm run dev` → ouvrir une fiche Détails (Inventaire ou Collection, armes ou armures) sur un objet AVEC du Lore (ex. Izanagi's Burden) → le bouton « 📖 Lire le Lore » apparaît en haut de fiche, justifié à droite, sous la croix → clic → le Legendarium s'ouvre DIRECTEMENT sur la page de Lore de l'objet → le bouton « ← Retour vers <objet> » ramène à la vue d'origine. Les objets SANS Lore n'affichent aucun bouton.
+
+## 21/10/2026 (branche `draft-legendarium`, suite 5) — ÉTAPE 2 FAITE : la page LEGENDARIUM remplace le panneau « en construction » (trois zones, palette Parchemin/Hologramme, navigation, recherche) ; le Grimoire D1 est LISIBLE (repli statique embarqué, 6 livres / 834 cartes FR, hors-ligne) ; index des porteurs en UN SEUL balayage**Fait** :- **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ, réécrit) — les TROIS ZONES de la spécification verrouillée §4 : bandeau (titre « Legendarium » + recherche par mots-clés TOUJOURS ACCESSIBLE + indicateur de cache Manifest) ; colonne latérale (les 4 sections DANS L'ORDRE GLOBAL VERROUILLÉ : Grimoire D1 → Légendes D2 → Armes et armures → Cosmétiques et utilitaires, puis les livres de la section active avec leur nombre de pages) ; zone de lecture (œilleton = titre du livre, titre de la page, sous-titre, libellé chronologique quand connu, texte, navigation « ← Précédent / Suivant → » désactivée aux extrémités). **Palette verrouillée §5** appliquée à la zone de lecture : ère `d1` = parchemin (serif, ivoire, fond #2b2116, bordure #8a6d3b) pour le Grimoire D1, ère `d2` = hologramme (sans-serif, cyan, fond #0d1520, bordure #1e3a5f, lueur) pour tout le reste. **Parcours inverse** : la page liste les objets porteurs du Lore (rééditions comprises). **Bouton de retour vers l'objet** quand la page a été atteinte depuis une fiche Détails (provenance transitoire, jamais persistée) — branchement étape 5 préparé (`pageCible` / `provenance` / `onRetourObjet`). **Recherche** : résultats cliquables (section · livre · chapitre), plafond 50 affichés. **LECTURE PASSIVE** : état en mémoire uniquement (section, page, mot-clé) — aucune persistance, aucune écriture, aucun impact sur le scoring.- **Le Grimoire D1 est LISIBLE** : `lireGrimoire()` (import **dynamique**) lit l'API legacy, retombe sur le **repli statique embarqué** (6 livres / 834 cartes FR, `src/data/grimoire-d1-repli.json`) — l'API D1 de Bungie ne sert plus de contenu (diagnostic du 21/10, suite 4). Le chunk `grimoire-*.js` (~935 Ko) est chargé À L'OUVERTURE de la page, hors du bundle principal (1 886 Ko, quasi inchangé) — l'appli démarre aussi vite qu'avant. Hors-ligne OK.- **Sections D2** depuis le Manifest via le cache existant (`livresDeSection`) : Légendes (Tomes de Légendes), Lore des armes + Ensembles d'armures (règle verrouillée classe → casque → gants → torse → jambes → objet de classe), Cosmétiques (Spectres, Vaisseaux, Passereaux).
+- ⚠️ **REFACTOR PERF** (`src/lib/legendarium/modele.ts`) : INDEX des porteurs de Lore construit en **UN SEUL balayage** de la table `DestinyInventoryItemDefinition`, mis en cache par base (WeakMap). Avant : `livresObjets`/`livreCosmetiques` appelaient `pageLoreObjet` pour CHAQUE porteur, et chaque appel re-balayait la table via `porteursDeLore` — des milliers de balayages sur le vrai Manifest (~60 000 objets), la page aurait figé. Après : 1 balayage pour toute la bibliothèque (test de comptage des requêtes).
+- **Tests** : `legendarium-page` **24/24** (⚠️ NOUVEAU — les 3 zones, l'ordre global verrouillé, la palette d1/d2, prev/next désactivés aux extrémités, le parcours inverse, le bouton de retour, la recherche + plafond 50, aucun résidu « en construction ») ; `legendarium-modele` **43/43** (2 nouveaux : 1 seul balayage + contenu identique) ; `legendarium` **5/5** ; `legendarium-fixtures` **18/18** ; `legendarium-grimoire` **23/23**. `tsc` zéro erreur, `npm run build` strict ✓.**Version inchangée (0.4.14).****À tester côté utilisateur** : `npm run dev` → onglet Legendarium → le Grimoire D1 s'affiche (6 livres, 834 cartes, parchemin) même SANS Manifest ; avec le Manifest chargé, les sections D2 apparaissent ; recherche, navigation précédent/suivant, parcours inverse.
+
+## 21/10/2026 (branche `draft-legendarium`, suite 4) — DIAGNOSTIC RETOURNÉ : l'API D1 répond 200 AVEC la clé mais SANS CONTENU (0 livre, 0 carte) → REPLI STATIQUE ACTIVÉ (6 livres / 834 cartes FR embarqués)**Retour de l'utilisateur (diagnostic copié depuis `npm run dev`, onglet Legendarium)** : `{"clePresente":true,"statutHttp":200,"ok":true,"livres":0,"cartes":0}` — la clé de l'appli est ACCEPTÉE par Bungie, mais l'API legacy D1 ne sert PLUS aucun contenu Grimoire (Bungie a retiré le Grimoire de l'API D1). **Décision actée** : le repli statique prévu par la spécification §2 est ACTIVÉ.**Fait** :- **Source** : The Grimoire Archive (`aureliendossantos/destiny-grimoire`, maintenu) embarque les définitions D1 OFFICIELLES de Bungie (manifest D1, 2018) en 7 langues. Export français retenu : **834 cartes**, structure officielle (6 livres → chapitres → cartes). Cohérence vérifiée : 834 cardBriefs = 834 cartes, 0 manquante, 0 orpheline, 0 sans texte, 0 doublon.- **`scripts/generer-repli-grimoire.mjs`** (⚠️ AJOUT) : génère `src/data/grimoire-d1-repli.json` depuis le dépôt GitHub (`--branche`) ou un clone local (`--depuis`). Nettoie le HTML Bungie (balises → texte, entités décodées), joint cartes ↔ chapitres via les `cardBriefs`, APLATI en `LivreLore[]` (le sous-titre de chaque page = nom du chapitre, comme `convertirGrimoire`). Texte uniquement, AUCUNE image. Sortie minifiée (930 Ko, même ordre que `saisons-objets.json` 928 Ko). Refuse de générer un repli vide ou incohérent (erreur si carte manquante ou cardId en double).- **`src/data/grimoire-d1-repli.json`** (⚠️ AJOUT, versionné) + **`src/data/grimoire-d1.ts`** (⚠️ AJOUT, wrapper typé, pattern identique à `saisons.ts`) : 6 livres DANS L'ORDRE OFFICIEL (Gardiens → Inventaire → Alliés → Ennemis → Lieux → Activités), 834 cartes `grimoire:<idCarte>` uniques, provenance tracée (`source`, `sourceNote`, `langue: "fr"`). AUCUN téléchargement au runtime : l'appli fonctionne hors-ligne.- **`src/lib/legendarium/grimoire.ts`** : ⚠️ CHANGÉ — `REPLI_GRIMOIRE_STATIQUE` alimenté (`[...REPLI_GRIMOIRE]` du wrapper) ; un HTTP 200 SANS contenu (0 livre/0 carte, ou aucune carte avec texte) retombe désormais sur le repli **peuplé** (c'était déjà le cas, le repli était juste vide) ; `DiagnosticGrimoire` gagne `contenuVide` (200 + clé OK + 0 contenu = constat réel) et `repliLivres`/`repliCartes` (ce que l'utilisateur verra).- **`src/components/Bibliotheque.tsx`** : le panneau dev affiche désormais « ⚠️ API vide (HTTP 200, clé OK) → repli statique : 6 livre(s), 834 carte(s) » quand `contenuVide` est vrai.- **Tests** : `legendarium-grimoire` **23/23** (8 nouveaux : 200-avec-themeCollection-vide → repli peuplé, 200-avec-livre-sans-cartes → repli peuplé 6/834, diagnostic `contenuVide` marqué + repli compté, diagnostic clé OK `contenuVide` faux, repli = 6 livres dans l'ordre officiel, 834 cartes toutes avec texte, ids uniques au format `grimoire:<id>`, 0 résidu HTML, sous-titre = chapitre, lecture seule). `legendarium.test.tsx` **5/5**, `legendarium-modele` **41/41**, `legendarium-fixtures` **18/18**. `tsc` zéro erreur, `npm run build` strict ✓.**Version inchangée (0.4.14).****Note bundling** : en production, le bloc diagnostic (`import.meta.env.DEV`) est éliminé par Rollup (dead code) → le JSON de repli n'est PAS dans le bundle tant que l'étape 2 (page Legendarium) n'importe pas `lireGrimoire()`. À l'étape 2, prévoir un `import()` dynamique pour isoler les 930 Ko dans un chunk chargé à l'ouverture du Legendarium.
+
+## 22/10/2026 (push intermédiaire depuis `draft-legendarium`, suites 7-15) — CORRECTIF `saisonDeLObjet` (hash signé/non signé) + TODO §25 (boutons Carrière/Accomplissements) + .gitignore artefacts de tests
+
+**Contexte** : l'utilisateur a demandé un push intermédiaire sur `main` avant de continuer le chantier Legendarium. Audit de `draft-legendarium` vs `main` : le diff ne contient **QUE** du Legendarium (page, modèle, tests, spec, CHANGELOG/TODO §26) **SAUF** trois éléments transversaux, poussés ici isolément :
+
+- **⚠️ CORRECTIF RÉEL — `src/data/saisons.ts` `saisonDeLObjet()`** (découvert et validé sur le VRAI Manifest le 22/10, suite 11 du Legendarium) : le JSON de DIM (`saisons-objets.json`, 57 439 entrées) stocke les hashes d'objets en **NON SIGNÉ 32 bits** (ex: 2147961687), mais les hashes du Manifest (colonne `id` SQLite, champ `hash` des définitions) sont **SIGNÉS** (ex: -2147005609). La fonction ne testait que la forme signée : **~50 % des objets (hash > 0x7FFFFFFF, ~29 000 entrées) ne trouvait JAMAIS sa saison** via cette table. Conséquence visible sur `main` : dans **Recherche dans le Manifest** (Build Analyzer), la ligne « Saison de sortie » manquait pour ces objets (ex: la Mesure corrective) ; dans l'infobulle `IconeSaison`, le nom de saison manquait aussi. **Corrigé** : les DEUX formes sont testées (hash tel quel, puis `itemHash >>> 0`). Aucun changement de comportement pour les hashes positifs. Tests : `saisons-sources` 17/17 → **20/20** (3 nouveaux : hash négatif résout via forme non signée, hash positif direct, hash négatif absent reste `undefined`).
+- **`TODO.md` §25** (nouvelle section, après §24) : **boutons « Carrière » / « Accomplissements » — la pop-up ne s'ouvre pas hors Build Analyzer** (retour utilisateur 21/10, branche `draft-legendarium`). Diagnostic : les boutons sont rendus dans le bloc Connexion, **masqué** (`display: none`) hors vue Build Analyzer. Piste de correction (à valider en `npm run dev`) : déplacer `BoutonsVuesCompte` au-dessus du sélecteur de vue. **⚠️ Reporté depuis `draft-legendarium`** (la correction elle-même reste à faire, avec l'accord de l'utilisateur — une première tentative de déplacement a été annulée comme régression).
+- **`.gitignore`** : ajout de `tests/logique/_sortie/` et `tests/ui/_sortie/` (artefacts esbuild du lanceur de tests et de la construction des pages UI de test — ne pas versionner).
+
+**Vérifié** : `tsc -b` zéro erreur, `npm run build` strict ✓, `npm run test:logique` **30/30 suites, 433/433 contrôles** (dont `saisons-sources` 20/20). Aucun code Legendarium dans ce push.
+
+## 21/10/2026 (suite 6) — LIVRAISON : PR #9 et PR #10 mergées dans `main`, propagées aux branches de chantier
+
+**Livraison du problème initialement traité sur cette conversation** (les deux échecs de la batterie logique, « préexistants sur main ») :
+
+- **PR #9** « Batterie logique au vert » mergée dans `main` (`d8d7212`) : `icones` 11/11 (snapshot obsolète régénéré) + `reproductibilite-visuels` 7/7 (4 SVG « Optimisation » intégrés, catalogue `forgeAssets.ts` repris depuis l'archive, 77 → 81 actifs).
+- **PR #10** « CI GitHub Actions » mergée dans `main` (`743d273`) : workflow `.github/workflows/ci.yml` (npm ci → tsc -b → npm run build → npm run test:logique), lanceur `scripts/test-logique.mjs` + `npm run test:logique`.
+- **Vérifié avant merge** : les deux branches en local — `tsc -b` zéro erreur, `npm run build` strict ✓, `npm run test:logique` **30/30 suites, 430/430 contrôles**. Check CI GitHub Actions vert sur la PR #10 (2 runs SUCCESS). Note : la PR #9 n'a pas de check CI (le workflow n'existait pas encore sur sa branche au moment de son push) — sa vérification est le run local ci-dessus + la batterie rejouée sur `main` après merge.
+- **Propagation aux branches de chantier** (coutume du dépôt, comme pour le correctif barre Forge) : `test`, `draft-legendarium`, `draft-armure-score`, `draft-deps`, `draft-netlify`, `draft-sec` — merge de `main` dans chacune, poussées. `draft-legendarium` avait un conflit dans `CHANGELOG.md` (deux entrées en tête) : résolu en gardant les deux blocs (entrées de la branche d'abord, puis les entrées `main` suite 5 + suite 4). Les 5 autres branches : merge propre.
+- **PR #9 et PR #10** : passées en « ready for review » avant merge. **Branches de travail** `vibe/fix-tests-icones-reproductibilite-97f9fd` et `vibe/ci-batterie-logique-97f9fd` : laissées en place (leur contenu est dans `main` via les merges ; suppression à la main de l'utilisateur, comme pour `vibe/forge-barre-regression-ae0c65`).
+- **Protection de branche** : toujours **aucune** sur `main` (vérifié via l'API GraphQL : `branchProtectionRule: null`). Le ruleset créé par l'utilisateur n'est **pas appliqué** (plan gratuit + dépôt privé sur compte perso : GitHub exige Pro/Team). La CI s'affiche sur les PR mais ne bloque aucun merge. Piste gratuite : la **branch protection classique** (Settings → Branches → Branch protection rules, pas « Rulesets ») fonctionne sur ce plan — cocher « Require status checks to pass » avec le check `tsc + build + batterie logique`.
+- **État final** : batterie logique **100 % au vert** (30/30 suites, 430/430 contrôles) sur `main` et sur les 6 branches de chantier ; CI opérationnelle pour les prochains push/PR.
+
+## 21/10/2026 (suite 5) — CI GitHub Actions : tsc + build strict + batterie logique automatisées
+
+Le dépôt n'avait **aucun** workflow (vérifié : 0 workflow GitHub Actions, aucun check sur les PR) : toutes les vérifications étaient manuelles. Ajout d'une CI qui rejoue la routine à chaque push et chaque PR :
+
+- **`.github/workflows/ci.yml`** : job `logique` sur `ubuntu-latest`, Node 22, cache npm sur le lockfile :
+  1. `npm ci` (installation reproductible)
+  2. `npx tsc -b` (compilateur strict)
+  3. `npm run build` (build strict complet)
+  4. `npm run test:logique` (les 30 suites, 430 contrôles)
+- **`scripts/test-logique.mjs`** (nouveau) + **`npm run test:logique`** : lanceur qui rejoue **toutes** les suites de `tests/logique/` une par une via le lanceur existant (`lancer.mjs`, esbuild + Node), affiche un ✅/❌ par suite avec son bilan, nettoie `_sortie/`, et sort en code 1 si UNE suite échoue (les autres continuent). Utilisable en local comme en CI.
+- **Non couvert par la CI** : les tests d'interface Playwright (`tests/ui/*.py`) — ils ont besoin d'un navigateur, ils restent à rejouer manuellement (même limite que les sandbox précédentes, documentée dans les entrées du 21/10).
+
+**Vérifié** : `npm run test:logique` en local → 30/30 suites, 430/430 contrôles, exit 0 ; avec une casse volontaire dans `icones.test.tsx` → 29/30, exit 1, la ligne en échec affichée (garde-fou exercé) ; `tsc -b` zéro erreur ; `npm run build` strict ✓ ; YAML du workflow validé. **À noter** : la CI ne démarre qu'au prochain push de cette branche — le premier run confirmera le workflow en conditions réelles. La protection de branche n'a pas pu être vérifiée via l'API (403, droits insuffisants) : si `main` est protégée avec « require status checks », il faudra ajouter le check `logique` dans les checks requis (Settings → Branches).
+
+## 21/10/2026 (suite 4) — batterie logique AU VERT : `icones` 11/11 et `reproductibilite-visuels` 7/7
+
+Les deux derniers échecs de la batterie de logique sont corrigés ; les 30 suites passent (aucun échec).
+
+- **`icones` 10/11 → 11/11 (test obsolète, code inchangé)** : le snapshot `tests/logique/instantanes/icones.json` attendait un `<link rel="preload">` devant l'icône d'élément officielle — un tag qu'aucun commit du dépôt n'a jamais émis (vérifié sur tout l'historique). Le rendu actuel (`<img>` seul, `src/components/icones/IconeElement.tsx`) est correct ; un `<link rel="preload">` émis dans le corps serait de toute façon déplacé (le preload appartient au `<head>`). Le snapshot est régénéré depuis le rendu actuel : seule l'entrée `element:officielle` change (le `<link>` disparaît), les 9 autres entrées sont identiques octet pour octet — le partage des tracés n'avait donc bien rien changé, comme le test l'attendait.
+- **`reproductibilite-visuels` 6/7 → 7/7 (intégration des visuels « Optimisation »)** : le commit `406b2cf` (« Ajout icone optimisation ») avait livré les 4 SVG dans l'archive de référence (`ressources-installateur/forge-armory/app-assets/`) et son catalogue, mais pas côté appli. Intégration faite : les 4 fichiers copiés dans `public/assets/` (identiques octet pour octet à l'archive, sha256 vérifiés) et catalogue `src/data/forge/forgeAssets.ts` repris tel quel depuis `forgeAssets.ts` de l'archive (77 → 81 actifs ; les deux fichiers sont désormais identiques octet pour octet, comme à l'intégration v7). Les entrées `selecteur.optimisation.*` (4316 × 1024) et `icones.optimisation[.selectionne]` (1024 × 1024) suivent l'ordre du `manifest.json`. Aucun composant ne consomme encore ces visuels : « Optimisation » sera branché plus tard, les fichiers sont prêts.
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓ ; batterie logique complète **30/30 suites, 100 % des contrôles** (`icones` 11/11, `reproductibilite-visuels` 7/7, `visuels` 20/20, `legendarium` 5/5, `teinte-icones` 14/14, et les 25 autres inchangées). **Non rejoué ici** : les tests d'interface Playwright (pas de navigateur dans cette sandbox — même limite documentée dans les entrées précédentes).
+
+## 21/10/2026 (suite 3) — RÉGRESSION CORRIGÉE : barre de la Forge (boutons Armes/Armures en double, Collection/Inventaire vides)
+
+**Retour de l'utilisateur** (capture du zip de la branche main) : « Les boutons Armes et Armures apparaissent deux fois (ceux que j'ai entourés de rouge ne devraient pas être là). De plus ils sont vides, sans logo. Les boutons Collection et Inventaire sont absents, il n'y a que leur encart. C'est une vraie régression ! »
+
+**Cause** : le commit du 19/10 (« barre de boutons Forge (logos v5) ») AVAIT AJOUTÉ les boutons logo Armes/Armures dans la barre du haut SANS RETIRER les anciens boutons « pills » Armes/Armures présents dans chaque panneau (Collection et Inventaire) : chaque partie apparaissait donc DEUX FOIS. Sur la capture, les deux grands boutons vides à gauche sont les boutons stylisés « Collection » et « Inventaire » (leurs images ne se chargeaient pas dans le zip : le dossier `assets` n'était pas embarqué tel quel), et les pills entourés en rouge sont les doublons.
+
+**Corrigé** dans `src/components/PageForge.tsx` :
+- Les groupes de pills « Armes / Armures » sont RETIRÉS des deux panneaux (`data-choix-objet`, `data-choix-objet-collection`, `data-objet`, `data-objet-collection` supprimés). La barre du haut — « Collection », « Inventaire » (boutons stylisés), séparateur vertical, « Armes », « Armures » (logos v5 `icones.armes` / `icones.armures`) — est le SEUL sélecteur de la vue ET de la partie ; elle aiguille les deux (un clic sur « Armures » bascule la partie de la vue active et la monte à la demande). Le comportement par vue est conservé (rien ne se recharge en changeant).
+- Les boutons logo portent `data-objet-logo` ; les tests d'interface cliquent désormais ces boutons.
+
+**Tests** : `cablage-forge` mis à jour (21/21 : la barre est le seul sélecteur, les attributs des pills sont absents du code) ; `tests/ui/forge.py`, `forge-armures.py`, `forge-collection-armures.py` mis à jour (clics sur les boutons logo `data-objet-logo`, nouveaux contrôles : AUCUN bouton pill dans les panneaux, logos `icone-armes.svg` / `icone-armures.svg` chargés, séparateur présent).
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓ ; batterie logique 29/30 séries (le seul échec, `icones` 10/11, est PRÉEXISTANT et documenté depuis la 0.4.14) — dont `cablage-forge` 21/21, `visuels` 20/20, `reproductibilite-visuels` 7/7, `armure-forge` 22/22. **Non rejoué ici** : les tests d'interface Playwright (pas de navigateur dans cette sandbox — même limite documentée dans les entrées précédentes) ; ils sont prêts à être rejoués (`python3 tests/ui/forge.py`, `forge-armures.py`, `forge-collection-armures.py`). **À contrôler par l'utilisateur** : rouvrir la Forge dans le zip de main : une seule paire Armes/Armures (avec les logos épée/bouclier), Collection et Inventaire affichés normalement.
+
+**Livraison** : ce correctif a été mergé dans `main` (`73d6f4e`, PR #8) après validation en `npm run dev` par l'utilisateur (RAS : une seule ligne, pas de doublon), puis propagé par merge de `main` dans toutes les branches de chantier (`draft-legendarium`, `draft-armure-score`, `draft-deps`, `draft-netlify`, `draft-sec`, `test`). La branche de travail `vibe/forge-barre-regression-ae0c65` est supprimée (son contenu est dans `main`).
+
+## 21/10/2026 (suite 2) — requête des stats « Carrière » CORRIGÉE sur données réelles : GetHistoricalStatsForAccount
+
+**Retour réel de l'utilisateur** (diagnostic « statIds retournés », `npm run dev`) : « statIds retournés : AUCUN ; requête : GET /Destiny2/Stats/GetHistoricalStats/4611686018433066369/0/?periodType=AllTime&mode=None&groups=General,Medals ; erreur : 404 ». **C'est exactement le soupçon documenté dans l'entrée du 21/10 (suite)** : la route appelée n'existe pas — le 404 renvoyait une page d'erreur XHTML, pas une réponse Bungie. La correction suit la démarche prévue par la spécification : figer la lecture sur des données réelles.
+
+**Corrigé** dans `src/lib/bungie/carriere.ts` :
+- **Route** : `GetHistoricalStatsForAccount` — `/Destiny2/{membershipType}/Account/{membershipId}/Stats/` (UNE requête, tous personnages fusionnés, l'équivalent exact du filtre « Carrière » des Emblèmes du jeu ; `periodType`/`groups` ne sont pas des paramètres de cette route).
+- **Structure** : la réponse porte les stats dans **`mergedAllCharacters`** (une clé par statId, chaque entrée avec `statId` + `allTime.basic/precision`), pas dans `metrics` — la lecture et le type sont mis à jour.
+- **Diagnostic** : la ligne « entrées de metrics » devient « entrées de mergedAllCharacters ».
+
+**Tests alignés sur la vraie route** : `diagnostic-carriere.test.ts` (chemin et libellés), le réseau simulé de `entree-modale-carriere.tsx` (mock de la vraie route et de `mergedAllCharacters`) et les attentes de `modale-carriere.py`.
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓ ; `diagnostic-carriere` 6/6 ; `carriere-large` 19/19. **À contrôler par l'utilisateur** : rouvrir la fenêtre « Carrière » — les statistiques doivent maintenant se remplir ; si un statId affiché reste « non disponible », le diagnostic liste les statIds réellement retournés pour figer la sélection (démarche prévue), et `statIdsCarriere` repassera à `false` une fois la liste validée.
+
+## 21/10/2026 (suite) — fenêtre « Carrière » : bouton à droite du titre, diagnostic qui s'ouvre, partie « Compte » supprimée, icônes de classes
+
+**Demandes de l'utilisateur** : (1) « Dans la pop-up "Carrière", le bouton "Accomplissements" doit être affiché à droite du titre "Carrière" et non en bas de pop-up. » (2) « Le diagnostic statsID retournés ne s'ouvre pas. » (3) « Dans la même pop-up, la partie "Compte" peut disparaître. » (4) « Utilise les assets d'icônes de classes de personnages. » **Version inchangée (0.4.14).**
+**Fait** :
+- **Bouton à droite du titre** : `Modale` reçoit une propriété FACULTATIVE `apresTitre`, placée immédiatement à droite du titre dans l'en-tête (la croix reste à l'extrême droite). Sans elle, l'en-tête est EXACTEMENT celui d'avant : les trois autres fenêtres ne changent pas. Le bouton est le même composant que dans le bloc Connexion (`BoutonVue`, exporté, avec une hauteur au choix : 2 rem ici, comme avant) ; il n'y a plus de bouton en bas de la fenêtre. **Effet visible** : il utilise le cadre 4897 × 1024 (`bouton-vue--large`) au lieu du cadre 4316 qui le réduisait de 12 % : même hauteur, dessin un peu plus grand.
+- **Diagnostic « statIds retournés »** : c'était un bouton qui copiait la liste dans un texte puis l'affichait seulement si ce texte n'était pas vide. Quand la liste était vide (requête de statistiques en échec), le texte était vide : **rien ne s'affichait**, et l'ERREUR de la requête était AVALÉE par un `catch` vide dans `chargerCarriere`. Maintenant : bouton à bascule (`aria-expanded`, ▼ / ▲) qui s'ouvre ET se ferme ; son contenu s'affiche TOUJOURS : nombre de statIds (ou « AUCUN »), la liste, la requête appelée, **l'erreur de la requête** (conservée), les clés de premier niveau de la réponse, le nombre d'entrées de « metrics » (ou « champ absent »), les historiques d'activités en échec. Nouvelle fonction `formaterDiagnosticCarriere` ; nouveau champ `diagnostic` dans `DonneesCarriere`. Toujours réservé au mode développement.
+- **Partie « Compte » supprimée** (pseudo Bungie, plateformes liées, date de première connexion) ; les propriétés `memberships` et `nomBungie` de la fenêtre sont retirées, de la fenêtre comme de l'appel dans `DashboardPage` (le pseudo reste affiché dans le bloc Connexion).
+- **Icônes de classes** : le composant `IconeClasse` du reste de l'appli (mêmes tracés et couleurs : Titan rouge, Chasseur bleu, Arcaniste jaune) devant chaque classe de « Temps de jeu » et de « Personnages ». Une classe inconnue n'a pas d'icône. Au passage, la clé des lignes de « Temps de jeu » tient compte de l'indice (deux personnages de même classe produisaient deux clés identiques).
+**Vérifié** : batterie complète **44 séries sur 46, 816 contrôles sur 819** ; les 2 séries en échec sont **celles d'avant** (`forge` 52/54 et `manifest-demarrage` 17/18). **Rejoué le 21/10 (sandbox Vibe, tests de logique seuls)** : `tsc` zéro erreur ; `npm run build` strict ✓ ; côté logique 29 séries sur 30, 429/430 contrôles — le seul échec est `icones` 10/11, **préexistant et documenté depuis la 0.4.14** (les tests d'interface, dont `modale-carriere.py` et `connexion-boutons.py`, ne tournent pas dans cette sandbox : ils restent à rejouer avec la batterie complète) ; `diagnostic-carriere` 6/6 ; `carriere-large` 19/19 ; `reproductibilite-visuels` 7/7. `modale-carriere.py` **16/16** (dans un vrai navigateur, réseau simulé : bouton dans l'en-tête, à moins de 40 px à droite du titre, avant la croix, sur la même ligne, au-dessus du contenu, un seul bouton ; 32 px de haut au ratio de son image ; ni « Compte » ni pseudo ni plateformes ; icônes de classes d'après les vrais tracés de `IconeClasse` ; clic ; diagnostic absent hors mode développement ; diagnostic qui s'ouvre, se referme, et qui dit POURQUOI quand la requête échoue ; autres fenêtres inchangées) ; `diagnostic-carriere.test.ts` **6/6**. **Neuf casses volontaires toutes détectées** (bouton hors de l'en-tête, « Compte » réintroduit, icônes retirées, diagnostic qui ne se referme plus, ancien texte muet, erreur de nouveau avalée, AUCUN supprimé, fenêtre générique modifiée pour toutes, `nomBungie` repassé).
+**Défauts de MON travail, rattrapés** : un commentaire JSX placé avant l'élément racine rendait le fichier invalide (détecté par la vérification de syntaxe) ; mon premier contrôle du code source lisait aussi les commentaires (qui citent « première connexion ») et ne savait pas lire l'appel dans la page (les `=>` interrompaient son expression) ; deux de mes contrôles plantaient au lieu d'échouer quand le bouton manquait (lecture de mesures d'un bouton absent, clic attendant 30 s).
+**NON vérifié, À CONTRÔLER avec le diagnostic réel** : je n'ai pas pu interroger Bungie. Les statistiques de la fenêtre affichent peut-être « non disponible » pour une raison précise que le diagnostic va maintenant dire. **Soupçon, non vérifié** : le chemin appelé (`/Destiny2/Stats/GetHistoricalStats/{id}/0/…`) ne ressemble pas, d'après mes souvenirs de l'API Bungie, à la route des statistiques d'un personnage (`/Destiny2/{type}/Account/{id}/Character/0/Stats/`), dont la réponse n'a pas non plus de champ `metrics` : le diagnostic, qui liste l'erreur et les clés de la réponse, le dira. Je n'ai PAS touché à cette requête. Aussi non vérifié : la vraie page `DashboardPage` et le logiciel installé ; `npm run build` strict.
+
+## 21/10/2026 — boutons « Carrière » et « Accomplissements » : même taille, alignés, entre le titre et « connecté », masqués hors connexion
+
+**Demande de l'utilisateur** (capture d'écran annotée d'un rectangle rouge) : « met les deux boutons Carrière et Accomplissement à l'endroit indiqué par ma capture d'écran. Les deux doivent être alignés et à la même taille. Masqués lorsque le joueur n'est pas connecté. » **Version inchangée (0.4.14).** Les deux archives envoyées (`Forge-Armory-main.zip` et `_1`) sont identiques.
+**Cause du « pas la même taille »** (mesurée sur la capture : l'anneau d'Accomplissements est environ 12 % plus petit que celui de Carrière) : `.bouton-vue` impose le cadre **4316 / 1024** aux deux boutons, alors que le fichier d'Accomplissements a le cadre **4897 / 1024** : il était réduit pour tenir. **Correction d'une affirmation du journal du 20/10 (soir)** : il disait que « la largeur suit le ratio du cadre de chaque bouton » (207 et 235 px) ; en réalité le style imposait le même ratio aux deux (largeurs égales, dessin d'Accomplissements réduit).
+**Interprétation** : les deux boutons restent EMPILÉS, « Carrière » au-dessus (demande précédente), alignés à gauche, à 49 px de haut (3,0625 rem, la valeur existante) ; le rectangle rouge est la place libre entre « Connexion à Bungie » et « ✅ connecté ».
+**Fait** :
+- **Retouche 5** de `scripts/retoucher-visuels.mjs` : fabrique `bouton-carriere-large.svg` et `bouton-carriere-large-selectionne.svg` (4897 × 1024) à partir des fichiers de Carrière, **originaux intacts** (utilisés par le tiroir « Solo sans mourir »). Plaque et filets allongés (580,9 et 581), titre, soulignage et étoile recentrés (290,5), anneau et symbole inchangés, identifiants préfixés, largeur des deux filtres du fichier « sélectionné » portée à 4897. **GARDE-FOU : la plaque obtenue doit être identique, chiffre pour chiffre, à celle d'Accomplissements, sinon l'outil s'arrête.** Déclarés dans `forgeAssetsComplement.ts` (`selecteur.carriere-large.*`).
+- **Composant `BoutonsVuesCompte`** (nouveau) : les deux boutons, même hauteur ET même cadre (modificateur CSS `bouton-vue--large`, 4897 / 1024), colonne alignée à gauche. `DashboardPage` le monte dans `connecte &&` : **les boutons n'existent pas hors connexion**.
+- **Mise en page** (`index.css`) : une fois connectée, la carte Connexion passe en grille (`pilier-carte--connexion`) : titre en haut à gauche, compte dessous, statut à droite, colonne de boutons **centrée dans la place libre**, à la hauteur du titre ET du compte. Hors connexion : classe absente, mise en page inchangée. **Sous 1100 px** : retour à l'empilement habituel (la colonne passe sous le compte, alignée à gauche).
+- **Inchangé** : les boutons du tiroir « Solo sans mourir » et de la fenêtre « Carrière » (le bouton Accomplissements y reste réduit de 12 %).
+**Vérifié** : batterie complète **42 séries sur 44, 794 contrôles sur 797**. Les 2 séries en échec sont **celles d'avant mes changements** (`forge` 52/54 et `manifest-demarrage` 17/18 ; état d'origine : 40 séries sur 42, 759 contrôles sur 762) ; aucune nouvelle. `connexion-boutons.py` **16/16** (mêmes largeur et hauteur à 0,5 px près, **mêmes anneau et bord de plaque mesurés sur les PIXELS**, cadre du bouton au ratio de son image, alignés, entre le titre et le statut et centrés à 3 px près, couvrant les deux lignes, masqués hors connexion, repli à 900 px, clics, câblage) ; `carriere-large.test.ts` **19/19** (plaque identique, étoile à 0,1 unité près, décalage exact, symbole inchangé, identifiants résolus, originaux identiques à l'archive) ; `reproductibilite-visuels` **7/7** (le projet livré = ce que produit l'outil, octet pour octet) ; **neuf casses volontaires toutes détectées** (modificateur de taille supprimé, ancien fichier de Carrière, boutons visibles hors connexion, règle de placement supprimée, repli étroit incomplet, plaque décalée, titre décalé, identifiant à l'ancien préfixe, grille retirée).
+**Défauts de MON travail, rattrapés** : mon analyseur de tracés refusait les arcs (la plaque en contient un) : le garde-fou s'est arrêté au lieu de produire un fichier faux ; mon propre contrôle voyait un mot dans un commentaire comme un usage de la fonction et bloquait toute écriture ; en fenêtre étroite la colonne se CENTRAIT (le navigateur applique `justify-self` même hors grille) : neutralisé ; trois attentes de test fausses (le ratio d'un SVG sans dimensions est arrondi par le navigateur, l'étoile d'Accomplissements est arrondie à 0,1 près, le symbole compte 2 tracés et non 3) ; un commentaire collé au milieu d'une expression Python avalait la fin de la ligne.
+**NON vérifié** : la vraie page `DashboardPage` n'a pas été lancée (le test utilise une copie fidèle de la carte avec le vrai composant et la vraie feuille de style, et vérifie dans le code source que la page a la même structure) ; le logiciel installé ; `npm run build` strict ; la position exacte par rapport à TON rectangle (placé au centre de la place libre : si tu le voulais plus à droite ou à gauche, c'est un réglage).
+
+## 20/10/2026 (soir) — retour à l'empilement : Carrière AU-DESSUS d'Accomplissements
+
+**Demande de l'utilisateur** : « Carrière doit être au-dessus de Accomplissements » (retour à l'empilement vertical ; l'essai « côte à côte » de la demande précédente est abandonné) « les deux boutons doivent être masqués quand l'utilisateur n'est pas connecté » (déjà le cas : tout le bloc est sous `connecte &&`) « aligne bien les deux boutons ». Les deux boutons forment une colonne alignée à GAUCHE (`align-items: flex-start`, écart 0,35 rem), la hauteur +75 % est conservée (3,0625 rem ≈ 49 px ; largeurs ≈ 207 px et 235 px selon le ratio de chaque cadre).
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓.
+
+## 20/10/2026 (soir) — Carrière et Accomplissements côte à côte, +75 %
+
+**Demande de l'utilisateur** (annotation rouge) : les deux boutons du bloc Connexion passent CÔTE À CÔTE sur une seule ligne — « Carrière » puis « Accomplissements » à sa droite — au lieu d'être empilés ; hauteur agrandie de 75 % : 1,75 rem → 3,0625 rem (28 px → 49 px). Largeurs : Carrière ≈ 207 px, Accomplissements ≈ 235 px (ratio du cadre de chaque bouton). La ligne repasse à la carte si la fenêtre est étroite (`flexWrap`), et les tailles des boutons de la modale Carrière et du tiroir restent inchangées.
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓.
+
+## 20/10/2026 (soir) — bouton « Accomplissements » sous « Carrière », taille réduite
+
+**Demande de l'utilisateur** : « ajout "accomplissement" sous "carrière". Ajuste la taille de ces deux boutons pour qu'ils ne fassent pas trop bouger la taille du bloc connexion sans non plus devenir illisible. » Le bloc Connexion affiche maintenant DEUX boutons superposés — « Carrière » puis « Accomplissements » (ce dernier ouvre le tiroir « Solo sans mourir », même navigation croisée que depuis la vue Carrière) — à hauteur réduite : 1,75 rem (28 px), le format déjà utilisé par le bouton Load-outs de la confirmation d'enregistrement, au-dessus du minimum de lisibilité de la charte ; la largeur suit le ratio du cadre de chaque bouton (Carrière ≈ 118 px, Accomplissements ≈ 134 px), empilés à gauche avec 0,35 rem d'écart. Les boutons de la modale Carrière et du tiroir restent inchangés.
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓.
+
+## 20/10/2026 — vue « Carrière » du compte (spécification du 14/10/2026) + intégration de l'archive d'assets v7
+
+**Bouton « Carrière »** (archive d'assets v7 de l'utilisateur, `selecteur.carriere.*`) : visible uniquement CONNECTÉ, sous la coche verte du bloc « Connexion à Bungie ». Aucun appel réseau au chargement de l'appli — les données se chargent au clic, comme « Charger mon inventaire ». Lecture SEULE (GetHistoricalStats, GetActivityHistory, GetProfile déjà chargé).
+
+**Vue « Carrière »** (modale, même habillage que les fenêtres Détails existantes) : compte (pseudo Bungie, plateformes liées), temps de jeu total et par classe (Titan/Chasseur/Arcaniste, lu du profil déjà chargé — aucune requête supplémentaire), personnages (puissance), 10 dernières activités (type, date, durée si disponible), statistiques « Carrière » du compte (bloc allTime de GetHistoricalStats avec `characterId = 0` : l'agrégation de tous les personnages en UNE requête, l'équivalent exact du filtre « Carrière » des Emblèmes du jeu — les filtres Tout/Semaine/Saison ne sont pas repris). Chaque section s'affiche indépendamment ; une donnée manquante affiche « non disponible », jamais une estimation. Aucune persistance : rafraîchie à chaque ouverture.
+
+**Navigation croisée Carrière ↔ Accomplissements** : bouton « Accomplissements » dans la Carrière qui ouvre le tiroir « Solo sans mourir » ; bouton « Carrière » dans ce tiroir ; les deux vues conservent leur état, retour toujours possible.
+
+**Diagnostic dev** (`statIdsCarriere`, actif) : liste les statIds bruts réellement retournés par GetHistoricalStats pour figer la sélection des stats affichées sur des données réelles (même démarche que le composant 310 et les filigranes de saison). À repasser à `false` après validation.
+
+**Intégration de l'archive v7** : `public/assets` resynchronisé avec `ressources-installateur/forge-armory/app-assets/` (ancien `app-assets` archivé en `app-assets-v6`) ; catalogue généré `forgeAssets.ts` repris TEL QUEL depuis la v7 (77 actifs — il couvre maintenant Carrière, Accomplissements, Armes, Armures et les PNG de marque, le complément n'a plus à les déclarer) ; `retoucher-visuels.mjs` rejoué. Le test `reproductibilite-visuels` repasse 7/7 (les 2 échecs « attendus » de la 0.4.14 sont donc résolus : il ne reste que l'échec préexistant `icones` 10/11, inchangé). Le test `visuels` vérifie le cadre (viewBox) des SVG uniquement — le catalogue v7 déclare des PNG.
+
+**Vérifié** : `tsc` zéro erreur ; `npm run build` strict ✓ ; batterie de logique 29/30 séries au vert (seul échec : `icones` 10/11, préexistant, identique sans ces changements) ; `reproductibilite-visuels` 7/7 ; `visuels` 20/20.
+
 ## 19/10/2026 (nuit) — v0.4.14
 
 **Décision de l'utilisateur** : « le chantier Forge n'est pas totalement finalisé, donc on reste en 0.4.x. Fait un simple incrément, vers 0.4.14. On passera en 0.5 quand le chantier Forge sera terminé 🙂 » — CONVENTION ACTÉE : les 0.4.x suivent le chantier Forge ; **0.5.x sera réservé à sa clôture**.
