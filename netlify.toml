@@ -12,18 +12,14 @@
 
 [build]
   base = "forge-armory"
-  # FR : ⚠️ PROVISOIRE - la commande officielle `npm run build` exécute
-# `tsc -b && vite build`, mais `tsc` échoue depuis la v0.4.11 sur
-# BadgeSaison.tsx (imports inexistants, voir CHANGELOG du 18/10). Tant que ce
-# défaut n'est pas corrigé, on lance `vite build` seul, qui produit le même
-# dossier dist sans l'étape de typage. REVENIR à `npm run build` une fois le
-# typage réparé (vérification TypeScript rétablie dans le déploiement).
-# EN: ⚠️ TEMPORARY - `npm run build` runs `tsc -b && vite build`, but `tsc`
-# has failed since v0.4.11 on BadgeSaison.tsx (missing imports, see the
-# 18/10 CHANGELOG). Until that is fixed, build with `vite build` alone,
-# which produces the same dist folder. Restore `npm run build` once the
-# TypeScript check is fixed.
-command = "npx vite build"
+  # FR : build strict complet (tsc -b && vite build) — le défaut TypeScript
+  # de la v0.4.11 (BadgeSaison.tsx) a été corrigé sur main (commit « Build
+  # strict rétabli »), la commande provisoire `npx vite build` n'est plus
+  # nécessaire. La vérification TypeScript fait donc partie du déploiement.
+  # EN: full strict build (tsc -b && vite build) — the v0.4.11 TypeScript
+  # defect was fixed on main, so the temporary `npx vite build` command is
+  # no longer needed: type-checking is part of the deploy again.
+  command = "npm run build"
   publish = "dist"
 
 # FR : le build Vite n'émet qu'un seul index.html ; sans cette règle, tout

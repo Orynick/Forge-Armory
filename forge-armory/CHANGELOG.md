@@ -11,6 +11,14 @@
 
 **Non vérifié** : le lancement réel de l'appli installée avec Electron 45 (le conteneur d'intégration n'a pas les bibliothèques fenêtre/GTK, ni l'empaquetage NSIS Windows). **L'installateur fabriqué avec la v45 doit être lancé une fois sur Windows avant toute diffusion.** Reste aussi à faire dans ce chantier : palier 3 (React 18 → 19 + `react-router-dom` 7).
 
+## 23/10/2026 — NETLIFY : propagation de `main` + `draft-deps` dans `draft-netlify`, build strict rétabli
+
+**Propagation** : `draft-netlify` intègre désormais `draft-deps` (paliers 1, 2 et 2bis — Vite 7, plugin-react 5, **Electron 45.0.0** de sécurité) et le dernier `main` (dont le correctif « Build strict rétabli » de `BadgeSaison`). Conflit CHANGELOG résolu (les deux entrées du 23/10 conservées).
+
+**Conséquence sur `netlify.toml`** : la commande provisoire `npx vite build` (contournement du défaut TypeScript de la v0.4.11, désormais corrigé) est **remplacée par `npm run build`** — la vérification TypeScript stricte fait de nouveau partie du déploiement Netlify.
+
+**Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 708/708 contrôles réussis.
+
 ## 23/10/2026 — PROPAGATION : PR #13 (nettoyage TODO) + PR #15 (doc README/NOTICE) répercuteées sur les branches de chantier
 
 **Propagation** : les deux PRs mergées sur `main` (PR #13 : nettoyage de la TODO section Confort ; PR #15 : mise à jour README + NOTICE après livraison Legendarium v0.5.0) ont été répertutées sur les 7 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `draft-update-carriere`, `test`.
