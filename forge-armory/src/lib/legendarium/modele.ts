@@ -855,13 +855,13 @@ export function parserRecherche(requete: string): RequeteRecherche {
   return { termes, exactes, obligatoires, exclus };
 }
 
-/** FR : ⚠️ AJOUT (22/10/2026, suite 15) - la requête est-elle VIDE (aucun terme de recherche) ? / EN: ADDED - is the query EMPTY (no search term)? */
-function requeteVide(r: RequeteRecherche): boolean {
+/** FR : ⚠️ AJOUT (22/10/2026, suite 15) - la requête est-elle VIDE (aucun terme de recherche) ? ⚠️ CHANGÉ (23/10/2026, TODO n°23, page Accomplissements) : EXPORTÉE pour être réutilisée par la recherche des triomphes (même règle : requête vide = tout afficher). / EN: ADDED - is the query EMPTY (no search term)? CHANGED - EXPORTED for reuse by the triumphs search (same rule: empty query = show everything). */
+export function requeteVide(r: RequeteRecherche): boolean {
   return r.termes.length === 0 && r.exactes.length === 0 && r.obligatoires.length === 0 && r.exclus.length === 0;
 }
 
 /** FR : ⚠️ AJOUT (22/10/2026, suite 15) - une page correspond-elle à la requête parsée ? Règles : (1) chaque terme EXCLU (`-`) rejette la page si présent ; (2) chaque terme OBLIGATOIRE (`+`) et chaque EXPRESSION EXACTE (guillemets) doit être présent ; (3) si des termes libres existent, AU MOINS UN doit être présent (OU) — sauf si des obligatoires/exactes existent déjà (auquel cas les libres sont ignorés, comme Google). Si la requête n'a QUE des exclus, une page sans les exclus correspond. `respecterCasse` : quand VRAI, la comparaison respecte la casse (accents toujours normalisés) ; quand FAUX (défaut), tout est en minuscules. / EN: ADDED - does a page match the parsed query? Rules: (1) each EXCLUDED term (`-`) rejects the page if present; (2) each REQUIRED term (`+`) and each EXACT PHRASE (quotes) must be present; (3) if free terms exist, AT LEAST ONE must be present (OR) — unless required/exact terms already exist (then free terms are ignored, like Google). If the query has ONLY exclusions, a page without them matches. `respecterCasse`: when TRUE, comparison is case-sensitive (accents still normalized); when FALSE (default), everything is lowercased. */
-function correspondRecherche(haystackBrut: string, requete: RequeteRecherche, respecterCasse: boolean): boolean {
+export function correspondRecherche(haystackBrut: string, requete: RequeteRecherche, respecterCasse: boolean): boolean {
   // ⚠️ AJOUT (22/10/2026, suite 15) : `respecterCasse` VRAIMENT appliqué — les accents sont TOUJOURS normalisés (NFD), mais la CASSE est conservée quand demandé (sinon tout en minuscules, comportement historique).
   const prep = (t: string) => (respecterCasse ? t.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : normaliser(t));
   const haystack = prep(haystackBrut);

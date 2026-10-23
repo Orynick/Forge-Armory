@@ -39,8 +39,8 @@
 
 import { TRIOMPHES_SOLO_FLAWLESS } from "../../data/triomphesSoloFlawless";
 
-/** FR : bit « objectif non complété » de DestinyRecordState. / EN: DestinyRecordState's "objective not completed" bit. */
-const BIT_OBJECTIF_NON_COMPLETE = 4;
+/** FR : bit « objectif non complété » de DestinyRecordState. ⚠️ CHANGÉ (23/10/2026, TODO n°23) : EXPORTÉ pour être réutilisé par la page Accomplissements (même logique d'état, records de sceaux). / EN: DestinyRecordState's "objective not completed" bit. CHANGED - EXPORTED for reuse by the Accomplishments page (same state logic, seal records). */
+export const BIT_OBJECTIF_NON_COMPLETE = 4;
 
 export interface EtatTriomphe {
   hash: number;
