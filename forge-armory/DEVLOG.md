@@ -4,6 +4,18 @@
 
 ---
 
+## 23/10/2026 — v0.5.3 (suite) : retour de fabrication de l'installateur (chemin trop long)
+
+**Retour de l'utilisateur** : `npm.cmd run electron:build` échoue à la DERNIÈRE étape, après un `tsc` et un `vite build` propres et un packaging Electron réussi : `makensis.exe` s'arrôte avec `!include: could not open file: "...\node_modules\app-builder-lib\templates\nsis\include\allowOnlyOneInstallerInstance.nsh"` (`ERR_ELECTRON_BUILDER_CANNOT_EXECUTE`, exit 1).
+
+**Diagnostic** : AUCUN rapport avec le correctif v0.5.3 (le code compile et se package). Le chemin du projet chez l'utilisateur (`C:\Users\nicod\Desktop\Forge Armory - D2 Build Analyzer\Forge-Armory-vibe-...\Forge-Armory-vibe-...\forge-armory`) dépasse ~285 caractères : au-delà de la limite `MAX_PATH` de Windows (~260), `makensis` ne résout plus ses propres fichiers `.nsh` internes d'electron-builder. Un espace dans un dossier intermédiaire (`Forge Armory - D2 Build Analyzer`) aggrave le problème.
+
+**Documentation** (pas de code modifié) : avertissement ajouté dans `NOTICE.md`, section « Fabriquer l'installateur » : chemin du projet **court et sans espace** ; si l'erreur `allowOnlyOneInstallerInstance.nsh` apparaît, déplacer le projet (ex: `C:\forge-armory`) et relancer `npm.cmd install` + `npm.cmd run electron:build`. Contournement immédiat pour tester le correctif : le dossier `installateur\win-unpacked\` contient déjà l'application complète (`Forge Armory.exe`) — lancer directement, pas besoin de l'installateur.
+
+**Version inchangée (0.5.3).**
+
+---
+
 ## 23/10/2026 — v0.5.3 : CORRECTIF BLOQUANT — fenêtre blanche à la connexion Bungie (retour utilisateur)
 
 **Retour de l'utilisateur** : « Bug de connexion. Sur la dernière version, quand j'installe l'app : la fenêtre de connexion à Bungie s'ouvre, je clique sur la plateforme pour me connecter, et ça ne réagit pas, fenêtre blanche. »
