@@ -2,7 +2,7 @@
 
 **Propagation** : `main` (incluant le merge de `draft-deps` — Vite 7, React 19, Electron 45) a été mergé dans `draft-update-triomphes`. Conflit CHANGELOG résolu (entrée de propagation + entrée TODO n°23 conservées, dans l'ordre).
 
-**Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 716/716 contrôles réussis.
+**Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 716/716 contrôles réussis. ⚠️ **Re-vérifié après le merge du chantier TODO n°23** : `npm install` (React 19.3.1 effectif — le snapshot `element:officielle` obsolète était dû à une install React 18 résiduelle), `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` **37/37 suites, 740/740 contrôles** (incluant `sceaux.test.ts` 24/24).
 
 ---
 
