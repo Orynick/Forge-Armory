@@ -4,6 +4,24 @@
 
 ---
 
+## 23/10/2026 — v0.5.2 : LIVRAISON FINALE DU CHANTIER « ACCOMPLISSEMENTS » (TODO n°23, branche `draft-update-triomphes`)
+
+**Validation de l'utilisateur** : « C'est validé pour moi. Chantier complet. » — après test en `npm run dev` de la page Accomplissements en cartes.
+
+**Contenu de cette livraison** (sur `draft-update-triomphes`, resynchronisée sur `main` après le merge de la PR #17) :
+- **Présentation en CARTES** (`src/components/VueAccomplissements.tsx`) : grille CSS (`display: grid`, `repeat(auto-fill, minmax(10rem, 1fr))`) — plusieurs sceaux par ligne, hauteur verticale divisée. Chaque carte : icône (32 px) + nom + titre centrés (bouton cliquable), **barre de progression EN-DESSOUS** (pleine largeur), **pourcentage EN-DESSOUS** (ex. « 50 % »). Le clic **déplie les triomphes DANS la carte** (panneau sous la barre, défilable `max-height: 16rem`).
+- **Tests** : `tests/ui/vue-accomplissements.py` mis à jour (nouveaux contrôles navigateur : grille `display:grid` + cartes sur la même ligne, barre sous le bouton, « 50 % » sous la barre, panneau des triomphes DANS la carte sous la barre).
+
+**Documentation** : DEVLOG (cette entrée + l'entrée « cartes » précédente), CHANGELOG (v0.5.2), TODO.md (item 23 LIVRÉ VALIDÉ, retiré de la liste), NOTICE.md (section Accomplissements : cartes en grille), README.md (ligne Accomplissements).
+
+**Vérifié** : `npx tsc -b` 0 erreur, `npm run build` ✓, `npm run test:logique` **37/37 suites, 747/747 contrôles** ✓, pages UI construites ✓, `ast.parse` OK. CI verte sur la branche.
+
+**Livraison** : merge `draft-update-triomphes` → `main`, tag `v0.5.2`, propagation aux branches de chantier, suppression de la branche.
+
+**Version : 0.5.1 → 0.5.2.**
+
+---
+
 ## 23/10/2026 — PAGE « ACCOMPLISSEMENTS » : les sceaux en CARTES (grille), barre sous la carte, pourcentage en dessous (TODO n°23)
 
 **Demande de l'utilisateur (23/10/2026, après validation du correctif « Aucun sceau trouvé »)** : « Affiche les cartes des Sceaux et met la barre de progression en-dessous, le pourcentage de complétion sous la barre. Objectif : afficher plus de Sceaux sur une ligne, et gagner de la place verticalement. »

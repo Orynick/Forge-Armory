@@ -3,6 +3,12 @@
 > **Ce fichier est désormais un changelog orienté utilisateur.**
 > L'historique complet et détaillé du développement (DEVLOG) se trouve dans [`DEVLOG.md`](DEVLOG.md).
 
+## v0.5.2 — 23/10/2026
+
+- **Page Accomplissements** : les sceaux s'affichent en **cartes dans une grille** (plusieurs par ligne) — barre de progression sous chaque carte, pourcentage en dessous ; un clic déplie les triomphes du sceau dans la carte.
+
+→ Détails complets : [DEVLOG.md](DEVLOG.md)
+
 ## v0.5.1 — 23/10/2026
 
 - **Legendarium** : bibliothèque de Lore complète (Grimoire D1, Légendes D2, armes, armures, cosmétiques) avec export infographique PNG.
