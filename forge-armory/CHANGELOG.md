@@ -1,3 +1,29 @@
+## 23/10/2026 — DÉPENDANCES : CHANTIER `draft-deps` TERMINÉ (merge sur `main`)
+
+Merge de la branche `draft-deps` (PR #7) sur `main` : mise à jour complète des dépendances majeures en 3 paliers + 1 palier intermédiaire.
+
+**Palier 1 — Mises à jour patchs (sûr)** :
+- `electron` 44.9.0 → **44.9.3**, `sql.js` 1.15.0 → **1.15.1**, `typescript` 5.5.4 → **5.9.3**
+
+**Palier 2 — Vite 5 → 7** :
+- `vite` 5.4.21 → **7.3.7**, `@vitejs/plugin-react` 4.7.0 → **5.2.0**, `vite-plugin-mkcert` 1.17.12 → **2.1.0**
+
+**Palier 2bis — Electron 44 → 45 (sécurité)** :
+- `electron` 44.9.3 → **45.0.0** (montée majeure pour la sécurité, exigée avant diffusion)
+
+**Palier 3 — React 18 → 19 (majeur cassant)** :
+- `react` + `react-dom` 18.3.1 → **19.3.1** (montés ensemble)
+- `@types/react` + `@types/react-dom` → **19.3.0**
+- `react-router-dom` 6.30.6 → **7.18.4** (compatible React >=18)
+
+**Vérifications** : `npx tsc -b` OK, `npx vite build` OK (206 modules), **36/36 suites de tests, 708/708 contrôles réussis**, **0 vulnérabilité npm**.
+
+**Note** : snapshot `icones.json` mis à jour (React 19 ajoute `<link rel="preload" as="image">` avant les `<img>` externes dans `renderToStaticMarkup` — comportement attendu, inchangé visuellement).
+
+**Branche `draft-deps` supprimée** après merge. Le chantier est terminé.
+
+---
+
 ## 23/10/2026 — PROPAGATION : PR #14 (TODO §25, pages « Carrière »/« Accomplissements ») répercutée sur les branches de chantier
 
 **Propagation** : la PR #14 (merge sur `main`, livraison TODO §25 : pages « Carrière » et « Accomplissements » dédiées, ouvertes par les boutons du bloc Connexion) a été répercutée sur les 6 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `test`.
