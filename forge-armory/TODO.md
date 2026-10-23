@@ -561,20 +561,12 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 À prévoir ensuite : libellé du lien, test du lien dans l'appli installée (ouverture du navigateur ou de la messagerie), et une phrase dans le guide de démarrage pour les invités.
 
 
-### 23. Boutons « Carrière » et « Accomplissements » : la pop-up ne s'ouvre pas hors Build Analyzer (21/10/2026)
-
-**Retour de l'utilisateur (21/10/2026, branche `draft-legendarium`)** : les boutons « Carrière » et « Accomplissements » apparaissent PARTOUT (au-dessus du sélecteur de vue), mais en cliquant dessus dans « Load-out », « Forge » ou « Legendarium », **la pop-up ne s'ouvre pas**. Dans « Build Analyzer » (vue par défaut), cela fonctionne.
-
-**Diagnostic** : les boutons étaient rendus dans le bloc « Connexion » (`DashboardPage.tsx`, ligne 516), qui est **masqué** (`display: none`) quand la vue Build Analyzer n'est pas active — les clics sur les autres vues ne pouvaient donc rien déclencher. La modale « Carrière » (`ModaleCarriere`) et le tiroir « Accomplissements » (`PanneauTriomphes`) sont montés HORS des vues (lignes 672-681), donc le problème n'était que le **bouton**, pas la cible.
-
-**Piste de correction (à valider)** : déplacer le rendu de `BoutonsVuesCompte` au-dessus du sélecteur de vue (`SelecteurVues`), hors de tout bloc masqué — ainsi les boutons restent visibles et cliquables dans TOUTES les vues. **⚠️ À valider en `npm run dev`** : vérifier que la mise en page reste correcte (les boutons ne doivent pas décaler le sélecteur de vue ni le bloc Connexion).
-
-
 ---
 
 **Items retirés le 22/10/2026 (nettoyage de la TODO)** — tous documentés dans `CHANGELOG.md` :
 
 - ~~11. Legendarium (ancienne entrée, chantier en cours)~~ → **remplacé par l'item 11 ci-dessus** (livraison complète en v0.5.0)
+- ~~23. Boutons « Carrière » et « Accomplissements »~~ → ✅ **RÉSOLU sur cette branche** (onglets dédiés, voir CHANGELOG 22/10/2026)
 - ~~12. Renommage « Forge Armory »~~ → ✅ validé le 06/10/2026 (CHANGELOG : « Renommage officiel »)
 - ~~16. Onglet « Load-outs » : gérer ses Loadouts en grand~~ → ✅ 3 livraisons faites et validées (CHANGELOG v0.3.8, v0.3.9, v0.3.16)
 - ~~16 bis. Visuels illustrés~~ → ✅ fait v0.3.13 à v0.3.17 (CHANGELOG)
