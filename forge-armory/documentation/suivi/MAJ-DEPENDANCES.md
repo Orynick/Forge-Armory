@@ -12,11 +12,11 @@ d'un éventuel problème. Ce chantier est dédié, sur sa propre branche `draft-
 
 | Dépendance | Actuelle (lock) | Dernière  | Cible | Remarque |
 |---|---|---|---|---|
-| `react` | 18.3.1 | 19.2.9 | **19.x** | Majeur cassant (voir notes ci-dessous) |
-| `react-dom` | 18.3.1 | 19.2.9 | **19.x** | À monter **en même temps** que react |
-| `@types/react` | 18.3.x | 19.3.0 | **19.x** | À monter avec react |
-| `@types/react-dom` | 18.3.x | 19.3.0 | **19.x** | À monter avec react |
-| `react-router-dom` | 6.30.6 | 7.18.4 | 7.x (optionnel) | Compatible React 18 **et** 19 — peut attendre |
+| `react` | **19.3.1** ✅ | 19.3.1 | **19.x** | Palier 3 terminé |
+| `react-dom` | **19.3.1** ✅ | 19.3.1 | **19.x** | Palier 3 terminé |
+| `@types/react` | **19.3.0** ✅ | 19.3.0 | **19.x** | Palier 3 terminé |
+| `@types/react-dom` | **19.3.0** ✅ | 19.3.0 | **19.x** | Palier 3 terminé |
+| `react-router-dom` | **7.18.4** ✅ | 7.18.4 | 7.x | Palier 3 terminé (compatible React >=18) |
 | `vite` | **7.3.7** ✅ | 8.3.4 | **7.x** d'abord | Palier 2 terminé |
 | `@vitejs/plugin-react` | **5.2.0** ✅ | 6.1.2 | **5.2.0** | Palier 2 terminé (accepte Vite 4→8) |
 | `vite-plugin-mkcert` | **2.1.0** ✅ | 2.1.0 | 2.x | Palier 2 terminé (compatible Vite >=3) |
@@ -64,11 +64,22 @@ Playwright (non exécutés en CI, voir entrée du 21/10) reste la marche à suiv
 
 **Résultat** : `npx tsc -b` OK, `npx vite build` OK (196 modules), 36/36 suites de tests, 708/708 contrôles réussis.
 
-### Palier 3 — React 18 → 19 (majeur cassant)
-- `react` + `react-dom` 18.3.1 → **19.2.9** (toujours monter les deux ensemble)
-- `@types/react` + `@types/react-dom` → **19.3.0** (avec)
-- `react-router-dom` 6.30.6 → **7.18.4** (compatible React 19, migration
-  possible en même temps ou après)
+### Palier 3 — React 18 → 19 (majeur cassant) ✅ **TERMINÉ**
+- `react` + `react-dom` 18.3.1 → **19.3.1** ✅ (montés ensemble)
+- `@types/react` + `@types/react-dom` → **19.3.0** ✅ (avec)
+- `react-router-dom` 6.30.6 → **7.18.4** ✅ (compatible React >=18)
+
+**Vérifications de compatibilité** :
+- `createRoot` déjà utilisé dans `main.tsx` ✅ (pas de `ReactDOM.render`)
+- Aucun `react-dom/test-utils` dans le code ✅
+- Aucun `PropTypes`/`defaultProps` ✅
+- Tous les `useRef` ont un argument initial ✅
+- `react-router-dom@7.18.4` : peer `react >=18` ✅
+
+**Note sur le snapshot `icones.json`** :
+React 19 ajoute automatiquement `<link rel="preload" as="image">` avant les `<img>` avec `src` externe dans `renderToStaticMarkup`. Le snapshot a été mis à jour pour refléter ce nouveau comportement (inchangé visuellement, juste un hint de préchargement ajouté).
+
+**Résultat** : `npx tsc -b` OK, `npx vite build` OK (206 modules), 36/36 suites de tests, 708/708 contrôles réussis.
 
 ## Changements cassants connus à vérifier
 
