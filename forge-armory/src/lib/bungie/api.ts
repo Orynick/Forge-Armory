@@ -146,12 +146,19 @@ function deriveResume(profil: any, membership: DestinyMembership, personnages: P
  * recupererPersonnages() EACH called recupererProfilComplet(), needlessly
  * doubling the network call on every "Test connection". We now make a
  * SINGLE call and derive both results from it.
+ * FR : ⚠️ CHANGÉ (22/10/2026, retour utilisateur en test : « non disponible » pour le temps de jeu sur
+ * la page Carrière) : on retourne AUSSI le profil BRUT (`data.Response`, qui contient le composant 200
+ * — `characters.data[*].minutesPlayedTotal`). La page Carrière lit le temps de jeu par classe dans ce
+ * profil ; le profil des triomphes (`components=900` seul) ne le contient PAS. Aucun appel réseau en
+ * plus : c'est le MÊME profil, déjà téléchargé.
+ * EN: CHANGED - also returns the RAW profile (component 200, per-character playtime); the Career
+ * page reads playtime from it. No extra network call.
  */
 export async function recupererResumeEtPersonnages(
   membership: DestinyMembership
-): Promise<{ resume: ResumeProfil; personnages: Personnage[] }> {
+): Promise<{ resume: ResumeProfil; personnages: Personnage[]; profil: unknown }> {
   const profil = await recupererProfilComplet(membership);
   const personnages = derivePersonnages(profil);
   const resume = deriveResume(profil, membership, personnages);
-  return { resume, personnages };
+  return { resume, personnages, profil };
 }

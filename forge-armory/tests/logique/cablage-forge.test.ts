@@ -43,7 +43,24 @@ ok("⚠️ 21/10 : la popup Détails du Build Analyzer rend le composant `Bouton
   /import BoutonLireLore from "\.\/BoutonLireLore"/.test(inventaire) && /onLireLore && <BoutonLireLore db=\{db\} itemHash=\{piece\.itemHash\}/.test(inventaire));
 ok("⚠️ 21/10 : `ouvrirLoreDepuisObjet` aiguille vers la vue `bibliotheque` avec la cible `item:<hashObjet>` et la provenance (origine = vue courante)",
   /function ouvrirLoreDepuisObjet\(itemHash: number, nomObjet: string\) \{[\s\S]{0,300}pageId: `item:\$\{itemHash\}`[\s\S]{0,200}setVue\("bibliotheque"\)/.test(P));
-ok("⚠️ 21/10 (suite 8, ANNULÉ) : les boutons « Carrière » et « Accomplissements » sont DANS le bloc Connexion (le déplacement hors bloc, testé en suite 7, est annulé — régression signalée par l'utilisateur ; le bug est noté dans le TODO de main §23)",
-  (P.match(/<BoutonsVuesCompte onCarriere=/g) ?? []).length === 1 && /erreurTest && <p[\s\S]{0,400}<BoutonsVuesCompte onCarriere=\{\(\) => setCarriereOuverte\(true\)\}/.test(P));
+ok("⚠️ 22/10 (TODO §25) : les boutons « Carrière » et « Accomplissements » sont DANS le bloc Connexion (masqués hors connexion) et ouvrent chacun une PAGE dédiée du compte (`setVue(\"carriere\")` / `setVue(\"accomplissements\")`) — plus de modale, plus de tiroir externe : le bug §25 est résolu par construction",
+  (P.match(/<BoutonsVuesCompte onCarriere=/g) ?? []).length === 1 && /<BoutonsVuesCompte onCarriere=\{\(\) => setVue\("carriere"\)\} onAccomplissements=\{\(\) => setVue\("accomplissements"\)\} \/>/.test(P));
+ok("⚠️ 22/10 (TODO §25) : les deux pages du compte sont montées comme des VUES (`vue === \"carriere\"` / `vue === \"accomplissements\"`), hors du bloc Connexion masqué avec l'analyseur ; la modale `ModaleCarriere` et l'état `tiroirTriomphesOuvert` sont supprimés, le tiroir `PanneauTriomphes` retrouve son état interne",
+  // ⚠️ 22/10 (retours utilisateur : « non disponible » pour le temps de jeu ; « Enlève la partie affichant les niveaux de
+  // persos ainsi que les 10 dernières activités ») : la page Carrière reçoit le PROFIL COMPLET (`profilComplet`, composant
+  // 200 → temps de jeu), pas `profilTriomphes` (composant 900 seul, sans temps de jeu), et N'A PLUS la prop
+  // `personnages` (section « Personnages » supprimée avec « 10 dernières activités »).
+  /\{vue === "carriere" && <VueCarriere membership=\{memberships\[0\] \?\? null\} profil=\{profilComplet\} \/>\}/.test(P) && /\{vue === "accomplissements" && <VueAccomplissements \/>\}/.test(P) && !/<ModaleCarriere|from "\.\.\/components\/ModaleCarriere"/.test(P) && !/tiroirTriomphesOuvert|setTiroirTriomphesOuvert|carriereOuverte|setCarriereOuverte/.test(P) && /<PanneauTriomphes profil=\{profilTriomphes\} db=\{db\} \/>/.test(P) && /recupererResumeEtPersonnages\(comptes\[0\]\)/.test(P) && /setProfilComplet\(profil\)/.test(P));
+{
+  const acc = fs.readFileSync("src/components/VueAccomplissements.tsx", "utf-8");
+  const codeAcc = acc.replace(/\/\*.*?\*\//gs, "").replace(/\/\/[^\n]*/g, "");
+  ok("⚠️ 22/10 (retour utilisateur : « Accomplissement ne doit pas afficher la Vitrine Solo sans mourir ») : la page Accomplissements n'affiche PLUS la vitrine `VitrineSoloFlawless` (elle reste UNIQUEMENT dans le tiroir `PanneauTriomphes`) — la page affiche un emplacement réservé pour les triomphes à venir",
+    !/VitrineSoloFlawless/.test(codeAcc) && /Bientôt/.test(codeAcc) && /import VitrineSoloFlawless/.test(fs.readFileSync("src/components/PanneauTriomphes.tsx", "utf-8")));
+}
+{
+  const sel = fs.readFileSync("src/components/SelecteurVues.tsx", "utf-8");
+  ok("⚠️ 22/10 (TODO §25, retour utilisateur « les boutons apparaissent en double ») : PAS DE DOUBLON — le sélecteur de vues garde ses QUATRE onglets : « Carrière » et « Accomplissements » n'y figurent PAS (ce sont des pages du compte, ouvertes par les boutons du bloc Connexion)",
+    (sel.match(/\{ valeur: "/g) ?? []).length === 4 && !/valeur: "carriere"|valeur: "accomplissements"/.test(sel));
+}
 
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`); process.exit(res.every(Boolean) ? 0 : 1);
