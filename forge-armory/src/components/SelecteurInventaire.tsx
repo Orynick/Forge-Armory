@@ -2,7 +2,6 @@ import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import IconeTitreFaconnee from "./IconeTitreFaconnee";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
 import { estFaconnee } from "../lib/forge/faconnee";
-import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 // FR : Parcourt l'inventaire + coffre reels du joueur, affiche en 4
 // sections repliables (Chasseur / Titan / Arcaniste / Coffre) - chaque
 // section personnage separe Equipe / Inventaire, le coffre est classe par
@@ -37,7 +36,7 @@ import { listerObjetsPossedes } from "../lib/bungie/inventaire";
 import { obtenirDefinition } from "../lib/manifest/download";
 import { normaliser } from "../lib/manifest/search";
 import { GearPiece, SlotArme, SlotArmure, StatKey } from "../types/build";
-import { LIBELLES_SLOT } from "../data/libellesUI";
+import { LIBELLES_SLOT, LIBELLES_STAT, ORDRE_STATS, ORDRE_EMPLACEMENTS } from "../data/libellesUI";
 
 // FR : ⚠️ AJOUT (04/08/2026) - ordre d'affichage FIXE des statistiques
 // d'armure, demandé par l'utilisateur (ligne 1 : Santé/Mêlée/Grenade,
@@ -48,12 +47,11 @@ import { LIBELLES_SLOT } from "../data/libellesUI";
 // requested by the user (line 1: Health/Melee/Grenade, line 2: Super/
 // Class/Weapon) - Object.entries() doesn't guarantee this exact order,
 // enforced explicitly everywhere stats are shown.
-const ORDRE_STATS: StatKey[] = ["sante", "melee", "grenade", "super", "classe", "arme"];
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `ORDRE_STATS` et `LIBELLES_STAT` locaux remplacés par les constantes centralisées de `libellesUI` (valeurs identiques).
+// EN: ⚠️ CHANGED - local `ORDRE_STATS` and `LIBELLES_STAT` replaced by the centralised constants from `libellesUI` (identical values).
 
-const ORDRE_SLOTS: (SlotArme | SlotArmure)[] = ["cinetique", "energie", "lourde", "casque", "gants", "torse", "jambes", "marque"];
-const LIBELLES_STAT: Record<StatKey, string> = { sante: "Santé", melee: "Mêlée", grenade: "Grenade", super: "Super", classe: "Classe", arme: "Arme" };
 
-import { obtenirCategorieSocketsParIndex, obtenirOptionsToutesColonnes, obtenirDescriptionComplete, obtenirSource, obtenirDiagnosticIconeCategorieObjet, obtenirAntiChampion, obtenirDiagnosticAntiChampion, obtenirIconesPerksArme, raccourcirNom, obtenirBonusSet, obtenirNomArmatureArme, obtenirAntiChampionArmure, obtenirDiagnosticStatsArmure, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
+import { obtenirCategorieSocketsParIndex, obtenirOptionsToutesColonnes, obtenirDescriptionComplete, obtenirSource, obtenirDiagnosticIconeCategorieObjet, obtenirAntiChampion, obtenirIconesPerksArme, raccourcirNom, obtenirBonusSet, obtenirNomArmatureArme, obtenirAntiChampionArmure, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
 import IconeAntiChampion, { LIBELLES_CHAMPION, TypeChampion } from "./icones/IconeAntiChampion";
 import IconeClasse from "./icones/IconeClasse";
 import IconeCoffre from "./icones/IconeCoffre";
@@ -529,19 +527,7 @@ function LigneObjet({
                     {estArme ? "🔨 Forge : choisir les perks de cette arme" : "🔨 Forge : choisir les mods de cette armure"}
                   </button>
                 )}
-                {/* FR : ⚠️ AJOUT (04/08/2026) - diagnostic anti-champion,
-                mode développement uniquement. À déplier sur une arme qui
-                NE détecte rien (Mille Voix) ET sur une qui fonctionne
-                (Apocalypse), puis me copier les deux : la comparaison
-                montrera où Bungie range réellement l'information. */}
-                {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.diagnosticAntiChampionArme && estArme && (
-                  <details style={{ fontSize: "0.7rem", color: "#7d7a70", marginTop: "0.4rem" }}>
-                    <summary style={{ cursor: "pointer" }}><span>🔍 Diagnostic anti-champion (dev, à copier à Claude)</span></summary>
-                    <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.68rem" }}>
-                      {obtenirDiagnosticAntiChampion(db, piece.itemHash)}
-                    </pre>
-                  </details>
-                )}
+                                {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic anti-champion archivé supprimé. / EN: ⚠️ REMOVED - archived anti-champion diagnostic deleted. */}
               </div>
               <button
                 onClick={() => setDetailsOuverts(false)}
@@ -560,21 +546,7 @@ function LigneObjet({
             "Détails" popup (with their descriptions), user request.
             Placed AT THE TOP: it's the most distinctive information about
             an armor piece, ahead of the mods list. */}
-            {/* FR : ⚠️ AJOUT (04/08/2026) - diagnostic des stats d'armure
-            (mode dev), pour identifier les ~75 points fantômes : l'appli
-            annonce 575 là où le jeu affiche 500. Liste chaque plug avec sa
-            catégorie et les stats qu'il déclare, de quoi repérer ceux dont
-            l'apport n'existe pas réellement en jeu. */}
-            {!estArme && import.meta.env.DEV && DIAGNOSTICS_ACTIFS.diagnosticStatsArmure && (
-              <details style={{ fontSize: "0.7rem", color: "#7d7a70", marginBottom: "0.6rem" }}>
-                <summary style={{ cursor: "pointer" }}>
-                  <span>🔍 Diagnostic des stats de cette pièce (dev, à copier à Claude)</span>
-                </summary>
-                <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.65rem", background: "#0d0f14", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>
-                  {obtenirDiagnosticStatsArmure(db, piece.itemHash, piece.perkHashes)}
-                </pre>
-              </details>
-            )}
+                        {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic des stats d'armure archivé supprimé. / EN: ⚠️ REMOVED - archived armor-stats diagnostic deleted. */}
             {!estArme && (() => {
               const set = obtenirBonusSet(db, piece.itemHash);
               if (!set) return (
@@ -661,7 +633,7 @@ function LigneObjet({
 }
 
 function trierEtGrouper(pieces: GearPiece[]): Array<{ slot: SlotArme | SlotArmure; items: GearPiece[] }> {
-  return ORDRE_SLOTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) })).filter((g) => g.items.length > 0);
+  return ORDRE_EMPLACEMENTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) })).filter((g) => g.items.length > 0);
 }
 
 /**
@@ -675,7 +647,7 @@ function trierEtGrouper(pieces: GearPiece[]): Array<{ slot: SlotArme | SlotArmur
  * one has fewer items than another.
  */
 function trierEtGrouperAvecVides(pieces: GearPiece[]): Array<{ slot: SlotArme | SlotArmure; items: GearPiece[] }> {
-  return ORDRE_SLOTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) }));
+  return ORDRE_EMPLACEMENTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) }));
 }
 
 export default function SelecteurInventaire({ membership, db, onAjouterObjet, onObjetsCharges, cible, onEffacerCible, onOuvrirForge, onLireLore }: Props) {
@@ -797,7 +769,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   // brut du Manifest, qui inclut parfois le nom de classe comme
   // "Brassard d'Arcaniste" - inutile ici, les menus repliables par
   // personnage jouent déjà ce rôle).
-  const ORDRE_SLOTS_ARMURE: SlotArmure[] = ["casque", "gants", "torse", "jambes", "marque"];
+  const ORDRE_EMPLACEMENTS_ARMURE: SlotArmure[] = ["casque", "gants", "torse", "jambes", "marque"];
   const LIBELLES_SLOT_FILTRE: Record<SlotArmure, string> = {
     casque: "Casques",
     gants: "Gants",
@@ -1087,7 +1059,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
               largeur="170px"
               options={[
                 { valeur: "tous", libelle: "Tous types d'armure" },
-                ...ORDRE_SLOTS_ARMURE.map((s) => ({
+                ...ORDRE_EMPLACEMENTS_ARMURE.map((s) => ({
                   valeur: s,
                   libelle: LIBELLES_SLOT_FILTRE[s],
                   icone: <IconeSlotArmure slot={s} taille={16} />,
@@ -1256,7 +1228,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                 largeur="170px"
                 options={[
                   { valeur: "tous", libelle: "Tous types d'armure" },
-                  ...ORDRE_SLOTS_ARMURE.map((s) => ({
+                  ...ORDRE_EMPLACEMENTS_ARMURE.map((s) => ({
                     valeur: s,
                     libelle: LIBELLES_SLOT_FILTRE[s],
                     icone: <IconeSlotArmure slot={s} taille={16} />,

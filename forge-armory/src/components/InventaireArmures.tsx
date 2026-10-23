@@ -14,6 +14,8 @@ import type { ColonneArmure, PlugArmure, GroupeColonneArmure } from "../lib/forg
 import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees, Simulations } from "../lib/forge/simulation";
 import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 import { LIBELLES_SLOT, LIBELLES_STAT, ORDRE_STATS } from "../data/libellesUI";
+// FR : ⚠️ AJOUT (23/10/2026, audit) - styles partagés des fenêtres liste (dedup). / EN: ⚠️ ADDED - shared list-window styles (dedup).
+import { couleurRarete, styleChamp } from "../lib/forge/stylesListes";
 import IconeSaison from "./IconeSaison";
 import IconeClasse from "./icones/IconeClasse";
 import IconeSlotArmure from "./icones/IconeSlotArmure";
@@ -24,9 +26,9 @@ const TAILLE_PAGE = 60;
 const SLOTS_ARMURE = ["casque", "gants", "torse", "jambes", "marque"];
 const CLASSES: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste" };
 const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste", coffre: "Coffre" };
-const styleChamp = { fontSize: "0.85rem", background: "#0d0f14", color: "#e8e6df", border: "1px solid #3a3f4b", borderRadius: 6, padding: "0.3rem 0.4rem" } as const;
+
 const estArmure = (p: GearPiece) => SLOTS_ARMURE.includes(p.slot as string);
-const couleurRarete = (p: GearPiece) => (p.isExotic ? "#ceae33" : p.rarete === "Légendaire" ? "#7a4fa3" : "#4a4f5c");
+
 const signe = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "±0");
 const total = (s: Partial<Record<string, number>>) => Object.values(s).reduce<number>((a, v) => a + (v ?? 0), 0);
 

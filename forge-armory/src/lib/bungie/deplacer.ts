@@ -7,12 +7,11 @@
 import type { GearPiece } from "../../types/build";
 import type { DestinyMembership } from "./api";
 import { SessionExpiree } from "./oauth";
-import { lireProfilEquipement, localiserDansProfil, transfererObjet, PositionObjet, ProfilEquipement } from "./equiper";
+import { lireProfilEquipement, localiserDansProfil, transfererObjet, PositionObjet, ProfilEquipement, LIEU_COURRIER } from "./equiper";
 
 export type Lieu = "coffre" | "titan" | "chasseur" | "arcaniste";
 export const LIBELLES_LIEU: Record<Lieu, string> = { coffre: "le Coffre", titan: "le Titan", chasseur: "le Chasseur", arcaniste: "l'Arcaniste" };
-/** FR : emplacement « courrier » (récupération) : un objet qui y est ne se déplace pas d'ici. / EN: postmaster location code. */
-const LIEU_COURRIER = 4;
+
 
 export type CodeRefus = "equipe" | "courrier" | "introuvable" | "inconnue" | "deja" | "classe" | "sans-personnage";
 export type Etape = { op: "envoyer" | "tirer"; characterId: string };

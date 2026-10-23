@@ -1,4 +1,4 @@
-# TODO — D2 Build Analyzer
+# TODO — Forge Armory
 
 Priorités :
 - 🔴 **Bloquant** — fausse le résultat ou empêche d'avancer

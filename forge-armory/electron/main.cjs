@@ -656,11 +656,19 @@ function restreindreReseauSessionPrincipale() {
     if (url.protocol !== "https:" && url.protocol !== "http:") return rappel({ cancel: true });
     if (HOTES_AUTORISES.some((h) => url.origin === h)) return rappel({});
     if (enDev && url.origin === URL_DEV) return rappel({});
-    if (enDev && url.protocol === "ws:" || url.protocol === "wss:") {
-      // FR : websocket HMR de Vite en dev uniquement.
-      // EN: Vite's HMR websocket, dev only.
-      if (url.host === new URL(URL_DEV).host) return rappel({});
-    }
+    // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - le bloc « websocket HMR de Vite »
+    // (ws:/wss: en dev) était SUPPRIMÉ ici : il était INJOIGNABLE (la ligne
+    // précédente annule déjà tout protocole autre que http/https, ws: et wss:
+    // compris) et contenait de toute façon une faute de précédence
+    // (`enDev && a || b`). Le HMR de Vite passe par le port HTTP de
+    // `URL_DEV` (déjà autorisé ci-dessus) ; le canal websocket, lui, est
+    // bloqué par le refus général des non-http(s) - comportement voulu.
+    // EN: ⚠️ FIXED - the "Vite HMR websocket (ws:/wss:, dev only)" block was
+    // REMOVED here: it was UNREACHABLE (the line above already cancels every
+    // non-http(s) protocol, ws: and wss: included) and also had an operator
+    // precedence bug (`enDev && a || b`). Vite's HMR goes through the HTTP
+    // port of `URL_DEV` (already allowed above); the websocket channel is
+    // blocked by the general non-http(s) refusal - intended behavior.
     console.warn(`[Forge Armory] requête bloquée (hors liste blanche) : ${details.url}`);
     rappel({ cancel: true });
   });

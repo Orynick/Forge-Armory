@@ -88,7 +88,7 @@ const version = matchDraft ? `${versionBase}.${matchDraft[1]}` : versionBase;
 // Règles retenues :
 //   - default-src 'self' : tout vient de l'appli elle-même (le schéma
 //     interne app://local dans le logiciel, l'origine du navigateur sinon) ;
-//   - script-src 'self' : AUCUN script inline ni externe. React 18 en
+//   - script-src 'self' : AUCUN script inline ni externe. React 19 en
 //     production ne génère pas de script inline (pas de react-refresh, qui
 //     n'existe qu'en dev).
 //   - style-src 'self' 'unsafe-inline' : les 874 styles inline de React
@@ -121,7 +121,7 @@ const version = matchDraft ? `${versionBase}.${matchDraft[1]}` : versionBase;
 // EN: app CSP, injected into index.html at build time. Defense in depth: even
 // if injected content ever ran in the page (XSS), it could neither load an
 // external script, nor connect elsewhere, nor read another origin's storage.
-// Rules: default-src 'self'; script-src 'self' (React 18 production emits no
+// Rules: default-src 'self'; script-src 'self' (React 19 production emits no
 // inline script - react-refresh only exists in dev); style-src 'self'
 // 'unsafe-inline' (React's inline style attributes); img-src 'self'
 // https://www.bungie.net data: (Manifest icons + small assets inlined as
