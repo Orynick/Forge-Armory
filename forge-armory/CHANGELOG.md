@@ -1,3 +1,25 @@
+## 22/10/2026 — PAGE « CARRIÈRE » : tous les libellés de stats traduits en français
+
+**Demande de l'utilisateur (22/10/2026, note avant test)** : « Avant test, tout traduire. » — capture de la grille « Statistiques de carrière » : la plupart des stats avaient un libellé FR, mais **46 statIds s'affichaient en ANGLAIS BRUT** (`weaponKillsAutoRifle`, `efficiency`, `score`, `totalKillDistance`, `allParticipantsTimePlayed`, …).
+
+**Changé** (`src/components/VueCarriere.tsx`) : la table `LIBELLES_STATS_CONNUS` est **complétée depuis la RÉPONSE RÉELLE du compte de l'utilisateur** (capture de la grille) — elle passe de 20 à **74 statIds** : les 46 statIds anglais restants ont leur libellé FR (vocabulaire du jeu en français) :
+- **Éliminations par type d'arme** (18) : « Fusil automatique », « Arc », « Glaive », « Fusil à fusion », « Revolver », « Fusil de traçage », « Mitrailleuse », « Fusil à impulsion », « Lance-roquettes », « Fusil éclaireur », « Fusil à pompe », « Fusil de précision », « Pistolet-mitrailleur », « Relique », « Épée », « Grenade », « Lance-grenades » + « **Capacités (armes)** », « **Super (armes)** », « **Mêlée (armes)** » (suffixe « (armes) » pour les distinguer des stats globales « Capacités » / « Super » / « Mêlée »).
+- **Distances** (5, unité précisée en mètres dans le libellé) : « Distance totale d'éliminations (m) », « Distance moyenne d'élimination (m) », « Distance d'élimination la plus longue (m) », « Distance totale de mort (m) », « Distance moyenne de mort (m) ».
+- **Divers** : « Efficacité totale » (`efficiency` — distincte de « Efficacité » = `killsDeathsAssists` : vérifié sur les valeurs réelles 22,54 vs 20,81), « Score », « Score d'équipe (cumulé) », « Meilleures éliminations (une partie) », « Meilleur score (une partie) », « Meilleures précisions (une partie) », « Série d'éliminations la plus longue », « Score moyen par élimination », « Score moyen par vie », « Adversaires vaincus », « Orbes générés », « Orbes ramassés », « Activités gagnées », « Activités en groupe », « Événements publics terminés », « Événements publics héroïques terminés », « Aventures terminées », « Niveau de personnage le plus élevé », « Puissance la plus élevée », « Participants (total) », « Score cumulé des participants », « Completion la plus rapide (ms) » (millisecondes — volontairement **absente** de `STATS_EN_SECONDES` pour ne pas afficher « non disponible » sur un 0 ms valide), « Type d'arme préférée (code brut) » (`weaponBestType` = code, la correspondance code→nom n'est pas dans la réponse de l'API).
+- **Durées** : `STATS_EN_SECONDES` étendu de 2 à **7** statIds (toutes en secondes) : + `totalActivityDurationSeconds` (« Durée totale des activités »), `allParticipantsTimePlayed` (« Temps cumulé des participants »), `longestSingleLife` (« Vie la plus longue »), `remainingTimeAfterQuitSeconds` (« Temps restant après abandon (cumulé) »), `averageLifespan` (« Durée de vie moyenne »).
+
+**Règle inchangée** : une statId **inconnue** continue d'afficher son statId **brut** (jamais renommée à l'aveugle) — la règle du projet « jamais d'estimation » s'applique aussi aux libellés.
+
+**Tests** :
+- `tests/ui/entree-vue-carriere.tsx` — la fixture passe à **16 stats** (les 8 d'origine + 8 statIds RÉELS du compte : `weaponKillsHandCannon`, `efficiency`, `score`, `totalKillDistance`, `totalActivityDurationSeconds`, `averageLifespan`, `longestSingleLife`, `allParticipantsTimePlayed`).
+- `tests/ui/vue-carriere.py` — le contrôle navigateur « TOUTES LES STATS » attend les **16 stats** avec leurs libellés FR (ex. « Revolver » → « 155 285 », « Efficacité totale » → « 22,54 », « Durée totale des activités » → « 4 031 h 08 », « Durée de vie moyenne » → « 4 min ») et le compte « 16 statistiques » ; le diagnostic attend « statIds retournés : 16 » et la structure « merged (allTime : 16 stats) ».
+- Vérification croisée (script) : **les 66 statIds de la capture de l'utilisateur ont TOUS un libellé FR** (aucun manquant, aucun libellé identique au statId brut).
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — PAGE « CARRIÈRE » : suppression de l'affichage de la saison
 
 **Demande de l'utilisateur (22/10/2026)** : « Finalement enlève l'affichage de la saison dans ce menu. »

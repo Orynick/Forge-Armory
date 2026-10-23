@@ -32,10 +32,72 @@ const LIBELLES_STATS_CONNUS: Record<string, string> = {
   resurrectionsPerformed: "Résurrections",
   resurrectionsReceived: "Résurrections reçues",
   activityDurationSeconds: "Durée d'activité",
+  // FR : ⚠️ AJOUT (22/10/2026, retour utilisateur : « avant test, tout traduire ») - table complétée depuis la RÉPONSE RÉELLE du compte de l'utilisateur (capture de la grille « Statistiques de carrière ») : ces statIds y figuraient en ANGLAIS BRUT. Les libellés suivent le vocabulaire français du jeu ; une stat inconnue continue d'afficher son statId BRUT (jamais renommée à l'aveugle).
+  // `efficiency` = (éliminations + assistances) / morts, DISTINCT de `killsDeathsAssists` (« Efficacité » = (éliminations + assistances/2) / morts) : vérifié sur les valeurs réelles du compte (22,54 vs 20,81).
+  efficiency: "Efficacité totale",
+  score: "Score",
+  teamScore: "Score d'équipe (cumulé)",
+  bestSingleGameKills: "Meilleures éliminations (une partie)",
+  bestSingleGameScore: "Meilleur score (une partie)",
+  mostPrecisionKills: "Meilleures précisions (une partie)",
+  longestKillSpree: "Série d'éliminations la plus longue",
+  averageScorePerKill: "Score moyen par élimination",
+  averageScorePerLife: "Score moyen par vie",
+  opponentsDefeated: "Adversaires vaincus",
+  orbsDropped: "Orbes générés",
+  orbsGathered: "Orbes ramassés",
+  activitiesWon: "Activités gagnées",
+  fireTeamActivities: "Activités en groupe",
+  publicEventsCompleted: "Événements publics terminés",
+  heroicPublicEventsCompleted: "Événements publics héroïques terminés",
+  adventuresCompleted: "Aventures terminées",
+  highestCharacterLevel: "Niveau de personnage le plus élevé",
+  highestLightLevel: "Puissance la plus élevée",
+  totalActivityDurationSeconds: "Durée totale des activités",
+  allParticipantsTimePlayed: "Temps cumulé des participants",
+  longestSingleLife: "Vie la plus longue",
+  remainingTimeAfterQuitSeconds: "Temps restant après abandon (cumulé)",
+  averageLifespan: "Durée de vie moyenne",
+  // FR : distances en MÈTRES (unité précisée dans le libellé : la valeur brute seule serait énigmatique).
+  totalKillDistance: "Distance totale d'éliminations (m)",
+  averageKillDistance: "Distance moyenne d'élimination (m)",
+  longestKillDistance: "Distance d'élimination la plus longue (m)",
+  totalDeathDistance: "Distance totale de mort (m)",
+  averageDeathDistance: "Distance moyenne de mort (m)",
+  // FR : `fastestCompletionMs` est en MILLISECONDES (pas en secondes) : volontairement ABSENT de `STATS_EN_SECONDES` (sinon un 0 ms valide serait affiché « non disponible »).
+  fastestCompletionMs: "Complétion la plus rapide (ms)",
+  // FR : équipe / participants (activités jouées à plusieurs).
+  allParticipantsCount: "Participants (total)",
+  allParticipantsScore: "Score cumulé des participants",
+  // FR : répartition des éliminations PAR TYPE D'ARME (sous-stats de `weaponKills` = « Armes »). Les catégories Super / Mélée / Capacités portent le suffixe « (armes) » pour les distinguer des stats globales `superKills` (« Super »), `meleeKills` (« Mélée ») et `abilityKills` (« Capacités »).
+  weaponKillsAutoRifle: "Fusil automatique",
+  weaponKillsBeamRifle: "Fusil à rayon",
+  weaponKillsBow: "Arc",
+  weaponKillsGlaive: "Glaive",
+  weaponKillsFusionRifle: "Fusil à fusion",
+  weaponKillsHandCannon: "Revolver",
+  weaponKillsTraceRifle: "Fusil de traçage",
+  weaponKillsMachineGun: "Mitrailleuse",
+  weaponKillsPulseRifle: "Fusil à impulsion",
+  weaponKillsRocketLauncher: "Lance-roquettes",
+  weaponKillsScoutRifle: "Fusil éclaireur",
+  weaponKillsShotgun: "Fusil à pompe",
+  weaponKillsSniper: "Fusil de précision",
+  weaponKillsSubmachinegun: "Pistolet-mitrailleur",
+  weaponKillsRelic: "Relique",
+  weaponKillsSword: "Épée",
+  weaponKillsAbility: "Capacités (armes)",
+  weaponKillsGrenade: "Grenade",
+  weaponKillsGrenadeLauncher: "Lance-grenades",
+  weaponKillsSuper: "Super (armes)",
+  weaponKillsMelee: "Mélée (armes)",
+  // FR : `weaponBestType` est un CODE de type d'arme (valeur brute affichée telle quelle : la correspondance code → nom n'est pas dans la réponse de l'API).
+  weaponBestType: "Type d'arme préféré (code brut)",
 };
 
 // FR : statIds dont la valeur brute est un nombre de SECONDES : affichés en durée « X h Y min » plutôt qu'en secondes. / EN: statIds whose raw value is a number of SECONDS.
-const STATS_EN_SECONDES = new Set(["secondsPlayed", "activityDurationSeconds"]);
+// FR : ⚠️ CHANGÉ (22/10/2026, « tout traduire ») : +5 statIds de DURÉES réelles du compte (toutes en SECONDES) : `totalActivityDurationSeconds` (durée cumulée des activités), `allParticipantsTimePlayed` (temps cumulé des participants), `longestSingleLife` (vie la plus longue), `remainingTimeAfterQuitSeconds` (temps restant après abandon, cumulé), `averageLifespan` (durée de vie moyenne).
+const STATS_EN_SECONDES = new Set(["secondsPlayed", "activityDurationSeconds", "totalActivityDurationSeconds", "allParticipantsTimePlayed", "longestSingleLife", "remainingTimeAfterQuitSeconds", "averageLifespan"]);
 
 function libelleStat(statId: string): string {
   return LIBELLES_STATS_CONNUS[statId] ?? statId;

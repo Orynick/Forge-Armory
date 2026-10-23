@@ -20,10 +20,14 @@ window.fetch = (async (url: RequestInfo | URL) => {
     if (statsEnEchec) return new Response("Not Found", { status: 404 });
     // ⚠️ 22/10/2026 (« Toutes les stats » + retour réel « statIds retournés : AUCUN ») : STRUCTURE RÉELLE de
     // GetHistoricalStatsForAccount : `mergedAllCharacters: { results: { <mode>: { allTime: { <statId>: {...} } } }, merged: { allTime: { <statId>: {...} } } }`.
-    // 8 stats dans `merged.allTime` (l'agrégat « Carrière »), dont une INCONNUE (statId brut affiché tel quel) et une DURÉE (affichée en « h min »).
+    // 16 stats dans `merged.allTime` (l'agrégat « Carrière »), dont une INCONNUE (statId brut affiché tel quel) et des DURÉES (affichées en « h min »).
     const m = (id: string, v: number) => [id, { statId: id, basic: { value: v } }];
-    const huitStats = Object.fromEntries([m("kills", 123456), m("deaths", 23456), m("precisionKills", 54321), m("assists", 9876), m("secondsPlayed", 9000000), m("killsDeathsRatio", 5.26), m("statInconnueDeTest", 42), m("activityDurationSeconds", 5400)]);
-    return json({ mergedDeletedCharacters: { results: {}, merged: { allTime: {} } }, mergedAllCharacters: { results: { allPvE: { allTime: {} }, allPvP: { allTime: {} } }, merged: { allTime: huitStats } }, characters: [] });
+    // ⚠️ CHANGÉ (22/10/2026, « avant test, tout traduire ») : 16 stats = les 8 d'origine + 8 statIds RÉELS du compte de l'utilisateur
+    // (capture de la grille) : weaponKillsHandCannon, efficiency, score, totalKillDistance, totalActivityDurationSeconds, averageLifespan,
+    // longestSingleLife, allParticipantsTimePlayed — pour vérifier les libellés FR (y compris « Capacités (armes) » vs « Capacités ») et le
+    // formatage des durées en secondes (« h min »). `statInconnueDeTest` reste : une stat inconnue affiche son statId BRUT.
+    const seizeStats = Object.fromEntries([m("kills", 123456), m("deaths", 23456), m("precisionKills", 54321), m("assists", 9876), m("secondsPlayed", 9000000), m("killsDeathsRatio", 5.26), m("statInconnueDeTest", 42), m("activityDurationSeconds", 5400), m("weaponKillsHandCannon", 155285), m("efficiency", 22.54), m("score", 61576643), m("totalKillDistance", 17606565), m("totalActivityDurationSeconds", 14512058), m("averageLifespan", 226.72), m("longestSingleLife", 5456), m("allParticipantsTimePlayed", 148536347)]);
+    return json({ mergedDeletedCharacters: { results: {}, merged: { allTime: {} } }, mergedAllCharacters: { results: { allPvE: { allTime: {} }, allPvP: { allTime: {} } }, merged: { allTime: seizeStats } }, characters: [] });
   }
   // ⚠️ CHANGÉ (22/10/2026) : plus de handler `/Stats/Activities/` (section supprimée) : une telle
   // requête retombe en 404, et `window.__requetes` permet au test de vérifier qu'elle n'est JAMAIS faite.
