@@ -4,71 +4,15 @@
 
 ---
 
-## 23/10/2026 — CORRECTIF page « Accomplissements » : « Aucun sceau trouvé » avec le vrai Manifest (TODO n°23, branche `draft-update-triomphes`)
+## 23/10/2026 — PROPAGATION : PR #18 (renommage CHANGELOG → DEVLOG) répertutée sur les branches de chantier
 
-**Diagnostic** (retour utilisateur « Il m'affiche : Aucun sceau trouvé — non disponible. ») : dans le Manifest ACTUEL, les nœuds **sceaux** (avec `completionRecordHash`) ne sont **pas** sous la racine « Triumphs » (1163735237) — celle-ci ne contient que des catégories et des triomphes « nus » — mais sous une **racine séparée** « Sceaux/Titres » (vue sur light.gg : racine 616318467 « Titles » ; doc Bungie 2018 : racine « Seals » = 1652422747). Le code ne parcourait que la racine « Triumphs » → zéro sceau. La portée des records (scope) est confirmée correcte (`DestinyScope.Profile = 0`).
+**Propagation** : le renommage `CHANGELOG.md` → `DEVLOG.md` (PR #18) a été répertuté sur les 7 branches de chantier actives : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `draft-update-triomphes`, `test`.
 
-**Correctif** (`src/lib/bungie/sceaux.ts`) :
-- La racine des sceaux est lue **dans le profil** : `Response.profileRecords.data.recordSealsRootNodeHash` (champ officiel du composant 900 — **exactement ce que lit DIM**, `presentation-nodes.ts`), puis `recordCategoriesRootNodeHash`.
-- **Secours** : constantes 1652422747 (« Seals » 2018), 616318467 (« Titles » courant), 1163735237 (« Triumphs ») — dédoublonnées, seules les racines présentes dans le Manifest sont parcourues.
-- **Dernier recours** : scan global de tous les nœuds, en **excluant** les sous-arbres Collections (3790247699), Badges (498211331), Lore « Légendes » (4077680549), Metrics (1074663644) et Patterns & Catalysts (2642502414) ; un nœud `completionRecordHash` **sans aucun record** est omis.
-- Les records d'un sceau sont lus dans ses `children.records` **et récursivement dans ses sous-nœuds** (certains sceaux les ont sous un sous-nœud), dédoublonnés.
-- Le **nom de la racine** n'est plus utilisé comme catégorie (ex. « Titles » n'apparaissait pas comme regroupement).
-- Inchangés : portée profil uniquement (scope 0), exclusion records masqués, sceaux sans triomphe omis, tri FR, bit 4 à zéro, score = somme des `ScoreValue` obtenus.
+**Conflits résolus** : `CHANGELOG.md` en conflit (rename/delete côté main vs modify côté branche) sur 3 branches (`draft-armure-score`, `draft-netlify`, `draft-update-triomphes`) — résolu en supprimant `CHANGELOG.md` et transférant les entrées spécifiques à la branche dans `DEVLOG.md`. Les 4 autres branches : merge propre.
 
-**Tests** : `tests/logique/sceaux.test.ts` **31/31** (24 existants inchangés + 7 nouveaux : racine fournie par le profil, secours par constantes, sous-nœuds, scan global hors Lore, nom de racine). `npx tsc -b` 0 erreur, `npm run build` ✓, `npm run test:logique` **37/37 suites, 747/747 contrôles** ✓, pages UI construites ✓. **À valider en `npm run dev`** (le bac à sable ne peut pas lancer le navigateur ni appeler l'API Bungie).
-
-**Version : branche de livraison 0.5.1** (correctif sur la livraison v0.5.1).
+**Version inchangée (0.5.1).**
 
 ---
-
-## 23/10/2026 — PROPAGATION : chantier `draft-deps` (dépendances majeures) répercuté sur `draft-update-triomphes`
-
-**Propagation** : `main` (incluant le merge de `draft-deps` — Vite 7, React 19, Electron 45) a été mergé dans `draft-update-triomphes`. Conflit DEVLOG résolu (entrée de propagation + entrée TODO n°23 conservées, dans l'ordre).
-
-**Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 716/716 contrôles réussis. ⚠️ **Re-vérifié après le merge du chantier TODO n°23** : `npm install` (React 19.3.1 effectif — le snapshot `element:officielle` obsolète était dû à une install React 18 résiduelle), `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` **37/37 suites, 740/740 contrôles** (incluant `sceaux.test.ts` 24/24).
-
----
-
-## 23/10/2026 — PAGE « ACCOMPLISSEMENTS » : les Triomphes du compte, PAR SCEAU (TODO n°23, branche `draft-update-triomphes`)
-
-**Demande de l'utilisateur (23/10/2026)** : la page « Accomplissements » affiche désormais **tous les Triomphes du compte — obtenus et à obtenir — groupés PAR SCEAU** (décision de l'utilisateur : « Je préfère la proposition par Sceau. Moins bordélique. »), comme la hiérarchie Collections→Sceaux du jeu. La vitrine « Solo sans mourir » reste **uniquement** dans le tiroir du Build Analyzer.
-
-**Nouveau modèle** (`src/lib/bungie/sceaux.ts`, lecture seule) :
-- `regrouperParSceau(db, profil)` : croise l'arbre « Triumphs » du Manifest (racine nœud 1163735237, scope 1 = compte → catégories → **sceaux** = nœuds avec `completionRecordHash` → leurs records) avec l'état des records du profil (composant 900, `profileRecords`). **Portée PROFIL uniquement** (scope 0) : les triomphes de portée personnage (ceux du tiroir « Solo sans mourir ») sont exclus. Un triomphe **absent du profil est « à obtenir »** (affiché, jamais masqué) ; un record masqué (`redacted`) ou sans nom est exclu/hash brut — **jamais d'estimation**.
-- `compteursGlobaux` : « X / Y triomphes obtenus · score total » (somme des `completionInfo.ScoreValue` des triomphes **obtenus** ; « non disponible » si aucun score connu).
-- `filtrerSceaux` : **recherche avancée** — réutilise la machinerie du Legendarium (`parserRecherche`/`correspondRecherche`, désormais exportées) : guillemets `"phrase exacte"`/`« »`, `+obligatoire`, `-exclu`, case **« Respecter la casse »** (insensible par défaut). Exemple : `+"sans mourir" -gambit "Chute de la Maison"`. La recherche porte sur le nom + la description de chaque triomphe, **plus le nom du sceau et de son regroupement** (si le sceau correspond, tous ses triomphes remontent).
-- `trierSceaux` : par **progression** (défaut : complétés d'abord, puis ratio décroissant, nom en recours) ou par **nom** (alphabétique FR).
-
-**Page** (`src/components/VueAccomplissements.tsx`, réécrite) : props `{ profil, db }` (câblées dans `DashboardPage` : `profil={profilTriomphes} db={db}`). Compteur global en tête, champ de recherche + case « Aa » + sélecteur de tri, **sceaux repliés par défaut** (comme le Legendarium) avec icône, barre de progression « X/Y (N %) » et titre du sceau (« débloqué » à 100 %) ; chaque triomphe : icône, nom, description, progression des objectifs (« 3 / 10 »), badge ✅/⬜, points. Replis : pas de profil → « Connectez-vous… » ; pas de Manifest → avertissement « non disponibles ».
-
-**Types** (`src/types/manifest.ts`) : `DestinyPresentationNodeDefinition` gagne `completionRecordHash`/`objectiveHash` ; `DestinyRecordDefinition` gagne `scope`, `objectiveHashes`, `completionInfo.ScoreValue`, `titleInfo` (`hasTitle`, `titlesByGender`).
-
-**Tests** : `tests/logique/sceaux.test.ts` (nouveau, **24/24** : regroupement par sceau, exclusion portée personnage/records masqués, état bitfield, titre débloqué, compteurs globaux, recherche avancée complète, tri, replis) ; `cablage-forge.test.ts` et `vue-carriere.py` mis à jour (montage `profil={profilTriomphes} db={db}`, plus de « Bientôt ») ; `tests/ui/entree-vue-accomplissements.tsx` + `vue-accomplissements.py` (nouveau : compteur global, sceaux repliés, recherche avancée, casse, tri, replis). `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **37/37 suites, 740/740 contrôles** ✓, pages UI construites ✓, `ast.parse` OK. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
-
-**TODO.md** : item n°23 — spécification validée (par sceau + compteur global + recherche avancée casse/`""`/`+`/`-`).
-
-**Version inchangée (0.5.0).**
-
----
-
-## 22/10/2026 — LIVRAISON TODO §25 : pages « Carrière » et « Accomplissements » dédiées (PR #14 mergée sur `main`)
-
-**Livraison** : la branche `draft-update-carriere` est mergée sur `main` (PR #14, CI verte : `tsc + build + batterie logique` SUCCESS). Les changements de cette livraison (tous du 22/10/2026) :
-
-1. **Pages dédiées du compte** (TODO §25, résolu par changement d'approche demandé par l'utilisateur) : les boutons « Carrière » et « Accomplissements » **restent dans le bloc Connexion** et ouvrent chacun une **page dédiée** — plus de pop-up (`ModaleCarriere` supprimée), plus de tiroir commandé depuis le bloc Connexion. Le bloc Connexion et les **4 onglets** du sélecteur (Build Analyzer, Load-outs, Forge, Legendarium) restent affichés. **Pas de doublon** : les pages ne sont PAS des onglets du sélecteur (retour utilisateur « les boutons apparaissent en double »). Le bug §25 (pop-up qui ne s'ouvrait pas hors Build Analyzer) est résolu **par construction**.
-2. **Carrière** (`VueCarriere.tsx`) — statistiques du compte en lecture seule, chargées à l'ouverture :
-   - **Toutes les stats** de l'API (`GetHistoricalStatsForAccount`, filtre « Carrière », `merged.allTime` — structure réelle corrigée après le retour « statIds retournés : AUCUN ») : 74 statIds connus ont un libellé FR (table complétée depuis la réponse réelle du compte), une statId inconnue affiche son statId **brut**, les durées (secondes) sont en « X h Y min ».
-   - **Temps de jeu** (total + par classe) depuis le profil complet (composant 200, `minutesPlayedTotal`) — **plus de « non disponible »** (le profil des triomphes, composant 900 seul, ne le contenait pas) ; repli du Total sur la stat `secondsPlayed` si le composant 200 manque.
-   - **Sections supprimées** (retours utilisateur) : « Personnages » (niveaux/puissances), « 10 dernières activités » (et ses 10 requêtes `GetActivityHistory` — la page ne fait plus qu'**une seule requête réseau** à l'ouverture) et « Saison » (« Finalement enlève l'affichage de la saison dans ce menu »).
-   - Icônes de classes, diagnostic statIds (dev).
-3. **Accomplissements** (`VueAccomplissements.tsx`) — page dédiée aux Triomphes du compte, **sans la vitrine « Solo sans mourir »** (retour utilisateur : « elle affichera plus tard tous les triomphes obtenus et à obtenir ») : emplacement réservé « 🚧 Bientôt ». La vitrine reste **uniquement** dans le tiroir « Solo sans mourir » du Build Analyzer (`PanneauTriomphes`). **Suite prévue** : nouvel item TODO n°23, branche `draft-update-triomphes`.
-
-**Tests** : `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites, 716/716 contrôles** ✓ (3 contrôles anti-doublon : `cablage-forge`, `legendarium`, `selecteur.py` ; parsing de la structure réelle de l'API ; Accomplissements sans vitrine ; montage `profil={profilComplet}`), pages de test UI construites ✓ (`vue-carriere`, `vue-carriere-dev`, `selecteur`, `connexion-boutons`), `ast.parse` OK. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **validés par l'utilisateur en `npm run dev`** (« Ok, c'est validé »).
-
-**TODO.md** : l'item 23 (boutons « Carrière »/« Accomplissements ») est retiré (résolu) et remplacé par un **nouvel item 23** : « Page « Accomplissements » : afficher les Triomphes du compte » (branche `draft-update-triomphes`).
-
-## 23/10/2026 — v0.5.1 : LIVRAISON COMPLÈTE — Legendarium opérationnel + pages Carrière/Accomplissements + stack à jour
 
 ## 23/10/2026 — RENOMMAGE : `CHANGELOG.md` → `DEVLOG.md`
 
