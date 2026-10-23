@@ -549,6 +549,13 @@ n'apparaît qu'à `npm run build`.
 de données, impression PDF), le Manifest réel, la police de Windows. Toute livraison doit le dire explicitement, et la liste de tests commence par `npm.cmd run build`.
 
 
+### 23. Page « Accomplissements » : afficher les Triomphes du compte (branche `draft-update-triomphes`)
+
+Demande de l'utilisateur (22/10/2026, à la livraison de TODO §25) : la page « Accomplissements » affiche pour l'instant un emplacement réservé (« 🚧 Bientôt : tous vos Triomphes de compte — obtenus et à obtenir. »). **À construire : l'affichage des Triomphes du compte** — triomphes OBTENUS et À OBTENIR.
+Contexte : l'item 23 (boutons « Carrière »/« Accomplissements ») est RÉSOLU (pages dédiées, voir CHANGELOG 22/10/2026) ; cet item en est la **suite fonctionnelle** (l'utilisateur l'avait anticipée : « elle affichera plus tard tous les triomphes obtenus et à obtenir »).
+Données déjà disponibles : `recupererProfilTriomphes` (`src/lib/bungie/triomphes.ts`) charge `GetProfile?components=900` (records) — le profil des triomphes est déjà téléchargé au « Tester la connexion » et passé au tiroir « Solo sans mourir » (`PanneauTriomphes`, `VitrineSoloFlawless` lit `profileRecords`/`characterRecords`). La page « Accomplissements » (`VueAccomplissements`, sans props pour l'instant) devra recevoir ce profil.
+Spécification à affiner avec l'utilisateur : liste plate ou hiérarchies (catégories/sections du sceau) ? triomphes du compte (profil) uniquement, ou aussi par personnage ? score total ? recherche ?
+
 ### 22. Lien « Contact » en pied de page : rapports de bugs et suggestions des utilisateurs (demande du 06/10/2026)
 
 Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » qui permette de recueillir **les rapports de bugs ET les suggestions** des utilisateurs. À rapprocher de la phase 2 « Ouverture » de la feuille de route (logiciel utilisable par des tiers, diffusion restreinte, phase 3 : prise en compte des retours et résolution des bugs). Le pied de page porte déjà le crédit, la version et le réglage « Outils de diagnostic » : le lien se place à côté, discret.

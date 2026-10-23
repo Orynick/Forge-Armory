@@ -1,3 +1,23 @@
+## 22/10/2026 — LIVRAISON TODO §25 : pages « Carrière » et « Accomplissements » dédiées (PR #14 mergée sur `main`)
+
+**Livraison** : la branche `draft-update-carriere` est mergée sur `main` (PR #14, CI verte : `tsc + build + batterie logique` SUCCESS). Les changements de cette livraison (tous du 22/10/2026) :
+
+1. **Pages dédiées du compte** (TODO §25, résolu par changement d'approche demandé par l'utilisateur) : les boutons « Carrière » et « Accomplissements » **restent dans le bloc Connexion** et ouvrent chacun une **page dédiée** — plus de pop-up (`ModaleCarriere` supprimée), plus de tiroir commandé depuis le bloc Connexion. Le bloc Connexion et les **4 onglets** du sélecteur (Build Analyzer, Load-outs, Forge, Legendarium) restent affichés. **Pas de doublon** : les pages ne sont PAS des onglets du sélecteur (retour utilisateur « les boutons apparaissent en double »). Le bug §25 (pop-up qui ne s'ouvrait pas hors Build Analyzer) est résolu **par construction**.
+2. **Carrière** (`VueCarriere.tsx`) — statistiques du compte en lecture seule, chargées à l'ouverture :
+   - **Toutes les stats** de l'API (`GetHistoricalStatsForAccount`, filtre « Carrière », `merged.allTime` — structure réelle corrigée après le retour « statIds retournés : AUCUN ») : 74 statIds connus ont un libellé FR (table complétée depuis la réponse réelle du compte), une statId inconnue affiche son statId **brut**, les durées (secondes) sont en « X h Y min ».
+   - **Temps de jeu** (total + par classe) depuis le profil complet (composant 200, `minutesPlayedTotal`) — **plus de « non disponible »** (le profil des triomphes, composant 900 seul, ne le contenait pas) ; repli du Total sur la stat `secondsPlayed` si le composant 200 manque.
+   - **Sections supprimées** (retours utilisateur) : « Personnages » (niveaux/puissances), « 10 dernières activités » (et ses 10 requêtes `GetActivityHistory` — la page ne fait plus qu'**une seule requête réseau** à l'ouverture) et « Saison » (« Finalement enlève l'affichage de la saison dans ce menu »).
+   - Icônes de classes, diagnostic statIds (dev).
+3. **Accomplissements** (`VueAccomplissements.tsx`) — page dédiée aux Triomphes du compte, **sans la vitrine « Solo sans mourir »** (retour utilisateur : « elle affichera plus tard tous les triomphes obtenus et à obtenir ») : emplacement réservé « 🚧 Bientôt ». La vitrine reste **uniquement** dans le tiroir « Solo sans mourir » du Build Analyzer (`PanneauTriomphes`). **Suite prévue** : nouvel item TODO n°23, branche `draft-update-triomphes`.
+
+**Tests** : `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites, 716/716 contrôles** ✓ (3 contrôles anti-doublon : `cablage-forge`, `legendarium`, `selecteur.py` ; parsing de la structure réelle de l'API ; Accomplissements sans vitrine ; montage `profil={profilComplet}`), pages de test UI construites ✓ (`vue-carriere`, `vue-carriere-dev`, `selecteur`, `connexion-boutons`), `ast.parse` OK. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **validés par l'utilisateur en `npm run dev`** (« Ok, c'est validé »).
+
+**TODO.md** : l'item 23 (boutons « Carrière »/« Accomplissements ») est retiré (résolu) et remplacé par un **nouvel item 23** : « Page « Accomplissements » : afficher les Triomphes du compte » (branche `draft-update-triomphes`).
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — PAGE « CARRIÈRE » : tous les libellés de stats traduits en français
 
 **Demande de l'utilisateur (22/10/2026, note avant test)** : « Avant test, tout traduire. » — capture de la grille « Statistiques de carrière » : la plupart des stats avaient un libellé FR, mais **46 statIds s'affichaient en ANGLAIS BRUT** (`weaponKillsAutoRifle`, `efficiency`, `score`, `totalKillDistance`, `allParticipantsTimePlayed`, …).
