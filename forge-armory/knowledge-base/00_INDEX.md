@@ -109,7 +109,7 @@ illisibles pour un agent ».
 ## Historique des ajouts
 
 Notes conservées telles qu'écrites à leur date (seuls les passages
-périmés ont été retirés le 28/09/2026, voir le CHANGELOG).
+périmés ont été retirés le 28/09/2026, voir le DEVLOG).
 
 ### 9 juin 2026 — Monument of Triumph
 #### Changements majeurs Monument of Triumph
@@ -177,7 +177,7 @@ Les perks Limit Break, Maligned Harvest etc. sont dans Tablet of Ruin (Heresy, a
   Conventions à respecter si d'autres artefacts sont traduits sur ce modèle :
   `[icone X]` pour les icônes (élément/champion/type d'arme), mots entre
   guillemets pour les verbes et termes de jeu.
-  Intégrées dans `src/data/artefacts.ts` (voir CHANGELOG du 24/08/2026) et
+  Intégrées dans `src/data/artefacts.ts` (voir DEVLOG du 24/08/2026) et
   rendues visuellement par `src/components/RenduTextePerk.tsx` (icônes
   réelles, verbes en cyan `#67e8f9`).
   ⚠️ Ces fichiers sont une SAUVEGARDE de la source, pas la source vive :
@@ -210,4 +210,4 @@ Les perks Limit Break, Maligned Harvest etc. sont dans Tablet of Ruin (Heresy, a
   par hash), pas une copie des données, qui viennent du Manifest.
 - **Rangement de la knowledge-base** : index réécrit, `NOTE_RATTACHEMENT.md`
   fusionnée dans cet index, table des archétypes d'armure regroupée dans
-  la fiche 08, dossier `27_PATCHNOTES/` créé. Détail dans le CHANGELOG.
+  la fiche 08, dossier `27_PATCHNOTES/` créé. Détail dans le DEVLOG.

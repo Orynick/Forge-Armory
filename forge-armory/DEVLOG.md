@@ -1,8 +1,46 @@
+# DEVLOG — Forge Armory
+
+> **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
+
+---
+
 ## 23/10/2026 — PROPAGATION : chantier `draft-deps` (dépendances majeures) répercuté sur `draft-netlify`
 
-**Propagation** : `main` (incluant le merge de `draft-deps` — Vite 7, React 19, Electron 45) a été mergé dans `draft-netlify`. Conflit CHANGELOG résolu (entrée chantier deps + entrées main conservées).
+**Propagation** : `main` (incluant le merge de `draft-deps` — Vite 7, React 19, Electron 45) a été mergé dans `draft-netlify`. Conflit DEVLOG résolu (entrée chantier deps + entrées main conservées).
 
 **Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 716/716 contrôles réussis.
+
+## 23/10/2026 — v0.5.1 : LIVRAISON COMPLÈTE — Legendarium opérationnel + pages Carrière/Accomplissements + stack à jour
+
+## 23/10/2026 — RENOMMAGE : `CHANGELOG.md` → `DEVLOG.md`
+
+**Demande de l'utilisateur** : le fichier `CHANGELOG.md` devient `DEVLOG.md` pour garder l'historique du développement. Un nouveau `CHANGELOG.md` minimal est créé pour les utilisateurs (changements visibles uniquement).
+
+**Fait** :
+- `git mv CHANGELOG.md DEVLOG.md` (historique préservé dans git)
+- Nouveau `CHANGELOG.md` créé : changelog orienté utilisateur (v0.5.1, v0.5.0, lien vers DEVLOG)
+- **25 fichiers mis à jour** — toutes les mentions de `CHANGELOG` remplacées par `DEVLOG` :
+  - Code source (9 fichiers) : `elementVerbs.ts`, `triomphesSoloFlawless.ts`, `diagnosticsArchives.ts`, `pillars.ts`, `doctrine.ts`, `IconeLoadout.tsx`, `IconeSlotArmure.tsx`, `SelecteurArtefact.tsx`, `telecharger-manifest.mjs`
+  - Documentation (7 fichiers) : `README.md`, `TODO.md`, `LISEZ-MOI.md`, archives TODO/tests/audit, `GITIGNORE-A-AJOUTER.txt`
+  - Knowledge-base (5 fichiers) : `00_INDEX.md` + 4 fichiers artefacts
+  - Config : `.gitignore`, `.github/workflows/ci.yml`
+- En-tête ajouté en haut de `DEVLOG.md` expliquant la séparation CHANGELOG (utilisateurs) / DEVLOG (développement)
+
+**Règle à suivre** :
+- **`CHANGELOG.md`** = changements visibles par les utilisateurs (nouvelles fonctionnalités, correctifs majeurs)
+- **`DEVLOG.md`** = historique complet du développement (décisions, détails techniques, propagations, nettoyages)
+
+---
+
+## 23/10/2026 — PROPAGATION : v0.5.1 (PR #16) répertutée sur les branches de chantier
+
+**Propagation** : le passage en v0.5.1 (PR #16) a été répertuté sur les 7 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `draft-update-triomphes`, `test`.
+
+**Note** : les branches `draft-deps` et `draft-update-carriere` ont été supprimées après livraison. Tag `v0.5.1` créé. Nouvelle branche `draft-optimiseur` détectée (chantier en cours).
+
+**Version inchangée (0.5.1).**
+
+---
 
 ## 23/10/2026 — v0.5.1 : LIVRAISON COMPLÈTE — Legendarium opérationnel + pages Carrière/Accomplissements + stack à jour
 
@@ -79,38 +117,29 @@ Merge de la branche `draft-deps` (PR #7) sur `main` : mise à jour complète des
 
 ## 22/10/2026 — LIVRAISON TODO §25 (merge de `draft-update-carriere` sur `main`)
 
----
-
-## 23/10/2026 — NETLIFY : propagation de `main` + `draft-deps` dans `draft-netlify`, build strict rétabli
-
-**Propagation** : `draft-netlify` intègre désormais `draft-deps` (paliers 1, 2 et 2bis — Vite 7, plugin-react 5, **Electron 45.0.0** de sécurité) et le dernier `main` (dont le correctif « Build strict rétabli » de `BadgeSaison`). Conflit CHANGELOG résolu (les deux entrées du 23/10 conservées).
-
-**Conséquence sur `netlify.toml`** : la commande provisoire `npx vite build` (contournement du défaut TypeScript de la v0.4.11, désormais corrigé) est **remplacée par `npm run build`** — la vérification TypeScript stricte fait de nouveau partie du déploiement Netlify.
-
-**Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 708/708 contrôles réussis.
-
----
-
-## 22/10/2026 — LIVRAISON TODO §25 (merge de `draft-update-carriere` sur `main`)
 Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carrière » et « Accomplissements » dédiées, toutes les stats traduites (74 statIds), temps de jeu corrigé, sections « Personnages »/« 10 dernières activités »/« Saison » supprimées — voir les entrées du 22/10/2026 ci-dessous.
+
 ---
+
 ## 22/10/2026 — PAGE « CARRIÈRE » : tous les libellés de stats traduits en français
+
 **Demande de l'utilisateur (22/10/2026, note avant test)** : « Avant test, tout traduire. » — capture de la grille « Statistiques de carrière » : la plupart des stats avaient un libellé FR, mais **46 statIds s'affichaient en ANGLAIS BRUT** (`weaponKillsAutoRifle`, `efficiency`, `score`, `totalKillDistance`, `allParticipantsTimePlayed`, …).
+
 **Changé** (`src/components/VueCarriere.tsx`) : la table `LIBELLES_STATS_CONNUS` est **complétée depuis la RÉPONSE RÉELLE du compte de l'utilisateur** (capture de la grille) — elle passe de 20 à **74 statIds** : les 46 statIds anglais restants ont leur libellé FR (vocabulaire du jeu en français) :
 - **Éliminations par type d'arme** (18) : « Fusil automatique », « Arc », « Glaive », « Fusil à fusion », « Revolver », « Fusil de traçage », « Mitrailleuse », « Fusil à impulsion », « Lance-roquettes », « Fusil éclaireur », « Fusil à pompe », « Fusil de précision », « Pistolet-mitrailleur », « Relique », « Épée », « Grenade », « Lance-grenades » + « **Capacités (armes)** », « **Super (armes)** », « **Mêlée (armes)** » (suffixe « (armes) » pour les distinguer des stats globales « Capacités » / « Super » / « Mêlée »).
 - **Distances** (5, unité précisée en mètres dans le libellé) : « Distance totale d'éliminations (m) », « Distance moyenne d'élimination (m) », « Distance d'élimination la plus longue (m) », « Distance totale de mort (m) », « Distance moyenne de mort (m) ».
 - **Divers** : « Efficacité totale » (`efficiency` — distincte de « Efficacité » = `killsDeathsAssists` : vérifié sur les valeurs réelles 22,54 vs 20,81), « Score », « Score d'équipe (cumulé) », « Meilleures éliminations (une partie) », « Meilleur score (une partie) », « Meilleures précisions (une partie) », « Série d'éliminations la plus longue », « Score moyen par élimination », « Score moyen par vie », « Adversaires vaincus », « Orbes générés », « Orbes ramassés », « Activités gagnées », « Activités en groupe », « Événements publics terminés », « Événements publics héroïques terminés », « Aventures terminées », « Niveau de personnage le plus élevé », « Puissance la plus élevée », « Participants (total) », « Score cumulé des participants », « Completion la plus rapide (ms) » (millisecondes — volontairement **absente** de `STATS_EN_SECONDES` pour ne pas afficher « non disponible » sur un 0 ms valide), « Type d'arme préférée (code brut) » (`weaponBestType` = code, la correspondance code→nom n'est pas dans la réponse de l'API).
 - **Durées** : `STATS_EN_SECONDES` étendu de 2 à **7** statIds (toutes en secondes) : + `totalActivityDurationSeconds` (« Durée totale des activités »), `allParticipantsTimePlayed` (« Temps cumulé des participants »), `longestSingleLife` (« Vie la plus longue »), `remainingTimeAfterQuitSeconds` (« Temps restant après abandon (cumulé) »), `averageLifespan` (« Durée de vie moyenne »).
+
 **Règle inchangée** : une statId **inconnue** continue d'afficher son statId **brut** (jamais renommée à l'aveugle) — la règle du projet « jamais d'estimation » s'applique aussi aux libellés.
+
 **Tests** :
 - `tests/ui/entree-vue-carriere.tsx` — la fixture passe à **16 stats** (les 8 d'origine + 8 statIds RÉELS du compte : `weaponKillsHandCannon`, `efficiency`, `score`, `totalKillDistance`, `totalActivityDurationSeconds`, `averageLifespan`, `longestSingleLife`, `allParticipantsTimePlayed`).
 - `tests/ui/vue-carriere.py` — le contrôle navigateur « TOUTES LES STATS » attend les **16 stats** avec leurs libellés FR (ex. « Revolver » → « 155 285 », « Efficacité totale » → « 22,54 », « Durée totale des activités » → « 4 031 h 08 », « Durée de vie moyenne » → « 4 min ») et le compte « 16 statistiques » ; le diagnostic attend « statIds retournés : 16 » et la structure « merged (allTime : 16 stats) ».
 - Vérification croisée (script) : **les 66 statIds de la capture de l'utilisateur ont TOUS un libellé FR** (aucun manquant, aucun libellé identique au statId brut).
 - `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
----
 
 ---
-
 
 ## 23/10/2026 — PROPAGATION : PR #13 (nettoyage TODO) + PR #15 (doc README/NOTICE) répercuteées sur les branches de chantier
 
@@ -899,19 +928,6 @@ Les deux derniers échecs de la batterie de logique sont corrigés ; les 30 suit
 **Vérifié** : chemins cités dans la charte contrôlés dans le dépôt (logo PNG, `EnTeteApp.tsx`, `geometrieIdentite.ts`, `charte-graphique.html` de l'archive v5, `forgeAssets.ts`, `forge-armory-emblem.svg` : tous présents). `ressources-installateur/forge-armory/logo-titre/forge-armory-titre.svg` est cité tel quel : il arrivera avec la v0.4.13 (le dépôt est en v0.4.12). Contenu non modifié ; seuls les liens ont été adaptés au dossier.
 
 **Décisions de l'utilisateur** : branche de travail supprimée après fusion (politique de branches : `main`, `test`, `draft-<chantier>` quand nécessaire) ; pas de PR pour de la documentation en solo.
-
-## 18/10/2026 — Intégration Netlify (pas de changement de version)
-
-**Numéro de version** : inchangé (0.4.12) ; aucune modification du code de l'appli, de l'interface ni des données.
-
-**Fait** : fichier `netlify.toml` à la racine du dépôt pour connecter le dépôt GitHub (`Orynick/Forge-Armory`) à Netlify (décision du 11/10 : l'hébergeur restait à choisir entre Vercel et Netlify ; c'est Netlify). Contenu :
-
-- `base = "forge-armory"` (le projet React+Vite est dans ce sous-dossier) ; `publish = "dist"` (relatif à `base`, dossier de sortie de Vite). Commande **provisoire** `npx vite build` : la commande officielle `npm run build` (`tsc -b && vite build`) échoue sur le défaut TypeScript décrit plus bas ; `vite build` seul produit le même `dist` sans l'étape de typage. **Revenir à `npm run build` une fois ce défaut corrigé.** L'appli **navigateur** seule est publiée : rien d'Electron ni de l'installateur Windows n'est déployé.
-- **Redirection SPA** (`/*` → `/index.html`, statut 200) : le build Vite n'émet qu'un seul `index.html` ; sans cette règle, un rafraîchissement sur `/auth/callback` (retour OAuth Bungie) afficherait la page d'erreur « Page not found » de Netlify.
-
-**Reste à faire côté Netlify (interface web, pas dans le dépôt)** : à la création du site (Import from Git, dépôt `Orynick/Forge-Armory`, branche de production `main`, aperçus activés) : définir les variables d'environnement `VITE_BUNGIE_API_KEY`, `VITE_BUNGIE_CLIENT_ID` et `VITE_BUNGIE_REDIRECT_URI` dans *Site configuration > Environment variables* (jamais dans `netlify.toml`, public) ; la valeur de `VITE_BUNGIE_REDIRECT_URI` doit être l'URL du site (par ex. `https://forge-armory.netlify.app/auth/callback`) et être **aussi** déclarée dans votre application Bungie (bungie.net > Application). La branche `test` (créée le 11/10) peut servir d'aperçu : activer *Branch deploys* si besoin.
-
-**Vérifié** : `vite build` dans `forge-armory/` produit bien `dist/` complet (index.html + assets + favicon, chemins relatifs `./` compatibles Netlify), et le `netlify.toml` est du TOML valide. **Défaut connu, non corrigé ici** : la partie TypeScript de `npm run build` (`tsc -b`) échoue depuis la v0.4.11 sur `BadgeSaison.tsx`, qui importe `RETRAIT_BADGE_VIGNETTE` et `tailleBadgeVignette` (inexistants dans `lib/forge/tailleVignette.ts`) et lit `CADRAGE_SAISON.partSymbole` (inexistant aussi ; la clé s'appelle `fraction`). Ces symboles n'existent dans aucun commit du dépôt : le code publié ne compile pas tel quel en TypeScript strict. Conséquence dans `netlify.toml` : la commande de build est `npx vite build` en attendant la correction (dans un changement de version, pas ici) ; la redirection SPA n'en dépend pas.
 
 ## 15/10/2026 — v0.4.12 : Forge des armures, étape 1 (liste, fenêtre, simulation locale des mods)
 
