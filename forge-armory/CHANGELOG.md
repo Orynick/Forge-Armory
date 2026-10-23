@@ -1,3 +1,13 @@
+## 23/10/2026 — PROPAGATION : v0.5.1 (PR #16) répertutée sur les branches de chantier
+
+**Propagation** : le passage en v0.5.1 (PR #16) a été répertuté sur les 7 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `draft-update-triomphes`, `test`.
+
+**Note** : les branches `draft-deps` et `draft-update-carriere` ont été supprimées après livraison. Tag `v0.5.1` créé. Nouvelle branche `draft-optimiseur` détectée (chantier en cours).
+
+**Version inchangée (0.5.1).**
+
+---
+
 ## 23/10/2026 — v0.5.1 : LIVRAISON COMPLÈTE — Legendarium opérationnel + pages Carrière/Accomplissements + stack à jour
 
 **Passage en version 0.5.1** — consolidation de toutes les livraisons depuis la 0.5.0 (Legendarium, 22/10/2026).
