@@ -1,15 +1,56 @@
-## 23/10/2026 — DÉPENDANCES : ÉLECTRON 44 → 45 (majeur, sécurité) — `draft-deps`, palier 2bis
+## 23/10/2026 — PROPAGATION : chantier `draft-deps` (dépendances majeures) répercuté sur `draft-netlify`
 
-**Demande** : mise à jour d'Electron exigée avant toute mise en ligne ou diffusion (question de sécurité — décision de l'utilisateur du 22/10).
+**Propagation** : `main` (incluant le merge de `draft-deps` — Vite 7, React 19, Electron 45) a été mergé dans `draft-netlify`. Conflit CHANGELOG résolu (entrée chantier deps + entrées main conservées).
 
-**Fait** (`draft-deps`, pas de changement de version de l'appli) :
+**Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 716/716 contrôles réussis.
 
-- `electron` 44.9.3 → **45.0.0** (publiée le 21/10/2026, montée majeure) dans `package.json` + `package-lock.json` ; `electron-builder` 26.15.3 inchangé (compatible).
-- `documentation/suivi/MAJ-DEPENDANCES.md` : palier 2bis documenté, tableau d'état des lieux mis à jour.
+---
 
-**Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 708/708 contrôles réussis.
+## 23/10/2026 — DÉPENDANCES : CHANTIER `draft-deps` TERMINÉ (merge sur `main`)
 
-**Non vérifié** : le lancement réel de l'appli installée avec Electron 45 (le conteneur d'intégration n'a pas les bibliothèques fenêtre/GTK, ni l'empaquetage NSIS Windows). **L'installateur fabriqué avec la v45 doit être lancé une fois sur Windows avant toute diffusion.** Reste aussi à faire dans ce chantier : palier 3 (React 18 → 19 + `react-router-dom` 7).
+Merge de la branche `draft-deps` (PR #7) sur `main` : mise à jour complète des dépendances majeures en 3 paliers + 1 palier intermédiaire.
+
+**Palier 1 — Mises à jour patchs (sûr)** :
+- `electron` 44.9.0 → **44.9.3**, `sql.js` 1.15.0 → **1.15.1**, `typescript` 5.5.4 → **5.9.3**
+
+**Palier 2 — Vite 5 → 7** :
+- `vite` 5.4.21 → **7.3.7**, `@vitejs/plugin-react` 4.7.0 → **5.2.0**, `vite-plugin-mkcert` 1.17.12 → **2.1.0**
+
+**Palier 2bis — Electron 44 → 45 (sécurité)** :
+- `electron` 44.9.3 → **45.0.0** (montée majeure pour la sécurité, exigée avant diffusion)
+
+**Palier 3 — React 18 → 19 (majeur cassant)** :
+- `react` + `react-dom` 18.3.1 → **19.3.1** (montés ensemble)
+- `@types/react` + `@types/react-dom` → **19.3.0**
+- `react-router-dom` 6.30.6 → **7.18.4** (compatible React >=18)
+
+**Vérifications** : `npx tsc -b` OK, `npx vite build` OK (206 modules), **36/36 suites de tests, 708/708 contrôles réussis**, **0 vulnérabilité npm**.
+
+**Note** : snapshot `icones.json` mis à jour (React 19 ajoute `<link rel="preload" as="image">` avant les `<img>` externes dans `renderToStaticMarkup` — comportement attendu, inchangé visuellement).
+
+**Branche `draft-deps` supprimée** après merge. Le chantier est terminé.
+
+---
+
+## 23/10/2026 — PROPAGATION : PR #14 (TODO §25, pages « Carrière »/« Accomplissements ») répercutée sur les branches de chantier
+
+**Propagation** : la PR #14 (merge sur `main`, livraison TODO §25 : pages « Carrière » et « Accomplissements » dédiées, ouvertes par les boutons du bloc Connexion) a été répercutée sur les 6 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `test`.
+
+**Conflits résolus** :
+- `draft-deps`, `draft-netlify` : conflit `CHANGELOG.md` (entrées de la branche vs entrées du 23/10 de main) — résolu en gardant les entrées de la branche puis celles de main.
+- `draft-armure-score`, `draft-legendarium`, `draft-sec`, `test` : merge direct sans conflit.
+
+**Note** : sur `draft-deps`, le contrôle `icones.test.tsx` « element:officielle » échoue **déjà avant** la propagation (pré-existant sur cette branche, hors périmètre de ce merge) — à traiter sur cette branche.
+
+**Branches** : `draft-update-carriere` est **supprimée** (livrée). La suite fonctionnelle (affichage des Triomphes dans « Accomplissements ») démarre sur la nouvelle branche **`draft-update-triomphes`** (nouvel item TODO n°23).
+
+**Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — LIVRAISON TODO §25 (merge de `draft-update-carriere` sur `main`)
+
+---
 
 ## 23/10/2026 — NETLIFY : propagation de `main` + `draft-deps` dans `draft-netlify`, build strict rétabli
 
