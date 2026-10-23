@@ -4,6 +4,16 @@
 
 ---
 
+## 23/10/2026 — PROPAGATION : PR #17 (TODO n°23, page Accomplissements) répertutée sur les branches de chantier
+
+**Propagation** : la livraison TODO n°23 (PR #17, page « Accomplissements » — Triomphes du compte par sceau) a été répertutée sur les 6 branches de chantier actives : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`. Merge propre sans conflit sur les 6 branches.
+
+**Branche supprimée** : `draft-update-triomphes` (livrée).
+
+**Version inchangée (0.5.1).**
+
+---
+
 ## 23/10/2026 — LIVRAISON TODO n°23 : page « Accomplissements » — Triomphes du compte par sceau (PR #17)
 
 **Demande de l'utilisateur** : la page « Accomplissements » affichait un placeholder « 🚧 Bientôt ». Livraison de l'affichage complet des Triomphes du compte — obtenus et à obtenir — groupés **par sceau** (hiérarchie Collections→Sceaux du jeu).
