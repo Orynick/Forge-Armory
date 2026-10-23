@@ -1,3 +1,32 @@
+<<<<<<< HEAD
+## 23/10/2026 — PAGE « ACCOMPLISSEMENTS » : les Triomphes du compte, PAR SCEAU (TODO n°23, branche `draft-update-triomphes`)
+
+**Demande de l'utilisateur (23/10/2026)** : la page « Accomplissements » affiche désormais **tous les Triomphes du compte — obtenus et à obtenir — groupés PAR SCEAU** (décision de l'utilisateur : « Je préfère la proposition par Sceau. Moins bordélique. »), comme la hiérarchie Collections→Sceaux du jeu. La vitrine « Solo sans mourir » reste **uniquement** dans le tiroir du Build Analyzer.
+
+**Nouveau modèle** (`src/lib/bungie/sceaux.ts`, lecture seule) :
+- `regrouperParSceau(db, profil)` : croise l'arbre « Triumphs » du Manifest (racine nœud 1163735237, scope 1 = compte → catégories → **sceaux** = nœuds avec `completionRecordHash` → leurs records) avec l'état des records du profil (composant 900, `profileRecords`). **Portée PROFIL uniquement** (scope 0) : les triomphes de portée personnage (ceux du tiroir « Solo sans mourir ») sont exclus. Un triomphe **absent du profil est « à obtenir »** (affiché, jamais masqué) ; un record masqué (`redacted`) ou sans nom est exclu/hash brut — **jamais d'estimation**.
+- `compteursGlobaux` : « X / Y triomphes obtenus · score total » (somme des `completionInfo.ScoreValue` des triomphes **obtenus** ; « non disponible » si aucun score connu).
+- `filtrerSceaux` : **recherche avancée** — réutilise la machinerie du Legendarium (`parserRecherche`/`correspondRecherche`, désormais exportées) : guillemets `"phrase exacte"`/`« »`, `+obligatoire`, `-exclu`, case **« Respecter la casse »** (insensible par défaut). Exemple : `+"sans mourir" -gambit "Chute de la Maison"`. La recherche porte sur le nom + la description de chaque triomphe, **plus le nom du sceau et de son regroupement** (si le sceau correspond, tous ses triomphes remontent).
+- `trierSceaux` : par **progression** (défaut : complétés d'abord, puis ratio décroissant, nom en recours) ou par **nom** (alphabétique FR).
+
+**Page** (`src/components/VueAccomplissements.tsx`, réécrite) : props `{ profil, db }` (câblées dans `DashboardPage` : `profil={profilTriomphes} db={db}`). Compteur global en tête, champ de recherche + case « Aa » + sélecteur de tri, **sceaux repliés par défaut** (comme le Legendarium) avec icône, barre de progression « X/Y (N %) » et titre du sceau (« débloqué » à 100 %) ; chaque triomphe : icône, nom, description, progression des objectifs (« 3 / 10 »), badge ✅/⬜, points. Replis : pas de profil → « Connectez-vous… » ; pas de Manifest → avertissement « non disponibles ».
+
+**Types** (`src/types/manifest.ts`) : `DestinyPresentationNodeDefinition` gagne `completionRecordHash`/`objectiveHash` ; `DestinyRecordDefinition` gagne `scope`, `objectiveHashes`, `completionInfo.ScoreValue`, `titleInfo` (`hasTitle`, `titlesByGender`).
+
+**Tests** : `tests/logique/sceaux.test.ts` (nouveau, **24/24** : regroupement par sceau, exclusion portée personnage/records masqués, état bitfield, titre débloqué, compteurs globaux, recherche avancée complète, tri, replis) ; `cablage-forge.test.ts` et `vue-carriere.py` mis à jour (montage `profil={profilTriomphes} db={db}`, plus de « Bientôt ») ; `tests/ui/entree-vue-accomplissements.tsx` + `vue-accomplissements.py` (nouveau : compteur global, sceaux repliés, recherche avancée, casse, tri, replis). `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **37/37 suites, 740/740 contrôles** ✓, pages UI construites ✓, `ast.parse` OK. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**TODO.md** : item n°23 — spécification validée (par sceau + compteur global + recherche avancée casse/`""`/`+`/`-`).
+
+**Version inchangée (0.5.0).**
+=======
+## 23/10/2026 — PROPAGATION : chantier `draft-deps` (dépendances majeures) répercuté sur `draft-update-triomphes`
+
+**Propagation** : `main` (incluant le merge de `draft-deps` — Vite 7, React 19, Electron 45) a été mergé dans `draft-update-triomphes`. Conflit CHANGELOG résolu (entrées de la branche + entrées main conservées).
+
+**Vérifié** : `npx tsc -b` OK, `npm run build` OK, `npm run test:logique` 36/36 suites, 716/716 contrôles réussis.
+
+---
+
 ## 23/10/2026 — PAGE « ACCOMPLISSEMENTS » : les Triomphes du compte, PAR SCEAU (TODO n°23, branche `draft-update-triomphes`)
 
 **Demande de l'utilisateur (23/10/2026)** : la page « Accomplissements » affiche désormais **tous les Triomphes du compte — obtenus et à obtenir — groupés PAR SCEAU** (décision de l'utilisateur : « Je préfère la proposition par Sceau. Moins bordélique. »), comme la hiérarchie Collections→Sceaux du jeu. La vitrine « Solo sans mourir » reste **uniquement** dans le tiroir du Build Analyzer.
@@ -36,7 +65,53 @@
 
 **TODO.md** : l'item 23 (boutons « Carrière »/« Accomplissements ») est retiré (résolu) et remplacé par un **nouvel item 23** : « Page « Accomplissements » : afficher les Triomphes du compte » (branche `draft-update-triomphes`).
 
+---
+
+## 23/10/2026 — DÉPENDANCES : CHANTIER `draft-deps` TERMINÉ (merge sur `main`)
+
+Merge de la branche `draft-deps` (PR #7) sur `main` : mise à jour complète des dépendances majeures en 3 paliers + 1 palier intermédiaire.
+
+**Palier 1 — Mises à jour patchs (sûr)** :
+- `electron` 44.9.0 → **44.9.3**, `sql.js` 1.15.0 → **1.15.1**, `typescript` 5.5.4 → **5.9.3**
+
+**Palier 2 — Vite 5 → 7** :
+- `vite` 5.4.21 → **7.3.7**, `@vitejs/plugin-react` 4.7.0 → **5.2.0**, `vite-plugin-mkcert` 1.17.12 → **2.1.0**
+
+**Palier 2bis — Electron 44 → 45 (sécurité)** :
+- `electron` 44.9.3 → **45.0.0** (montée majeure pour la sécurité, exigée avant diffusion)
+
+**Palier 3 — React 18 → 19 (majeur cassant)** :
+- `react` + `react-dom` 18.3.1 → **19.3.1** (montés ensemble)
+- `@types/react` + `@types/react-dom` → **19.3.0**
+- `react-router-dom` 6.30.6 → **7.18.4** (compatible React >=18)
+
+**Vérifications** : `npx tsc -b` OK, `npx vite build` OK (206 modules), **36/36 suites de tests, 708/708 contrôles réussis**, **0 vulnérabilité npm**.
+
+**Note** : snapshot `icones.json` mis à jour (React 19 ajoute `<link rel="preload" as="image">` avant les `<img>` externes dans `renderToStaticMarkup` — comportement attendu, inchangé visuellement).
+
+**Branche `draft-deps` supprimée** après merge. Le chantier est terminé.
+
+---
+
+## 23/10/2026 — PROPAGATION : PR #14 (TODO §25, pages « Carrière »/« Accomplissements ») répercutée sur les branches de chantier
+
+**Propagation** : la PR #14 (merge sur `main`, livraison TODO §25 : pages « Carrière » et « Accomplissements » dédiées, ouvertes par les boutons du bloc Connexion) a été répercutée sur les 6 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `test`.
+
+**Conflits résolus** :
+- `draft-deps`, `draft-netlify` : conflit `CHANGELOG.md` (entrées de la branche vs entrées du 23/10 de main) — résolu en gardant les entrées de la branche puis celles de main.
+- `draft-armure-score`, `draft-legendarium`, `draft-sec`, `test` : merge direct sans conflit.
+
+**Note** : sur `draft-deps`, le contrôle `icones.test.tsx` « element:officielle » échoue **déjà avant** la propagation (pré-existant sur cette branche, hors périmètre de ce merge) — à traiter sur cette branche.
+
+**Branches** : `draft-update-carriere` est **supprimée** (livrée). La suite fonctionnelle (affichage des Triomphes dans « Accomplissements ») démarre sur la nouvelle branche **`draft-update-triomphes`** (nouvel item TODO n°23).
+
 **Version inchangée (0.5.0).**
+
+---
+
+## 22/10/2026 — LIVRAISON TODO §25 (merge de `draft-update-carriere` sur `main`)
+
+Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carrière » et « Accomplissements » dédiées, toutes les stats traduites (74 statIds), temps de jeu corrigé, sections « Personnages »/« 10 dernières activités »/« Saison » supprimées — voir les entrées du 22/10/2026 ci-dessous.
 
 ---
 
@@ -58,7 +133,16 @@
 - Vérification croisée (script) : **les 66 statIds de la capture de l'utilisateur ont TOUS un libellé FR** (aucun manquant, aucun libellé identique au statId brut).
 - `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites** ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
 
-**Version inchangée (0.5.0).**
+---
+
+## 23/10/2026 — PROPAGATION : PR #13 (nettoyage TODO) + PR #15 (doc README/NOTICE) répercuteées sur les branches de chantier
+
+**Propagation** : les deux PRs mergées sur `main` (PR #13 : nettoyage de la TODO section Confort ; PR #15 : mise à jour README + NOTICE après livraison Legendarium v0.5.0) ont été répertutées sur les 7 branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `draft-update-carriere`, `test`.
+
+**Conflits résolus** :
+- `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec` : conflit `README.md` (ligne Legendarium « en construction » vs nouvelle entrée) — résolu en gardant les lignes spécifiques à la branche + la nouvelle entrée Legendarium.
+- `draft-update-carriere` : conflits `CHANGELOG.md` (entrée Carrière §25 + entrées main), `TODO.md` (item 23 résolu sur cette branche → retiré), `DashboardPage.tsx` et `cablage-forge.test.ts` (code spécifique Carrière conservé). Tests : **36/36 suites, 710/710 contrôles** ✓.
+- `test` : merge direct sans conflit.
 
 ---
 
