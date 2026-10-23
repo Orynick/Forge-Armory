@@ -17,9 +17,9 @@ d'un éventuel problème. Ce chantier est dédié, sur sa propre branche `draft-
 | `@types/react` | 18.3.x | 19.3.0 | **19.x** | À monter avec react |
 | `@types/react-dom` | 18.3.x | 19.3.0 | **19.x** | À monter avec react |
 | `react-router-dom` | 6.30.6 | 7.18.4 | 7.x (optionnel) | Compatible React 18 **et** 19 — peut attendre |
-| `vite` | 5.4.21 | 8.3.4 | **7.x** d'abord | Voir stratégie ci-dessous |
-| `@vitejs/plugin-react` | 4.7.0 | 6.1.2 | **5.2.0** | 5.2.0 accepte Vite 4→8 (peer `^4.2.0 \|\| ^5.0.0 \|\| ^6.0.0 \|\| ^7.0.0 \|\| ^8.0.0`) |
-| `vite-plugin-mkcert` | 1.17.12 | 2.1.0 | 2.x (optionnel) | Vérifier compatibilité Vite 7 |
+| `vite` | **7.3.7** ✅ | 8.3.4 | **7.x** d'abord | Palier 2 terminé |
+| `@vitejs/plugin-react` | **5.2.0** ✅ | 6.1.2 | **5.2.0** | Palier 2 terminé (accepte Vite 4→8) |
+| `vite-plugin-mkcert` | **2.1.0** ✅ | 2.1.0 | 2.x | Palier 2 terminé (compatible Vite >=3) |
 | `typescript` | 5.9.3 | 7.0.2 | 5.9.x (conservateur) | TS 7 est très récent — attendre la maturité |
 | `electron` | **44.9.3** ✅ | 44.9.3 | 44.9.3 (patch) | Palier 1 terminé |
 | `sql.js` | **1.15.1** ✅ | 1.15.1 | 1.15.1 (patch) | Palier 1 terminé |
@@ -33,13 +33,20 @@ d'un éventuel problème. Ce chantier est dédié, sur sa propre branche `draft-
 
 **Résultat** : `npx tsc -b` OK, `npx vite build` OK, 36/36 suites de tests, 708/708 contrôles réussis.
 
-### Palier 2 — Vite 5 → 7 (majeur, mais plugin-react 5.2.0 compatible)
-- `vite` 5.4.21 → **7.3.7**
-- `@vitejs/plugin-react` 4.7.0 → **5.2.0** (dernier 5.x, accepte Vite 4 à 8)
+### Palier 2 — Vite 5 → 7 (majeur, mais plugin-react 5.2.0 compatible) ✅ **TERMINÉ**
+- `vite` 5.4.21 → **7.3.7** ✅
+- `@vitejs/plugin-react` 4.7.0 → **5.2.0** ✅ (dernier 5.x, accepte Vite 4 à 8)
+- `vite-plugin-mkcert` 1.17.12 → **2.1.0** ✅ (compatible Vite >=3)
 - ⚠️ **Ne pas viser Vite 8 directement** : `@vitejs/plugin-react@6` (requis pour
   Vite 8) embarque `babel-plugin-react-compiler` et `@rolldown/plugin-babel` —
   c'est un changement d'architecture (Rolldown) qui mérite son propre test.
-- Vérifier `vite-plugin-mkcert` (1.17.12 → 2.1.0 ?) pour compatibilité Vite 7.
+
+**Compatibilité vérifiée** :
+- `@vitejs/plugin-react@5.2.0` : peer `vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0` ✅
+- `vite-plugin-mkcert@2.1.0` : peer `vite: >=3` ✅
+- Vite 7.3.7 : Node `^20.19.0 || >=22.12.0` — on a Node 22.23.3 ✅
+
+**Résultat** : `npx tsc -b` OK, `npx vite build` OK (196 modules), 36/36 suites de tests, 708/708 contrôles réussis.
 
 ### Palier 3 — React 18 → 19 (majeur cassant)
 - `react` + `react-dom` 18.3.1 → **19.2.9** (toujours monter les deux ensemble)
