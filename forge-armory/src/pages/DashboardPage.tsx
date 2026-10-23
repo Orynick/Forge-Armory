@@ -19,6 +19,8 @@ import { BuildDraft, GearPiece, StatKey, SubclassConfig, poserPieceDansBuild } f
 import PilierCarte from "../components/PilierCarte";
 import BlocContexte from "../components/BlocContexte";
 import PanneauTriomphes from "../components/PanneauTriomphes";
+import VueCarriere from "../components/VueCarriere";   // ⚠️ CHANGÉ (22/10/2026, TODO §25) : page « Carrière » du compte (remplace l'ancienne modale du compte)
+import VueAccomplissements from "../components/VueAccomplissements";   // ⚠️ AJOUT (22/10/2026, TODO §25) : page « Accomplissements » du compte
 import { recupererProfilTriomphes } from "../lib/bungie/triomphes";
 import { EVENEMENT_SESSION_EXPIREE, redirigerVersAutorisation, deconnecter, etatSession, SessionExpiree, expirerSessionPourTest, estBureau, connecterViaBureau } from "../lib/bungie/oauth";
 import {
@@ -49,8 +51,10 @@ import SelecteurVues, { VueApp } from "../components/SelecteurVues";
 import PageForge from "../components/PageForge";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : onglet Forge
 import { defilerVers } from "../lib/defilerVers";
 import TitreCategorie from "../components/TitreCategorie";
+import BoutonsVuesCompte from "../components/BoutonsVuesCompte";   // ⚠️ CHANGÉ (21/10/2026) : les deux boutons du bloc Connexion (remplace l'import direct de la fonction des visuels)
 import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic";
 import Bibliotheque from "../components/Bibliotheque";
+import type { ProvenanceObjet } from "../lib/legendarium/types";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : provenance transitoire (fiche Détails → page de Lore)
 import { EtatPonderations, lirePonderations, poidsActifsEnFractions } from "../lib/scoring/ponderations";
 // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - ajustements manuels des stats (boutons −/+ des barres).
 // EN: manual stat adjustments (the −/+ bar buttons).
@@ -73,6 +77,13 @@ export default function DashboardPage() {
   // données ne changent qu'après avoir terminé un donjon, inutile de les
   // recharger à chaque changement d'équipement.
   const [profilTriomphes, setProfilTriomphes] = useState<unknown | null>(null);
+  // FR : ⚠️ AJOUT (22/10/2026, retour utilisateur en test : « non disponible » pour le temps de jeu sur
+  // la page Carrière) : le PROFIL COMPLET brut (composant 200 : `characters.data[*].minutesPlayedTotal`),
+  // tel que retourné par `recupererResumeEtPersonnages` (MÊME appel réseau que le résumé : rien en plus).
+  // C'est LUI qui alimente la page Carrière en temps de jeu ; le `profilTriomphes` (composant 900 seul)
+  // ne contient pas le temps de jeu, d'où les « non disponible » constatés.
+  // EN: ADDED - the raw full profile (component 200, per-character playtime), for the Career page.
+  const [profilComplet, setProfilComplet] = useState<unknown | null>(null);
   const [db, setDb] = useState<Database | null>(null);
   // FR : ⚠️ AJOUT (06/10/2026) - mode diagnostic (réglable depuis le pied de page, actif aussi dans l'appli installée) : voir lib/modeDiagnostic.ts.
   const modeDiagnostic = useModeDiagnostic();
@@ -213,6 +224,17 @@ export default function DashboardPage() {
     setVue(cibleForge?.origine ?? "analyseur");
     setCibleForge(null);
   }
+  // FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - LIEN PROFOND fiche Détails → Legendarium (spécification §6, piste (a) retenue : bascule de vue interne avec état en mémoire, PAS de route React Router, aucune persistance). `cibleLegendarium` mémorise la page cible (forme `item:<hashObjet>`, résolue par `trouverPage` côté Bibliotheque) et la provenance (bouton de retour vers l'objet). Les vues d'origine restent MONTÉES (cachées) : le retour retrouve tout tel quel.
+  const [cibleLegendarium, setCibleLegendarium] = useState<{ pageId: string; provenance: ProvenanceObjet } | null>(null);
+  function ouvrirLoreDepuisObjet(itemHash: number, nomObjet: string) {
+    setCibleLegendarium({ pageId: `item:${itemHash}`, provenance: { itemHash, nomObjet, origine: vue === "forge" ? "forge" : vue === "loadouts" ? "loadouts" : "analyseur" } });
+    setVue("bibliotheque");
+    window.scrollTo({ top: 0 });
+  }
+  function retourDepuisLegendarium() {
+    setVue(cibleLegendarium?.provenance.origine ?? "analyseur");
+    setCibleLegendarium(null);
+  }
   // FR : ⚠️ AJOUT (07/10/2026, v0.3.7) - après « Charger » dans l'onglet « Load-outs », la page revient au Build Analyzer ET amène le bloc « Mon Build » à l'écran : sans cela, l'utilisateur se retrouvait en haut d'une longue
   // page, loin du build chargé, et croyait à un bug. Le compteur déclenche l'effet ci-dessous à chaque chargement (même si c'est le même build deux fois de suite).
   // EN: ⚠️ ADDED - after "Charger" in the Load-outs tab, the page returns to the Build Analyzer AND brings the "Mon Build" block into view.
@@ -315,6 +337,7 @@ export default function DashboardPage() {
     setEnCours(true);
     setErreurTest(null);
     setResume(null);
+    setProfilComplet(null);
     try {
       const { memberships: comptes, nomBungie: nom } = await recupererComptesBungie();
       setMemberships(comptes);
@@ -327,9 +350,10 @@ export default function DashboardPage() {
       // vous jouez sur plusieurs plateformes non reliées par Cross Save.
       // EN: we take the first linked account for simplicity; refine if you
       // play on several platforms not linked via Cross Save.
-      const { resume: resumeProfil, personnages: listePersonnages } = await recupererResumeEtPersonnages(comptes[0]);
+      const { resume: resumeProfil, personnages: listePersonnages, profil } = await recupererResumeEtPersonnages(comptes[0]);
       setResume(resumeProfil);
       setPersonnages(listePersonnages);
+      setProfilComplet(profil);
 
       // FR : ⚠️ AJOUT (24/08/2026) - triomphes pour la vitrine « Solo sans
       // mourir ». Erreur volontairement ISOLÉE dans son propre try : c'est
@@ -369,6 +393,7 @@ export default function DashboardPage() {
     setResume(null);
     setNomBungie(null);
     setProfilTriomphes(null);
+    setProfilComplet(null);
   }
 
   async function gererExportDim() {
@@ -413,7 +438,8 @@ export default function DashboardPage() {
       (characters, light levels, vault count) is removed. Characters are
       still LOADED (used by Mon Build and Loadouts), just not shown here. */}
       {/* FR : ⚠️ CHANGÉ (07/10/2026, v0.3.17) - le bloc « Connexion à Bungie » n'est PAS repliable (retour de l'utilisateur sur la 0.3.16) : retour à un bloc fixe (<div> + <h3>) avec la version SANS losange + / − du titre. L'essai de la 0.3.16 (bloc repliable) est abandonné. / EN: ⚠️ CHANGED - this block is NOT collapsible (user feedback): back to a fixed block with the no-diamond title. */}
-      <div className="pilier-carte">
+      {/* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur, capture annotée) - une fois CONNECTÉ, la carte passe en grille (classe `pilier-carte--connexion`, voir index.css) pour que les boutons « Carrière » et « Accomplissements » se placent entre le titre et le statut ; hors connexion, mise en page inchangée. / EN: ⚠️ CHANGED - once connected the card becomes a grid so the two buttons sit between the title and the status. */}
+      <div className={`pilier-carte${connecte ? " pilier-carte--connexion" : ""}`}>
         <h3><TitreCategorie categorie="connexion" /><span>{connecte ? "✅ connecté" : "◯ non connecté"}</span></h3>
         {!connecte && (
           <p style={{ margin: "0 0 0.5rem" }}>Cliquez pour vous connecter — vous serez redirigé vers bungie.net.</p>
@@ -434,7 +460,7 @@ export default function DashboardPage() {
             reprendre — vos builds enregistrés ne sont pas affectés.
           </p>
         )}
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+        <div className="connexion-compte" style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
           {/* FR : nom Bungie si Bungie l'a fourni, sinon nom de plateforme
           du premier compte Destiny (même valeur qu'avant ce changement).
           EN: Bungie name when provided, else the platform name (as before). */}
@@ -514,6 +540,8 @@ export default function DashboardPage() {
         </div>
 
         {erreurTest && <p style={{ color: "#e08080", margin: "0.5rem 0 0" }}>⚠️ {erreurTest}</p>}
+        {/* FR : ⚠️ CHANGÉ (22/10/2026, TODO §25) - « Carrière » (au-dessus) et « Accomplissements » ouvrent chacun une PAGE DÉDIÉE du compte (plus de pop-up ni de tiroir). Le bloc Connexion et le sélecteur de vues (4 onglets) restent affichés : le bug §25 (la pop-up ne s'ouvrait pas hors Build Analyzer) est résolu par construction. ⚠️ Les pages ne sont PAS des onglets du sélecteur (retour utilisateur : « les boutons apparaissent en double ») : elles n'y figurent pas, seul le bloc Connexion porte ces deux boutons. ⚠️ 21/10 (suite 8) : le déplacement hors du bloc Connexion (testé en suite 7) reste ANNULÉ — régression signalée par l'utilisateur. / EN: the two buttons now open dedicated pages; the Connection block and the selector stay visible; the pages are NOT selector tabs (no duplicates). */}
+        {connecte && <BoutonsVuesCompte onCarriere={() => setVue("carriere")} onAccomplissements={() => setVue("accomplissements")} />}
 
         {memberships.length > 1 && (
           <p style={{ fontSize: "0.8rem", color: "#b7b3a8", margin: "0.5rem 0 0" }}>
@@ -531,8 +559,8 @@ export default function DashboardPage() {
       {/* FR : ⚠️ CHANGÉ (06/10/2026, v0.3.5) - NOUVEAUX BOUTONS (fournis par l'utilisateur) et troisième vue « Load-outs » : voir components/SelecteurVues.tsx. / EN: ⚠️ CHANGED - NEW BUTTONS and a third view. */}
       <SelecteurVues vue={vue} onChanger={setVue} />
 
-      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
-      {vue === "bibliotheque" && <Bibliotheque db={db} />}
+      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} onLireLore={ouvrirLoreDepuisObjet} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
+      {vue === "bibliotheque" && <Bibliotheque db={db} pageCible={cibleLegendarium?.pageId} provenance={cibleLegendarium?.provenance} onRetourObjet={cibleLegendarium ? retourDepuisLegendarium : undefined} />}   {/* ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : lien profond fiche Détails → page de Lore + retour vers l'objet */}
 
       {/* FR : ⚠️ AJOUT (06/10/2026, v0.3.5) - vue « Load-outs » : le MÊME panneau que le tiroir, en pleine page (mode « page »). Le tiroir, lui, est masqué avec la vue Build Analyzer (qui reste montée) : les deux se tiennent
       à jour par l'événement du stockage. « Charger » ramène au Build Analyzer pour montrer le build chargé.
@@ -551,6 +579,18 @@ export default function DashboardPage() {
           db={db}
         />
       )}
+
+      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Carrière » : PAGE dédiée aux statistiques du compte (remplace la modale de la v0.4.14), ouverte par le bouton « Carrière » du bloc Connexion. Le bloc Connexion et le sélecteur de vues (4 onglets, sans ces pages) restent affichés : le bug §25 (pop-up qui ne s'ouvrait pas hors Build Analyzer) est résolu par construction. Lecture seule, chargée à l'ouverture de la page (aucun appel réseau au chargement de l'appli). / EN: the Career page. */}
+      {/* FR : ⚠️ CHANGÉ (22/10/2026, retour utilisateur en test) : la page Carrière reçoit le PROFIL COMPLET
+      (`profilComplet`, composant 200 → temps de jeu par classe) et NON plus `profilTriomphes` (composant 900
+      seul : sans temps de jeu → « non disponible »). / EN: the Career page gets the full profile (playtime). */}
+      {/* FR : ⚠️ CHANGÉ (22/10/2026, demande de l'utilisateur : « Enlève la partie affichant les niveaux de persos
+      ainsi que les 10 dernières activités ») : la prop `personnages` est retirée (la section « Personnages » est
+      supprimée avec la section « 10 dernières activités » — la page ne lit plus que le profil et les stats). */}
+      {vue === "carriere" && <VueCarriere membership={memberships[0] ?? null} profil={profilComplet} />}
+
+      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte, ouverte par le bouton « Accomplissements » du bloc Connexion. ⚠️ CHANGÉ (22/10/2026, retour utilisateur) : la page n'affiche PAS la vitrine « Solo sans mourir » (elle reste dans le tiroir latéral du Build Analyzer) : elle affichera plus tard tous les triomphes obtenus et à obtenir. / EN: the Accomplishments page (placeholder for the account Triumphs; no Solo Flawless showcase here). */}
+      {vue === "accomplissements" && <VueAccomplissements />}
 
       {/* FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - la vue Build Analyzer est
       MASQUÉE (display: none) et non retirée quand la Bibliothèque est
@@ -574,6 +614,7 @@ export default function DashboardPage() {
         cible={cibleInventaire}
         onEffacerCible={() => setCibleInventaire(null)}
         onOuvrirForge={ouvrirForge}   // ⚠️ AJOUT (14/10/2026, v0.4.9) : bouton « Forge » de la fenêtre Détails (Mon Inventaire et Coffre)
+        onLireLore={ouvrirLoreDepuisObjet}   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : bouton « Lire le Lore » de la popup Détails du Build Analyzer
       />
 
       {/* FR : ⚠️ AJOUT (01/10/2026) - contrôle de l'anti-champion des armes exotiques (dev). / EN: exotic anti-champion check (dev). */}
@@ -679,6 +720,7 @@ export default function DashboardPage() {
       EN: ⚠️ ADDED - "Solo Flawless" showcase, LEFT sliding panel mirroring
       the loadouts on the right. Also `fixed`, so its JSX position doesn't
       affect where it appears. */}
+      {/* FR : ⚠️ CHANGÉ (22/10/2026, TODO §25) - le tiroir « Solo sans mourir » RETROUVE son état interne (plus de navigation croisée Carrière ↔ Accomplissements : les deux vues du compte sont des ONGLETS). / EN: the drawer is self-contained again. */}
       <PanneauTriomphes profil={profilTriomphes} db={db} />
 
       <PanneauLoadouts

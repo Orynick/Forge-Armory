@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="fa-icones-icone-build-analyzer-title fa-icones-icone-build-analyzer-desc">
+  <title id="fa-icones-icone-build-analyzer-title">Forge Armory — Build Analyzer (icône)</title>
+  <desc id="fa-icones-icone-build-analyzer-desc">Emblème Forge Armory (papillon argenté dans un cercle, cristaux cyan) et titre Build Analyzer.</desc>
+  <defs>
+    <linearGradient id="fa-icones-icone-build-analyzer-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-build-analyzer-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-build-analyzer-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-build-analyzer-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-build-analyzer-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-icones-icone-build-analyzer-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-icones-icone-build-analyzer-silver)" stroke-width="22"/>
+    <g transform="translate(512 512) scale(1.0000) translate(-511 -549.5)"><path d="M 779 331 L 775 332 L 743 352 L 607 443 L 566 473 L 542 497 L 542 499 L 561 513 L 576 531 L 587 550 L 594 569 L 599 569 L 653 550 L 684 537 L 699 529 L 743 419 L 778 337 Z" fill="url(#fa-icones-icone-build-analyzer-silver)"/><path d="M 245 331 L 325 530 L 371 550 L 429 569 L 436 551 L 443 538 L 458 518 L 472 505 L 481 499 L 479 493 L 453 469 L 408 437 L 254 335 Z" fill="url(#fa-icones-icone-build-analyzer-silver)"/><path d="M 433 590 L 410 580 L 393 575 L 378 573 L 364 584 L 340 607 L 307 645 L 310 659 L 326 706 L 330 731 L 329 752 L 325 772 L 319 792 L 308 818 L 310 818 L 389 759 L 413 736 L 435 708 L 435 701 L 430 695 L 412 664 L 415 663 L 431 667 L 450 668 L 460 641 L 464 621 L 455 608 Z" fill="url(#fa-icones-icone-build-analyzer-silver)"/><path d="M 591 590 L 578 599 L 567 610 L 559 622 L 559 627 L 563 641 L 573 668 L 594 667 L 608 663 L 611 664 L 596 691 L 587 703 L 588 708 L 605 731 L 631 757 L 674 790 L 709 815 L 714 817 L 714 814 L 702 788 L 694 757 L 692 736 L 696 707 L 716 646 L 684 608 L 666 590 L 645 573 L 639 573 L 614 580 Z" fill="url(#fa-icones-icone-build-analyzer-silver)"/><path d="M 483 517 L 470 528 L 457 545 L 448 562 L 444 573 L 444 578 L 455 586 L 467 598 L 479 616 L 480 625 L 498 695 L 505 731 L 507 731 L 504 661 L 501 627 L 485 517 Z" fill="url(#fa-icones-icone-build-analyzer-silver)"/><path d="M 541 517 L 539 517 L 536 531 L 522 636 L 518 695 L 518 728 L 520 728 L 545 614 L 554 601 L 571 584 L 580 578 L 580 574 L 575 561 L 566 544 L 556 531 Z" fill="url(#fa-icones-icone-build-analyzer-silver)"/><path d="M 511 411 L 498 415 L 491 420 L 485 427 L 479 441 L 477 460 L 492 477 L 502 497 L 504 497 L 504 489 L 500 468 L 486 454 L 486 446 L 490 444 L 507 448 L 509 455 L 509 465 L 515 465 L 516 449 L 536 444 L 538 448 L 538 454 L 528 462 L 523 469 L 519 500 L 521 500 L 531 478 L 547 460 L 547 454 L 542 432 L 536 423 L 528 416 L 522 413 Z" fill="url(#fa-icones-icone-build-analyzer-silver)"/></g>
+    
+    <g filter="url(#fa-icones-icone-build-analyzer-glow)">
+      <path d="M 512 110 L 512 282 L 491 189.12 Z" fill="url(#fa-icones-icone-build-analyzer-cyanL)"/>
+      <path d="M 512 110 L 533 189.12 L 512 282 Z" fill="url(#fa-icones-icone-build-analyzer-cyanR)"/>
+      <path d="M 512 122 L 514.2 189.12 L 512 270 L 509.8 189.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 175.12 L 515 186.12 L 526 189.12 L 515 192.12 L 512 203.12 L 509 192.12 L 498 189.12 L 509 186.12 Z" fill="#ffffff"/>
+    </g>
+    
+    <g filter="url(#fa-icones-icone-build-analyzer-glow)">
+      <path d="M 512 744 L 512 916 L 491 823.12 Z" fill="url(#fa-icones-icone-build-analyzer-cyanL)"/>
+      <path d="M 512 744 L 533 823.12 L 512 916 Z" fill="url(#fa-icones-icone-build-analyzer-cyanR)"/>
+      <path d="M 512 756 L 514.2 823.12 L 512 904 L 509.8 823.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 809.12 L 515 820.12 L 526 823.12 L 515 826.12 L 512 837.12 L 509 826.12 L 498 823.12 L 509 820.12 Z" fill="#ffffff"/>
+    </g>
+  </g>
+</svg>

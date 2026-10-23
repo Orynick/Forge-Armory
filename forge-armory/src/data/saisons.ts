@@ -29,5 +29,8 @@ const SAISONS_OBJETS = saisonsObjetsJson as Record<string, number>;
 /** FR : le numéro de saison d'un OBJET par son hash (table d2-additional-info), ou undefined — jamais estimé. / EN: an item's season number by its hash, or undefined. */
 export function saisonDeLObjet(itemHash: number | undefined): number | undefined {
   if (itemHash == null) return undefined;
-  return SAISONS_OBJETS[String(itemHash)];
+  // ⚠️ CHANGÉ (22/10/2026, suite 11 Legendarium, validation VRAI Manifest) : le JSON de DIM stocke les hashes en NON SIGNÉ 32 bits (ex: 2147961687), mais les hashes du Manifest (colonne `id` SQLite, champ `hash` des définitions) sont SIGNÉS (ex: -2147005609). On teste les DEUX formes : d'abord le hash tel quel (cas positif), puis sa forme non signée (cas négatif). Sans cela, la moitié des objets (hash > 0x7FFFFFFF, soit ~29 000 entrées sur 57 439) ne trouvait JAMAIS sa saison via cette table — dont TOUTES les armures avec collectible (elles n'ont pas de seasonHash dans le Manifest). C'EST LE VRAI BUG : les ensembles d'armures n'étaient jamais datés, l'ordre chronologique des ensembles ne fonctionnait pas. / EN: CHANGED - DIM's JSON stores hashes as UNSIGNED 32-bit (e.g. 2147961687), but Manifest hashes (SQLite `id` column, `hash` field of definitions) are SIGNED (e.g. -2147005609). Test BOTH forms: the hash as-is (positive case), then its unsigned form (negative case). Without this, half the items (hash > 0x7FFFFFFF, ~29,000 of 57,439 entries) NEVER found their season through this table — including ALL armor with a collectible (they carry no seasonHash in the Manifest). THIS WAS THE REAL BUG: armor sets were never dated, the chronological ordering of sets didn't work.
+  const direct = SAISONS_OBJETS[String(itemHash)];
+  if (direct !== undefined) return direct;
+  return SAISONS_OBJETS[String(itemHash >>> 0)];
 }

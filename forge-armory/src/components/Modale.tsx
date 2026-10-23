@@ -17,6 +17,8 @@ interface Props {
   fermerSurFond?: boolean;
 }
 
+// FR : ⚠️ RETIRÉ (22/10/2026, TODO §25) - la prop `apresTitre` (bouton « Accomplissements » à droite du titre de la modale Carrière, 21/10/2026) n'est plus utilisée : la modale Carrière est supprimée, remplacée par la page « Carrière » (onglet). L'en-tête redevient un simple titre + croix, comme avant le 21/10. / EN: `apresTitre` removed (the Career modal is gone).
+
 export default function Modale({ titre, onFermer, children, largeur = 420, fermerSurFond = false }: Props) {
   useEffect(() => {
     const surTouche = (e: globalThis.KeyboardEvent) => {

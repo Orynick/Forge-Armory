@@ -6,6 +6,7 @@ import FiligraneSaison from "./FiligraneSaison";
 import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import { useEffect, useMemo, useState } from "react";
 import type { Database } from "sql.js";
+import BoutonLireLore from "./BoutonLireLore";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : bouton « Lire le Lore » (fiche → page de Lore)
 import type { DestinyMembership } from "../lib/bungie/api";
 import { construireCatalogueArmes, filtrerArmes, valeursDistinctes, FILTRES_ARMES_PAR_DEFAUT, ArmeCatalogue, FiltresArmes } from "../lib/manifest/catalogueArmes";
 import { lireCollections, classerObtention, ObtenusParCollectible } from "../lib/bungie/collections";
@@ -27,9 +28,11 @@ const couleurRarete = (a: ArmeCatalogue) => (a.estExotique ? "#ceae33" : a.raret
 interface Props {
   db: Database | null;
   membership: DestinyMembership | null;
+  /** FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - clic du bouton « Lire le Lore » (fiche Détails → Legendarium). / EN: ⚠️ ADDED - "Read the Lore" click (Details sheet → Legendarium). */
+  onLireLore?: (itemHash: number, nomObjet: string) => void;
 }
 
-export default function CollectionArmes({ db, membership }: Props) {
+export default function CollectionArmes({ db, membership, onLireLore }: Props) {
   const [armes, setArmes] = useState<ArmeCatalogue[] | null>(null);
   const [lues, setLues] = useState(0);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -136,6 +139,8 @@ export default function CollectionArmes({ db, membership }: Props) {
               </span>
               <button onClick={() => setOuverte(null)} aria-label="Fermer">✕</button>
             </div>
+            {/* FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - « Lire le Lore » : EN HAUT DE FICHE, JUSTIFIÉ À DROITE, SOUS LA CROIX (spécification §6), affiché UNIQUEMENT si l'objet a un Lore. / EN: ⚠️ ADDED - "Read the Lore": top of sheet, right-justified, under the close cross (spec §6), shown ONLY if the item has a lore. */}
+            {onLireLore && <BoutonLireLore db={db} itemHash={ouverte.hash} nomObjet={ouverte.nom ?? ""} onLireLore={onLireLore} />}
             <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0.2rem 0 0.6rem" }}>{[ouverte.type, ouverte.rarete, LIBELLES_SLOT[ouverte.slot], libelleElement(ouverte.element), ouverte.armature].filter(Boolean).join(" · ")} — consultation seule</p>
             <label style={{ fontSize: "0.8rem", display: "inline-flex", gap: "0.4rem", alignItems: "center", marginBottom: "0.6rem" }}>
               <input type="checkbox" checked={voirInutiles} onChange={(e) => setVoirInutiles(e.target.checked)} /> Afficher les perks inutiles
