@@ -16,6 +16,8 @@
 
 **Version inchangée (0.5.0).**
 
+**Propagation** : le correctif (PR #12) a été répercuté sur les branches de chantier actives pour limiter les conflits futurs : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-netlify`, `draft-sec`, `test`.
+
 ---
 
 ## 22/10/2026 — v0.5.0 : LIVRAISON LEGENDARIUM — NOUVELLE VERSION MAJEURE
