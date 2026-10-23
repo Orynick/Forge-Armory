@@ -547,17 +547,19 @@ n'apparaît qu'à `npm run build`.
 de données, impression PDF), le Manifest réel, la police de Windows. Toute livraison doit le dire explicitement, et la liste de tests commence par `npm.cmd run build`.
 
 
-### 23. Page « Accomplissements » : afficher les Triomphes du compte (branche `draft-update-triomphes`)
+### 23. Page « Accomplissements » : afficher les Triomphes du compte ✅ LIVRÉ (23/10/2026, PR #17)
 
-Demande de l'utilisateur (22/10/2026, à la livraison de TODO §25) : la page « Accomplissements » affiche pour l'instant un emplacement réservé (« 🚧 Bientôt : tous vos Triomphes de compte — obtenus et à obtenir. »). **À construire : l'affichage des Triomphes du compte** — triomphes OBTENUS et À OBTENIR.
-Contexte : l'item 23 (boutons « Carrière »/« Accomplissements ») est RÉSOLU (pages dédiées, voir CHANGELOG 22/10/2026) ; cet item en est la **suite fonctionnelle** (l'utilisateur l'avait anticipée : « elle affichera plus tard tous les triomphes obtenus et à obtenir »).
-Données déjà disponibles : `recupererProfilTriomphes` (`src/lib/bungie/triomphes.ts`) charge `GetProfile?components=900` (records) — le profil des triomphes est déjà téléchargé au « Tester la connexion » et passé au tiroir « Solo sans mourir » (`PanneauTriomphes`, `VitrineSoloFlawless` lit `profileRecords`/`characterRecords`). La page « Accomplissements » (`VueAccomplissements`, sans props pour l'instant) devra recevoir ce profil.
-**Spécification VALIDÉE par l'utilisateur (23/10/2026)** : présentation **par sceau** (hiérarchie Collections→Sceaux du jeu : liste des sceaux → clic → triomphes du sceau, barre de progression, titre débloqué à 100 %) — l'utilisateur a rejeté la liste plate (« moins bordélique »).
-- **Compteur global en tête** : « X / Y triomphes obtenus · score total » (le meilleur des deux mondes).
-- **Recherche** dans TOUS les sceaux (nom + description des triomphes), avec la syntaxe avancée déjà existante (`parserRecherche` du Legendarium : guillemets `"phrase exacte"`/`« »`, `+obligatoire`, `-exclu`) + **case** : case `Respecter la casse` (insensible par défaut). Exemple donné : `+"solo sans mourir" -gambit "Chute de la Maison"`.
-- **Sceaux repliés par défaut** (comme le Legendarium), **triables par progression ou par nom**.
-- Données : profil composant 900 (`profileRecords` + `characterRecords`, état `state` bitfield) croisedées avec le Manifest (`DestinyRecordDefinition`, `DestinyPresentationNodeDefinition` : nœuds avec `completionRecordHash` = sceaux ; racine « Triumphs » = nœud 1163735237, scope 1 = compte). Triomphes de **profil** uniquement (portée compte). Donnée manquante → « non disponible » (jamais estimée).
-- **⚠️ CORRIGÉ (23/10/2026, retour utilisateur « Aucun sceau trouvé »)** : dans le Manifest actuel, les nœuds sceaux ne sont PAS sous la racine « Triumphs » (1163735237) mais sous une racine séparée « Sceaux/Titres ». La racine est lue **dans le profil** (`recordSealsRootNodeHash`, champ officiel du composant 900 — comme DIM), secours par constantes (1652422747 « Seals » 2018, 616318467 « Titles », 1163735237), puis **scan global** hors Collections/Lore/Metrics/Patterns en dernier recours ; records du sceau lus aussi dans ses sous-nœuds ; le nom de la racine n'est plus utilisé comme catégorie. Tests `sceaux.test.ts` 31/31. **Reste : validation utilisateur en `npm run dev`** (le bac à sable ne peut pas lancer le navigateur ni appeler l'API).
+**LIVRÉ sur `main`** — la page « Accomplissements » affiche désormais **tous les Triomphes du compte — obtenus et à obtenir — groupés PAR SCEAU** (hiérarchie Collections→Sceaux du jeu).
+
+**Réalisé** :
+- **Nouveau modèle** `src/lib/bungie/sceaux.ts` (lecture seule) : `regrouperParSceau(db, profil)` croise l'arbre « Triumphs » du Manifest avec l'état des records du profil (composant 900). Portée PROFIL uniquement. Triomphes absents = « à obtenir » (jamais masqués, jamais estimés).
+- **Compteurs globaux** : « X / Y triomphes obtenus · score total ».
+- **Recherche avancée** : guillemets, `+obligatoire`, `-exclu`, case « Respecter la casse » (réutilise `parserRecherche` du Legendarium).
+- **Sceaux repliés par défaut**, triables par progression ou par nom. Chaque triomphe : icône, nom, description, progression des objectifs, badge ✅/⬜, points.
+- **Correction** (retour utilisateur « Aucun sceau trouvé ») : la racine sceaux est lue dans le profil (`recordSealsRootNodeHash`), secours par constantes, puis scan global.
+- **Tests** : `sceaux.test.ts` **31/31**, `cablage-forge` mis à jour. Batterie : **37/37 suites, 740/740 contrôles** (CI).
+
+**Reste** : validation utilisateur en `npm run dev` (le bac à sable ne peut pas lancer le navigateur ni appeler l'API Bungie).
 
 ### 22. Lien « Contact » en pied de page : rapports de bugs et suggestions des utilisateurs (demande du 06/10/2026)
 
@@ -572,6 +574,10 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 
 
 ---
+
+**Items retirés le 23/10/2026 (livraison PR #17)** — documentés dans `DEVLOG.md` :
+
+- ~~23. Page « Accomplissements » : afficher les Triomphes du compte~~ → ✅ **LIVRÉ** (Triomphes par sceau, recherche avancée, PR #17)
 
 **Items retirés le 22/10/2026 (nettoyage de la TODO)** — tous documentés dans `DEVLOG.md` :
 
