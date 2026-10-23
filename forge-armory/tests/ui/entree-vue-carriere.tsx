@@ -16,9 +16,12 @@ window.fetch = (async (url: RequestInfo | URL) => {
   const u = String(url);
   if (u.includes("/Account/") && u.includes("/Stats/")) {
     if (statsEnEchec) return new Response("Not Found", { status: 404 });
-    // ⚠️ 22/10/2026 (« Toutes les stats ») : 8 stats, dont une INCONNUE (statId brut affiché tel quel) et une DURÉE (affichée en « h min »).
-    const m = (id: string, v: number) => [id, { statId: id, allTime: { basic: { value: v } } }];
-    return json({ mergedAllCharacters: Object.fromEntries([m("kills", 123456), m("deaths", 23456), m("precisionKills", 54321), m("assists", 9876), m("secondsPlayed", 9000000), m("killsDeathsRatio", 5.26), m("statInconnueDeTest", 42), m("activityDurationSeconds", 5400)]) });
+    // ⚠️ 22/10/2026 (« Toutes les stats » + retour réel « statIds retournés : AUCUN ») : STRUCTURE RÉELLE de
+    // GetHistoricalStatsForAccount : `mergedAllCharacters: { results: { <mode>: { allTime: { <statId>: {...} } } }, merged: { allTime: { <statId>: {...} } } }`.
+    // 8 stats dans `merged.allTime` (l'agrégat « Carrière »), dont une INCONNUE (statId brut affiché tel quel) et une DURÉE (affichée en « h min »).
+    const m = (id: string, v: number) => [id, { statId: id, basic: { value: v } }];
+    const huitStats = Object.fromEntries([m("kills", 123456), m("deaths", 23456), m("precisionKills", 54321), m("assists", 9876), m("secondsPlayed", 9000000), m("killsDeathsRatio", 5.26), m("statInconnueDeTest", 42), m("activityDurationSeconds", 5400)]);
+    return json({ mergedDeletedCharacters: { results: {}, merged: { allTime: {} } }, mergedAllCharacters: { results: { allPvE: { allTime: {} }, allPvP: { allTime: {} } }, merged: { allTime: huitStats } }, characters: [] });
   }
   if (u.includes("/Stats/Activities/")) return json({ activities: [{ activityHash: 1, instanceId: "1", mode: 46, period: "2026-10-20T10:00:00Z", values: { activityDurationSeconds: { basic: { value: 1500 } } } }] });
   return new Response("{}", { status: 404 });
@@ -44,7 +47,7 @@ function App() {
       </div>
       <SelecteurVues vue={vue === "carriere" || vue === "accomplissements" ? "analyseur" : vue} onChanger={setVue} />
       {vue === "carriere" && <VueCarriere membership={membership} personnages={personnages} profil={profil} />}
-      {vue === "accomplissements" && <VueAccomplissements profil={profil} db={null} />}
+      {vue === "accomplissements" && <VueAccomplissements />}
       {(vue === "analyseur" || vue === "loadouts" || vue === "forge" || vue === "bibliotheque") && <p style={{ color: "#7d7a70" }}>vue « {vue} » (hors périmètre de ce test)</p>}
     </div>
   );

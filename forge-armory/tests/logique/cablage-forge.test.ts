@@ -46,7 +46,13 @@ ok("⚠️ 21/10 : `ouvrirLoreDepuisObjet` aiguille vers la vue `bibliotheque` a
 ok("⚠️ 22/10 (TODO §25) : les boutons « Carrière » et « Accomplissements » sont DANS le bloc Connexion (masqués hors connexion) et ouvrent chacun une PAGE dédiée du compte (`setVue(\"carriere\")` / `setVue(\"accomplissements\")`) — plus de modale, plus de tiroir externe : le bug §25 est résolu par construction",
   (P.match(/<BoutonsVuesCompte onCarriere=/g) ?? []).length === 1 && /<BoutonsVuesCompte onCarriere=\{\(\) => setVue\("carriere"\)\} onAccomplissements=\{\(\) => setVue\("accomplissements"\)\} \/>/.test(P));
 ok("⚠️ 22/10 (TODO §25) : les deux pages du compte sont montées comme des VUES (`vue === \"carriere\"` / `vue === \"accomplissements\"`), hors du bloc Connexion masqué avec l'analyseur ; la modale `ModaleCarriere` et l'état `tiroirTriomphesOuvert` sont supprimés, le tiroir `PanneauTriomphes` retrouve son état interne",
-  /\{vue === "carriere" && <VueCarriere membership=\{memberships\[0\] \?\? null\} personnages=\{personnages\} profil=\{profilTriomphes\} \/>\}/.test(P) && /\{vue === "accomplissements" && <VueAccomplissements profil=\{profilTriomphes\} db=\{db\} \/>\}/.test(P) && !/<ModaleCarriere|from "\.\.\/components\/ModaleCarriere"/.test(P) && !/tiroirTriomphesOuvert|setTiroirTriomphesOuvert|carriereOuverte|setCarriereOuverte/.test(P) && /<PanneauTriomphes profil=\{profilTriomphes\} db=\{db\} \/>/.test(P));
+  /\{vue === "carriere" && <VueCarriere membership=\{memberships\[0\] \?\? null\} personnages=\{personnages\} profil=\{profilTriomphes\} \/>\}/.test(P) && /\{vue === "accomplissements" && <VueAccomplissements \/>\}/.test(P) && !/<ModaleCarriere|from "\.\.\/components\/ModaleCarriere"/.test(P) && !/tiroirTriomphesOuvert|setTiroirTriomphesOuvert|carriereOuverte|setCarriereOuverte/.test(P) && /<PanneauTriomphes profil=\{profilTriomphes\} db=\{db\} \/>/.test(P));
+{
+  const acc = fs.readFileSync("src/components/VueAccomplissements.tsx", "utf-8");
+  const codeAcc = acc.replace(/\/\*.*?\*\//gs, "").replace(/\/\/[^\n]*/g, "");
+  ok("⚠️ 22/10 (retour utilisateur : « Accomplissement ne doit pas afficher la Vitrine Solo sans mourir ») : la page Accomplissements n'affiche PLUS la vitrine `VitrineSoloFlawless` (elle reste UNIQUEMENT dans le tiroir `PanneauTriomphes`) — la page affiche un emplacement réservé pour les triomphes à venir",
+    !/VitrineSoloFlawless/.test(codeAcc) && /Bientôt/.test(codeAcc) && /import VitrineSoloFlawless/.test(fs.readFileSync("src/components/PanneauTriomphes.tsx", "utf-8")));
+}
 {
   const sel = fs.readFileSync("src/components/SelecteurVues.tsx", "utf-8");
   ok("⚠️ 22/10 (TODO §25, retour utilisateur « les boutons apparaissent en double ») : PAS DE DOUBLON — le sélecteur de vues garde ses QUATRE onglets : « Carrière » et « Accomplissements » n'y figurent PAS (ce sont des pages du compte, ouvertes par les boutons du bloc Connexion)",

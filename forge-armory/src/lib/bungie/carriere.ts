@@ -80,29 +80,40 @@ export interface DiagnosticCarriere {
   erreurStats: string | null;
   /** FR : clés de premier niveau de la réponse (`null` si la requête a échoué). */
   clesReponseStats: string[] | null;
-  /** FR : nombre d'entrées de `metrics` dans la réponse (`null` si ce champ est absent). */
-  nbMetrics: number | null;
+  /** FR : ⚠️ CHANGÉ (22/10/2026, retour réel : « statIds retournés : AUCUN » alors que `mergedAllCharacters` avait 2 entrées) - description de la structure RÉELLE de `mergedAllCharacters` (ex. « merged (allTime : 123 stats), results (allPvE, allPvP : 0 stat fusionné) »), `null` si le champ est absent. / EN: description of the real structure of `mergedAllCharacters`. */
+  structureMergedAllCharacters: string | null;
+  /** FR : d'où viennent les stats affichées : `merged` (allTime, filtre « Carrière » exact) ou `results` (somme des modes, repli). / EN: where the displayed stats come from. */
+  sourceStats: "merged" | "results" | null;
   /** FR : une ligne par personnage dont l'historique d'activités a échoué. */
   erreursActivites: string[];
 }
 
 interface ValeurHistoricalStat {
+  statId?: string;
   basic?: { value?: number; displayValue?: string };
   precision?: { value?: number };
+  pga?: { value?: number };
+  weighted?: { value?: number };
 }
 
-// FR : ⚠️ CHANGÉ (21/10/2026, retour réel du diagnostic) - GetHistoricalStatsForAccount répond
-// `{ mergedAllCharacters: { <statId>: { statId, allTime: { basic, precision? } } } }` (une clé PAR statId,
-// pas de champ `metrics` ; chaque entrée porte elle-même son statId).
-// EN: ⚠️ CHANGED - the account route responds with `mergedAllCharacters`, keyed by statId.
+// FR : ⚠️ CORRIGÉ (22/10/2026, retour RÉEL du diagnostic : « statIds retournés : AUCUN » alors que la
+// réponse contenait `mergedAllCharacters` avec 2 entrées) - la structure RÉELLE de
+// GetHistoricalStatsForAccount est `mergedAllCharacters: { results: { allPvE: { allTime: { <statId>: {...} } },
+// allPvP: { allTime: {...} }, allRaid: {...}, allStory: {...}, … }, merged: { allTime: { <statId>: {...} } } }` :
+// les stats ne sont PAS directement sous `mergedAllCharacters` (une clé par statId), mais imbriquées sous
+// `merged.allTime` (l'agrégat TOUTES activités confondues = le filtre « Carrière » des Emblèmes du jeu) et
+// `results.<mode>.allTime` (par mode d'activité). Lecture : `merged.allTime` d'abord, sinon SOMME des
+// `results.<mode>.allTime` (repli). / EN: FIXED - real structure: stats live in `merged.allTime` (career
+// aggregate) and `results.<mode>.allTime` (per activity mode).
+interface BlocStatsAgrege {
+  results?: Record<string, { allTime?: Record<string, ValeurHistoricalStat> }>;
+  merged?: { allTime?: Record<string, ValeurHistoricalStat> };
+}
+
 interface ReponseHistoricalStats {
-  mergedAllCharacters?: Record<
-    string,
-    {
-      statId?: string;
-      allTime?: ValeurHistoricalStat;
-    }
-  >;
+  mergedDeletedCharacters?: BlocStatsAgrege;
+  mergedAllCharacters?: BlocStatsAgrege;
+  characters?: unknown[];
 }
 
 interface ReponseActivityHistory {
@@ -118,12 +129,38 @@ interface ReponseActivityHistory {
   }>;
 }
 
-function lireStat(metric: unknown): { valeur: number | null; precision: number | null } {
-  const m = metric as { allTime?: ValeurHistoricalStat } | undefined;
-  const allTime = m?.allTime;
-  const valeur = allTime?.basic?.value ?? null;
-  const precision = allTime?.precision?.value ?? null;
+function lireStat(metric: ValeurHistoricalStat | undefined): { valeur: number | null; precision: number | null } {
+  const valeur = metric?.basic?.value ?? null;
+  const precision = metric?.precision?.value ?? null;
   return { valeur, precision };
+}
+
+// FR : ⚠️ CORRIGÉ (22/10/2026, retour réel « statIds retournés : AUCUN ») - extrait le dictionnaire
+// de stats « Carrière » (toutes activités confondues) : `merged.allTime` (l'agrégat exact du filtre
+// « Carrière »), sinon SOMME des `results.<mode>.allTime` (repli si `merged` est vide). Renvoie aussi
+// une description de la structure pour le diagnostic. Exportée pour les tests. / EN: extracts the career stats dictionary (exported for tests).
+export function extraireStatsCarriere(bloc: BlocStatsAgrege | undefined): { stats: Record<string, ValeurHistoricalStat>; source: "merged" | "results" | null; structure: string } {
+  const merged = bloc?.merged?.allTime;
+  if (merged && Object.keys(merged).length > 0) {
+    return { stats: merged, source: "merged", structure: `merged (allTime : ${Object.keys(merged).length} stat${Object.keys(merged).length > 1 ? "s" : ""})` };
+  }
+  const resultats = bloc?.results ?? {};
+  const somme: Record<string, ValeurHistoricalStat> = {};
+  const modes: string[] = [];
+  for (const [mode, groupe] of Object.entries(resultats)) {
+    const allTime = groupe?.allTime;
+    if (!allTime) continue;
+    modes.push(`${mode} (${Object.keys(allTime).length})`);
+    for (const [statId, stat] of Object.entries(allTime)) somme[statId] = stat;
+  }
+  if (Object.keys(somme).length > 0) {
+    return { stats: somme, source: "results", structure: `results (${modes.join(", ")} — somme des modes)` };
+  }
+  const decrit = (o: unknown): string => (o && typeof o === "object" ? `{${Object.keys(o).join(", ")}}` : String(o));
+  const parties: string[] = [];
+  if (bloc?.merged) parties.push(`merged : ${decrit(bloc.merged.allTime ?? bloc.merged)}`);
+  if (resultats && Object.keys(resultats).length > 0) parties.push(`results : ${decrit(resultats)}`);
+  return { stats: {}, source: null, structure: parties.length > 0 ? parties.join(" ; ") : "(bloc vide)" };
 }
 
 // FR : ⚠️ CORRIGÉ (21/10/2026, retour réel du diagnostic) - l'ancien chemin
@@ -134,8 +171,10 @@ function lireStat(metric: unknown): { valeur: number | null; precision: number |
 // dans `mergedAllCharacters` (pas `metrics`). periodType et groups ne sont pas
 // des paramètres de cette route : elle ne renvoie que l'agrégat global,
 // exactement le filtre « Carrière » des Emblèmes du jeu.
-// EN: ⚠️ FIXED - the real route is GetHistoricalStatsForAccount; stats live
-// in `mergedAllCharacters`, not `metrics`.
+// ⚠️ 22/10/2026 : la réponse est structurée `{ results: { <mode>: { allTime } }, merged: { allTime } }` —
+// les stats « Carrière » sont dans `merged.allTime` (voir `extraireStatsCarriere`).
+// EN: ⚠️ FIXED - the real route is GetHistoricalStatsForAccount; stats live in
+// `mergedAllCharacters.merged.allTime`, not `metrics`.
 export function cheminStatsCarriere(membership: DestinyMembership): string {
   return `/Destiny2/${membership.membershipType}/Account/${membership.membershipId}/Stats/`;
 }
@@ -175,20 +214,23 @@ export async function chargerCarriere(
 ): Promise<DonneesCarriere> {
   const resultat: DonneesCarriere = {
     stats: [], minutesParClasse: extraireMinutesParClasse(profil), activites: [], statIdsBruts: [],
-    diagnostic: { requeteStats: cheminStatsCarriere(membership), erreurStats: null, clesReponseStats: null, nbMetrics: null, erreursActivites: [] },
+    diagnostic: { requeteStats: cheminStatsCarriere(membership), erreurStats: null, clesReponseStats: null, structureMergedAllCharacters: null, sourceStats: null, erreursActivites: [] },
   };
 
   try {
-    const stats = await recupererStatsCarriere(membership);
-    resultat.diagnostic.clesReponseStats = Object.keys(stats ?? {});
-    // FR : ⚠️ CHANGÉ - les stats sont dans `mergedAllCharacters`, une entrée par statId.
-    resultat.diagnostic.nbMetrics = stats?.mergedAllCharacters ? Object.keys(stats.mergedAllCharacters).length : null;
-    for (const metric of Object.values(stats.mergedAllCharacters ?? {})) {
-      const statId = metric?.statId ?? null;
-      if (!statId) continue;
-      const { valeur, precision } = lireStat(metric);
-      resultat.stats.push({ statId, valeur, precision });
-      resultat.statIdsBruts.push(statId);
+    const reponse = await recupererStatsCarriere(membership);
+    resultat.diagnostic.clesReponseStats = Object.keys(reponse ?? {});
+    // FR : ⚠️ CORRIGÉ (22/10/2026, retour réel : « statIds retournés : AUCUN » avec 2 entrées dans
+    // `mergedAllCharacters`) - les stats ne sont PAS directement sous `mergedAllCharacters` : ce champ
+    // contient `{ results: { <mode>: { allTime } }, merged: { allTime } }` ; les stats « Carrière » sont
+    // dans `merged.allTime` (sinon somme des `results.<mode>.allTime`).
+    const extrait = extraireStatsCarriere(reponse?.mergedAllCharacters);
+    resultat.diagnostic.structureMergedAllCharacters = reponse?.mergedAllCharacters ? extrait.structure : null;
+    resultat.diagnostic.sourceStats = extrait.source;
+    for (const [statId, stat] of Object.entries(extrait.stats)) {
+      const { valeur, precision } = lireStat(stat);
+      resultat.stats.push({ statId: stat.statId ?? statId, valeur, precision });
+      resultat.statIdsBruts.push(stat.statId ?? statId);
     }
   } catch (e) {
     // FR : section indépendante — l'échec d'une source n'emporte pas les autres. ⚠️ CHANGÉ (21/10/2026) : l'erreur est CONSERVÉE pour le diagnostic (elle était perdue).
@@ -234,7 +276,9 @@ export function formaterDiagnosticCarriere(d: DonneesCarriere): string {
   lignes.push(`requête : GET ${g.requeteStats}`);
   lignes.push(`erreur de la requête : ${g.erreurStats ?? "aucune"}`);
   lignes.push(`clés de la réponse : ${g.clesReponseStats === null ? "(pas de réponse : la requête a échoué)" : g.clesReponseStats.length > 0 ? g.clesReponseStats.join(", ") : "(réponse vide)"}`);
-  lignes.push(`entrées de « mergedAllCharacters » : ${g.nbMetrics === null ? "champ absent de la réponse" : g.nbMetrics}`);
+  // FR : ⚠️ CHANGÉ (22/10/2026, retour réel) - décrit la structure RÉELLE de `mergedAllCharacters` (les stats sont dans `merged.allTime`, pas directement sous la clé) et la source lue.
+  lignes.push(`structure de « mergedAllCharacters » : ${g.structureMergedAllCharacters ?? "champ absent de la réponse"}`);
+  if (g.sourceStats) lignes.push(`source des stats affichées : ${g.sourceStats === "merged" ? "merged.allTime (agrégat « Carrière » du jeu)" : "somme de results.<mode>.allTime"}`);
   lignes.push(`historiques d'activités en échec : ${g.erreursActivites.length === 0 ? "aucun" : ""}`);
   lignes.push(...g.erreursActivites.map((l) => `  - ${l}`));
   return lignes.join("\n");

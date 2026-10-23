@@ -1,3 +1,25 @@
+## 22/10/2026 — CORRECTIFS (retours de l'utilisateur en test) : page « Accomplissements » sans la vitrine « Solo sans mourir » ; parsing des stats « Carrière » corrigé (structure réelle de l'API)
+
+**Retours de l'utilisateur (22/10/2026, en test)** :
+1. « Accomplissement ne doit pas afficher la Vitrine Solo sans mourir : elle affichera plus tard tous les triomphes obtenus et à obtenir. »
+2. Le diagnostic de la page Carrière indiquait « statIds retournés : AUCUN » alors que la réponse de l'API contenait `mergedAllCharacters` avec 2 entrées (`clés de la réponse : mergedDeletedCharacters, mergedAllCharacters, characters` / `entrées de « mergedAllCharacters » : 2`).
+
+**Corrigé** :
+- **Page « Accomplissements »** (`src/components/VueAccomplissements.tsx`, ⚠️ CHANGÉ) : la vitrine « Solo sans mourir » (`VitrineSoloFlawless`) est **retirée** de la page — elle reste **uniquement** dans le tiroir « Solo sans mourir » du Build Analyzer (`PanneauTriomphes`, inchangé). La page affiche désormais un emplacement réservé : « 🚧 Bientôt : tous vos Triomphes de compte — obtenus et à obtenir. » Le composant ne prend plus de props (`<VueAccomplissements />` dans `DashboardPage`).
+- **Parsing des stats « Carrière »** (`src/lib/bungie/carriere.ts`, ⚠️ CORRIGÉ) : la structure **réelle** de `GetHistoricalStatsForAccount` est `mergedAllCharacters: { results: { <mode>: { allTime: { <statId>: {...} } } }, merged: { allTime: { <statId>: {...} } } }` — les stats ne sont PAS directement sous `mergedAllCharacters` (une clé par statId), mais imbriquées. La lecture se fait désormais dans **`merged.allTime`** (l'agrégat « Carrière » du jeu, toutes activités confondues), avec **repli** sur la somme des `results.<mode>.allTime` si `merged` est vide (`extraireStatsCarriere`, exportée pour les tests). C'est ce mauvais niveau de lecture qui produisait « statIds retournés : AUCUN ».
+- **Diagnostic enrichi** : il décrit maintenant la **structure réelle** de `mergedAllCharacters` (ex. « merged (allTime : 8 stats) ») et la **source lue** (« merged.allTime (agrégat « Carrière » du jeu) » ou « somme de results.<mode>.allTime »), au lieu du seul « entrées de « mergedAllCharacters » : N ».
+
+**Tests** :
+- `tests/logique/diagnostic-carriere.test.ts` — mis à jour (nouveau diagnostic) + **4 nouveaux contrôles** sur `extraireStatsCarriere` : structure réelle (`merged.allTime` prioritaire), repli (somme des modes), bloc vide (structure décrite, jamais un « AUCUN » muet), champ absent.
+- `tests/logique/cablage-forge.test.ts` — montage `<VueAccomplissements />` à jour + **1 nouveau contrôle** : la page Accomplissements n'affiche plus `VitrineSoloFlawless` (placeholder « Bientôt » ; la vitrine reste dans `PanneauTriomphes`).
+- `tests/ui/entree-vue-carriere.tsx` — la fixture retourne la **structure réelle** de l'API (`mergedAllCharacters: { results: { allPvE, allPvP }, merged: { allTime: <8 stats> } }`, `mergedDeletedCharacters`, `characters`).
+- `tests/ui/vue-carriere.py` — +1 contrôle source (Accomplissements sans vitrine) ; le contrôle navigateur Accomplissements attend le placeholder « Bientôt » et l'**absence** de « Solo sans mourir » ; le diagnostic attend les **clés réelles** de la réponse, la structure « merged (allTime : 8 stats) » et la source lue.
+- `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **36/36 suites, 716/716 contrôles** ✓, pages de test UI reconstruites ✓. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — PAGE « CARRIÈRE » : TOUTES les stats du compte sont affichées (plus de sélection figée)
 
 **Demande de l'utilisateur (22/10/2026)** : « Maintenant il reste à afficher les stats du compte. **Toutes les stats.** »
