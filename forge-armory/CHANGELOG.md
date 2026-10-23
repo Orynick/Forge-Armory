@@ -1,3 +1,25 @@
+## 23/10/2026 — PAGE « ACCOMPLISSEMENTS » : les Triomphes du compte, PAR SCEAU (TODO n°23, branche `draft-update-triomphes`)
+
+**Demande de l'utilisateur (23/10/2026)** : la page « Accomplissements » affiche désormais **tous les Triomphes du compte — obtenus et à obtenir — groupés PAR SCEAU** (décision de l'utilisateur : « Je préfère la proposition par Sceau. Moins bordélique. »), comme la hiérarchie Collections→Sceaux du jeu. La vitrine « Solo sans mourir » reste **uniquement** dans le tiroir du Build Analyzer.
+
+**Nouveau modèle** (`src/lib/bungie/sceaux.ts`, lecture seule) :
+- `regrouperParSceau(db, profil)` : croise l'arbre « Triumphs » du Manifest (racine nœud 1163735237, scope 1 = compte → catégories → **sceaux** = nœuds avec `completionRecordHash` → leurs records) avec l'état des records du profil (composant 900, `profileRecords`). **Portée PROFIL uniquement** (scope 0) : les triomphes de portée personnage (ceux du tiroir « Solo sans mourir ») sont exclus. Un triomphe **absent du profil est « à obtenir »** (affiché, jamais masqué) ; un record masqué (`redacted`) ou sans nom est exclu/hash brut — **jamais d'estimation**.
+- `compteursGlobaux` : « X / Y triomphes obtenus · score total » (somme des `completionInfo.ScoreValue` des triomphes **obtenus** ; « non disponible » si aucun score connu).
+- `filtrerSceaux` : **recherche avancée** — réutilise la machinerie du Legendarium (`parserRecherche`/`correspondRecherche`, désormais exportées) : guillemets `"phrase exacte"`/`« »`, `+obligatoire`, `-exclu`, case **« Respecter la casse »** (insensible par défaut). Exemple : `+"sans mourir" -gambit "Chute de la Maison"`. La recherche porte sur le nom + la description de chaque triomphe, **plus le nom du sceau et de son regroupement** (si le sceau correspond, tous ses triomphes remontent).
+- `trierSceaux` : par **progression** (défaut : complétés d'abord, puis ratio décroissant, nom en recours) ou par **nom** (alphabétique FR).
+
+**Page** (`src/components/VueAccomplissements.tsx`, réécrite) : props `{ profil, db }` (câblées dans `DashboardPage` : `profil={profilTriomphes} db={db}`). Compteur global en tête, champ de recherche + case « Aa » + sélecteur de tri, **sceaux repliés par défaut** (comme le Legendarium) avec icône, barre de progression « X/Y (N %) » et titre du sceau (« débloqué » à 100 %) ; chaque triomphe : icône, nom, description, progression des objectifs (« 3 / 10 »), badge ✅/⬜, points. Replis : pas de profil → « Connectez-vous… » ; pas de Manifest → avertissement « non disponibles ».
+
+**Types** (`src/types/manifest.ts`) : `DestinyPresentationNodeDefinition` gagne `completionRecordHash`/`objectiveHash` ; `DestinyRecordDefinition` gagne `scope`, `objectiveHashes`, `completionInfo.ScoreValue`, `titleInfo` (`hasTitle`, `titlesByGender`).
+
+**Tests** : `tests/logique/sceaux.test.ts` (nouveau, **24/24** : regroupement par sceau, exclusion portée personnage/records masqués, état bitfield, titre débloqué, compteurs globaux, recherche avancée complète, tri, replis) ; `cablage-forge.test.ts` et `vue-carriere.py` mis à jour (montage `profil={profilTriomphes} db={db}`, plus de « Bientôt ») ; `tests/ui/entree-vue-accomplissements.tsx` + `vue-accomplissements.py` (nouveau : compteur global, sceaux repliés, recherche avancée, casse, tri, replis). `tsc -b` 0 erreur, `npm run build` strict ✓, `npm run test:logique` **37/37 suites, 740/740 contrôles** ✓, pages UI construites ✓, `ast.parse` OK. Tests navigateur Playwright non exécutables dans le bac à sable (`libglib-2.0.so.0` absente) — **à valider en `npm run dev`**.
+
+**TODO.md** : item n°23 — spécification validée (par sceau + compteur global + recherche avancée casse/`""`/`+`/`-`).
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — LIVRAISON TODO §25 : pages « Carrière » et « Accomplissements » dédiées (PR #14 mergée sur `main`)
 
 **Livraison** : la branche `draft-update-carriere` est mergée sur `main` (PR #14, CI verte : `tsc + build + batterie logique` SUCCESS). Les changements de cette livraison (tous du 22/10/2026) :
