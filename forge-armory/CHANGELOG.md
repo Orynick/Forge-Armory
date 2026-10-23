@@ -1,3 +1,32 @@
+## 22/10/2026 — NETTOYAGE DE LA TODO (section « Confort / plus tard »)
+
+**Demande de l'utilisateur** : relire en détail la partie 🟢 Confort / plus tard du TODO — il y a des doublons. Vérifier que les items terminés sont documentés dans le CHANGELOG, puis nettoyer.
+
+**Vérification faite** — tous les items retirés sont bien documentés dans le CHANGELOG :
+- ~~12. Renommage « Forge Armory »~~ → ✅ CHANGELOG : « Renommage officiel : « Forge Armory » » (v0.3.0) + validation le 06/10/2026
+- ~~16. Onglet « Load-outs »~~ → ✅ CHANGELOG : v0.3.8 (livraison 1), v0.3.9 (livraison 2), v0.3.16 (livraison 3 + validation)
+- ~~16 bis. Visuels illustrés~~ → ✅ CHANGELOG : v0.3.13 à v0.3.17
+- ~~21. Police personnalisée~~ → ❌ ABANDONNÉE le 06/10/2026
+- ~~22. Logo de fond et mode diagnostic~~ → ✅ CHANGELOG : v0.3.2 (logo de fond + mode diagnostic)
+- ~~24. Auteur des builds~~ → ✅ CHANGELOG : v0.3.3
+- ~~11. Legendarium (ancienne entrée)~~ → doublon de l'item 26 (livraison complète en v0.5.0)
+
+**Nettoyage fait** :
+- **Suppression des doublons** : l'ancien item 11 (Legendarium chantier en cours) est supprimé — remplacé par l'item 11 actuel (Legendarium ✅ LIVRÉ en v0.5.0, ex-item 26)
+- **Suppression des items terminés** : 12 (renommage), 16 (Load-outs), 16 bis (visuels illustrés), 22 (logo de fond + mode diagnostic), 24 (auteur des builds)
+- **Déplacement vers « Pistes abandonnées »** : 21 (police personnalisée « D2 Build Analyzer Vector »)
+- **Renumérotation** : les items restants sont renumérotés de 5 à 23 (sans trous)
+- **Références mises à jour** : `TODO main §25` → `TODO main §23` dans `DashboardPage.tsx`, `cablage-forge.test.ts` et `TODO.md` (le bug Carrière/Accomplissements)
+- **Note ajoutée** en fin de section Confort listant les items retirés avec leur statut et référence CHANGELOG
+
+**Résultat** : la section « Confort / plus tard » passe de 22 items (5-26) à **19 items (5-23)**, sans doublon, sans item terminé, avec une numérotation continue.
+
+**Vérifié** : `tsc -b` 0 erreur, `npm run test:logique` **36/36 suites, 708/708 contrôles** ✓
+
+**Version inchangée (0.5.0).**
+
+---
+
 ## 22/10/2026 — CORRECTIF : FILIGRANE CENTRÉ SUR TOUTE LA FICHE (export infographique Legendarium)
 
 **Demande de l'utilisateur** : « le filigrane du logo de Forge Armory qui se trouve dans l'export infographique, je le veux sur l'ensemble de la fiche. À l'image de ce que l'on fait pour l'export infographique des builds. Assure-toi qu'il soit bien centré. »
