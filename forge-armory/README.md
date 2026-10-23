@@ -19,7 +19,7 @@ Application pour étudier et scorer des builds Destiny 2 selon 5 piliers pondér
 - **Saisons et sources** : saison de sortie en clair sur les objets, menu de filtre par source (Raid, Donjon, Trials, par activité…), crédits [d2-additional-info](https://github.com/DestinyItemManager/d2-additional-info) (MIT).
 - **Legendarium** : bibliothèque de Lore en lecture passive (Grimoire D1, Légendes D2, armes, armures, cosmétiques), avec export infographique PNG.
 - **Carrière** : page dédiée aux statistiques du compte (temps de jeu, 74+ stats traduites en français).
-- **Accomplissements** : page dédiée aux Triomphes du compte, groupés par sceau (obtenus et à obtenir), avec recherche avancée.
+- **Accomplissements** : page dédiée aux Triomphes du compte, groupés par sceau (obtenus et à obtenir), en cartes dans une grille (barre de progression et pourcentage sous chaque carte), avec recherche avancée.
 
 ## Démarrage rapide
 
