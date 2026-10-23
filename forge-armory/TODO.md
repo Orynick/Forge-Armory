@@ -13,7 +13,7 @@ passages retirés ou condensés lors du nettoyage du 06/10/2026 dans
 `documentation/todo/ARCHIVE-TODO-2026-10-06.md`. Conception du scoring :
 section « Le scoring » de `NOTES-CONCEPTION.md`. Tests en cours :
 `A-TESTER-<version>.pdf` (le numéro de version de l'appli est dans le nom ;
-version courante : 0.5.0).
+version courante : 0.5.1).
 
 ---
 
@@ -49,8 +49,9 @@ Le renommage « Forge Armory » est lui aussi validé (06/10/2026, section 12).
    - **Forge : perks améliorés (analyse des diagnostics du 13/10/2026)** : une version améliorée est un OBJET DISTINCT (autre hash), de même nom que sa base, dans la même colonne, typé « Canon / Chargeur / Attribut / Particularité d'origine / Mod d'arme amélioré(e) ». Dans la révision « à paliers » de Confiance, 53 paires normales (l'améliorée est toujours listée après sa base) et un cas ambigu (« Chargeur abandonné », même type pour les deux : reconnu par la position, signalé « probable »). **Affichage fait en 0.4.4** (vue Collection) : `lib/manifest/perksAmeliores.ts`. **Réponses de l'utilisateur (13/10/2026)** : aucune paire fausse constatée (il reste vigilant) ; « Chargeur abandonné » existe bien en version améliorée (position confirmée) ; Confiance révision B et Défense dorée : « Non » (pas de roll fixe dans le jeu) mais l'affichage de l'appli lui semble cohérent : règle conservée, À ROUVRIR avec un diagnostic si une arme montre moins d'options que dans le jeu. **Encore à éclaircir** : (1) Confiance révision B, Défense dorée et Grande Faucheuse (temps perdu) n'affichent qu'UNE option par colonne : la règle validée « les `reusablePlugItems` d'abord » l'emporte sur le `randomizedPlugSet` que ces prises portent aussi (en question posée à l'utilisateur : roll fixe dans le jeu ?) ; (2) les textes « Amélioration de palier 2 à 5 » et « Palier Pièce maîtresse » montrent que les versions améliorées dépendent du **système de paliers** des armes, pas seulement du masterwork : pour l'Inventaire (0.4.5), quelle version s'applique à un exemplaire possédé dépend de son palier : lire l'état de l'exemplaire (composants d'instance) et prévoir un diagnostic d'un exemplaire possédé ; (3) colonnes de fabrication des armes forgeables (Grande Faucheuse temps perdu) : non traitées.
    - **Forge : points à trancher** (le document en annonçait aucun ; détail et défauts dans `NOTES-CONCEPTION.md`) : (1) « Transférer vers » existe déjà depuis la 0.4.2 : en Phase 2 il reste « équiper vers un personnage » et l'écriture des perks ; (2) perks simulés et équipement en jeu : badge « simulé » et avertissement ; (3) « pas de combinaison impossible » : le Manifest n'a pas de règles d'exclusion entre colonnes, garantie = une perk par colonne, prise dans son pool ; (4) « version améliorée » ≠ masterwork, et l'état masterwork d'une arme n'est pas lu aujourd'hui : lecture à ajouter et lien perk ↔ jumeau amélioré à vérifier sur ton Manifest ; (5) Collection grisée : nouvelle lecture Bungie (collections) ; un objet sans `collectibleHash` ne peut pas être classé ; (6) anti-bruit : filtre fondé sur le Manifest + liste modifiable, pas de dépendance à DIM, light.gg ou DestinyRecipes ; (7) Manifest : vérification de version automatique à la connexion, téléchargement automatique seulement si un cache existe ; (8) l'onglet Forge héberge les deux vues, le bouton « Forge » des popups y mène directement ; (9) l'impact en temps réel s'affiche dans les cartes du Scoring (le bloc Doctrine est la sous-classe) ; (10) armures : à définir (que sélectionne-t-on sur une armure ?), armes d'abord ; (11) données : clé `socketIndex`, hashes en nombres, sélection par `itemInstanceId` ; (12) limite du jeu pour la Phase 2 : les traits d'une arme à rolls aléatoires non forgée ne sont pas modifiables en jeu (à vérifier avec l'API).
    - **Reste de la liste du 12/10** : ~~logos « Arme » et « Armure » dans l'export~~ ✅ intégrés en 0.4.1 (archive de visuels v3) ; ~~bug du Filobscur~~ ✅ cause établie (les objets du Filobscur réutilisent les fichiers d'icône de la Stase dans les données de Bungie) et corrigé en 0.4.1 par recoloration, ✅ validé le 12/10/2026 (tous les tests cochés, sans demande de réglage de la teinte).
-3. **Sécurité, avant toute ouverture à des tiers** : Vite, React Router,
-   puis la politique de sécurité de contenu (section 1).
+3. **Sécurité, avant toute ouverture à des tiers** : ~~Vite, React Router~~ ✅
+   (faits en v0.5.1, voir section 1), puis la politique de sécurité de contenu
+   (CSP — reste de la section 1, chantier `draft-sec`).
 
 ⏸️ **En attente d'une décision** : l'agent IA (section 3). **À décider** :
 le canal du lien « Contact » (section 23).
@@ -77,15 +78,12 @@ le 30/09/2026 ; tests renvoyés par l'utilisateur le 02/10/2026 (archivés dans 
 `npm.cmd ci` validé le 30/09/2026 (479 paquets installés à l'identique depuis `package-lock.json`). Détail
 et revue des changements incompatibles : `CHANGELOG.md`.
 
-**Reste, en étapes SÉPARÉES.** `npm.cmd audit` du 30/09/2026 : **4 vulnérabilités au lieu de 18**,
-uniquement ces deux-là (le total en compte une « élevée », sans préciser laquelle ; les deux blocs du rapport
-affichent « modérée »).
-- **Vite / esbuild** (vulnérabilité modérée, serveur de développement seulement) : `vite` 5 → une version
-  corrigée (l'audit propose 8.x, changement majeur à préparer, avec `@vitejs/plugin-react`) ;
-- **React Router** (vulnérabilité modérée ; redirections ouvertes et rendu côté serveur, cas non utilisés par
-  l'appli) : `react-router-dom` 6 → 7, changement majeur à préparer ;
-- **Ajouter une politique de sécurité de contenu (CSP)**, à écrire puis tester pas à pas : une CSP trop
+✅ **TERMINÉ en v0.5.1 (23/10/2026, chantier `draft-deps`).** `npm audit` : **0 vulnérabilité** (contre 18 au départ, 4 le 30/09).
+- ✅ **Vite / esbuild** : `vite` 5 → **7.3.7** (+ `@vitejs/plugin-react` 4 → 5, `vite-plugin-mkcert` 1 → 2) ;
+- ✅ **React Router** : `react-router-dom` 6 → **7.18.4** (+ React 18 → **19.2.9**, Electron 44 → **45.0.0**) ;
+- 🟡 **Reste : ajouter une politique de sécurité de contenu (CSP)**, à écrire puis tester pas à pas : une CSP trop
   stricte casse silencieusement les appels Bungie, le WebAssembly de sql.js ou les images distantes.
+  (Chantier `draft-sec` en cours.)
 
 **Rappels utiles :**
 - sous PowerShell, utiliser `npm.cmd` : la commande `npm` seule est bloquée par la politique d'exécution des
