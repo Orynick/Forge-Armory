@@ -8,8 +8,14 @@ import { COULEURS as COULEURS_CLASSE, CHEMINS_SVG as CHEMINS_CLASSE, LIBELLES as
 import { COULEURS as COULEURS_ELEMENT, FORMES as FORMES_ELEMENT, PRISMATIQUE_TRACES, PRISMATIQUE_TRANSFORM, PRISMATIQUE_VIEWBOX } from "../../components/icones/IconeElement";
 import { LOGOS_EXPORT, CleLogoExport } from "../../data/forge/logosExport";
 
-const ORIGINE_ICONES = "https://www.bungie.net/";
-const echapper = (t: string) => t.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `ORIGINE_ICONES` et `echapper` importés
+// depuis `lib/htmlExport.ts` (dedup avec `exportFiche.ts`). La version
+// centralisée échappe aussi `'` → `&#39;` (strictement plus sûre que l'ancienne
+// copie locale, qui s'arrêtait à `"`/`<`/`>`/`&`). / EN: ⚠️ CHANGED -
+// `ORIGINE_ICONES` and `echapper` imported from `lib/htmlExport.ts` (dedup with
+// `exportFiche.ts`). The centralised version also escapes `'` → `&#39;` (strictly
+// safer than the old local copy, which stopped at `"`/`<`/`>`/`&`).
+import { ORIGINE_ICONES, echapper } from "../htmlExport";
 
 /** FR : icône de classe : disque coloré et symbole blanc à 68 % du disque, exactement comme `IconeClasse`. / EN: class icon, same as the in-app one. */
 export function htmlIconeClasse(classe: "titan" | "chasseur" | "arcaniste", taille = 20): string {

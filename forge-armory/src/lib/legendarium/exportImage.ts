@@ -82,10 +82,11 @@ export function eclaircir(hex: string, facteur: number): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-/** FR : nom de fichier « propre » (sans caractères interdits). EXPORTÉ pour les tests (fonction pure). / EN: "clean" file name (no forbidden characters). EXPORTED for tests (pure function). */
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `nomFichierPropre` remplacée par un wrapper sur la version unifiée (`lib/nomFichier.ts`) : mêmes règles, longueur max 60, repli « page-de-lore ». EXPORTÉE pour les tests (fonction pure).
+// EN: ⚠️ CHANGED - `nomFichierPropre` replaced by a wrapper over the unified version (`lib/nomFichier.ts`): same rules, max length 60, fallback "page-de-lore". EXPORTED for tests (pure function).
+import { nomFichierPropre as nomFichierPropreUnifie } from "../nomFichier";
 export function nomFichierPropre(titre: string): string {
-  const propre = titre.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
-  return propre === "" ? "page-de-lore" : propre.toLowerCase();
+  return nomFichierPropreUnifie(titre, 60, "page-de-lore");
 }
 
 /**
