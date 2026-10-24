@@ -1,7 +1,7 @@
 // FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - test de la MISE À JOUR AUTOMATIQUE du Manifest PÉRIMÉ (demande de l'utilisateur : « si le Manifest est périmé, et uniquement dans ce cas, téléchargement du nouveau ») : toutes les combinaisons d'états du français et de l'anglais, l'enchaînement des appels et des messages, la lecture de l'état des caches avec une
 // FAUSSE base qui refuse toute écriture (la lecture ne doit jamais rien modifier), et l'outil de simulation du mode développement. Aucun téléchargement réel. EN: ⚠️ ADDED - test of the automatic refresh of an OUTDATED Manifest, and ONLY in that case.
 import { decider, demarrerManifests, EtatCaches, LangueManifest } from "../../src/lib/manifest/demarrage";
-import { etatCachesManifests, manifestsEnCacheAJour, simulerManifestPerime, DependancesCacheManifest } from "../../src/lib/manifest/download";
+import { etatCachesManifests, simulerManifestPerime, DependancesCacheManifest } from "../../src/lib/manifest/download";
 
 const res: boolean[] = [];
 const ok = (nom: string, cond: unknown, detail?: unknown) => { res.push(!!cond); console.log(cond ? "✅" : "❌", nom); if (!cond && detail !== undefined) console.log("   détail :", JSON.stringify(detail).slice(0, 500)); };
@@ -44,7 +44,7 @@ const etat1 = await etatCachesManifests(["fr", "en", "de", "es", "it"], dep1);
 ok("état de chaque langue : à jour (même version), périmé (version différente), absent (aucun fichier, même si une version traîne), périmé (fichier présent mais version inconnue), absent (rien du tout)", JSON.stringify(etat1) === JSON.stringify({ fr: "a-jour", en: "perime", de: "absent", es: "perime", it: "absent" }), etat1);
 ok("la lecture n'écrit RIEN : ni version, ni fichier", dep1.ecritures.length === 0, dep1.ecritures);
 ok("hors ligne (version Bungie illisible) ou base locale inaccessible : l'état est INCONNU (null), pas « périmé » : on ne télécharge pas sur un doute", (await etatCachesManifests(["fr"], stockage({}, {}, "V2", { meta: true }))) === null && (await etatCachesManifests(["fr"], stockage({}, {}, "V2", { db: true }))) === null);
-ok("`manifestsEnCacheAJour` (ancienne fonction) garde son sens : vrai seulement si TOUTES les langues sont à jour", (await manifestsEnCacheAJour(["fr"], dep1)) === true && (await manifestsEnCacheAJour(["fr", "en"], dep1)) === false && (await manifestsEnCacheAJour(["de"], dep1)) === false && (await manifestsEnCacheAJour(["fr"], stockage({}, {}, "V2", { meta: true }))) === false);
+// FR : ⚠️ RETIRÉ (23/10/2026, audit) - le contrôle de `manifestsEnCacheAJour` est supprimé avec la fonction (code mort, aucun appelant en production). La règle « toutes les langues à jour » est couverte par `etatCachesManifests` (valeurs `a-jour`/`perime`/`absent` testées ci-dessus). / EN: ⚠️ REMOVED - the `manifestsEnCacheAJour` check went away with the function (dead code).
 // ---------- l'outil de simulation (mode développement) ----------
 const dep2 = stockage({ [K("fr").v]: "V2", [K("en").v]: "V2" }, { [K("fr").s]: 1 });   // FR en cache, EN sans fichier
 const marquees = await simulerManifestPerime(["fr", "en"], dep2);

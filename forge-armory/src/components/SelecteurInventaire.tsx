@@ -2,7 +2,6 @@ import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import IconeTitreFaconnee from "./IconeTitreFaconnee";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
 import { estFaconnee } from "../lib/forge/faconnee";
-import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 // FR : Parcourt l'inventaire + coffre reels du joueur, affiche en 4
 // sections repliables (Chasseur / Titan / Arcaniste / Coffre) - chaque
 // section personnage separe Equipe / Inventaire, le coffre est classe par
@@ -37,7 +36,7 @@ import { listerObjetsPossedes } from "../lib/bungie/inventaire";
 import { obtenirDefinition } from "../lib/manifest/download";
 import { normaliser } from "../lib/manifest/search";
 import { GearPiece, SlotArme, SlotArmure, StatKey } from "../types/build";
-import { LIBELLES_SLOT } from "../data/libellesUI";
+import { LIBELLES_SLOT, LIBELLES_STAT, ORDRE_STATS, ORDRE_EMPLACEMENTS } from "../data/libellesUI";
 
 // FR : ⚠️ AJOUT (04/08/2026) - ordre d'affichage FIXE des statistiques
 // d'armure, demandé par l'utilisateur (ligne 1 : Santé/Mêlée/Grenade,
@@ -48,12 +47,11 @@ import { LIBELLES_SLOT } from "../data/libellesUI";
 // requested by the user (line 1: Health/Melee/Grenade, line 2: Super/
 // Class/Weapon) - Object.entries() doesn't guarantee this exact order,
 // enforced explicitly everywhere stats are shown.
-const ORDRE_STATS: StatKey[] = ["sante", "melee", "grenade", "super", "classe", "arme"];
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `ORDRE_STATS` et `LIBELLES_STAT` locaux remplacés par les constantes centralisées de `libellesUI` (valeurs identiques).
+// EN: ⚠️ CHANGED - local `ORDRE_STATS` and `LIBELLES_STAT` replaced by the centralised constants from `libellesUI` (identical values).
 
-const ORDRE_SLOTS: (SlotArme | SlotArmure)[] = ["cinetique", "energie", "lourde", "casque", "gants", "torse", "jambes", "marque"];
-const LIBELLES_STAT: Record<StatKey, string> = { sante: "Santé", melee: "Mêlée", grenade: "Grenade", super: "Super", classe: "Classe", arme: "Arme" };
 
-import { obtenirCategorieSocketsParIndex, obtenirOptionsToutesColonnes, obtenirDescriptionComplete, obtenirSource, obtenirDiagnosticIconeCategorieObjet, obtenirAntiChampion, obtenirDiagnosticAntiChampion, obtenirIconesPerksArme, raccourcirNom, obtenirBonusSet, obtenirNomArmatureArme, obtenirAntiChampionArmure, obtenirDiagnosticStatsArmure, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
+import { obtenirCategorieSocketsParIndex, obtenirOptionsToutesColonnes, obtenirDescriptionComplete, obtenirSource, obtenirDiagnosticIconeCategorieObjet, obtenirAntiChampion, obtenirIconesPerksArme, raccourcirNom, obtenirBonusSet, obtenirNomArmatureArme, obtenirAntiChampionArmure, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
 import IconeAntiChampion, { LIBELLES_CHAMPION, TypeChampion } from "./icones/IconeAntiChampion";
 import IconeClasse from "./icones/IconeClasse";
 import IconeCoffre from "./icones/IconeCoffre";
@@ -529,19 +527,7 @@ function LigneObjet({
                     {estArme ? "🔨 Forge : choisir les perks de cette arme" : "🔨 Forge : choisir les mods de cette armure"}
                   </button>
                 )}
-                {/* FR : ⚠️ AJOUT (04/08/2026) - diagnostic anti-champion,
-                mode développement uniquement. À déplier sur une arme qui
-                NE détecte rien (Mille Voix) ET sur une qui fonctionne
-                (Apocalypse), puis me copier les deux : la comparaison
-                montrera où Bungie range réellement l'information. */}
-                {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.diagnosticAntiChampionArme && estArme && (
-                  <details style={{ fontSize: "0.7rem", color: "#7d7a70", marginTop: "0.4rem" }}>
-                    <summary style={{ cursor: "pointer" }}><span>🔍 Diagnostic anti-champion (dev, à copier à Claude)</span></summary>
-                    <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.68rem" }}>
-                      {obtenirDiagnosticAntiChampion(db, piece.itemHash)}
-                    </pre>
-                  </details>
-                )}
+                                {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic anti-champion archivé supprimé. / EN: ⚠️ REMOVED - archived anti-champion diagnostic deleted. */}
               </div>
               <button
                 onClick={() => setDetailsOuverts(false)}
@@ -560,21 +546,7 @@ function LigneObjet({
             "Détails" popup (with their descriptions), user request.
             Placed AT THE TOP: it's the most distinctive information about
             an armor piece, ahead of the mods list. */}
-            {/* FR : ⚠️ AJOUT (04/08/2026) - diagnostic des stats d'armure
-            (mode dev), pour identifier les ~75 points fantômes : l'appli
-            annonce 575 là où le jeu affiche 500. Liste chaque plug avec sa
-            catégorie et les stats qu'il déclare, de quoi repérer ceux dont
-            l'apport n'existe pas réellement en jeu. */}
-            {!estArme && import.meta.env.DEV && DIAGNOSTICS_ACTIFS.diagnosticStatsArmure && (
-              <details style={{ fontSize: "0.7rem", color: "#7d7a70", marginBottom: "0.6rem" }}>
-                <summary style={{ cursor: "pointer" }}>
-                  <span>🔍 Diagnostic des stats de cette pièce (dev, à copier à Claude)</span>
-                </summary>
-                <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.65rem", background: "#0d0f14", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>
-                  {obtenirDiagnosticStatsArmure(db, piece.itemHash, piece.perkHashes)}
-                </pre>
-              </details>
-            )}
+                        {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic des stats d'armure archivé supprimé. / EN: ⚠️ REMOVED - archived armor-stats diagnostic deleted. */}
             {!estArme && (() => {
               const set = obtenirBonusSet(db, piece.itemHash);
               if (!set) return (
@@ -661,7 +633,7 @@ function LigneObjet({
 }
 
 function trierEtGrouper(pieces: GearPiece[]): Array<{ slot: SlotArme | SlotArmure; items: GearPiece[] }> {
-  return ORDRE_SLOTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) })).filter((g) => g.items.length > 0);
+  return ORDRE_EMPLACEMENTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) })).filter((g) => g.items.length > 0);
 }
 
 /**
@@ -675,7 +647,7 @@ function trierEtGrouper(pieces: GearPiece[]): Array<{ slot: SlotArme | SlotArmur
  * one has fewer items than another.
  */
 function trierEtGrouperAvecVides(pieces: GearPiece[]): Array<{ slot: SlotArme | SlotArmure; items: GearPiece[] }> {
-  return ORDRE_SLOTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) }));
+  return ORDRE_EMPLACEMENTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) }));
 }
 
 export default function SelecteurInventaire({ membership, db, onAjouterObjet, onObjetsCharges, cible, onEffacerCible, onOuvrirForge, onLireLore }: Props) {
@@ -797,7 +769,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   // brut du Manifest, qui inclut parfois le nom de classe comme
   // "Brassard d'Arcaniste" - inutile ici, les menus repliables par
   // personnage jouent déjà ce rôle).
-  const ORDRE_SLOTS_ARMURE: SlotArmure[] = ["casque", "gants", "torse", "jambes", "marque"];
+  const ORDRE_EMPLACEMENTS_ARMURE: SlotArmure[] = ["casque", "gants", "torse", "jambes", "marque"];
   const LIBELLES_SLOT_FILTRE: Record<SlotArmure, string> = {
     casque: "Casques",
     gants: "Gants",
@@ -844,7 +816,17 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   // Inventory" (the 3 characters, equipped + inventory), explicit user
   // request ("search field similar to the Vault's but limited to the
   // inventory").
-  const inventaireBrut = (objets ?? []).filter((o) => o.origine !== "coffre");
+  // FR : ⚠️ CHANGÉ (24/10/2026, tests post-audit, point 5.8) - le courrier est
+  // EXCLU de « Mon Inventaire » (il a sa propre section) : un objet qui y
+  // attend n'est ni sur un personnage, ni transférable.
+  // EN: CHANGED - the postmaster is EXCLUDED from "My Inventory" (it has its
+  // own section): an item waiting there is neither on a character nor
+  // transferable.
+  const inventaireBrut = (objets ?? []).filter((o) => o.origine !== "coffre" && o.origine !== "courrier");
+  // FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - les objets en
+  // attente au courrier (postmaster), affichés dans leur propre section.
+  // EN: ADDED - items waiting in the postmaster, shown in their own section.
+  const courrierBrut = (objets ?? []).filter((o) => o.origine === "courrier").filter(correspondAuxFiltresInventaire);
   const texteRechercheParPieceInventaire = useMemo(() => {
     const carte = new Map<string, string>();
     if (!db) return carte;
@@ -968,7 +950,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
         {/* FR : ⚠️ CHANGÉ (07/10/2026, v0.3.15) - titre illustré ; la précision « personnages + coffre » n'est pas dans l'image (la notice de l'archive le dit) : elle est gardée en sous-texte discret à côté. / EN: ⚠️ CHANGED - illustrated title; the "characters + vault" detail is kept as a muted sub-text. */}
         <span style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
           <TitreRepliable categorie="inventaire" />
-          <span data-sous-titre-inventaire="" style={{ fontSize: "0.72rem", fontWeight: 400, color: "#7d7a70" }}>personnages + coffre</span>
+          <span data-sous-titre-inventaire="" style={{ fontSize: "0.72rem", fontWeight: 400, color: "#7d7a70" }}>personnages + coffre + courrier</span>
         </span>
         <span>{objets ? `✅ ${objets.length} objets` : "◯ non chargé"}</span>
         </span>
@@ -1087,7 +1069,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
               largeur="170px"
               options={[
                 { valeur: "tous", libelle: "Tous types d'armure" },
-                ...ORDRE_SLOTS_ARMURE.map((s) => ({
+                ...ORDRE_EMPLACEMENTS_ARMURE.map((s) => ({
                   valeur: s,
                   libelle: LIBELLES_SLOT_FILTRE[s],
                   icone: <IconeSlotArmure slot={s} taille={16} />,
@@ -1207,6 +1189,38 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
             })}
           </div>
 
+          {/* FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - section
+          « Courrier » (postmaster) : les objets en attente de récupération en
+          jeu. Ils sont listés pour être VISIBLES (l'inventaire du personnage ne
+          les montrait pas avant), mais ni le bouton « Transférer vers » ni le
+          bouton « + Ajouter » ne les accepte : un objet au courrier ne se
+          déplace pas d'ici (il faut d'abord le récupérer en jeu). Le bouton de
+          transfert est grisé avec l'explication (voir BoutonTransfert). */}
+          {courrierBrut.length > 0 && (
+            <details open style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem", marginBottom: "0.75rem" }}>
+              <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                  📨 Courrier ({courrierBrut.length} objet{courrierBrut.length > 1 ? "s" : ""})
+                </span>
+              </summary>
+              <p style={{ fontSize: "0.72rem", color: "#7d7a70", margin: "0.3rem 0 0.5rem" }}>
+                En attente de récupération en jeu : un objet au courrier ne peut pas être équipé ni transféré d'ici.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "0.4rem" }}>
+                {trierEtGrouper(courrierBrut).map((g) => (
+                  <li key={g.slot}>
+                    <div style={{ fontSize: "0.7rem", color: "#7d7a70" }}>{LIBELLES_SLOT[g.slot]}</div>
+                    <ul style={{ listStyle: "none", padding: 0, margin: "0.2rem 0 0" }}>
+                      {g.items.map((p) => (
+                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
           <details open={cible && coffre.some((g) => g.items.length > 0) ? true : undefined} style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>   {/* ⚠️ v0.4.0 : « Aller à » ouvre le coffre s'il contient l'objet */}
             <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}>
               <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
@@ -1256,7 +1270,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                 largeur="170px"
                 options={[
                   { valeur: "tous", libelle: "Tous types d'armure" },
-                  ...ORDRE_SLOTS_ARMURE.map((s) => ({
+                  ...ORDRE_EMPLACEMENTS_ARMURE.map((s) => ({
                     valeur: s,
                     libelle: LIBELLES_SLOT_FILTRE[s],
                     icone: <IconeSlotArmure slot={s} taille={16} />,

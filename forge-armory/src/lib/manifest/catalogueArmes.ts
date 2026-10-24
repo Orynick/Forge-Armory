@@ -3,6 +3,7 @@
 // Sont écartés : les objets sans nom ou masqués (`redacted`), les objets FACTICES (catégorie 3109687656 : ils imitent des armes sans en être), tout ce qui n'est pas dans un emplacement d'arme.
 // ⚠️ Non vérifié sur un vrai Manifest au moment de l'écriture (pas d'accès réseau) : la requête suppose le JSON compact de Bungie (`"itemType":3`) ; si elle ne trouve rien, un repli lit toute la table (plus lent). Les tests utilisent un faux Manifest.
 // EN: ⚠️ ADDED - catalogue of every weapon in the game, read from the Manifest with a targeted query, built in chunks and cached; labels resolved exactly like the inventory does.
+import { CATEGORIE_FACTICE } from "./search";
 import type { Database } from "sql.js";
 import { obtenirDefinition, idSqliteVersHash } from "./download";
 import { normaliser, urlIcone } from "./search";
@@ -11,7 +12,7 @@ import { obtenirElementFiltre, obtenirArmatureArme, ElementFiltre } from "./doct
 import type { SlotArme } from "../../types/build";
 
 const TABLE_OBJETS = "DestinyInventoryItemDefinition";
-const CATEGORIE_FACTICE = 3109687656;
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - constante locale remplacée par l'import depuis `search.ts` (dedup). / EN: ⚠️ CHANGED - local constant replaced by the import from `search.ts` (dedup).
 const SLOTS_ARME: readonly string[] = ["cinetique", "energie", "lourde"];
 
 export type EtatObtention = "obtenu" | "jamais" | "inconnu";
