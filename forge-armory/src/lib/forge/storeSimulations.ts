@@ -30,7 +30,7 @@ export function creerMagasin(fournirStockage: () => Stockage = stockageNavigateu
 
 const magasinGlobal = creerMagasin();
 export const mettreAJourSimulations = magasinGlobal.mettreAJour;
-export const lireSimulationsCourantes = magasinGlobal.lire;
+// FR : ⚠️ RETIRÉ (23/10/2026, audit) - `lireSimulationsCourantes` : AUCUN appelant (les composants lisent via `useSimulations`). / EN: ⚠️ REMOVED - dead export, no caller.
 /** FR : les simulations courantes, qui font rafraîchir le composant à chaque changement. / EN: current simulations; re-renders the component on every change. */
 export function useSimulations(): Simulations {
   return useSyncExternalStore(magasinGlobal.abonner, magasinGlobal.lire, magasinGlobal.lire);

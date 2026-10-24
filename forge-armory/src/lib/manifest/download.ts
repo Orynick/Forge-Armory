@@ -115,30 +115,7 @@ export interface ResultatManifest {
 const instancesOuvertes = new Map<string, { version: string; db: Database }>();
 const chargementsEnCours = new Map<string, Promise<ResultatManifest>>();
 
-/**
- * FR : ⚠️ AJOUT (26/09/2026, v0.2.2) - vérification LÉGÈRE, pour le
- * chargement automatique au démarrage (demande de l'utilisateur :
- * « vérif automatique de la version, et si c'est à jour, chargement
- * automatique »). Renvoie `true` seulement si, pour CHAQUE langue
- * demandée, le cache local existe ET correspond à la version actuelle
- * annoncée par Bungie.
- *
- * Ne télécharge JAMAIS le Manifest : un seul petit appel à Bungie (la
- * version, quelques Ko), puis une lecture de CLÉ dans IndexedDB (`getKey`)
- * — on vérifie la présence des ~100 Mo sans les lire. Toute erreur (hors
- * ligne, Bungie indisponible...) renvoie `false` : l'appli retombe alors
- * sur le bouton manuel, comme avant.
- *
- * EN: ⚠️ ADDED - LIGHTWEIGHT check for auto-loading at startup. True only if,
- * for EVERY requested language, the local cache exists AND matches Bungie's
- * current version. NEVER downloads: one tiny version call, then a KEY lookup
- * (`getKey`), which checks the ~100MB entry exists without reading it. Any
- * error returns false and the app falls back to the manual button.
- */
-export async function manifestsEnCacheAJour(langues: string[] = ["fr", "en"], dependances: DependancesCacheManifest = DEPENDANCES_CACHE_REELLES): Promise<boolean> {
-  const etat = await etatCachesManifests(langues, dependances);
-  return etat !== null && langues.every((l) => etat[l] === "a-jour");
-}
+// FR : ⚠️ RETIRÉ (23/10/2026, audit) - `manifestsEnCacheAJour` : AUCUN appelant en production (seul un test l'appelait, en l'appelant lui-même « ancienne fonction »). La logique vivante est dans `etatCachesManifests` (appelée par le démarrage). / EN: ⚠️ REMOVED - dead code, no production caller.
 
 /**
  * FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - état de CHAQUE langue en cache, pour décider au démarrage (demande de l'utilisateur : « si le Manifest est périmé, et uniquement dans ce cas, téléchargement du nouveau »).

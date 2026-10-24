@@ -135,7 +135,7 @@
 
 **Conflits** : aucun (merge propre sur les 6 branches).
 
-**Note** : la branche `draft-update-triomphes` est supprimée après livraison. Tag `v0.5.2` créé.
+**Note** : la branche `draft-update-triomphes` est supprimée après livraison. Tag `v0.5.2` créé. La branche `draft-deps` reste en l'état (chantier déjà livré, branche conservée).
 
 **Version 0.5.2.**
 

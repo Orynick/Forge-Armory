@@ -31,6 +31,10 @@ export type CibleEquipement =
 
 export const NOMS_CLASSE: Record<ClasseBuild, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste" };
 
+// FR : ⚠️ AJOUT (23/10/2026, audit) - noms de classe INDEXÉS PAR `classType` Bungie (0=Titan, 1=Chasseur, 2=Arcaniste), pour les lectures directes du profil (composant 200). Trois copies de ce tableau existaient (`api.ts`, `carriere.ts`).
+// EN: ⚠️ ADDED - class names INDEXED BY Bungie's `classType` (0=Titan, 1=Hunter, 2=Warlock), for direct profile reads (component 200). Three copies of this array existed (`api.ts`, `carriere.ts`).
+export const NOMS_CLASSE_PAR_INDEX: readonly string[] = ["Titan", "Chasseur", "Arcaniste"];
+
 /** FR : « Chasseur », « chasseur » ou « CHASSEUR » -> « chasseur » ; autre chose -> null. / EN: normalises a class label. */
 export function classeDepuisNom(nom: string): ClasseBuild | null {
   const n = nom.trim().toLowerCase();
