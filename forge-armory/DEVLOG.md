@@ -4,6 +4,18 @@
 
 ---
 
+## 24/10/2026 — PROPAGATION : v0.5.5 répercutée sur les branches de chantier
+
+**Propagation** : la livraison v0.5.5 (merge PR #21 dans `main`, tag `v0.5.5`) a été répercutée sur les 7 branches actives pour limiter les conflits futurs : les 6 branches de chantier (`draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`) + `draft-mod-armures` (branche de la PR #19 ouverte). La branche `test` reste OUVERTE (demande de l'utilisateur).
+
+**Conflits** : un seul, sur `draft-optimiseur` (`DashboardPage.tsx` : le chantier optimiseur importe `StatKey`/`demoExigences` là où le fix S1 de main les retire) — résolu en gardant les DEUX : le fix S1 (`demoExigences` non passée à `evaluerBuild`) + `StatKey` (utilisé par `changerAjustementStat` du chantier). `draft-sec` : merge propre. Vérifié sur `draft-optimiseur` : tsc 0, **46/46 suites, 927/927 contrôles**, build OK. Sur `draft-sec` : tsc 0, **41/41 suites, 801/801 contrôles**, build OK.
+
+**Branches de livraison supprimées** après livraison : `vibe/postmaster-5-8-c40641`, `vibe/livraison-055-c40641` (convention du dépôt).
+
+**Version 0.5.5.**
+
+---
+
 ## 24/10/2026 — LIVRAISON v0.5.5 : merge PR #21 (audit 23/10 + point 5.8 — courrier/postmaster affiché)
 
 **Livraison** : la PR #21 (branche `vibe/postmaster-5-8-c40641`, base `main` après rebasage de `test`) est mergée dans `main`. Elle regroupe :
