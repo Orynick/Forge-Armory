@@ -14,6 +14,7 @@ at the project root (see below).
 | `agent-ia/` | Conception de l'agent IA : architecture et notes de décision | libre |
 | `todo/` | Archives de la TODO avant un tri (copie intégrale, mot pour mot) | `ARCHIVE-TODO-AAAA-MM-JJ.md` |
 | `sources/` | Sources des documents livrés en PDF à la racine, et le script qui les produit (outil de Claude) | même nom que le PDF, en `.md` |
+| `identite-visuelle/` | Identité visuelle : **charte graphique** (`CHARTE-GRAPHIQUE.md`), **guide des scripts qui fabriquent les visuels** (`SCRIPTS-VISUELS.md`), retouches appliquées aux visuels livrés (`RETOUCHES-VISUELS.md`) | libre |
 
 **Archive des tests validés** : le sous-dossier `tests/` a été **supprimé le 14/10/2026 à la demande de l'utilisateur** (111 sections validées y étaient archivées). Ne pas le recréer sans qu'il le demande : l'historique des validations reste dans `DEVLOG.md`, entrée par entrée.
 

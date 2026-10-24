@@ -55,7 +55,7 @@ export interface EntreePiece {
   icone?: string;
   /** Classe requise (il n'existe pas d'armure « toute classe »). */
   classeRequise?: "titan" | "chasseur" | "arcaniste";
-  origine?: "coffre" | "titan" | "chasseur" | "arcaniste";
+  origine?: "coffre" | "titan" | "chasseur" | "arcaniste" | "courrier";
 }
 
 export interface EntreeOptimiseur {

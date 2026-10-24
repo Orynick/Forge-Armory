@@ -1,5 +1,6 @@
 // FR : ⚠️ AJOUT (16/10/2026, v0.4.12), demande de l'utilisateur : « on enchaîne sur les armures de la Collection » - le CATALOGUE DES ARMURES DU JEU, construit à partir du Manifest (spécification du 12/10/2026 : « toutes les armes et armures du jeu »), sur le modèle de `catalogueArmes.ts` : lecture UNE FOIS par Manifest, par lots avec pauses (l'écran reste réactif), mis en mémoire ; puis des filtres (nom ou ensemble, classe, emplacement, rareté, ensemble, source « Collections du jeu », obtention). LECTURE SEULE : rien n'est simulé, rien n'est écrit.
 // Une armure = un objet `itemType` 2 avec un nom, ni masqué ni factice, dont le seau (`bucketTypeHash`) est un emplacement d'armure connu. Le `LIKE '%"itemType":2%'` attrape aussi 20, 21… : l'exactitude est revérifiée sur le JSON lu. Le nom de l'ensemble (Armor 3.0) vient de l'index des ensembles (`obtenirBonusSet`, une seule lecture de table). ⚠️ Non vérifié sur le Manifest réel de l'utilisateur (voir le diagnostic en `npm run dev`). EN: ⚠️ ADDED - the game's armor catalogue built from the Manifest, modelled on the weapons catalogue; read-only.
+import { CATEGORIE_FACTICE } from "./search";
 import type { Database } from "sql.js";
 import { obtenirDefinition, idSqliteVersHash } from "./download";
 import { normaliser, urlIcone } from "./search";
@@ -9,7 +10,7 @@ import type { SlotArmure } from "../../types/build";
 import type { EtatObtention, OptionsConstruction } from "./catalogueArmes";
 
 const TABLE_OBJETS = "DestinyInventoryItemDefinition";
-const CATEGORIE_FACTICE = 3109687656;
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - constante locale remplacée par l'import depuis `search.ts` (dedup). / EN: ⚠️ CHANGED - local constant replaced by the import from `search.ts` (dedup).
 const SLOTS_ARMURE: readonly string[] = ["casque", "gants", "torse", "jambes", "marque"];
 
 export type ClasseArmure = "titan" | "chasseur" | "arcaniste";
