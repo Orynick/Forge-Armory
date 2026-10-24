@@ -4,6 +4,31 @@
 
 ---
 
+## 24/10/2026 (soir, après la livraison v0.5.5) — branche `draft-mod-armures` (PR #19) : Forge des armures, étape 2 — modification des mods DANS la pop-up Détails + lien avec le score et Mon Build
+
+**Demande** : « Création du "draft-mod-armures" — En lien avec l'optimiseur, et parce qu'on a mis ce sujet de côté : il va falloir finir la modification des mods d'armure via la pop-up Détails des armures. Je crois qu'on avait commencé à travailler dessus. Il faut voir ce qui est déjà en place, adapter aux dernières versions de Forge Armory, et continuer. » Reprise du chantier mis de côté après la 0.4.12 : c'est le premier item de la liste « Pas fait (étapes suivantes à décider) » de l'entrée du 15/10/2026 (lien avec le score et Mon Build) et le **niveau 1** (simulation dans l'appli, sans rien toucher en jeu) du TODO §2 pour les armures. **Version inchangée (0.5.5)** : livraison sur la branche `draft-mod-armures` (PR #19), à merger dans `main` après validation ; la livraison sur `main` portera le numéro 0.5.6.
+
+**État des lieux retrouvé** (ce qui était déjà en place) : `lib/forge/armure.ts` (`colonnesArmure`, `statsSimulees`, `regrouperColonnesArmure`, `diagnosticArmure`), `InventaireArmures.tsx` (Forge des armures : liste, fenêtre, simulation locale), bouton « 🔨 Forge » dans les 3 pop-ups Détails (ajout du 16/10). **Limite documentée** (entrée du 15/10, « Isolation prouvée par les tests ») : les simulations d'armures étaient écrites dans le magasin des armes (pas de distinction) et `appliquerSimulations` ne parcourait que `build.armes` — une simulation d'armure ne changeait NI le score, NI Mon Build. Aucune édition n'existait dans les pop-ups Détails.
+
+**Fait** :
+- `lib/forge/simulation.ts` : le modèle gagne un bloc `armures` (clé = identifiant d'exemplaire, choix par `socketIndex`) ; format stocké **v2**. Lecture tolérante : un contenu v1 (sans `armures`) est accepté (migration) ; les anciennes simulations d'armures écrites dans `armes` par la 0.4.12 y restent, **inertes** pour le score (aucun reclassement risqué). `choisir` / `retirerColonne` / `reinitialiserArme` / `nbColonnesSimulees` prennent une partie (`"armes"` | `"armures"`, défaut `"armes"` : les appels existants ne changent pas). Nouvelle `armuresSimulees`.
+- `lib/forge/appliquerSimulation.ts` : nouvelle `appliquerSimulationArmure` (copie uniquement, armure possédée seulement) — la copie porte les mods simulés dans `perkHashes`/`perksParColonne` (lus par le Pilier 2) ET ses statistiques recalculées via `statsSimulees` (lus par le pilier `stats_2_0` via `sommerStatsArmure`) ; les stats réelles sont mémorisées dans `statsReelles`. `appliquerSimulations(build, simulations, db)` applique les DEUX parties ; sans Manifest, les stats des armures simulées restent réelles (seuls les perks sont remplacés). Le tableau `armure` n'est recopié que si une armure est réellement simulée (mêmes objets sinon).
+- `types/build.ts` : nouveaux repères sur `GearPiece` posés UNIQUEMENT sur une copie : `modsSimules`, `statsReelles`, `nbModsSimules`.
+- `components/SelecteurInventaire.tsx` (Mon Inventaire + Coffre) : la pop-up Détails d'une armure possédée gagne la **simulation des mods** — mêmes colonnes, niveaux (réel ✓ / simulé doré / disponible / théorique) et regroupement des prises identiques que la Forge ; les six statistiques affichent réel → simulé (delta) ; bouton « Revenir à l'équipement réel ».
+- `components/ResumeBuild.tsx` (Mon Build) : idem dans la pop-up Détails d'une armure du build, en repartant des données RÉELLES (`perkHashesReels`/`statsReelles`) pour ne jamais simuler sur du simulé ; badge « N mods simulés » sur la ligne de l'armure ; avertissement à l'équipement (les mods simulés ne sont pas appliqués en jeu).
+- `components/InventaireArmures.tsx` (Forge) : écrit désormais dans le bloc `armures` (plus dans `armes`) ; bouton « Effacer TOUTES les simulations d'armures ».
+- `pages/DashboardPage.tsx` : `appliquerSimulations(monBuild, simulations, db)` — le score (piliers `stats_2_0` + `verbes_element`) et Mon Build reçoivent le build AVEC la simulation des armures ; bandeau « Score calculé avec des mods d'armure simulés (N armures) » à côté du score. L'enregistrement, le partage, l'export et l'équipement en jeu gardent les mods RÉELS.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie : **42/42 suites, 826/826 contrôles** dont `simulation` 22/22 (7 nouveaux : bloc armures, migration v1, entrées abîmées), `armure-simulation-score` **18/18** (nouveau : overlay, sémantique de copie, stats recalculées, repli sans Manifest, les deux parties, chaîne jusqu'au moteur — le Pilier 2 lit le texte du mod simulé, le pilier `stats_2_0` réagit dans les deux sens, retour exact au score réel), `appliquer-simulation` 20/20 (mélange v1 inerte pour l'armure), `cablage-forge` 28/28 (liste fermée à 7, appel avec `db`) ; `npm run build` (tsc strict + vite) ✓ ; CI GitHub Actions verte (2 runs SUCCESS). Rebasage sur `main` (v0.5.5) : aucun conflit, batterie revérifiée après merge.
+
+**Validé par l'utilisateur** (retour du 24/10, 8/8) : (1) section « Simuler les mods » dans la pop-up Détails (Mon Inventaire) ; (2) Coffre idem ; (3) Mon Build idem + badge « N mods simulés » ; (4) score en temps réel + bandeau « mods d'armure simulés » ; (5) « Revenir à l'équipement réel » → retour exact au score réel ; (6) aller-retour bouton « Forge » (pop-up → Forge → retour) ; (7) avertissement à l'équipement d'une armure simulée ; (8) persistance des simulations après redémarrage.
+
+**Pas fait (volontairement)** : RIEN n'est écrit chez Bungie (Phase 1 de la spécification du 12/10/2026 ; la Phase 2, `InsertSocketPlugFree`, reste le niveau 2 du TODO §2). Les autres items de la liste « Pas fait » du 15/10 restent ouverts : énergie des mods (coût/capacité), Collection des armures dans la pop-up, ensembles et bonus d'ensemble dans la fenêtre.
+
+**Version inchangée (0.5.5)** — branche `draft-mod-armures`, PR #19.
+
+---
+
 ## 24/10/2026 — LIVRAISON v0.5.5 : merge PR #21 (audit 23/10 + point 5.8 — courrier/postmaster affiché)
 
 **Livraison** : la PR #21 (branche `vibe/postmaster-5-8-c40641`, base `main` après rebasage de `test`) est mergée dans `main`. Elle regroupe :

@@ -103,6 +103,37 @@ l'utilisateur du 28/09/2026. Electron est à niveau et validé : c'est, avec
 l'onglet Load-out (section 16), l'un des deux prochains chantiers de
 développement (3e étape de l'ordre du 30/09/2026).
 
+✅ **Niveau 1 (simulation dans l'appli) FAIT le 24/10/2026** (branche
+`draft-mod-armures`, PR #19 — validé par l'utilisateur, 8/8) :
+- **Armes** : simulation des perks dans la fenêtre Forge (depuis la 0.4.x),
+  lien avec le score en place (`appliquerSimulations` parcourt `build.armes`).
+- **Armures** : simulation des mods **directement dans la pop-up Détails**
+  (Mon Inventaire, Coffre, Mon Build) + dans la fenêtre Forge ; le **score et
+  Mon Build réagissent en temps réel** (bloc `armures` du magasin, format
+  stocké v2, `appliquerSimulationArmure` recalcule les stats via
+  `statsSimulees`). Détails dans le DEVLOG (entrée du 24/10, PR #19).
+- Rien n'est écrit chez Bungie ; enregistrement/partage/export/équipement
+  gardent les mods réels.
+
+🔴 **Reste à faire — niveau 2 (en jeu)** : appliquer réellement le
+changement sur l'objet. À étudier : l'API Bungie propose une action
+d'insertion de plug gratuite (`InsertSocketPlugFree`), utilisée par
+d'autres outils ; ses conditions exactes (quels plugs sont autorisés,
+droits OAuth nécessaires, coûts en matériaux exclus) sont **à vérifier
+dans la documentation de Bungie** avant toute promesse.
+
+**Reste à faire — niveau 1 (évolutions)** :
+- **énergie des mods** (coût/capacité) : des combinaisons impossibles en jeu
+  sont possibles dans la simulation (liste « Pas fait » du DEVLOG 15/10) ;
+- **Collection des armures** (toutes les armures du jeu) et **ensembles et
+  bonus d'ensemble** dans la fenêtre/pop-up Détails ;
+- les builds enregistrés gardent leurs `perkHashes` ; `rafraichirStats`
+  (PanneauLoadouts) les remplace aujourd'hui par ceux de l'exemplaire réel
+  au chargement : **à revoir**, sinon une modification faite dans l'appli
+  serait écrasée ;
+- les **défauts des pop-ups Détails** relevés le 30/09/2026 restent à
+  traiter (détaillés ci-dessous, dans « À reprendre à cette occasion »).
+
 **À reprendre à cette occasion : fenêtres de « Détails » des armes et
 armures** (Inventaire et Mon Build), qui ont leur propre logique d'affichage
 (`texteSurvol`, `obtenirDescriptionComplete`, catégories de sockets) et ne
@@ -124,29 +155,27 @@ d'une arme ou d'une armure, **sauf** les ornements, les revêtements
 (shaders) et les compteurs (trackers de victimes, etc.), qui n'ont aucun
 effet sur le build.
 
-**Deux niveaux à distinguer, à trancher avec l'utilisateur avant de coder :**
+**Deux niveaux à distinguer** (tranchés le 24/10/2026) :
 1. **Dans l'appli seulement** (simulation) : modifier les perks/mods d'une
    pièce dans le build, pour voir l'effet sur la fiche et le score, sans
-   rien toucher en jeu. Faisable entièrement côté appli ; le score relit
-   déjà les `perkHashes` de chaque pièce.
-2. **En jeu** : appliquer réellement le changement sur l'objet. À étudier :
-   l'API Bungie propose une action d'insertion de plug gratuite
-   (`InsertSocketPlugFree`), utilisée par d'autres outils ; ses conditions
-   exactes (quels plugs sont autorisés, droits OAuth nécessaires, coûts en
-   matériaux exclus) sont **à vérifier dans la documentation de Bungie**
-   avant toute promesse.
+   rien toucher en jeu. ✅ **FAIT le 24/10/2026** (armes depuis la 0.4.x,
+   armures via PR #19).
+2. **En jeu** : appliquer réellement le changement sur l'objet. 🔴
+   **Reste à faire** (voir `InsertSocketPlugFree` ci-dessus).
 
-**Points de conception déjà identifiés :**
+**Points de conception déjà identifiés** (traités par la Forge depuis la
+0.4.x) :
 - ne proposer que les options réellement possibles : les colonnes de
   perks **obtenues** sur cet exemplaire pour une arme, les mods débloqués
-  compatibles avec l'emplacement pour une armure ;
+  compatibles avec l'emplacement pour une armure (complément par le MODÈLE
+  avec niveau « théorique » pour les prises non listées par le composant 310,
+  regroupement ×N des prises identiques — voir DEVLOG 19/10) ;
 - réutiliser le filtre existant des cosmétiques (`MOTS_PERK_COSMETIQUE`,
   `doctrine.ts`) pour écarter ornements, revêtements et compteurs, plutôt
   qu'une deuxième liste ;
 - les builds enregistrés gardent leurs `perkHashes` ; `rafraichirStats`
   (PanneauLoadouts) les remplace aujourd'hui par ceux de l'exemplaire réel
-  au chargement : à revoir, sinon une modification faite dans l'appli
-  serait écrasée.
+  au chargement : **à revoir** (reporté dans « Reste à faire — niveau 1 »).
 
 ### 3. Agent IA — ⏸️ en attente d'une décision, volontairement
 
