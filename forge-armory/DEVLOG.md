@@ -4,6 +4,18 @@
 
 ---
 
+## 24/10/2026 — PROPAGATION : v0.5.4 répercutée sur les branches de chantier
+
+**Propagation** : la livraison v0.5.4 (merge PR #20 dans `main`, tag `v0.5.4`) a été répercutée sur les 7 branches actives pour limiter les conflits futurs : les 6 branches de chantier (`draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`) + `draft-mod-armures` (branche de la PR #19 ouverte).
+
+**Conflits** : un seul, sur `draft-sec` (commentaires FR/EN `script-src` dans `vite.config.ts`, branche en « React 19 » contre « React 18 » sur main) — résolu en gardant la directive `script-src 'self' 'wasm-unsafe-eval'` de main + « React 19 » de la branche. Merge propre sur les 6 autres branches. Tests de câblage vérifiés sur les branches en conflit (`draft-sec` 39/39 suites, 777/777 contrôles ; `test` 40/40 suites, 791/791 contrôles — la branche `test` embarque une suite supplémentaire).
+
+**Note** : la branche `vibe/fix-connexion-bungie-fenetre-blanche-4bde13` est supprimée après livraison (PR #20 mergée). La PR #19 (`draft-mod-armures`) reste ouverte, non concernée par cette propagation.
+
+**Version 0.5.4.**
+
+---
+
 ## 24/10/2026 — LIVRAISON v0.5.4 : merge PR #20 (deux correctifs validés par l'utilisateur)
 
 **Livraison** : la PR #20 (branche `vibe/fix-connexion-bungie-fenetre-blanche-4bde13`, 3 commits) est mergée dans `main` (merge commit `bcfa983`). Elle livre les deux correctifs bloquants du logiciel installé, **tous deux validés corrigés par l'utilisateur** (« Ok je suis connecté » pour la v0.5.3, « OK, les deux bugs sont corrigés » pour la v0.5.4) :
