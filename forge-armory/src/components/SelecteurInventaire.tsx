@@ -816,7 +816,17 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   // Inventory" (the 3 characters, equipped + inventory), explicit user
   // request ("search field similar to the Vault's but limited to the
   // inventory").
-  const inventaireBrut = (objets ?? []).filter((o) => o.origine !== "coffre");
+  // FR : ⚠️ CHANGÉ (24/10/2026, tests post-audit, point 5.8) - le courrier est
+  // EXCLU de « Mon Inventaire » (il a sa propre section) : un objet qui y
+  // attend n'est ni sur un personnage, ni transférable.
+  // EN: CHANGED - the postmaster is EXCLUDED from "My Inventory" (it has its
+  // own section): an item waiting there is neither on a character nor
+  // transferable.
+  const inventaireBrut = (objets ?? []).filter((o) => o.origine !== "coffre" && o.origine !== "courrier");
+  // FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - les objets en
+  // attente au courrier (postmaster), affichés dans leur propre section.
+  // EN: ADDED - items waiting in the postmaster, shown in their own section.
+  const courrierBrut = (objets ?? []).filter((o) => o.origine === "courrier").filter(correspondAuxFiltresInventaire);
   const texteRechercheParPieceInventaire = useMemo(() => {
     const carte = new Map<string, string>();
     if (!db) return carte;
@@ -940,7 +950,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
         {/* FR : ⚠️ CHANGÉ (07/10/2026, v0.3.15) - titre illustré ; la précision « personnages + coffre » n'est pas dans l'image (la notice de l'archive le dit) : elle est gardée en sous-texte discret à côté. / EN: ⚠️ CHANGED - illustrated title; the "characters + vault" detail is kept as a muted sub-text. */}
         <span style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
           <TitreRepliable categorie="inventaire" />
-          <span data-sous-titre-inventaire="" style={{ fontSize: "0.72rem", fontWeight: 400, color: "#7d7a70" }}>personnages + coffre</span>
+          <span data-sous-titre-inventaire="" style={{ fontSize: "0.72rem", fontWeight: 400, color: "#7d7a70" }}>personnages + coffre + courrier</span>
         </span>
         <span>{objets ? `✅ ${objets.length} objets` : "◯ non chargé"}</span>
         </span>
@@ -1178,6 +1188,38 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
               );
             })}
           </div>
+
+          {/* FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - section
+          « Courrier » (postmaster) : les objets en attente de récupération en
+          jeu. Ils sont listés pour être VISIBLES (l'inventaire du personnage ne
+          les montrait pas avant), mais ni le bouton « Transférer vers » ni le
+          bouton « + Ajouter » ne les accepte : un objet au courrier ne se
+          déplace pas d'ici (il faut d'abord le récupérer en jeu). Le bouton de
+          transfert est grisé avec l'explication (voir BoutonTransfert). */}
+          {courrierBrut.length > 0 && (
+            <details open style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem", marginBottom: "0.75rem" }}>
+              <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                  📨 Courrier ({courrierBrut.length} objet{courrierBrut.length > 1 ? "s" : ""})
+                </span>
+              </summary>
+              <p style={{ fontSize: "0.72rem", color: "#7d7a70", margin: "0.3rem 0 0.5rem" }}>
+                En attente de récupération en jeu : un objet au courrier ne peut pas être équipé ni transféré d'ici.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "0.4rem" }}>
+                {trierEtGrouper(courrierBrut).map((g) => (
+                  <li key={g.slot}>
+                    <div style={{ fontSize: "0.7rem", color: "#7d7a70" }}>{LIBELLES_SLOT[g.slot]}</div>
+                    <ul style={{ listStyle: "none", padding: 0, margin: "0.2rem 0 0" }}>
+                      {g.items.map((p) => (
+                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
 
           <details open={cible && coffre.some((g) => g.items.length > 0) ? true : undefined} style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>   {/* ⚠️ v0.4.0 : « Aller à » ouvre le coffre s'il contient l'objet */}
             <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}>

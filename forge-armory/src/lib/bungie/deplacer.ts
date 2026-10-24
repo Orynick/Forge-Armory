@@ -9,8 +9,8 @@ import type { DestinyMembership } from "./api";
 import { SessionExpiree } from "./oauth";
 import { lireProfilEquipement, localiserDansProfil, transfererObjet, PositionObjet, ProfilEquipement, LIEU_COURRIER } from "./equiper";
 
-export type Lieu = "coffre" | "titan" | "chasseur" | "arcaniste";
-export const LIBELLES_LIEU: Record<Lieu, string> = { coffre: "le Coffre", titan: "le Titan", chasseur: "le Chasseur", arcaniste: "l'Arcaniste" };
+export type Lieu = "coffre" | "titan" | "chasseur" | "arcaniste" | "courrier";
+export const LIBELLES_LIEU: Record<Lieu, string> = { coffre: "le Coffre", titan: "le Titan", chasseur: "le Chasseur", arcaniste: "l'Arcaniste", courrier: "le courrier" };
 
 
 export type CodeRefus = "equipe" | "courrier" | "introuvable" | "inconnue" | "deja" | "classe" | "sans-personnage";

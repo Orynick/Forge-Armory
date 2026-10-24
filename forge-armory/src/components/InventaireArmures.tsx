@@ -25,7 +25,12 @@ import type { CibleForge } from "./InventaireArmes";
 const TAILLE_PAGE = 60;
 const SLOTS_ARMURE = ["casque", "gants", "torse", "jambes", "marque"];
 const CLASSES: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste" };
-const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste", coffre: "Coffre" };
+// FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - « Courrier » dans
+// les libellés de lieu : un objet en attente au postmaster est listé (origine
+// « courrier »), même s'il ne peut pas être simulé ici.
+// EN: ADDED - "Courrier" in the location labels: a postmaster item is listed
+// (origin "courrier"), even though it cannot be simulated here.
+const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste", coffre: "Coffre", courrier: "Courrier" };
 
 const estArmure = (p: GearPiece) => SLOTS_ARMURE.includes(p.slot as string);
 

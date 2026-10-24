@@ -3,6 +3,12 @@
 > **Ce fichier est désormais un changelog orienté utilisateur.**
 > L'historique complet et détaillé du développement (DEVLOG) se trouve dans [`DEVLOG.md`](DEVLOG.md).
 
+## v0.5.5 — 24/10/2026 (branche test)
+
+- **Correctif** : le contenu du courrier (postmaster) n'apparaissait pas dans « Mon Inventaire » (point 5.8 des tests post-audit, non testable tant que le courrier n'était pas affiché). Les objets en attente y sont maintenant listés dans leur propre section « 📨 Courrier », et le bouton « Transférer vers » y est grisé avec l'explication : un objet au courrier ne se déplace pas d'ici (il faut d'abord le récupérer en jeu). L'équipement d'un objet au courrier reste refusé avec le même message.
+
+→ Détails complets : [DEVLOG.md](DEVLOG.md)
+
 ## v0.5.4 — 23/10/2026
 
 - **Correctif** : le chargement du Manifest ne fonctionnait plus dans le logiciel installé (bouton « charger le Manifest (FR+EN) » sans effet, `CompileError: WebAssembly.instantiate()` dans la console) : la politique de sécurité (CSP) bloquait la compilation WebAssembly de SQLite. Corrigé.
