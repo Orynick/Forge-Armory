@@ -3,12 +3,20 @@ import { GearPiece, StatBlock, StatKey } from "../../types/build";
 /**
  * FR : Additionne les stats de toutes les pièces d'un tableau d'armure.
  * Utilisée à la fois par le moteur de scoring et par l'affichage (graphique).
+ * ⚠️ CORRIGÉ (23/10/2026, audit) : les emplacements VIDES (`itemHash: 0`,
+ * les placeholders du build de démonstration) sont IGNORÉS — un emplacement
+ * vide ne doit apporter aucune stat (sinon l'état « vide » du premier
+ * lancement affichait 370 pts fantômes).
  * EN: Sums the stats of every piece in an armor array. Used by both the
- * scoring engine and the display (chart).
+ * scoring engine and the display (chart). ⚠️ FIXED - empty slots
+ * (`itemHash: 0`, the demo build's placeholders) are ignored.
  */
 export function sommerStatsArmure(armure: GearPiece[]): StatBlock {
   return armure.reduce(
     (acc, piece) => {
+      // FR : un emplacement vide (placeholder, itemHash: 0) n'apporte rien.
+      // EN: an empty slot (placeholder, itemHash: 0) contributes nothing.
+      if (piece.itemHash === 0) return acc;
       for (const [cle, valeur] of Object.entries(piece.stats)) {
         acc[cle as StatKey] = (acc[cle as StatKey] ?? 0) + (valeur ?? 0);
       }

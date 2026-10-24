@@ -1,0 +1,60 @@
+# ============================================================
+#  NETLIFY — Configuration pour Forge Armory
+# ============================================================
+#
+# Ce fichier dit à Netlify :
+# - Où se trouve le projet (dans le dossier forge-armory/)
+# - Quelle commande lancer pour construire le site
+# - Où trouver les fichiers à publier
+# - Quelle version de Node.js et npm utiliser
+#
+# ============================================================
+
+[build]
+  # Le dossier où se trouve le projet (package.json, vite.config.ts, etc.)
+  base = "forge-armory"
+
+  # La commande pour construire le site (génère le dossier dist/)
+  command = "npm run build"
+
+  # Le dossier contenant les fichiers statiques à publier
+  publish = "dist"
+
+[build.environment]
+  # Version de Node.js utilisée pour le build
+  # Doit correspondre au .nvmrc et au engines.node de package.json
+  NODE_VERSION = "24.22.1"
+
+  # Version de npm utilisée pour le build
+  NPM_VERSION = "12.2.1"
+
+# ============================================================
+#  REDIRECTIONS — Pour une SPA (Single Page Application)
+# ============================================================
+# React Router gère les routes côté client (ex: /forge, /inventaire).
+# Sans cette règle, Netlify renverrait une erreur 404 sur ces URLs
+# car il ne trouverait pas de fichier correspondant sur le serveur.
+# Cette règle renvoie toujours index.html, laissant React Router
+# gérer l'affichage de la bonne page.
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ============================================================
+#  HEADERS — Sécurité de base
+# ============================================================
+# Ces en-têtes protègent les visiteurs contre certaines attaques.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Empêche le navigateur d'essayer de deviner le type MIME
+    X-Content-Type-Options = "nosniff"
+    # Protection contre le clickjacking (intégration dans une iframe)
+    X-Frame-Options = "DENY"
+    # Politique de référent (ne pas fuiter l'URL complète)
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Active la protection XSS du navigateur
+    X-XSS-Protection = "1; mode=block"

@@ -1,6 +1,7 @@
 // FR : Appels API Bungie — comptes liés, profil, inventaire, coffre.
 // EN: Bungie API calls — linked accounts, profile, inventory, vault.
 
+import { NOMS_CLASSE_PAR_INDEX } from "../loadouts/classePersonnage";
 import { BUNGIE_API_ROOT, bungieConfig } from "./config";
 import { obtenirAccessTokenValide } from "./oauth";
 
@@ -117,23 +118,35 @@ export interface ResumeProfil {
   nbObjetsCoffre: number;
 }
 
-const NOMS_CLASSE = ["Titan", "Chasseur", "Arcaniste"];
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - le profil Bungie était typé `any` ;
+// on déclare la FORME MINIMALE lue ici (composants 100 et 200), le reste reste `unknown`.
+// EN: ⚠️ CHANGED - the Bungie profile was typed `any`; we declare the MINIMAL
+// shape read here (components 100 and 200), the rest stays `unknown`.
+interface ProfilBungieLu {
+  characters?: { data?: Record<string, { classType: number; light: number }> };
+  profileInventory?: { data?: { items?: unknown[] } };
+}
 
-function derivePersonnages(profil: any): Personnage[] {
-  const entrees = Object.entries(profil.characters?.data ?? {}) as [string, { classType: number; light: number }][];
+function profilLu(profil: unknown): ProfilBungieLu {
+  return (profil ?? {}) as ProfilBungieLu;
+}
+
+function derivePersonnages(profil: unknown): Personnage[] {
+  const entrees = Object.entries(profilLu(profil).characters?.data ?? {});
   return entrees.map(([characterId, c]) => ({
     characterId,
-    classe: NOMS_CLASSE[c.classType] ?? "?",
+    // FR : ⚠️ CHANGÉ (23/10/2026, audit) - `NOMS_CLASSE` local remplacé par la constante centralisée `NOMS_CLASSE_PAR_INDEX` (dedup). / EN: ⚠️ CHANGED - local `NOMS_CLASSE` replaced by the centralised `NOMS_CLASSE_PAR_INDEX` (dedup).
+    classe: NOMS_CLASSE_PAR_INDEX[c.classType] ?? "?",
     lumiere: c.light,
   }));
 }
 
-function deriveResume(profil: any, membership: DestinyMembership, personnages: Personnage[]): ResumeProfil {
+function deriveResume(profil: unknown, membership: DestinyMembership, personnages: Personnage[]): ResumeProfil {
   return {
     compte: membership.displayName,
     nbPersonnages: personnages.length,
     classesEtLumiere: personnages.map((p) => `${p.classe} (lumière ${p.lumiere})`),
-    nbObjetsCoffre: (profil.profileInventory?.data?.items ?? []).length,
+    nbObjetsCoffre: profilLu(profil).profileInventory?.data?.items?.length ?? 0,
   };
 }
 
