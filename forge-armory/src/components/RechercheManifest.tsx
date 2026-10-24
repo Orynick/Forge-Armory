@@ -30,7 +30,7 @@ import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
 import { Database } from "sql.js";
 import { assurerManifestAJour, etatCachesManifests, simulerManifestPerime, telechargerManifestsEnFichiers } from "../lib/manifest/download";
 import { demarrerManifests, LangueManifest } from "../lib/manifest/demarrage";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : mise à jour automatique d'un Manifest PÉRIMÉ
-import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance, chercherTriomphesFlawless, TriompheTrouve } from "../lib/manifest/search";
+import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance } from "../lib/manifest/search";
 // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la catégorie de SOURCE d'un objet (d2-additional-info, MIT) affichée à côté de la chaîne brute, et le filtre `source:`.
 import { sourceObjetParHash, jointureSource } from "../data/sourceObjet";
 import { saisonParNumero, saisonDeLObjet } from "../data/saisons";   // ⚠️ AJOUT (19/10/2026) : saison de sortie en clair (secours du nom + dates)
@@ -149,7 +149,6 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
   const [diagnosticRecherche, setDiagnosticRecherche] = useState<DiagnosticCorrespondance[] | null>(null);
   // FR : ⚠️ AJOUT (24/08/2026) - diagnostic ponctuel pour la future vitrine
   // Solo Flawless (PAS intégrée à l'appli, juste une aide au recensement).
-  const [diagnosticFlawless, setDiagnosticFlawless] = useState<TriompheTrouve[] | null>(null);
 
   const minuteurDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -297,12 +296,25 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
     minuteurDebounce.current = setTimeout(() => executerRecherche(valeur, mode, categorie), DELAI_DEBOUNCE_MS);
   }
 
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - un changement de mode ou de
+  // catégorie annulait JAMAIS le debounce en attente : un debounce lancé par
+  // la frappe (qui capture l'ANCIEN mode/la catégorie) pouvait s'exécuter
+  // APRÈS la recherche immédiate, écrasant ses résultats par une recherche
+  // sur les anciens critères. Le minuteur est annulé avant chaque recherche
+  // immédiate.
+  // EN: ⚠️ FIXED - changing mode or category never cancelled the pending
+  // debounce: a debounce started by typing (which captures the OLD mode and
+  // category) could fire AFTER the immediate search, overwriting its results
+  // with a search on the old criteria. The timer is cleared before each
+  // immediate search.
   function surChangementMode(nouveauMode: ModeRecherche) {
+    if (minuteurDebounce.current) clearTimeout(minuteurDebounce.current);
     setMode(nouveauMode);
     executerRecherche(motCle, nouveauMode, categorie); // changement immédiat, pas de debounce
   }
 
   function surChangementCategorie(nouvelleCategorie: CategorieResultat | "toutes") {
+    if (minuteurDebounce.current) clearTimeout(minuteurDebounce.current);
     setCategorie(nouvelleCategorie);
     executerRecherche(motCle, mode, nouvelleCategorie);
   }
@@ -466,17 +478,7 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
                 🔍 Diagnostic (dev)
               </button>
             )}
-            {/* FR : ⚠️ AJOUT (24/08/2026) - diagnostic PONCTUEL pour la future
-            vitrine Solo Flawless (pas intégrée). À retirer une fois la
-            liste des 11 hashes récupérée et codée en dur. */}
-            {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.rechercheTriomphesFlawless && dbFr && (
-              <button
-                onClick={() => setDiagnosticFlawless(chercherTriomphesFlawless(dbFr))}
-                style={{ fontSize: "0.75rem" }}
-              >
-                🏆 Triomphes Flawless (dev)
-              </button>
-            )}
+                        {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic « Triomphes Flawless » archivé supprimé (les 11 hashes sont codés en dur dans `triomphesSoloFlawless.ts`). / EN: ⚠️ REMOVED - archived Flawless-triumphs diagnostic deleted (hashes hardcoded). */}
             <label style={{ fontSize: "0.85rem" }}>
               <input type="radio" checked={mode === "nom"} onChange={() => surChangementMode("nom")} />{" "}
               Nom uniquement
@@ -545,28 +547,7 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
           {rechercheEnCours && <p style={{ fontSize: "0.85rem" }}>🔎 Recherche en cours...</p>}
           {erreurRecherche && <p style={{ color: "#e08080" }}>⚠️ Erreur de recherche : {erreurRecherche}</p>}
 
-          {/* FR : ⚠️ AJOUT (24/08/2026) - affichage du diagnostic, en texte
-          brut sélectionnable (pas une grille stylée) pour être copié tel
-          quel dans le chat, comme les autres diagnostics de l'appli. */}
-          {/* FR : ⚠️ AJOUT (24/08/2026) - résultat du diagnostic PONCTUEL
-          pour la future vitrine Solo Flawless. Composant temporaire. */}
-          {diagnosticFlawless && (
-            <div style={{ margin: "0.5rem 0", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-                <strong style={{ fontSize: "0.8rem" }}>
-                  🏆 {diagnosticFlawless.length} triomphe(s) trouvé(s) — à copier pour Claude
-                </strong>
-                <button onClick={() => setDiagnosticFlawless(null)} style={{ fontSize: "0.7rem" }}>
-                  fermer
-                </button>
-              </div>
-              <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.68rem", background: "#0d0f14", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem", maxHeight: "400px", overflow: "auto" }}>
-                {diagnosticFlawless.length === 0
-                  ? "Aucun triomphe trouvé — table DestinyRecordDefinition absente de ce Manifest ?"
-                  : diagnosticFlawless.map((t) => `hash ${t.hash} | "${t.nom}"\n  ${t.description}\n`).join("\n")}
-              </pre>
-            </div>
-          )}
+                    {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic « Triomphes Flawless » archivé supprimé (bouton + affichage + state). / EN: ⚠️ REMOVED - archived Flawless-triumphs diagnostic deleted (button + display + state). */}
 
           {diagnosticRecherche && (
             <div style={{ margin: "0.5rem 0", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>

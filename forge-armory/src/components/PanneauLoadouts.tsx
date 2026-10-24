@@ -1,4 +1,3 @@
-import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 // FR : Panneau latéral des loadouts, fixé à droite et suivant le
 // défilement de la page (demande de l'utilisateur). Repliable, pour ne
 // pas manger de la largeur en permanence sur les écrans étroits.
@@ -586,27 +585,7 @@ export default function PanneauLoadouts({ objetsPossedes, onChargerLoadout, memb
                   urlOfficielle={db ? obtenirIconeElementDoctrine(db, l.elementFige as DamageElement) : undefined}
                 />
               )}
-              {/* FR : ⚠️ AJOUT (24/08/2026) - diagnostic (mode dev) pour le
-              bug signalé : un loadout Filobscur affiche l'icône Stase.
-              Vérification statique du code (table ENUM_VERS_ELEMENT, lecture
-              du Manifest, formes de repli) n'a rien révélé d'anormal - tout
-              est correctement étiqueté à chaque étape. Plutôt que de deviner
-              un correctif sans cause identifiée, ce diagnostic affiche la
-              valeur BRUTE de `elementFige` et l'URL réellement résolue.
-              EN: ⚠️ ADDED - diagnostic (dev mode) for the reported bug: a
-              Filobscur loadout shows the Stasis icon. Static code review
-              found nothing wrong - everything is correctly labeled at each
-              step. Rather than guessing a fix with no identified cause,
-              shows the RAW `elementFige` value and the actually resolved
-              URL. */}
-              {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.elementFigeLoadout && l.elementFige && (
-                <span
-                  title={`elementFige (brut) = "${l.elementFige}"\nURL résolue = ${db ? obtenirIconeElementDoctrine(db, l.elementFige as DamageElement) ?? "(aucune - repli dessiné)" : "(Manifest non chargé)"}`}
-                  style={{ fontSize: "0.6rem", color: "#5a5f6b", cursor: "help", border: "1px solid #3a3f4b", borderRadius: 3, padding: "0 3px" }}
-                >
-                  🔍
-                </span>
-              )}
+                            {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic « elementFige » archivé supprimé (bug résolu depuis le début de la session). / EN: ⚠️ REMOVED - archived elementFige diagnostic deleted (bug fixed). */}
               {/* FR : ⚠️ AJOUT (04/08/2026) - icône du Super figé, entre
               l'élément et l'icône personnalisée (emplacement demandé par
               l'utilisateur). Résolue depuis `superHash`, déjà stocké dans le
@@ -629,37 +608,7 @@ export default function PanneauLoadouts({ objetsPossedes, onChargerLoadout, memb
               definitions expose no `icon`, only `iconSequences`. Both are now
               read, with a hoverable "★" as a last resort rather than a silent
               blank. */}
-              {/* FR : ⚠️ AJOUT (24/08/2026) - diagnostic (mode dev) pour
-              confirmer l'HYPOTHÈSE avant de corriger à l'aveugle. Le repère
-              "★" de repli n'apparaît PAS non plus (signalé par
-              l'utilisateur), ce qui indique que `superHash` vaut
-              probablement 0 dans le loadout sauvegardé - pas un problème
-              d'icône, mais de donnée absente à la source.
-              Piste identifiée : le marqueur "🎮 équipé en jeu" sur une
-              option de la grille Doctrine est PUREMENT VISUEL - il ne
-              met PAS à jour `superHash` automatiquement. Composer sa
-              doctrine en se fiant au marqueur vert sans CLIQUER l'option
-              laisserait donc `superHash` à 0, silencieusement.
-              EN: ⚠️ ADDED - diagnostic (dev mode) to CONFIRM the hypothesis
-              before blind-patching. The "🎮 equipped in game" marker in the
-              Doctrine grid is PURELY VISUAL - it does NOT auto-update
-              `superHash`. Composing a doctrine by trusting the green marker
-              without CLICKING the option would leave `superHash` at 0,
-              silently. */}
-              {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.hashesDoctrineComplets && (
-                <span
-                  title={`Diagnostic doctrine :
-superHash: ${l.build.subclass.superHash}
-meleeHash: ${l.build.subclass.meleeHash}
-grenadeHash: ${l.build.subclass.grenadeHash}
-classeHash: ${l.build.subclass.classeHash}
-sautHash: ${l.build.subclass.sautHash}
-aspectHashes: [${(l.build.subclass.aspectHashes ?? []).join(", ")}]`}
-                  style={{ fontSize: "0.6rem", color: "#5a5f6b", cursor: "help", border: "1px solid #3a3f4b", borderRadius: 3, padding: "0 3px" }}
-                >
-                  🔍
-                </span>
-              )}
+                            {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic « hashes doctrine » archivé supprimé (hypothèse confirmée). / EN: ⚠️ REMOVED - archived doctrine-hashes diagnostic deleted. */}
               {db && l.build.subclass.superHash > 0 && (() => {
                 const url = obtenirIconePerkDoctrine(db, l.build.subclass.superHash);
                 const nom = obtenirNomPerkDoctrine(db, l.build.subclass.superHash);

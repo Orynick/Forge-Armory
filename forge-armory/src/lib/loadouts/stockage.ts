@@ -443,25 +443,10 @@ export function serialiserUnLoadout(loadout: Loadout): { contenu: string; nomFic
   };
 }
 
-/**
- * FR : nom de fichier lisible et sûr pour Windows : accents retirés,
- * caractères interdits (\ / : * ? " < > |) et espaces remplacés par « - ».
- * ⚠️ EXTRAIT (27/09/2026, v0.2.5) de `exporterUnLoadout` pour servir aussi à
- * l'export PNG/PDF d'une fiche : un seul nettoyage, deux usages.
- * EN: readable, Windows-safe file name. ⚠️ EXTRACTED to also serve the
- * PNG/PDF export.
- */
-export function nomFichierPropre(nom: string): string {
-  return (
-    nom
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-zA-Z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .toLowerCase()
-      .slice(0, 50) || "build"
-  );
-}
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `nomFichierPropre` déplacée dans `lib/nomFichier.ts` (dedup avec `legendarium/exportImage.ts`), ré-exportée ici pour les appelants existants. Comportement identique : longueur max 50, repli « build ».
+// EN: ⚠️ CHANGED - `nomFichierPropre` moved to `lib/nomFichier.ts` (dedup), re-exported here for existing callers. Same behavior: max length 50, fallback "build".
+import { nomFichierPropre } from "../nomFichier";
+export { nomFichierPropre };
 
 /**
  * FR : import JSON. Les loadouts importés s'AJOUTENT aux existants
