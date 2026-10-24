@@ -5,6 +5,9 @@
   "description": "Analyseur de builds Destiny 2 : score un build sur 5 piliers a partir de vos donnees Bungie.net.",
   "author": "Orynick/Orygamer",
   "type": "module",
+  "engines": {
+    "node": ">=24.22.1"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
