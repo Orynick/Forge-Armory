@@ -4,7 +4,24 @@
 
 ---
 
-## 24/10/2026 — v0.5.5 (branche test) : CORRECTIF — le courrier (postmaster) n'était pas affiché (point 5.8 des tests post-audit)
+## 24/10/2026 — LIVRAISON v0.5.5 : merge PR #21 (audit 23/10 + point 5.8 — courrier/postmaster affiché)
+
+**Livraison** : la PR #21 (branche `vibe/postmaster-5-8-c40641`, base `main` après rebasage de `test`) est mergée dans `main`. Elle regroupe :
+
+- **L'audit du 23/10** (commit `ac6ec81`, déjà sur `test`) : corrections post double-audit (Vibe + Opus 5.5) — bugs S1–S4, robustesse B1–B2, code mort M1–M7, doublons D1–D7, cosmétique C1–C8. **Validé par les tests post-audit de l'utilisateur** (retour du 24/10 : tout ✅ sauf le point 5.8).
+- **Le point 5.8** (commit `da73189`) : le courrier (postmaster) est affiché dans « Mon Inventaire ».
+
+**Vérifié** : CI GitHub Actions verte (2 runs SUCCESS : `tsc -b` strict + `vite build` + batterie logique) ; `npm run test:logique` **41/41 suites, 801/801 contrôles** ; `npm run build` OK (`dist/index.html` contient la CSP avec `wasm-unsafe-eval`).
+
+**Test manuel restant** : le point 5.8 en conditions réelles (un objet au courrier en jeu) — procédure dans la description de la PR #21.
+
+**Tag** : `v0.5.5`. **Branche supprimée** après livraison : `vibe/postmaster-5-8-c40641`.
+
+**Version 0.5.5.**
+
+---
+
+## 24/10/2026 — v0.5.5 (PR #21) : CORRECTIF — le courrier (postmaster) n'était pas affiché (point 5.8 des tests post-audit)
 
 **Retour des tests** : la liste de tests post-audit (branche `test`) est revenue à 100 % sauf le **point 5.8**, non testable : « essayer de déplacer/équiper un objet situé au courrier (postmaster) → refus avec le bon message (« ne se déplace pas d'ici ») ». **Blocage constaté** : Forge Armory ne mettait pas le contenu du postmaster dans l'inventaire affiché.
 
@@ -24,7 +41,7 @@
 
 **Non fait (volontaire)** : l'appli n'appelle PAS `Destiny2.PullFromPostmaster` — récupérer un objet au courrier reste une action en jeu (TODO.md le demandait en « objet au courrier » ; la récupération automatique est une évolution séparée, hors périmètre du point 5.8 qui ne demande que le refus correct).
 
-**Version 0.5.5 (branche test).**
+**Version 0.5.5.**
 
 ---
 
