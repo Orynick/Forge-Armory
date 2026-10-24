@@ -149,7 +149,7 @@
 ---
 
 
-## 23/10/2026 — CORRECTION : le code des cartes de sceaux avait été perdu de `main` (loupé lors de la resynchronisation post-PR #17) +affinage « carrés identiques en taille » (branche `draft-update-triomphes`)
+## 24/10/2026 (soir) — CORRECTION : le code des cartes de sceaux avait été perdu de `main` (loupé lors de la resynchronisation post-PR #17) + affinage « carrés identiques en taille » (branche `draft-update-triomphes`)
 
 **Loupé détecté (retour utilisateur)** : « Je pense qu'il y a eu un loupé de mon coté ». Vérification : `VueAccomplissements.tsx` sur `main` était la version **avant** les cartes de sceaux, alors que les livrables v0.5.2 (DEVLOG, TODO, NOTICE) décrivaient la présentation en cartes. **Cause** : lors du retour de tests (après le merge de la PR #17 par l'utilisateur), la branche `draft-update-triomphes` a été resynchronisée sur `origin/main` (force-push) — le commit `f9f1e9d` (cartes) est devenu **orphelin** (aucune branche ne le contenait), et les commits de livraison suivants (`019f171`, `5b95bed`) ont été faits sur `main` SANS le code des cartes. L'utilisateur avait validé « ça fonctionne ! » en testant la branche alors qu'elle existait encore au commit `f9f1e9d`.
 
@@ -167,7 +167,7 @@
 
 **Vérifié** : `npx tsc -b` 0 erreur, `npm run build` ✓, `npm run test:logique` 37/37 suites (747/747 contrôles) ✓, pages UI construites ✓, `ast.parse` OK.
 
-**Version inchangée (0.5.2)** — le tag `v0.5.2` existe déjà ; cette livraison ne fait que rétablir le code promis par la v0.5.2 et l'affiner.
+**Version inchangée (0.5.5)** — la version courante est désormais 0.5.5 (livraisons v0.5.3/v0.5.4/v0.5.5 par un autre agent entre-temps) ; cette livraison ne fait que rétablir le code des cartes promis par la v0.5.2 et l'affiner (carrés identiques).
 
 ---
 
