@@ -89,7 +89,7 @@ const version = matchDraft ? `${versionBase}.${matchDraft[1]}` : versionBase;
 //   - default-src 'self' : tout vient de l'appli elle-même (le schéma
 //     interne app://local dans le logiciel, l'origine du navigateur sinon) ;
 //   - script-src 'self' 'wasm-unsafe-eval' : AUCUN script inline ni externe
-//     (React 18 en production ne génère pas de script inline, pas de
+//     (React 19 en production ne génère pas de script inline, pas de
 //     react-refresh, qui n'existe qu'en dev) + 'wasm-unsafe-eval' pour la
 //     COMPILATION wasm de sql.js (voir ci-dessous).
 //   - style-src 'self' 'unsafe-inline' : les 874 styles inline de React
@@ -126,7 +126,7 @@ const version = matchDraft ? `${versionBase}.${matchDraft[1]}` : versionBase;
 // EN: app CSP, injected into index.html at build time. Defense in depth: even
 // if injected content ever ran in the page (XSS), it could neither load an
 // external script, nor connect elsewhere, nor read another origin's storage.
-// Rules: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' (React 18
+// Rules: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' (React 19
 // production emits no inline script - react-refresh only exists in dev;
 // 'wasm-unsafe-eval' allows ONLY wasm compilation, needed by sql.js - see
 // below); style-src 'self' 'unsafe-inline' (React's inline style attributes);

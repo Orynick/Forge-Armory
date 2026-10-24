@@ -91,13 +91,4 @@ export interface ProvenanceObjet {
   origine: "analyseur" | "loadouts" | "forge" | "bibliotheque";
 }
 
-/** FR : état complet du Legendarium, en mémoire uniquement. / EN: full Legendarium state, in memory only. */
-export interface EtatLegendarium {
-  section: SectionLegendarium;
-  /** FR : livre actif (dérivé de la section et de la page courante). / EN: active book (derived from the section and the current page). */
-  livreId: string | null;
-  /** FR : page courante (lien profond possible). / EN: current page (deep-linkable). */
-  pageId: string | null;
-  /** FR : si la page a été atteinte depuis une fiche Détails : bouton de retour vers l'objet. / EN: if the page was reached from a Details sheet: back button to the item. */
-  provenance?: ProvenanceObjet;
-}
+// FR : ⚠️ RETIRÉ (23/10/2026, audit) - `EtatLegendarium` : AUCUN appelant (l'état vit en mémoire dans les composants). / EN: ⚠️ REMOVED - dead interface, no usage.
