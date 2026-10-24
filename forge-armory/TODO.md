@@ -13,7 +13,7 @@ passages retirés ou condensés lors du nettoyage du 06/10/2026 dans
 `documentation/todo/ARCHIVE-TODO-2026-10-06.md`. Conception du scoring :
 section « Le scoring » de `NOTES-CONCEPTION.md`. Tests en cours :
 `A-TESTER-<version>.pdf` (le numéro de version de l'appli est dans le nom ;
-version courante : 0.5.1).
+version courante : 0.5.4).
 
 ---
 
@@ -547,19 +547,6 @@ n'apparaît qu'à `npm run build`.
 de données, impression PDF), le Manifest réel, la police de Windows. Toute livraison doit le dire explicitement, et la liste de tests commence par `npm.cmd run build`.
 
 
-### 23. Page « Accomplissements » : afficher les Triomphes du compte ✅ LIVRÉ (23/10/2026, PR #17)
-
-**LIVRÉ sur `main`** — la page « Accomplissements » affiche désormais **tous les Triomphes du compte — obtenus et à obtenir — groupés PAR SCEAU** (hiérarchie Collections→Sceaux du jeu).
-
-**Réalisé** :
-- **Nouveau modèle** `src/lib/bungie/sceaux.ts` (lecture seule) : `regrouperParSceau(db, profil)` croise l'arbre « Triumphs » du Manifest avec l'état des records du profil (composant 900). Portée PROFIL uniquement. Triomphes absents = « à obtenir » (jamais masqués, jamais estimés).
-- **Compteurs globaux** : « X / Y triomphes obtenus · score total ».
-- **Recherche avancée** : guillemets, `+obligatoire`, `-exclu`, case « Respecter la casse » (réutilise `parserRecherche` du Legendarium).
-- **Sceaux repliés par défaut**, triables par progression ou par nom. Chaque triomphe : icône, nom, description, progression des objectifs, badge ✅/⬜, points.
-- **Correction** (retour utilisateur « Aucun sceau trouvé ») : la racine sceaux est lue dans le profil (`recordSealsRootNodeHash`), secours par constantes, puis scan global.
-- **Tests** : `sceaux.test.ts` **31/31**, `cablage-forge` mis à jour. Batterie : **37/37 suites, 740/740 contrôles** (CI).
-
-**Reste** : validation utilisateur en `npm run dev` (le bac à sable ne peut pas lancer le navigateur ni appeler l'API Bungie).
 
 ### 22. Lien « Contact » en pied de page : rapports de bugs et suggestions des utilisateurs (demande du 06/10/2026)
 
@@ -577,7 +564,7 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 
 **Items retirés le 23/10/2026 (livraison PR #17)** — documentés dans `DEVLOG.md` :
 
-- ~~23. Page « Accomplissements » : afficher les Triomphes du compte~~ → ✅ **LIVRÉ** (Triomphes par sceau, recherche avancée, PR #17)
+- ~~23. Page « Accomplissements » : afficher les Triomphes du compte~~ → ✅ **LIVRÉ ET VALIDÉ** (Triomphes par sceau, recherche avancée, PR #17 ; présentation en cartes grille, v0.5.2)
 
 **Items retirés le 22/10/2026 (nettoyage de la TODO)** — tous documentés dans `DEVLOG.md` :
 

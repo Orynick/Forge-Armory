@@ -79,6 +79,57 @@ const enDev = !app.isPackaged;
 // and requires NO change to the existing Bungie application.
 const PREFIXE_RETOUR = "https://127.0.0.1:5173/auth/callback";
 
+// FR : ⚠️ AJOUT (v0.5.3, correctif « fenêtre blanche à la connexion ») - la
+// fenêtre de connexion a sa PROPRE session (partition en mémoire), HORS du
+// filtre « liste blanche » de la session principale. `onBeforeRequest` filtre
+// AUSSI les navigations de page (mainFrame), pas seulement les requêtes de
+// ressources : avec la session principale, le clic sur la plateforme (Steam,
+// PlayStation, Xbox, Google, Epic…) naviguait vers le fournisseur d'identité,
+// hors de la liste blanche : la navigation était annulée, et la fenêtre
+// restait blanche. La fenêtre reste isolée (sandbox, aucun preload, URL
+// initiale validée) ; la session en mémoire ne laisse aucun cookie Bungie
+// persister sur disque non plus.
+// EN: ⚠️ ADDED (v0.5.3, "blank window at login" fix) - the login window gets
+// its OWN session (in-memory partition), OUTSIDE the main session's
+// whitelist filter. `onBeforeRequest` filters page navigations (mainFrame)
+// too, not only resource requests: with the main session, clicking the
+// platform (Steam, PlayStation, Xbox, Google, Epic…) navigated to the
+// identity provider, outside the whitelist: the navigation was cancelled and
+// the window stayed blank. The window stays isolated (sandbox, no preload,
+// validated initial URL); the in-memory session also leaves no Bungie cookie
+// persisted on disk.
+const PARTITION_CONNEXION = "connexion-bungie"; // FR : sans « persist: » -> en mémoire
+let sessionConnexionPreparee = false;
+
+// FR : prépare la session de la fenêtre de connexion. AUCUNE liste blanche
+// d'hôtes ici : les fournisseurs d'identité (Steam, PlayStation, Xbox,
+// Google, Epic…) et leurs CDN sont imprévisibles, et en bloquer un
+// re-créerait le bug « fenêtre blanche ». Seul garde-fou : le web uniquement
+// (http/https) — aucun protocole dangereux (file:, chrome:, etc.) — et le
+// refus de TOUTE permission matérielle.
+// EN: prepares the login window's session. NO host whitelist here: identity
+// providers (Steam, PlayStation, Xbox, Google, Epic…) and their CDNs are
+// unpredictable, and blocking one would re-create the "blank window" bug.
+// Only guardrails: web only (http/https) — no dangerous scheme (file:,
+// chrome:, etc.) — and deny-all hardware permissions.
+function preparerSessionConnexion() {
+  const ses = session.fromPartition(PARTITION_CONNEXION);
+  if (sessionConnexionPreparee) return ses;
+  ses.webRequest.onBeforeRequest({ urls: ["*://*/*"] }, (details, rappel) => {
+    try {
+      const url = new URL(details.url);
+      if (url.protocol === "https:" || url.protocol === "http:") return rappel({});
+    } catch {
+      /* URL illisible : on bloque */
+    }
+    rappel({ cancel: true });
+  });
+  ses.setPermissionRequestHandler((_contenu, _permission, rappel) => rappel(false));
+  ses.setPermissionCheckHandler(() => false);
+  sessionConnexionPreparee = true;
+  return ses;
+}
+
 let fenetrePrincipale = null;
 
 function creerFenetrePrincipale() {
@@ -194,8 +245,24 @@ ipcMain.handle("bungie:connexion", async (_evenement, urlAutorisation) => {
       // aucun preload n'y est chargé, donc aucun pont n'y est exposé.
       // EN: ⚠️ HARDENED (external audit) - this window shows a REMOTE page:
       // `sandbox: true` isolates it further, and no preload is loaded there.
-      webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: true,
+        // FR : ⚠️ AJOUT (v0.5.3) - session DÉDIÉE (voir PARTITION_CONNEXION) :
+        // sans cela, la fenêtre partage la session principale et son filtre
+        // « liste blanche », qui annule les navigations vers les fournisseurs
+        // d'identité -> fenêtre blanche au clic sur la plateforme.
+        // EN: ⚠️ ADDED (v0.5.3) - DEDICATED session (see PARTITION_CONNEXION):
+        // without it the window shares the main session and its whitelist
+        // filter, which cancels navigations to identity providers -> blank
+        // window when clicking the platform.
+        partition: PARTITION_CONNEXION,
+      },
     });
+    // FR : la session dédiée est préparée AVANT tout chargement de page.
+    // EN: the dedicated session is prepared BEFORE any page is loaded.
+    preparerSessionConnexion();
 
     let termine = false;
 
@@ -624,18 +691,31 @@ ipcMain.handle("securite:effacer", (evenement, cle) => {
 //   - https://api.github.com (vérification de version de d2-additional-info) ;
 //   - en développement UNIQUEMENT : le serveur Vite (https://127.0.0.1:5173)
 //     et le HMR websocket (wss://127.0.0.1:5173).
-// Toute autre requête est annulée. Les navigations de page (fenêtre de
-// connexion Bungie) ne sont pas concernées : elles ne passent pas par ce
-// filtre (on filtre les requêtes de ressources/fetch, pas les navigations).
+// Toute autre requête est annulée.
+// ⚠️ v0.5.3 (correctif « fenêtre blanche à la connexion ») : ce filtre
+// (`onBeforeRequest`) porte AUSSI sur les navigations de page
+// (resourceType « mainFrame »), pas seulement sur les requêtes de
+// ressources/fetch — un commentaire erroné disait le contraire. Sur la
+// session principale, le clic sur la plateforme (Steam, PlayStation, Xbox,
+// Google, Epic…) naviguait vers le fournisseur d'identité, hors de la liste
+// blanche : la navigation était annulée et la fenêtre restait blanche.
+// C'est pourquoi la fenêtre de connexion Bungie a sa PROPRE session
+// (PARTITION_CONNEXION), hors de ce filtre.
 // EN: NETWORK WHITELIST. Defense in depth: even if injected content ever ran in
 // the page (XSS), it could exfiltrate nothing. The default session only
 // allows: the app's internal origin (app://local), https://www.bungie.net (API
 // + icons), https://api.destinyitemmanager.com (DIM export),
 // https://api.github.com (d2-additional-info version check), and in DEV ONLY
 // the Vite server (https://127.0.0.1:5173) and its HMR websocket
-// (wss://127.0.0.1:5173). Every other request is cancelled. Page navigations
-// (the Bungie login window) are unaffected: they do not go through this filter
-// (we filter resource/fetch requests, not navigations).
+// (wss://127.0.0.1:5173). Every other request is cancelled.
+// ⚠️ v0.5.3 (fix "blank window at login"): this filter
+// (`onBeforeRequest`) ALSO applies to page navigations
+// (resourceType "mainFrame"), not only to resource/fetch requests — an
+// erroneous comment said otherwise. On the main session, clicking the
+// platform (Steam, PlayStation, Xbox, Google, Epic…) navigated to the
+// identity provider, outside the whitelist: the navigation was cancelled and
+// the window stayed blank. That is why the Bungie login window gets its OWN
+// session (PARTITION_CONNEXION), outside this filter.
 const HOTES_AUTORISES = [
   "https://www.bungie.net",
   "https://api.destinyitemmanager.com",
