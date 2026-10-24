@@ -4,6 +4,26 @@
 
 ---
 
+## 23/10/2026 — v0.5.4 : CORRECTIF — chargement du Manifest impossible (CSP bloquait WebAssembly)
+
+**Retour de l'utilisateur** : « Ok je suis connecté mais il y a un problème sur le chargement des Manifest. Cliquer sur le bouton "charger le Manifest (FR+EN)" ne change rien. ⚠️ CompileError: WebAssembly.instantiate(): Compiling or instantiating WebAssembly module violates the following Content Security policy directive because 'unsafe-eval' is not an allowed source of script in the following Content Security Policy directive: "script-src 'self'". »
+
+**Diagnostic** : la connexion Bungie fonctionne (le correctif v0.5.3 est validé par l'utilisateur). Nouveau bug, indépendant : le Manifest est lu via **sql.js** (SQLite compilé en WebAssembly), initialisé dans `src/lib/manifest/download.ts` par `initSqlJs({ locateFile: () => sqlWasmUrl })` — le `.wasm` est fetché depuis `'self'` (autorisé par `connect-src 'self'`) puis **compilé** par `WebAssembly.instantiate()`. Or la compilation/instanciation d'un module WebAssembly est traitée comme un **script** par la CSP : elle exige `'wasm-unsafe-eval'` dans `script-src` (CSP3, Chromium 95+). La CSP de production (`CSP_PRODUCTION` dans `vite.config.ts`) ne contenait que `script-src 'self'` → `CompileError` → le chargement du Manifest échouait silencieusement (le bouton semblait « ne rien faire »). **Ce bug n'existe qu'à l'installé** : la CSP n'est injectée qu'au BUILD (`apply: "build"`), jamais en dev — c'est pourquoi il n'a pas été vu avant. Un commentaire du code affirmait le contraire (« pas de 'wasm-unsafe-eval' nécessaire, la compilation passe par WebAssembly.instantiate, pas par eval ») : ce commentaire était **erroné** (`WebAssembly.instantiate` EST soumis à la CSP de script).
+
+**Correction** (`vite.config.ts`) :
+- `CSP_PRODUCTION` : `script-src 'self'` → **`script-src 'self' 'wasm-unsafe-eval'`**. `'wasm-unsafe-eval'` est la directive la **PLUS ÉTROITE** : elle n'autorise QUE la compilation de modules wasm, **PAS** `eval()` — on n'utilise volontairement **pas** `'unsafe-eval'` (la défense en profondeur de l'audit du 21/10/2026 est conservée : aucun script inline, aucun script externe, `object-src 'none'`, `frame-ancestors 'none'`, `connect-src` limité à la liste blanche).
+- Commentaires FR + EN corrigés : explication du besoin réel (`WebAssembly.instantiate` = compilation wasm = script, CSP3), dans la liste des règles et dans le bloc dédié.
+
+**Tests** : nouveau `tests/logique/cablage-csp-wasm.test.ts` (15 contrôles, lit le texte de `vite.config.ts` + `index.html`) : `script-src` contient `'wasm-unsafe-eval'`, ne contient **pas** `'unsafe-eval'` ni `'unsafe-inline'`, le reste de la CSP stricte est intact (`default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, `connect-src` liste blanche), l'injection reste **build-only** (`apply: "build"`), `index.html` source n'a pas de CSP en dur, et les commentaires erronés (« pas de 'wasm-unsafe-eval' nécessaire » / « no 'wasm-unsafe-eval' needed ») sont partis. **Le test échoue sur l'ancien code (11/15)** : il attrape bien le bug.
+
+**Vérifié** : `npm run build` (tsc -b + vite) OK ; `dist/index.html` contient bien la balise meta CSP avec `script-src 'self' 'wasm-unsafe-eval'` ; `npm run test:logique` **39/39 suites, 777/777 contrôles** OK (38 suites d'origine + la nouvelle).
+
+**NON vérifié** (impossible sans le logiciel installé) : le chargement effectif du Manifest FR+EN dans l'installateur Windows. **À tester par l'utilisateur** : relancer `npm.cmd run electron:build` (ou utiliser `installateur\win-unpacked\Forge Armory.exe` du build précédent si seul le front change), ouvrir l'appli, se connecter, cliquer sur « charger le Manifest (FR+EN) » — le Manifest doit se charger sans `CompileError`.
+
+**Version : 0.5.3 → 0.5.4.** `package.json`, `package-lock.json`, `TODO.md` (version courante du PDF de tests) mis à jour. CHANGELOG : ligne « Correctif : le chargement du Manifest ne fonctionnait plus dans le logiciel installé … CSP bloquait WebAssembly. Corrigé. »
+
+---
+
 ## 23/10/2026 — v0.5.3 (suite) : retour de fabrication de l'installateur (chemin trop long)
 
 **Retour de l'utilisateur** : `npm.cmd run electron:build` échoue à la DERNIÈRE étape, après un `tsc` et un `vite build` propres et un packaging Electron réussi : `makensis.exe` s'arrôte avec `!include: could not open file: "...\node_modules\app-builder-lib\templates\nsis\include\allowOnlyOneInstallerInstance.nsh"` (`ERR_ELECTRON_BUILDER_CANNOT_EXECUTE`, exit 1).

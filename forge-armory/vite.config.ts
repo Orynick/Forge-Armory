@@ -88,9 +88,10 @@ const version = matchDraft ? `${versionBase}.${matchDraft[1]}` : versionBase;
 // Règles retenues :
 //   - default-src 'self' : tout vient de l'appli elle-même (le schéma
 //     interne app://local dans le logiciel, l'origine du navigateur sinon) ;
-//   - script-src 'self' : AUCUN script inline ni externe. React 18 en
-//     production ne génère pas de script inline (pas de react-refresh, qui
-//     n'existe qu'en dev).
+//   - script-src 'self' 'wasm-unsafe-eval' : AUCUN script inline ni externe
+//     (React 18 en production ne génère pas de script inline, pas de
+//     react-refresh, qui n'existe qu'en dev) + 'wasm-unsafe-eval' pour la
+//     COMPILATION wasm de sql.js (voir ci-dessous).
 //   - style-src 'self' 'unsafe-inline' : les 874 styles inline de React
 //     (attribut style) seraient sinon tous cassés ; le risque est limité car
 //     aucune donnée utilisateur n'est injectée dans un style (vérifié : les
@@ -109,9 +110,13 @@ const version = matchDraft ? `${versionBase}.${matchDraft[1]}` : versionBase;
 //     aucun <form>, règle par précaution).
 //   - frame-ancestors 'none' : pas d'iframe de l'appli ailleurs (clickjacking).
 //
-// Le wasm de sql.js est chargé par fetch depuis 'self' puis compilé : il
-// relève de script-src 'self' (pas de 'wasm-unsafe-eval' nécessaire, la
-// compilation passe par WebAssembly.instantiate, pas par eval).
+// Le wasm de sql.js est chargé par fetch depuis 'self' (connect-src 'self'),
+// puis compilé par WebAssembly.instantiate : la COMPILATION wasm est un
+// script et exige 'wasm-unsafe-eval' dans script-src (CSP3, Chromium 95+).
+// Sans cette directive, le logiciel installé affiche CompileError et le
+// chargement du Manifest échoue silencieusement. 'wasm-unsafe-eval' est
+// la directive la PLUS ÉTROITE : elle n'autorise QUE la compilation wasm,
+// PAS eval() (on n'utilise donc volontairement pas 'unsafe-eval').
 //
 // IMPORTANT : cette CSP n'est injectée qu'en BUILD (production). En dev,
 // react-refresh (@vitejs/plugin-react) injecte un script inline de
@@ -121,22 +126,28 @@ const version = matchDraft ? `${versionBase}.${matchDraft[1]}` : versionBase;
 // EN: app CSP, injected into index.html at build time. Defense in depth: even
 // if injected content ever ran in the page (XSS), it could neither load an
 // external script, nor connect elsewhere, nor read another origin's storage.
-// Rules: default-src 'self'; script-src 'self' (React 18 production emits no
-// inline script - react-refresh only exists in dev); style-src 'self'
-// 'unsafe-inline' (React's inline style attributes); img-src 'self'
+// Rules: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' (React 18
+// production emits no inline script - react-refresh only exists in dev;
+// 'wasm-unsafe-eval' allows ONLY wasm compilation, needed by sql.js - see
+// below); style-src 'self' 'unsafe-inline' (React's inline style attributes);
+// img-src 'self'
 // https://www.bungie.net data: (Manifest icons + small assets inlined as
 // data: by Vite); connect-src restricted to the same whitelist as Electron's
 // network filter (plus the Vite server + HMR websocket in dev); font-src
 // 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self';
-// frame-ancestors 'none'. sql.js's wasm is fetched from 'self' and compiled
-// via WebAssembly.instantiate: no 'wasm-unsafe-eval' needed.
+// frame-ancestors 'none'. sql.js's wasm is fetched from 'self' (connect-src
+// 'self') then compiled via WebAssembly.instantiate: wasm COMPILATION is a
+// script and requires 'wasm-unsafe-eval' in script-src (CSP3, Chromium 95+).
+// Without it, the installed app shows a CompileError and Manifest loading
+// silently fails. 'wasm-unsafe-eval' is the NARROWEST directive: it allows
+// ONLY wasm compilation, NOT eval() (we deliberately do not use 'unsafe-eval').
 // IMPORTANT: this CSP is only injected in the BUILD (production). In dev,
 // react-refresh injects an inline HMR script: 'unsafe-inline' on script-src
 // would be a wide-open hole there, and omitting it would break HMR. The
 // installed app ships the production build: it gets the strict CSP.
 const CSP_PRODUCTION = [
   "default-src 'self'",
-  "script-src 'self'",
+  "script-src 'self' 'wasm-unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' https://www.bungie.net data:",
   "connect-src 'self' https://www.bungie.net https://api.destinyitemmanager.com https://api.github.com",
