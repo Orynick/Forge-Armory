@@ -29,7 +29,12 @@ import { couleurRarete, styleChamp } from "../lib/forge/stylesListes";
 const TAILLE_PAGE = 60;
 const SLOTS_ARME = ["cinetique", "energie", "lourde"];
 const LIBELLES_SLOT: Record<string, string> = { cinetique: "Cinétique", energie: "Énergétique", lourde: "Lourde" };
-const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste", coffre: "Coffre" };
+// FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - « Courrier » dans
+// les libellés de lieu : un objet en attente au postmaster est listé (origine
+// « courrier »), même s'il ne peut pas être simulé ici.
+// EN: ADDED - "Courrier" in the location labels: a postmaster item is listed
+// (origin "courrier"), even though it cannot be simulated here.
+const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste", coffre: "Coffre", courrier: "Courrier" };
 
 // FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - style COMMUN des boutons d'action de la fenêtre (« Retour », « Mettre dans Mon Build ») : même hauteur fixe, contenu centré, pour que les deux soient parfaitement alignés (l'émoji ➕ agrandissait sinon la ligne). / EN: ⚠️ ADDED - shared style so both action buttons align.
 const styleAction = { fontSize: "0.8rem", height: "2rem", padding: "0 0.7rem", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.3rem", lineHeight: 1.2, boxSizing: "border-box" } as const;

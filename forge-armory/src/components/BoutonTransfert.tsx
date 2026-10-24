@@ -6,8 +6,16 @@ import { useState } from "react";
 import type { GearPiece } from "../types/build";
 import { Lieu, LIBELLES_LIEU } from "../lib/bungie/deplacer";
 
+// FR : ⚠️ CHANGÉ (24/10/2026, tests post-audit, point 5.8) - « courrier » retiré
+// de la liste des DESTINATIONS : on n'envoie rien AU courrier (l'API ne le
+// permet pas ; c'est le jeu qui y dépose les objets). Il reste dans le type
+// `Lieu` (c'est une origine possible, affichée grisée).
+// EN: CHANGED - "courrier" removed from the DESTINATIONS list: nothing is
+// sent TO the postmaster (the API does not allow it; the game drops items
+// there). It stays in the `Lieu` type (it is a possible origin, shown
+// disabled).
 const LIEUX: Lieu[] = ["chasseur", "titan", "arcaniste", "coffre"];
-const COURT: Record<Lieu, string> = { coffre: "Coffre", chasseur: "Chasseur", titan: "Titan", arcaniste: "Arcaniste" };
+const COURT: Record<Lieu, string> = { coffre: "Coffre", chasseur: "Chasseur", titan: "Titan", arcaniste: "Arcaniste", courrier: "Courrier" };
 
 /** FR : destinations proposées pour cette pièce. / EN: destinations offered for this piece. */
 function destinationsPossibles(piece: GearPiece): Lieu[] {
@@ -30,6 +38,22 @@ export default function BoutonTransfert({ piece, bloque = false, onTransferer }:
   if (piece.equipe) {
     return (
       <button style={style} disabled data-transfert-bouton={piece.itemInstanceId} title="Cet objet est équipé : il ne peut pas être transféré. Équipez un autre objet à sa place en jeu, puis réessayez.">
+        Transférer vers
+      </button>
+    );
+  }
+  // FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - un objet au
+  // courrier (postmaster) ne se déplace pas d'ici : l'API Bungie n'accepte
+  // ni transfert ni équipement depuis cet emplacement. Le bouton est grisé
+  // avec l'explication, plutôt que de proposer des destinations qui
+  // échoueraient toutes.
+  // EN: ADDED - a postmaster item cannot be moved from there: the Bungie
+  // API accepts neither transfer nor equip from that location. The button is
+  // disabled with the explanation, instead of offering destinations that
+  // would all fail.
+  if (piece.origine === "courrier") {
+    return (
+      <button style={style} disabled data-transfert-bouton={piece.itemInstanceId} title="Cet objet est dans le courrier (récupération) : il ne peut pas être transféré d'ici. Récupérez-le d'abord en jeu, puis réessayez.">
         Transférer vers
       </button>
     );

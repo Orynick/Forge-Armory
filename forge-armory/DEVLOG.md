@@ -4,6 +4,30 @@
 
 ---
 
+## 24/10/2026 — v0.5.5 (branche test) : CORRECTIF — le courrier (postmaster) n'était pas affiché (point 5.8 des tests post-audit)
+
+**Retour des tests** : la liste de tests post-audit (branche `test`) est revenue à 100 % sauf le **point 5.8**, non testable : « essayer de déplacer/équiper un objet situé au courrier (postmaster) → refus avec le bon message (« ne se déplace pas d'ici ») ». **Blocage constaté** : Forge Armory ne mettait pas le contenu du postmaster dans l'inventaire affiché.
+
+**Diagnostic** : le refus existait déjà, côté logique — `planifierDeplacement` refuse `location === 4` (code « courrier », message « Cet objet est dans le courrier (récupération) : il ne peut pas être transféré d'ici. », `src/lib/bungie/deplacer.ts`) et `equiperObjet` refuse pareil (`src/lib/bungie/equiper.ts`). Mais en AMONT, `listerObjetsPossedes` (`src/lib/bungie/inventaire.ts`) ne lit que le coffre (composant 102) + les inventaires/équipements des personnages (201/205) **sans distinguer le courrier** : un objet avec `location: 4` dans l'inventaire d'un personnage était étiqueté… « titan »/« chasseur »/« arcaniste », comme s'il était dans l'inventaire du personnage. Résultat : (1) le postmaster n'avait aucune visibilité propre, (2) un objet qui y attendait était proposé au transfert comme s'il était sur le personnage — le refus ne se déclenchait que par la relecture en direct du profil, sans que l'utilisateur comprenne pourquoi.
+
+**Correctif** (5 fichiers + 1 test) :
+
+- `src/lib/bungie/inventaire.ts` : les objets avec `location: 4` dans l'inventaire d'un personnage sont lus et étiquetés origine **« courrier »** (jamais mélangés à l'inventaire du personnage). C'est la seule source Bungie pour ces objets (ni coffre ni équipement).
+- `src/types/build.ts` : `origine` accepte « courrier ».
+- `src/lib/bungie/deplacer.ts` : `Lieu` accepte « courrier » (origine possible), avec son libellé « le courrier » ; `LIEU_COURRIER` importé depuis `equiper.ts` (dedup, le refactor avait laissé le doublon).
+- `src/components/SelecteurInventaire.tsx` : **nouvelle section « 📨 Courrier »** (visible seulement s'il y a des objets en attente), listée par emplacement, avec la note « un objet au courrier ne peut pas être équipé ni transféré d'ici ». Le courrier est EXCLU de « Mon Inventaire » (filtres/recherche) et du Coffre. Sous-titre : « personnages + coffre + courrier ».
+- `src/components/BoutonTransfert.tsx` : un objet au courrier a le bouton « Transférer vers » **grisé avec l'explication** (comme un objet équipé), au lieu de proposer des destinations qui échoueraient toutes.
+- `src/components/InventaireArmes.tsx` / `InventaireArmures.tsx` : libellé « Courrier » dans les filtres de lieu (l'objet y est listé, non simulable).
+- **Test** : `tests/logique/inventaire-courrier.test.ts` (10 contrôles) — profil Bungie faussé (`location: 4`) + faux Manifest : les objets du courrier sont lus et étiquetés « courrier », l'inventaire du personnage et le coffre ne sont pas pollués, et le déplacement depuis le courrier est refusé (code « courrier », message « ne peut pas être transféré d'ici », aucune étape tentée). `cablage-forge.test.ts` : le compteur de lignes `LigneObjet` passe de 4 à 5 (la section Courrier).
+
+**Vérifié** : `npm run test:logique` **41/41 suites, 801/801 contrôles** ; `npm run build` OK (tsc + vite, `dist/index.html` contient la CSP `wasm-unsafe-eval`).
+
+**Non fait (volontaire)** : l'appli n'appelle PAS `Destiny2.PullFromPostmaster` — récupérer un objet au courrier reste une action en jeu (TODO.md le demandait en « objet au courrier » ; la récupération automatique est une évolution séparée, hors périmètre du point 5.8 qui ne demande que le refus correct).
+
+**Version 0.5.5 (branche test).**
+
+---
+
 ## 24/10/2026 — PROPAGATION : v0.5.4 répercutée sur les branches de chantier
 
 **Propagation** : la livraison v0.5.4 (merge PR #20 dans `main`, tag `v0.5.4`) a été répercutée sur les 7 branches actives pour limiter les conflits futurs : les 6 branches de chantier (`draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`) + `draft-mod-armures` (branche de la PR #19 ouverte).
