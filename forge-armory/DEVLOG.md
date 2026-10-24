@@ -4,6 +4,22 @@
 
 ---
 
+## 24/10/2026 — LIVRAISON v0.5.4 : merge PR #20 (deux correctifs validés par l'utilisateur)
+
+**Livraison** : la PR #20 (branche `vibe/fix-connexion-bungie-fenetre-blanche-4bde13`, 3 commits) est mergée dans `main` (merge commit `bcfa983`). Elle livre les deux correctifs bloquants du logiciel installé, **tous deux validés corrigés par l'utilisateur** (« Ok je suis connecté » pour la v0.5.3, « OK, les deux bugs sont corrigés » pour la v0.5.4) :
+
+- **v0.5.3** — Connexion Bungie (fenêtre blanche au clic sur la plateforme) : la fenêtre de connexion a sa propre session (partition mémoire `connexion-bungie`), hors du filtre « liste blanche » qui annulait les navigations vers les fournisseurs d'identité. Fichiers : `electron/main.cjs`, test `tests/logique/cablage-connexion-bungie.test.ts`.
+- **v0.5.3 (suite)** — Documentation : avertissement `NOTICE.md` sur le chemin du projet (makensis / MAX_PATH) pour la fabrication de l'installateur.
+- **v0.5.4** — Chargement du Manifest (CSP bloquait la compilation WebAssembly de sql.js) : `script-src 'self' 'wasm-unsafe-eval'` (directive la plus étroite, PAS `'unsafe-eval'`). Fichiers : `vite.config.ts`, test `tests/logique/cablage-csp-wasm.test.ts`.
+
+**Vérifié** : CI GitHub Actions verte (tsc + build + batterie logique, 2 runs SUCCESS) ; `npm run test:logique` **39/39 suites, 777/777 contrôles** ; `npm run build` OK (`dist/index.html` contient la CSP avec `wasm-unsafe-eval`). **Validation utilisateur** : les deux bugs sont corrigés (connexion + chargement du Manifest).
+
+**Tag** : `v0.5.4` (tag annoté sur le merge commit). **Branche supprimée** après livraison : `vibe/fix-connexion-bungie-fenetre-blanche-4bde13`.
+
+**Version 0.5.4.**
+
+---
+
 ## 23/10/2026 — v0.5.4 : CORRECTIF — chargement du Manifest impossible (CSP bloquait WebAssembly)
 
 **Retour de l'utilisateur** : « Ok je suis connecté mais il y a un problème sur le chargement des Manifest. Cliquer sur le bouton "charger le Manifest (FR+EN)" ne change rien. ⚠️ CompileError: WebAssembly.instantiate(): Compiling or instantiating WebAssembly module violates the following Content Security policy directive because 'unsafe-eval' is not an allowed source of script in the following Content Security Policy directive: "script-src 'self'". »
