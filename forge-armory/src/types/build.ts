@@ -90,8 +90,11 @@ export interface GearPiece {
    * inventory by the selected class.
    */
   classeRequise?: "titan" | "chasseur" | "arcaniste";
-  /** FR : d'où vient l'objet - un personnage ou le coffre. Absent pour les objets ajoutés depuis la recherche (non possédés). / EN: where the item comes from - a character or the vault. Absent for search-added items (not owned). */
-  origine?: "coffre" | "titan" | "chasseur" | "arcaniste";
+  /**
+   * FR : d'où vient l'objet - un personnage, le coffre ou le courrier (récupération). Absent pour les objets ajoutés depuis la recherche (non possédés). Un objet au courrier ne peut ni être équipé ni transféré : il faut d'abord le récupérer en jeu.
+   * EN: where the item comes from - a character, the vault or the postmaster. Absent for search-added items (not owned). A postmaster item can neither be equipped nor transferred: it must first be picked up in game.
+   */
+  origine?: "coffre" | "titan" | "chasseur" | "arcaniste" | "courrier";
   /** FR : actuellement équipé sur son personnage d'origine (vs simplement dans l'inventaire). / EN: currently equipped on its origin character (vs just in inventory). */
   equipe?: boolean;
   /** FR : mêmes perks que perkHashes, mais groupés par colonne de socket (index) pour un affichage façon jeu dans "Mon build". / EN: same perks as perkHashes, but grouped by socket column (index) for an in-game-style display in "Mon build". */

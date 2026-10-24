@@ -2,45 +2,20 @@
 // EN: ⚠️ ADDED - the "Solo Flawless" showcase, extracted from PanneauTriomphes (which goes back to the plain drawer). Used twice: in the drawer and, full-page, in the "Accomplishments" page.
 import { useEffect, useState } from "react";
 import { EtatTriomphe, lireTriomphesSoloFlawless } from "../lib/bungie/triomphes";
-import { TRIOMPHES_SOLO_FLAWLESS } from "../data/triomphesSoloFlawless";
 import { Database } from "sql.js";
-import { obtenirDefinitionTriompheBrute, urlIcone } from "../lib/manifest/search";
+import { urlIcone } from "../lib/manifest/search";
 import { obtenirDefinition } from "../lib/manifest/download";
-import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 
 interface Props {
   /** FR : profil complet renvoyé par l'API (composant 900 inclus). null tant qu'il n'est pas chargé. / EN: full profile from the API (component 900 included). */
   profil: unknown | null;
-  /** FR : ⚠️ AJOUT (24/08/2026) - nécessaire pour le diagnostic ponctuel de définition de triomphe (idée d'emblèmes en tableau de chasse). / EN: needed for the one-off triumph definition diagnostic. */
+  /** FR : Manifest, pour résoudre les emblèmes des donjons. / EN: Manifest, to resolve the dungeon emblems. */
   db?: Database | null;
-}
-
-interface ProfilAvecRecordsBruts {
-  Response?: {
-    profileRecords?: { data?: { records?: Record<string, { state?: number; objectives?: unknown }> } };
-    // FR : ⚠️ AJOUT (24/08/2026) - `characterRecords`, jamais lu jusqu'ici.
-    // Hypothèse à vérifier : les 6 triomphes ABSENTS de `profileRecords`
-    // (dont « Flèche de la vigie », que l'utilisateur possède pourtant)
-    // pourraient avoir une PORTÉE PERSONNAGE plutôt que profil - certains
-    // triomphes Bungie sont déposés par personnage plutôt qu'au niveau
-    // compte. Le composant 900 (Records) renvoie normalement les deux
-    // structures dans la même réponse, jamais exploitée côté character.
-    // EN: `characterRecords`, never read until now.
-    characterRecords?: { data?: Record<string, { records?: Record<string, { state?: number }> }> };
-  };
 }
 
 export default function VitrineSoloFlawless({ profil, db }: Props) {
   const [triomphes, setTriomphes] = useState<EtatTriomphe[]>([]);
-  // FR : ⚠️ AJOUT (24/08/2026) - diagnostic (mode dev) pour le bug signalé :
-  // "Flèche de la vigie" affiché en gris alors que l'utilisateur a le
-  // triomphe. Le hash (4032136335) et la logique de lecture ont été
-  // revérifiés et semblent corrects - plutôt que de deviner une correction
-  // à l'aveugle sur un seul cas isolé, ce diagnostic montre la donnée BRUTE
-  // renvoyée par l'API pour ce triomphe précis.
-  // EN: diagnostic (dev mode) for the reported bug: "Spire of the
-  // Watcher" shown grey despite the user having the triumph.
-  const [diagnostic, setDiagnostic] = useState<string | null>(null);
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - les 3 diagnostics archivés (etat brut, définition de triomphe, vérification des emblèmes) et leur state ont été supprimés : résolus, archivés dans `diagnosticsArchives.ts`. / EN: ⚠️ REMOVED - the 3 archived diagnostics and their state are gone (resolved).
 
   useEffect(() => {
     if (!profil) {
@@ -54,88 +29,7 @@ export default function VitrineSoloFlawless({ profil, db }: Props) {
 
   return (
     <>
-      {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.etatBrutTriomphes && profil != null && (
-        <button
-          onClick={() => {
-            const reponse = (profil as ProfilAvecRecordsBruts)?.Response;
-            const records = reponse?.profileRecords?.data?.records ?? {};
-            const parPersonnage = reponse?.characterRecords?.data ?? {};
-            const lignes = TRIOMPHES_SOLO_FLAWLESS.map(({ hash, donjon }) => {
-              const entree = records[String(hash)];
-              if (entree) return `${donjon} (hash ${hash}) : PROFIL, state=${entree.state} | brut=${JSON.stringify(entree)}`;
-
-              // FR : ⚠️ AJOUT (24/08/2026) - si absent du profil, on cherche
-              // maintenant aussi dans chaque personnage, pour vérifier
-              // l'hypothèse de la portée personnage.
-              for (const [idPerso, donnees] of Object.entries(parPersonnage)) {
-                const entreePerso = donnees.records?.[String(hash)];
-                if (entreePerso) {
-                  return `${donjon} (hash ${hash}) : PERSONNAGE ${idPerso}, state=${entreePerso.state} | brut=${JSON.stringify(entreePerso)}`;
-                }
-              }
-              return `${donjon} (hash ${hash}) : ABSENT de profileRecords ET de tous les characterRecords`;
-            });
-            setDiagnostic(lignes.join("\n"));
-          }}
-          style={{ fontSize: "0.7rem", marginBottom: "0.6rem" }}
-        >
-          🔍 Diagnostic état brut (dev)
-        </button>
-      )}
-      {/* FR : ⚠️ AJOUT (24/08/2026) - diagnostic ponctuel pour la future
-      vitrine des emblèmes (idée de l'utilisateur : "tableau de chasse").
-      Affiche la DÉFINITION COMPLÈTE d'un triomphe (pas son état joueur),
-      pour voir exactement où la récompense est déclarée, plutôt que de
-      deviner un nom de champ.
-      EN: one-off diagnostic for the future emblem showcase. */}
-      {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.definitionCompleteTriomphe && db != null && (
-        <button
-          onClick={() => {
-            // FR : un seul triomphe (Le Trône brisé) suffit pour voir la
-            // structure - si la récompense y figure, le même champ existera
-            // sur les 10 autres.
-            const brut = obtenirDefinitionTriompheBrute(db, 3205009787);
-            setDiagnostic(brut ?? "Définition introuvable pour ce hash.");
-          }}
-          style={{ fontSize: "0.7rem", marginBottom: "0.6rem", marginLeft: "0.4rem" }}
-        >
-          🏆 Définition complète d'un triomphe (dev)
-        </button>
-      )}
-      {/* FR : ⚠️ AJOUT (24/08/2026) - diagnostic des 11 emblèmes, suite au
-      signalement de l'utilisateur : Prophétie et Dogme fragmenté n'affichent
-      aucune icône alors que les 9 autres fonctionnent avec le MÊME code.
-      Vérifie, pour chaque hash, si la définition existe dans le Manifest et
-      si elle déclare bien une icône - permet de distinguer un hash erroné
-      d'une définition sans icône.
-      EN: diagnostic for the 11 emblems. */}
-      {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.verificationEmblemes && db != null && (
-        <button
-          onClick={() => {
-            const lignes = TRIOMPHES_SOLO_FLAWLESS.map(({ donjon, emblemeHash }) => {
-              const def = obtenirDefinition<{
-                displayProperties?: { name?: string; icon?: string };
-                secondaryIcon?: string;
-              }>(db, "DestinyInventoryItemDefinition", emblemeHash);
-              if (!def) return `${donjon} (${emblemeHash}) : ❌ INTROUVABLE dans le Manifest`;
-              const nom = def.displayProperties?.name ?? "(sans nom)";
-              const petite = def.displayProperties?.icon ? "oui" : "NON";
-              const large = def.secondaryIcon ? "oui" : "NON";
-              return `${donjon} (${emblemeHash}) : "${nom}" — image large: ${large}, icône simple: ${petite}`;
-            });
-            setDiagnostic(lignes.join("\n"));
-          }}
-          style={{ fontSize: "0.7rem", marginBottom: "0.6rem", marginLeft: "0.4rem" }}
-        >
-          🖼️ Vérifier les 11 emblèmes (dev)
-        </button>
-      )}
-      {diagnostic && (
-        <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.65rem", background: "#0d0f14", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem", marginBottom: "0.6rem", maxHeight: "200px", overflow: "auto" }}>
-          {diagnostic}
-        </pre>
-      )}
-
+      {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - les 3 blocs de diagnostic archivés (état brut, définition de triomphe, vérification des emblèmes) ont été supprimés : résolus, archivés dans `lib/diagnosticsArchives.ts`. / EN: ⚠️ REMOVED - the 3 archived diagnostic blocks are gone (resolved). */}
       {!profil && (
         <p style={{ fontSize: "0.75rem", color: "#7d7a70" }}>
           Connectez-vous pour afficher vos donjons accomplis.
