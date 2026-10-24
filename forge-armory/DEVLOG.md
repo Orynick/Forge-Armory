@@ -4,6 +4,97 @@
 
 ---
 
+## 24/10/2026 — LIVRAISON v0.5.4 : merge PR #20 (deux correctifs validés par l'utilisateur)
+
+**Livraison** : la PR #20 (branche `vibe/fix-connexion-bungie-fenetre-blanche-4bde13`, 3 commits) est mergée dans `main` (merge commit `bcfa983`). Elle livre les deux correctifs bloquants du logiciel installé, **tous deux validés corrigés par l'utilisateur** (« Ok je suis connecté » pour la v0.5.3, « OK, les deux bugs sont corrigés » pour la v0.5.4) :
+
+- **v0.5.3** — Connexion Bungie (fenêtre blanche au clic sur la plateforme) : la fenêtre de connexion a sa propre session (partition mémoire `connexion-bungie`), hors du filtre « liste blanche » qui annulait les navigations vers les fournisseurs d'identité. Fichiers : `electron/main.cjs`, test `tests/logique/cablage-connexion-bungie.test.ts`.
+- **v0.5.3 (suite)** — Documentation : avertissement `NOTICE.md` sur le chemin du projet (makensis / MAX_PATH) pour la fabrication de l'installateur.
+- **v0.5.4** — Chargement du Manifest (CSP bloquait la compilation WebAssembly de sql.js) : `script-src 'self' 'wasm-unsafe-eval'` (directive la plus étroite, PAS `'unsafe-eval'`). Fichiers : `vite.config.ts`, test `tests/logique/cablage-csp-wasm.test.ts`.
+
+**Vérifié** : CI GitHub Actions verte (tsc + build + batterie logique, 2 runs SUCCESS) ; `npm run test:logique` **39/39 suites, 777/777 contrôles** ; `npm run build` OK (`dist/index.html` contient la CSP avec `wasm-unsafe-eval`). **Validation utilisateur** : les deux bugs sont corrigés (connexion + chargement du Manifest).
+
+**Tag** : `v0.5.4` (tag annoté sur le merge commit). **Branche supprimée** après livraison : `vibe/fix-connexion-bungie-fenetre-blanche-4bde13`.
+
+**Version 0.5.4.**
+
+---
+
+## 23/10/2026 — v0.5.4 : CORRECTIF — chargement du Manifest impossible (CSP bloquait WebAssembly)
+
+**Retour de l'utilisateur** : « Ok je suis connecté mais il y a un problème sur le chargement des Manifest. Cliquer sur le bouton "charger le Manifest (FR+EN)" ne change rien. ⚠️ CompileError: WebAssembly.instantiate(): Compiling or instantiating WebAssembly module violates the following Content Security policy directive because 'unsafe-eval' is not an allowed source of script in the following Content Security Policy directive: "script-src 'self'". »
+
+**Diagnostic** : la connexion Bungie fonctionne (le correctif v0.5.3 est validé par l'utilisateur). Nouveau bug, indépendant : le Manifest est lu via **sql.js** (SQLite compilé en WebAssembly), initialisé dans `src/lib/manifest/download.ts` par `initSqlJs({ locateFile: () => sqlWasmUrl })` — le `.wasm` est fetché depuis `'self'` (autorisé par `connect-src 'self'`) puis **compilé** par `WebAssembly.instantiate()`. Or la compilation/instanciation d'un module WebAssembly est traitée comme un **script** par la CSP : elle exige `'wasm-unsafe-eval'` dans `script-src` (CSP3, Chromium 95+). La CSP de production (`CSP_PRODUCTION` dans `vite.config.ts`) ne contenait que `script-src 'self'` → `CompileError` → le chargement du Manifest échouait silencieusement (le bouton semblait « ne rien faire »). **Ce bug n'existe qu'à l'installé** : la CSP n'est injectée qu'au BUILD (`apply: "build"`), jamais en dev — c'est pourquoi il n'a pas été vu avant. Un commentaire du code affirmait le contraire (« pas de 'wasm-unsafe-eval' nécessaire, la compilation passe par WebAssembly.instantiate, pas par eval ») : ce commentaire était **erroné** (`WebAssembly.instantiate` EST soumis à la CSP de script).
+
+**Correction** (`vite.config.ts`) :
+- `CSP_PRODUCTION` : `script-src 'self'` → **`script-src 'self' 'wasm-unsafe-eval'`**. `'wasm-unsafe-eval'` est la directive la **PLUS ÉTROITE** : elle n'autorise QUE la compilation de modules wasm, **PAS** `eval()` — on n'utilise volontairement **pas** `'unsafe-eval'` (la défense en profondeur de l'audit du 21/10/2026 est conservée : aucun script inline, aucun script externe, `object-src 'none'`, `frame-ancestors 'none'`, `connect-src` limité à la liste blanche).
+- Commentaires FR + EN corrigés : explication du besoin réel (`WebAssembly.instantiate` = compilation wasm = script, CSP3), dans la liste des règles et dans le bloc dédié.
+
+**Tests** : nouveau `tests/logique/cablage-csp-wasm.test.ts` (15 contrôles, lit le texte de `vite.config.ts` + `index.html`) : `script-src` contient `'wasm-unsafe-eval'`, ne contient **pas** `'unsafe-eval'` ni `'unsafe-inline'`, le reste de la CSP stricte est intact (`default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, `connect-src` liste blanche), l'injection reste **build-only** (`apply: "build"`), `index.html` source n'a pas de CSP en dur, et les commentaires erronés (« pas de 'wasm-unsafe-eval' nécessaire » / « no 'wasm-unsafe-eval' needed ») sont partis. **Le test échoue sur l'ancien code (11/15)** : il attrape bien le bug.
+
+**Vérifié** : `npm run build` (tsc -b + vite) OK ; `dist/index.html` contient bien la balise meta CSP avec `script-src 'self' 'wasm-unsafe-eval'` ; `npm run test:logique` **39/39 suites, 777/777 contrôles** OK (38 suites d'origine + la nouvelle).
+
+**NON vérifié** (impossible sans le logiciel installé) : le chargement effectif du Manifest FR+EN dans l'installateur Windows. **À tester par l'utilisateur** : relancer `npm.cmd run electron:build` (ou utiliser `installateur\win-unpacked\Forge Armory.exe` du build précédent si seul le front change), ouvrir l'appli, se connecter, cliquer sur « charger le Manifest (FR+EN) » — le Manifest doit se charger sans `CompileError`.
+
+**Version : 0.5.3 → 0.5.4.** `package.json`, `package-lock.json`, `TODO.md` (version courante du PDF de tests) mis à jour. CHANGELOG : ligne « Correctif : le chargement du Manifest ne fonctionnait plus dans le logiciel installé … CSP bloquait WebAssembly. Corrigé. »
+
+---
+
+## 23/10/2026 — v0.5.3 (suite) : retour de fabrication de l'installateur (chemin trop long)
+
+**Retour de l'utilisateur** : `npm.cmd run electron:build` échoue à la DERNIÈRE étape, après un `tsc` et un `vite build` propres et un packaging Electron réussi : `makensis.exe` s'arrôte avec `!include: could not open file: "...\node_modules\app-builder-lib\templates\nsis\include\allowOnlyOneInstallerInstance.nsh"` (`ERR_ELECTRON_BUILDER_CANNOT_EXECUTE`, exit 1).
+
+**Diagnostic** : AUCUN rapport avec le correctif v0.5.3 (le code compile et se package). Le chemin du projet chez l'utilisateur (`C:\Users\nicod\Desktop\Forge Armory - D2 Build Analyzer\Forge-Armory-vibe-...\Forge-Armory-vibe-...\forge-armory`) dépasse ~285 caractères : au-delà de la limite `MAX_PATH` de Windows (~260), `makensis` ne résout plus ses propres fichiers `.nsh` internes d'electron-builder. Un espace dans un dossier intermédiaire (`Forge Armory - D2 Build Analyzer`) aggrave le problème.
+
+**Documentation** (pas de code modifié) : avertissement ajouté dans `NOTICE.md`, section « Fabriquer l'installateur » : chemin du projet **court et sans espace** ; si l'erreur `allowOnlyOneInstallerInstance.nsh` apparaît, déplacer le projet (ex: `C:\forge-armory`) et relancer `npm.cmd install` + `npm.cmd run electron:build`. Contournement immédiat pour tester le correctif : le dossier `installateur\win-unpacked\` contient déjà l'application complète (`Forge Armory.exe`) — lancer directement, pas besoin de l'installateur.
+
+**Version inchangée (0.5.3).**
+
+---
+
+## 23/10/2026 — v0.5.3 : CORRECTIF BLOQUANT — fenêtre blanche à la connexion Bungie (retour utilisateur)
+
+**Retour de l'utilisateur** : « Bug de connexion. Sur la dernière version, quand j'installe l'app : la fenêtre de connexion à Bungie s'ouvre, je clique sur la plateforme pour me connecter, et ça ne réagit pas, fenêtre blanche. »
+
+**Diagnostic** : la fenêtre de connexion (`bungie:connexion`, `electron/main.cjs`) partageait la `session.defaultSession`. Or, dans le logiciel installé, `restreindreReseauSessionPrincipale()` (défense XSS, ajoutée le 21/10/2026, branche draft-sec) pose un `webRequest.onBeforeRequest({ urls: ["*://*/*"] })` qui annule toute requête hors liste blanche. **`onBeforeRequest` filtre AUSSI les navigations de page** (resourceType `mainFrame`), pas seulement les requêtes de ressources/fetch — un commentaire du code disait le contraire, et c'est ce commentaire erroné qui a induit le bug. Conséquence : la page Bungie s'affichait (bungie.net est dans la liste), mais le clic sur la plateforme (Steam, PlayStation, Xbox, Google, Epic…) déclenchait une navigation vers le fournisseur d'identité, **hors de la liste blanche** : la navigation était annulée, et la fenêtre restait sur un fond blanc. Le mode navigateur et le mode développement n'étaient pas concernés (pas de filtre en dev).
+
+**Correction** (`electron/main.cjs`) :
+- La fenêtre de connexion a désormais sa **PROPRE session** (`partition: "connexion-bungie"`, fonction `preparerSessionConnexion()`), **hors du filtre liste blanche** de la session principale. Cette session est préparée AVANT le chargement de la page.
+- Cette session dédiée n'a **AUCUNE liste blanche d'hôtes** (les fournisseurs d'identité et leurs CDN sont imprévisibles ; en bloquer un re-créerait le bug). Seuls garde-fous : le web uniquement (http/https — `file:`, `chrome:`, etc. annulés) et le refus de TOUTE permission matérielle.
+- La partition est **en mémoire** (sans `persist:`) : aucun cookie Bungie ne touche le disque.
+- Les autres protections de la fenêtre sont inchangées : `sandbox: true`, `contextIsolation`, `nodeIntegration: false`, aucun preload, URL initiale validée (https + www.bungie.net), redirection de retour interceptée et jamais chargée.
+- Le **commentaire erroné** de la section « liste blanche » est corrigé (FR + EN) : `onBeforeRequest` filtre aussi les navigations (`mainFrame`).
+- Le filtre liste blanche de la session principale est **conservé tel quel** (défense XSS, logiciel installé uniquement).
+
+**Tests** : nouveau `tests/logique/cablage-connexion-bungie.test.ts` (15 contrôles, lit le texte de `electron/main.cjs`) : partition dédiée déclarée, session préparée avant `loadURL`, aucune liste blanche dans la session dédiée, http/https uniquement, permissions refusées, partition sans `persist:`, filtre principal conservé et limité au logiciel installé, sandbox/preload/validation d'URL conservés, commentaire erroné corrigé. **Le test échoue sur l'ancien code (7/15)** : il attrape bien le bug.
+
+**Vérifié** : `node --check electron/main.cjs` OK ; `npm run build` (tsc -b + vite) OK ; `npm run test:logique` **38/38 suites, 762/762 contrôles** OK (37 suites d'origine + la nouvelle).
+
+**NON vérifié** (impossible sans le logiciel installé + un vrai compte Bungie) : la connexion complète dans l'installateur Windows. **À tester par l'utilisateur** : installer la v0.5.3, ouvrir la connexion Bungie, cliquer sur sa plateforme — la page du fournisseur d'identité doit s'afficher, et le retour automatique après connexion.
+
+**Version : 0.5.2 → 0.5.3.** `package.json`, `package-lock.json`, `TODO.md` (version courante du PDF de tests) mis à jour. CHANGELOG : ligne « Correctif : la connexion à Bungie ne répondait plus après le clic sur la plateforme … fenêtre blanche. Corrigé. »
+
+---
+
+## 23/10/2026 — NOUVEAU LOGO : l'en-tête, l'icône Windows et les favicons utilisent désormais le logo à cristaux cyan (paquet refait sur la v0.5.2)
+
+**Demande de l'utilisateur** : « Vérifie quelle est le logo+titre de Forge Armory qui est utilisé. Montre moi le fichier. » puis « Oui, il faut utiliser le nouveau logo. Régénère le ZIP en ce sens. » **Version inchangée (0.5.2).**
+**Constat** (vérifié sur le zip v0.5.2) : l'en-tête (`EnTeteApp.tsx`) charge `public/logo-forge-armory-embleme.png` (304 × 342) et `public/logo-forge-armory-texte.png` (803 × 158), **encore dérivés de l'ANCIEN logo** (identiques, octet pour octet, à ceux de la v0.5.0) : le « O » de FORGE est vide, celui d'ARMORY porte l'ancien cristal argenté, sans cyan. Le NOUVEAU logo (1092 × 1092, cristaux cyan dans les deux « O ») est bien dans le dépôt, **identique octet pour octet à celui envoyé le 19/10**, sous `public/assets/marque/logo-forge-armory.png` (copie livrée) et dans le kit `app-assets/assets/marque/` (catalogue : `marque.logo-forge-armory`), mais **aucune partie de l'appli ne l'appelait** : seul le catalogue le citait. La source du générateur d'icônes, elle, était toujours l'ancienne image de 1254 × 1254.
+**Fait** :
+- **Source unique, sans doublon** : `ressources-installateur/forge-armory/generer-icones.py` et `scripts/generer-titre-svg.py` lisent DIRECTEMENT le logo du kit (`app-assets/assets/marque/logo-forge-armory.png`). L'ancienne image de 1254 × 1254 est déplacée dans `archives-precedentes/identite-forge-armory-source-2026-10-01.png` (plus aucun outil ne la lit).
+- **Images de l'en-tête régénérées** depuis ce logo, aux **mêmes dimensions** (304 × 342 et 803 × 158) et aux mêmes proportions internes : `geometrieIdentite.ts` et `EnTeteApp.tsx` ne changent pas. La nouvelle image est l'ancienne à l'échelle 0,8712 (diamètre du cercle 504 contre 578,5) ; les zones de découpe sont les anciennes zones transportées par cette similitude. **Plus aucun cristal dessiné ni copié à la main** : les deux cristaux cyan sont ceux de l'image. L'export PNG du Legendarium réutilise l'emblème (`exportImage.ts`) : il profite du même fichier.
+- **DÉCISION CHANGÉE (01/10/2026 → 23/10/2026)** : l'icône Windows (`ressources-installateur/icon.ico`, 7 tailles de 16 à 256 px) et les favicons (`public/favicon-16/32/48.png`) ne sont plus le papillon seul mais **l'icône d'application de la planche de déclinaisons** (tuile sombre à coins arrondis portant l'emblème complet). Le papillon seul reste disponible (`declinaisons/papillon-seul-256.png`) si le favicon de 16 px est jugé illisible. Commentaire de `index.html` mis à jour.
+- **Déclinaisons** (`ressources-installateur/forge-armory/declinaisons/`, non livrées avec l'appli) : logo complet (PNG, WEBP), icône d'application 512 (PNG, WEBP), monochromes blanc sur noir et noir sur blanc, emblème de 1024 à 32, favicons 16 et 32 (PNG et `.ico`), papillon seul. Les monochromes sont refaits depuis le logo (leurs cristaux gardent sa forme ; ceux de la planche, maquette, sont plus larges).
+- **SVG du titre** : `ressources-installateur/forge-armory/logo-titre/forge-armory-titre.svg` (cadre 896 × 176), produit par `scripts/generer-titre-svg.py` : vrais contours des lettres et du sous-titre, cristaux (losanges) et étoile reconstruits à partir de leurs extrémités mesurées ; aucune police, aucun script, aucune ressource externe.
+- **Tests** : `tests/ui/identite-visuels.py` (14) et `tests/ui/titre-svg.py` (10).
+- **Documents** : `SCRIPTS-VISUELS.md`, `CHARTE-GRAPHIQUE.md`, `ressources-installateur/forge-armory/LISEZ-MOI.md` mis à jour (source = copie du kit) ; ligne `identite-visuelle/` ajoutée à l'index `documentation/LISEZ-MOI.md`.
+**Vérifié** : batterie complète sur le projet modifié : **52 séries sur 56** ; les **4 séries en échec sont exactement celles de la v0.5.2 d'origine** (`forge`, `manifest-demarrage` 17/18, `vue-accomplissements`, `vue-carriere` 24/29, mesurées dans le même environnement : 50 séries sur 54) ; aucune nouvelle. `identite-visuels.py` **14/14** (source du kit identique à la copie de `public/`, dimensions de l'en-tête inchangées, **cristaux cyan dans les deux « O » à l'endroit exact de l'image**, géométrie de l'en-tête inchangée d'après `MESURES_IDENTITE`, icône Windows de 7 tailles à coins transparents, favicons, monochromes, déclinaisons, **reproductibilité de bout en bout** depuis la seule copie du kit) ; `titre-svg.py` **10/10** (recouvrement de la silhouette avec l'image de l'en-tête 94,8 % ; deux cristaux en losanges nets à moins d'une unité de l'image d'origine ; reproductible). Les images produites sont identiques, octet pour octet, à celles de la première version de ce paquet (construite sur la v0.5.0) : la source est la même.
+**Défauts de MON travail, rattrapés** : (a) un premier paquet, construit sur la v0.5.0, aurait ramené un projet déjà en v0.5.2 à l'état de la v0.5.0 (détecté en lisant l'historique public des exécutions du dépôt) ; (b) ce premier paquet recopiait le logo sous l'ancien nom de la source (320 Ko en double) alors que le kit le contenait déjà ; (c) il embarquait une page de test de la fenêtre Carrière que la v0.5.2 a remplacée par une page (`vue-carriere.py`) : elle n'est PAS reprise.
+**NON vérifié** : l'aspect de l'icône Windows et des favicons dans le logiciel INSTALLÉ ; l'en-tête et l'export du Legendarium à l'écran (les proportions sont vérifiées, pas le rendu) ; l'emblème VECTORIEL du filigrane (`forge-armory-emblem.svg`) n'a pas été refait ; les monochromes SVG de la planche ne sont produits qu'en PNG.
+**Ligne proposée pour le `CHANGELOG.md` (à la prochaine version, à ta convenance)** : « **Nouveau logo** : cristaux cyan dans les deux « O » du titre ; nouvelle icône d'application (tuile sombre) pour Windows et l'onglet du navigateur. »
+
+---
+
 ## 23/10/2026 — PROPAGATION : correction CHANGELOG répercutée sur les branches de chantier
 
 **Propagation** : la correction « la présentation en cartes ne relève pas du CHANGELOG » (CHANGELOG restauré à l'état v0.5.1, README simplifié, DEVLOG mis à jour) a été répercutée sur les 6 branches de chantier actives : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`.
