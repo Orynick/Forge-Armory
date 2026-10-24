@@ -109,6 +109,13 @@ export interface GearPiece {
   perkHashesReels?: DefinitionHash[];
   perksParColonneReels?: Array<{ socketIndex: number; hash: DefinitionHash }>;
   nbColonnesSimulees?: number;
+  /**
+   * FR : ⚠️ AJOUT (branche draft-mod-armures) - posés UNIQUEMENT par `lib/forge/appliquerSimulation.ts` sur une COPIE d'une ARMURE (jamais sur le build enregistré) quand au moins un de ses MODS est simulé : `modsSimules` = la simulation existe ; `statsReelles` = les six statistiques RÉELLES de l'exemplaire avant simulation (pour que les fenêtres « Détails » et Mon Build affichent le vrai total) ; `nbModsSimules` = combien d'emplacements de mods simulés. Dans la copie, `perkHashes` / `perksParColonne` contiennent les MODS SIMULÉS et `stats` les statistiques recalculées : c'est ce que lit le score (pilier stats_2_0 via `sommerStatsArmure`, et Pilier 2 via `extraireTextesEffetsBuild`).
+   * EN: ⚠️ ADDED - set only on a COPY of an ARMOR by the simulation overlay: the flags, the REAL stats before simulation, and the number of simulated mods. In the copy, `perkHashes`/`perksParColonne` hold the SIMULATED mods and `stats` the recomputed stats: this is what the score reads.
+   */
+  modsSimules?: boolean;
+  statsReelles?: Partial<StatBlock>;
+  nbModsSimules?: number;
   /** FR : nom officiel de l'élément de l'arme (Cinétique/Solaire/Arc/Abyssal/Stase/Filobscur), résolu via le Manifest - absent pour l'armure. / EN: weapon's official element name (Kinetic/Solar/Arc/Void/Stasis/Strand), resolved via the Manifest - absent for armor. */
   elementArme?: string;
   /** FR : URL de l'icône officielle de l'élément (résolue via le Manifest), pour affichage visuel au lieu du texte. / EN: URL of the element's official icon (resolved via the Manifest), for visual display instead of text. */
