@@ -23,10 +23,8 @@ import {
   GroupeSocket,
   CategorieSocket,
   ORDRE_AFFICHAGE_CATEGORIES,
-  obtenirDiagnosticCapaciteFragments,
   obtenirNbSlotsFragments,
   obtenirCapaciteFragmentsAspect,
-  trouverIndexSocketPourPlug,
   obtenirDiagnosticTextesDoctrine,
   obtenirDiagnosticIconesDoctrine,   // ⚠️ AJOUT (12/10/2026, v0.4.0) : bug des icônes du Filobscur
   iconeDoctrineATeinter,             // ⚠️ AJOUT (12/10/2026, v0.4.1) : recoloration de ces icônes
@@ -35,7 +33,6 @@ import { FILTRE_STASE_VERS_FILOBSCUR } from "../data/teinteIconesDoctrine";
 import { DestinyMembership } from "../lib/bungie/api";
 import IconeEmplacementFragment from "./icones/IconeEmplacementFragment";
 import { surlignerVerbesConnus } from "./RenduTextePerk";
-import { diagnostiquerInsertionPlug } from "../lib/bungie/equiper";
 import { SubclassConfig } from "../types/build";
 import { LIBELLES_ELEMENT_FR as LIBELLES_ELEMENT } from "../data/libellesElements";
 import { LIBELLES_CATEGORIE } from "../data/libellesUI";
@@ -104,10 +101,6 @@ export default function GrilleDoctrine({ membership, db, classeActuelle, subclas
   // pattern as `diagFragments` right above.
   const [diagTextesDoctrine, setDiagTextesDoctrine] = useState<string | null>(null);
   const [diagIconesDoctrine, setDiagIconesDoctrine] = useState<string | null>(null);   // ⚠️ AJOUT (12/10/2026, v0.4.0)
-  // FR : ⚠️ AJOUT (04/08/2026) - diagnostic d'insertion de plug, pour
-  // savoir si l'appli peut équiper une DOCTRINE complète en jeu.
-  const [diagPlug, setDiagPlug] = useState<string | null>(null);
-  const [diagPlugEnCours, setDiagPlugEnCours] = useState(false);
   const [diagnostic, setDiagnostic] = useState<DiagnosticSousClasse[]>([]);
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -204,64 +197,7 @@ export default function GrilleDoctrine({ membership, db, classeActuelle, subclas
     return obtenirNbSlotsFragments(db, subclass.aspectHashes ?? []);
   }
 
-  // FR : ⚠️ AJOUT (04/08/2026) - tente UNE insertion réelle de plug pour
-  // déterminer si l'API l'autorise. On choisit un FRAGMENT déjà équipé en
-  // jeu : le réinsérer à sa propre place est l'essai le moins intrusif
-  // possible (si ça réussit, rien ne change concrètement pour le joueur).
-  // EN: ⚠️ ADDED (2026-08-04) - attempts ONE real plug insertion to find
-  // out whether the API allows it. We pick a fragment ALREADY equipped in
-  // game: re-inserting it into its own slot is the least intrusive test
-  // possible (if it succeeds, nothing actually changes for the player).
-  async function lancerDiagnosticPlug() {
-    if (!membership || !sousClasseActuelle?.itemInstanceId || !db) return;
-    const groupeFragment = groupes.find((g) => g.categorie === "fragment");
-    const optionEquipee = groupeFragment?.options.find((o) => o.equipeEnJeu);
-    if (!groupeFragment || !optionEquipee) {
-      setDiagPlug(
-        "Impossible de lancer le test : aucun fragment actuellement équipé en jeu sur cette sous-classe.\n" +
-          "Équipez au moins un fragment en jeu, rechargez les sous-classes, puis réessayez."
-      );
-      return;
-    }
-    if (
-      !window.confirm(
-        `Test d'insertion de plug sur votre personnage RÉEL.\n\n` +
-          `On va tenter de réinsérer le fragment "${optionEquipee.nom}" à l'emplacement qu'il occupe DÉJÀ : ` +
-          `si l'appel réussit, rien ne change concrètement pour vous.\n\nContinuer ?`
-      )
-    ) return;
-
-    // FR : l'index de socket n'est pas conservé dans GroupeSocket : on le
-    // relit depuis le Manifest plutôt que de le supposer (l'API d'insertion
-    // l'exige, et un mauvais index ferait échouer le test pour une raison
-    // sans rapport avec la question posée).
-    const indexSocket = trouverIndexSocketPourPlug(db, sousClasseActuelle.itemHash, optionEquipee.hash);
-    if (indexSocket < 0) {
-      setDiagPlug(
-        `Impossible de localiser l'emplacement du fragment "${optionEquipee.nom}" dans la définition de la sous-classe.\n` +
-          "Test annulé : un index erroné donnerait un échec trompeur, sans rapport avec la question posée."
-      );
-      return;
-    }
-
-    setDiagPlugEnCours(true);
-    setDiagPlug(null);
-    try {
-      setDiagPlug(
-        await diagnostiquerInsertionPlug(
-          membership,
-          sousClasseActuelle.characterId ?? "",
-          sousClasseActuelle.itemInstanceId,
-          indexSocket,
-          optionEquipee.hash
-        )
-      );
-    } catch (e) {
-      setDiagPlug(`Erreur : ${(e as Error).message}`);
-    } finally {
-      setDiagPlugEnCours(false);
-    }
-  }
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - `lancerDiagnosticPlug` et ses states supprimés (diagnostic archivé, répondu : non, l'API ne permet pas d'équiper une doctrine complète). / EN: ⚠️ REMOVED - archived plug-insertion diagnostic function and its states gone.
 
   function basculerOption(categorie: CategorieSocket, hash: number, nbSlots: number) {
     const cleParCategorie: Record<string, keyof SubclassConfig> = {
@@ -397,34 +333,7 @@ export default function GrilleDoctrine({ membership, db, classeActuelle, subclas
       EN: ⚠️ ADDED (2026-08-04) - fragment capacity diagnostic result.
       Placed at the top of the block so it's visible without scrolling
       back up after clicking a 🔍. */}
-      {/* FR : ⚠️ AJOUT (04/08/2026) - test d'insertion de plug, mode
-      développement. Répond à UNE question précise : l'appli peut-elle
-      équiper une doctrine complète en jeu, ou seulement la sous-classe ?
-      EN: ⚠️ ADDED (2026-08-04) - plug insertion test, dev mode. Answers ONE
-      question: can the app equip a full subclass config in game, or only
-      the subclass item? */}
-      {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.testInsertionPlug && membership && sousClasseActuelle?.itemInstanceId && (
-        <p style={{ margin: "0 0 0.6rem" }}>
-          <button onClick={lancerDiagnosticPlug} disabled={diagPlugEnCours} style={{ fontSize: "0.75rem" }}>
-            {diagPlugEnCours && <span className="indicateur-chargement" />}
-            {diagPlugEnCours ? "Test en cours..." : "🔍 Tester l'insertion de plug (dev)"}
-          </button>
-        </p>
-      )}
-
-      {diagPlug && (
-        <details open style={{ fontSize: "0.75rem", color: "#b7b3a8", marginBottom: "0.6rem" }}>
-          <summary style={{ cursor: "pointer" }}>
-            <span>🔍 Résultat du test d'insertion (à copier à Claude)</span>
-            <button onClick={() => setDiagPlug(null)} style={{ marginLeft: "0.5rem", fontSize: "0.65rem" }}>
-              fermer
-            </button>
-          </summary>
-          <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.68rem", background: "#0d0f14", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>
-            {diagPlug}
-          </pre>
-        </details>
-      )}
+            {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic archivé supprimé (résolu). Voir `lib/diagnosticsArchives.ts`. / EN: ⚠️ REMOVED - archived diagnostic deleted (resolved). */}
 
       {/* FR : ⚠️ AJOUT (04/08/2026) - légende des icônes utilisées dans ce
       bloc, demande de l'utilisateur. Les tickets étaient employés sans
@@ -766,41 +675,7 @@ export default function GrilleDoctrine({ membership, db, classeActuelle, subclas
                               </span>
                             );
                           })()}
-                          {/* FR : ⚠️ AJOUT (04/08/2026) - diagnostic de la
-                          capacité en fragments, ASPECTS uniquement, mode
-                          développement. stopPropagation() est
-                          indispensable : sans lui le clic sélectionnerait
-                          aussi l'aspect, ce bouton étant à l'intérieur du
-                          bouton de sélection.
-                          EN: ⚠️ ADDED (2026-08-04) - fragment capacity
-                          diagnostic, ASPECTS only, dev mode.
-                          stopPropagation() is essential: without it the
-                          click would also select the aspect, this button
-                          being inside the selection button. */}
-                          {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.capaciteFragmentsAspect && groupe.categorie === "aspect" && db && (
-                            <span
-                              role="button"
-                              tabIndex={0}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDiagFragments(obtenirDiagnosticCapaciteFragments(db, opt.hash));
-                              }}
-                              style={{
-                                position: "absolute",
-                                bottom: 2,
-                                right: 2,
-                                fontSize: "0.6rem",
-                                color: "#5a5f6b",
-                                cursor: "help",
-                                border: "1px solid #3a3f4b",
-                                borderRadius: 3,
-                                padding: "0 3px",
-                              }}
-                              title="Diagnostic : capacité en fragments (mode développement)"
-                            >
-                              🔍
-                            </span>
-                          )}
+                                                    {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic de capacité en fragments archivé supprimé (confirmé correct). / EN: ⚠️ REMOVED - archived fragment-capacity diagnostic deleted. */}
                         </button>
                       );
                     })}

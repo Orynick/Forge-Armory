@@ -147,7 +147,7 @@ export const ARTEFACTS: Artefact[] = [
     armes: ["Bow", "Sword", "Micro-Missiles"],
     perksParTier: {
       1: [
-        { tier: 1, nom: "Fièvre et Frisson", description: "Les tirs de précision rapides avec des armes [icone solaire] \"Solaires\" confèrent \"Raidance\". Les tirs de précision rapides avec des armes [icone stase] \"Stasiques\" confèrent \"Armure de Givre\"." },
+        { tier: 1, nom: "Fièvre et Frisson", description: "Les tirs de précision rapides avec des armes [icone solaire] \"Solaires\" confèrent \"Radiance\". Les tirs de précision rapides avec des armes [icone stase] \"Stasiques\" confèrent \"Armure de Givre\"." },
         { tier: 1, nom: "Bienveillance élémentaire", description: "Donner un \"bonus élémentaire\" aux alliés confère de l'énergie de \"compétence de classe\"." },
         { tier: 1, nom: "Renouveau Glacé", description: "Quand vous avez \"Armure de Givre\", subir des dégats critiques libère une rafale qui \"Gèle\" les combattant proches et vous confère \"Armure de Givre\", ainsi qu'à vos alliés." },
         { tier: 1, nom: "Transport de Horde", description: "Les dégats d'arme infligés aux cibles \"Effilochées\" font parfois apparaître une \"Brindille\". Les Brindilles \"Sectionnent\" les cibles à qui elles infligent des dégats." },
@@ -303,7 +303,7 @@ export const ARTEFACTS: Artefact[] = [
     armes: ["Rocket Launcher", "Grenade Launchers"],
     perksParTier: {
       1: [
-        { tier: 1, nom: "Fièvre et Frisson", description: "Les tirs de précision rapides avec des armes [icone solaire] \"Solaires\" confèrent \"Raidance\". Les tirs de précision rapides avec des armes [icone stase] \"Stasiques\" confèrent \"Armure de Givre\"." },
+        { tier: 1, nom: "Fièvre et Frisson", description: "Les tirs de précision rapides avec des armes [icone solaire] \"Solaires\" confèrent \"Radiance\". Les tirs de précision rapides avec des armes [icone stase] \"Stasiques\" confèrent \"Armure de Givre\"." },
         { tier: 1, nom: "Torche", description: "Lorsque \"Radiance\" est actif, les dégâts d'arme infligés aux combattants victimes de malus [icone filobscure] \"filobscur\" et [icone stasique] \"stasique\" augmentent." },
         { tier: 1, nom: "Coeur de flamme", description: "Lancer votre Super solaire propage \"Radiance\" aux alliés et les dégâts du Super augmentent en fonction des alliés proches." },
         { tier: 1, nom: "Spécialiste des armures", description: "Briser le bouclier d'un combattant vous confère temporairement de la résistance aux dégâts et des dégâts de mêlée augmentés." },

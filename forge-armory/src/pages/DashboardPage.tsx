@@ -14,7 +14,12 @@ import { evaluerBuild } from "../lib/scoring/pillars";
 import { useSimulations } from "../lib/forge/storeSimulations";
 import { appliquerSimulations, pieceReelle, nbArmesSimulees } from "../lib/forge/appliquerSimulation";
 import type { CibleForge } from "../components/InventaireArmes";
-import { demoBuild, demoExigences } from "../data/demoBuild";
+// FR : ⚠️ RÉSOLU (24/10/2026, merge main dans draft-optimiseur) - on garde le fix
+// S1 de main (`demoExigences` n'est plus passée à `evaluerBuild`) ET le chantier
+// optimiseur (`StatKey` reste importé : `changerAjustementStat` l'utilise).
+// EN: RESOLVED - keep main's S1 fix (`demoExigences` no longer passed) AND the
+// optimizer work (`StatKey` stays imported: `changerAjustementStat` uses it).
+import { demoBuild } from "../data/demoBuild";
 import { BuildDraft, GearPiece, StatKey, SubclassConfig, poserPieceDansBuild } from "../types/build";
 import PilierCarte from "../components/PilierCarte";
 import BlocContexte from "../components/BlocContexte";
@@ -100,8 +105,17 @@ export default function DashboardPage() {
   const buildEffectif = useMemo(() => appliquerSimulations(monBuild, simulations), [monBuild, simulations]);
   const nbSimulees = nbArmesSimulees(buildEffectif);
   const idsDansBuild = useMemo(() => new Set(monBuild.armes.map((a) => a.itemInstanceId).filter((i): i is string => !!i)), [monBuild]);
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit, bug S1) - aucune exigence d'exotique
+  // n'est passée tant que les VRAIES exigences ne sont pas branchées (la
+  // détection « Caresse du Ver → Grenade T10 » n'existe pas encore) : avant,
+  // `demoExigences` (Mêlée T10, « Exotique de démonstration ») était passée
+  // pour TOUS les builds, plafonnant le Pilier 5 à 60 dès que Mêlée < 91 et
+  // affichant une ligne fictive. Passer `[]` = comportement par défaut du
+  // moteur (aucune exigence, aucun plafonnement).
+  // EN: ⚠️ FIXED (bug S1) - no exotic requirement is passed until the REAL
+  // ones are wired in: `[]` = the engine's default (no requirement, no cap).
   const resultat = useMemo(
-    () => evaluerBuild(buildEffectif, demoExigences, db ?? undefined, poidsActifsEnFractions(ponderations)),
+    () => evaluerBuild(buildEffectif, [], db ?? undefined, poidsActifsEnFractions(ponderations)),
     [buildEffectif, db, ponderations]
   );
 

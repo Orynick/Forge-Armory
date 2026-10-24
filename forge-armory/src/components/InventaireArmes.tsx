@@ -23,16 +23,23 @@ import { estFaconnee } from "../lib/forge/faconnee";   // ⚠️ AJOUT (14/10/20
 import { obtenirDiagnosticPlugsExemplaire } from "../lib/forge/diagnosticPlugs";   // ⚠️ AJOUT (13/10/2026, v0.4.7) : diagnostic (npm run dev)
 import ColonnesPerks, { ColonneAffichee } from "./ColonnesPerks";
 import IconesArme from "./IconesArme";
+// FR : ⚠️ AJOUT (23/10/2026, audit) - styles partagés des fenêtres liste (dedup). / EN: ⚠️ ADDED - shared list-window styles (dedup).
+import { couleurRarete, styleChamp } from "../lib/forge/stylesListes";
 
 const TAILLE_PAGE = 60;
 const SLOTS_ARME = ["cinetique", "energie", "lourde"];
 const LIBELLES_SLOT: Record<string, string> = { cinetique: "Cinétique", energie: "Énergétique", lourde: "Lourde" };
-const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste", coffre: "Coffre" };
-const styleChamp = { fontSize: "0.85rem", background: "#0d0f14", color: "#e8e6df", border: "1px solid #3a3f4b", borderRadius: 6, padding: "0.3rem 0.4rem" } as const;
+// FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - « Courrier » dans
+// les libellés de lieu : un objet en attente au postmaster est listé (origine
+// « courrier »), même s'il ne peut pas être simulé ici.
+// EN: ADDED - "Courrier" in the location labels: a postmaster item is listed
+// (origin "courrier"), even though it cannot be simulated here.
+const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste", coffre: "Coffre", courrier: "Courrier" };
+
 // FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - style COMMUN des boutons d'action de la fenêtre (« Retour », « Mettre dans Mon Build ») : même hauteur fixe, contenu centré, pour que les deux soient parfaitement alignés (l'émoji ➕ agrandissait sinon la ligne). / EN: ⚠️ ADDED - shared style so both action buttons align.
 const styleAction = { fontSize: "0.8rem", height: "2rem", padding: "0 0.7rem", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.3rem", lineHeight: 1.2, boxSizing: "border-box" } as const;
 const estArme = (p: GearPiece) => SLOTS_ARME.includes(p.slot as string);
-const couleurRarete = (p: GearPiece) => (p.isExotic ? "#ceae33" : p.rarete === "Légendaire" ? "#7a4fa3" : "#4a4f5c");
+
 
 /** FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - une arme à ouvrir DIRECTEMENT (bouton « Forge » des fenêtres Détails) ; `demande` change à chaque envoi, même pour la même arme. / EN: a weapon to open directly (the "Forge" button of the Details windows). */
 export interface CibleForge { piece: GearPiece; origine: "analyseur" | "loadouts" | "forge" | "bibliotheque"; demande: number }

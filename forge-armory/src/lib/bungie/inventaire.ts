@@ -1,20 +1,37 @@
-// FR : Construit la liste des armes/armures POSSEDEES (personnages +
-// coffre) sous forme de GearPiece exploitables par l'editeur de build,
-// en croisant les objets bruts de l'API Bungie avec leurs definitions du
-// Manifest (nom, emplacement, rarete) et leurs stats reelles d'instance.
+// FR : Construit la liste des armes/armures POSSEDEES (personnages,
+// coffre ET courrier) sous forme de GearPiece exploitables par l'editeur
+// de build, en croisant les objets bruts de l'API Bungie avec leurs
+// definitions du Manifest (nom, emplacement, rarete) et leurs stats
+// reelles d'instance.
 //
 // ⚠️ AJOUT (02/08/2026) : origine (personnage/coffre), statut equipe, et
 // perks groupes par colonne de socket - necessaires pour l'affichage en
 // 4 colonnes (Chasseur/Titan/Arcaniste/Coffre) demande par l'utilisateur.
 //
-// EN: Builds the list of OWNED weapons/armor (characters + vault) as
-// GearPiece usable by the build editor, by cross-referencing raw Bungie
-// API items with their Manifest definitions (name, slot, rarity) and their
-// real per-instance stats.
+// ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) : le COURRIER
+// (postmaster, `location: 4` dans l'inventaire d'un personnage) est lu et
+// affiche, etiquete "courrier" - jamais melange a l'inventaire du
+// personnage. Un objet qui y attend ne peut ni etre equipe ni transfere :
+// il faut d'abord le recuperer en jeu (`PullFromPostmaster` n'est PAS
+// appele par l'appli). L'affichage le rend visible et le bouton
+// « Transférer vers » l'explique (grise).
+//
+// EN: Builds the list of OWNED weapons/armor (characters, vault AND
+// postmaster) as GearPiece usable by the build editor, by
+// cross-referencing raw Bungie API items with their Manifest definitions
+// (name, slot, rarity) and their real per-instance stats.
 //
 // ⚠️ ADDED (2026-08-02): origin (character/vault), equipped status, and
 // perks grouped by socket column - needed for the 4-column display
 // (Hunter/Titan/Warlock/Vault) requested by the user.
+//
+// ⚠️ ADDED (2026-10-24, post-audit tests, point 5.8): the POSTMASTER
+// (`location: 4` in a character's inventory) is read and displayed,
+// tagged "courrier" - never mixed into the character's own inventory. An
+// item waiting there can neither be equipped nor transferred: it must
+// first be picked up in game (`PullFromPostmaster` is NOT called by the
+// app). Displaying it makes it visible, and the "Transfer to" button
+// explains it (disabled).
 
 import { extrairePlugsDisponibles, extraireGearTier } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7) ; ⚠️ AJOUT (19/10/2026) : `extraireGearTier`
 import { Database } from "sql.js";
@@ -35,7 +52,7 @@ interface ItemBrut {
   itemHash: number;
   itemInstanceId?: string;
   /** FR : d'où vient cet objet brut, avant qu'on ne connaisse son nom/slot. / EN: where this raw item comes from, before we know its name/slot. */
-  origine: "coffre" | "titan" | "chasseur" | "arcaniste";
+  origine: "coffre" | "titan" | "chasseur" | "arcaniste" | "courrier";
   equipe: boolean;
 }
 
@@ -155,10 +172,21 @@ export async function listerObjetsPossedes(
   }
   const inventairesPersonnages = profil.characterInventories?.data ?? {};
   const equipementPersonnages = profil.characterEquipment?.data ?? {};
+  // FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - le courrier se
+  // lit DANS l'inventaire de chaque personnage (`location: 4`) : c'est la
+  // seule source Bungie pour ces objets (ils n'apparaissent ni au coffre ni
+  // dans l'equipement). Ils sont etiquetes "courrier", jamais melanges a
+  // l'inventaire du personnage : un objet qui y attend ne peut pas etre
+  // deplace ni equipe tant qu'il n'a pas ete recupere en jeu.
+  // EN: ADDED - the postmaster is read INSIDE each character's inventory
+  // (`location: 4`): that is Bungie's only source for those items (they
+  // appear neither in the vault nor in equipment). They are tagged
+  // "courrier", never mixed into the character's own inventory.
+  const LIEU_COURRIER = 4;
   for (const charId of Object.keys({ ...inventairesPersonnages, ...equipementPersonnages })) {
     const origine = classeParPersonnage[charId] ?? "titan";
     for (const item of inventairesPersonnages[charId]?.items ?? []) {
-      itemsBruts.push({ itemHash: item.itemHash, itemInstanceId: item.itemInstanceId, origine, equipe: false });
+      itemsBruts.push({ itemHash: item.itemHash, itemInstanceId: item.itemInstanceId, origine: item.location === LIEU_COURRIER ? "courrier" : origine, equipe: false });
     }
     for (const item of equipementPersonnages[charId]?.items ?? []) {
       itemsBruts.push({ itemHash: item.itemHash, itemInstanceId: item.itemInstanceId, origine, equipe: true });

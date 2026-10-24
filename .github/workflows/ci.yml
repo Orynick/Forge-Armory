@@ -2,7 +2,7 @@
 #   1. `npm ci` (installation reproductible, lockfile)
 #   2. `tsc -b` (compilateur strict, zéro erreur tolérée)
 #   3. `npm run build` (build strict complet : tsc -b && vite build)
-#   4. `npm run test:logique` (les 30 suites de tests/logique/, 430 contrôles)
+#   4. `npm run test:logique` (les 38 suites de tests/logique/, 761 contrôles)
 # Les tests d'interface Playwright (tests/ui/*.py) NE tournent PAS ici :
 # ils ont besoin d'un navigateur et d'un vrai environnement (voir DEVLOG,
 # entrées du 21/10/2026). Ils restent à rejouer manuellement.
@@ -42,5 +42,5 @@ jobs:
       - name: npm run build (strict)
         run: npm run build
 
-      - name: npm run test:logique (30 suites)
+      - name: npm run test:logique (38 suites)
         run: npm run test:logique

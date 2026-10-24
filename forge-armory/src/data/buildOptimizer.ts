@@ -55,7 +55,8 @@ export interface EntreePiece {
   icone?: string;
   /** Classe requise (il n'existe pas d'armure « toute classe »). */
   classeRequise?: "titan" | "chasseur" | "arcaniste";
-  origine?: "coffre" | "titan" | "chasseur" | "arcaniste";
+  /** FR : ⚠️ AJOUT (24/10/2026, merge v0.5.5) - « courrier » est une origine possible (point 5.8). / EN: ADDED - "courrier" is a possible origin (point 5.8). */
+  origine?: "coffre" | "titan" | "chasseur" | "arcaniste" | "courrier";
 }
 
 export interface EntreeOptimiseur {

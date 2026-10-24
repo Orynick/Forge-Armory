@@ -46,16 +46,11 @@ export const LARGEUR_EXPORT = 900;
 import { htmlIconeClasse, htmlIconeElement, htmlLogoContexte, htmlLogoSection } from "./iconesExport";
 import { FILTRE_STASE_VERS_FILOBSCUR } from "../../data/teinteIconesDoctrine";   // ⚠️ AJOUT (12/10/2026, v0.4.1)
 
-const ORIGINE_ICONES = "https://www.bungie.net/";
-
-function echapper(texte: string): string {
-  return texte
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `ORIGINE_ICONES` et `echapper` centralisés
+// dans `lib/htmlExport.ts` (dedup avec `iconesExport.ts`, qui avait sa propre
+// copie de `echapper` et de l'origine). / EN: ⚠️ CHANGED - `ORIGINE_ICONES` and
+// `echapper` centralised in `lib/htmlExport.ts` (dedup with `iconesExport.ts`).
+import { ORIGINE_ICONES, echapper } from "../htmlExport";
 
 /**
  * FR : case d'icône. Toujours dessinée (fond neutre), même sans image :

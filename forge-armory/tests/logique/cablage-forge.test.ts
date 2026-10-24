@@ -54,7 +54,7 @@ ok("v0.4.12 : la Collection des armures est en LECTURE SEULE par le code : aucun
 
 // --- ⚠️ AJOUT (21/10/2026, Legendarium étape 5, retours utilisateur) : câblage du bouton « Lire le Lore » ---
 ok("⚠️ 21/10 : le bouton « Lire le Lore » est branché dans la popup Détails du BUILD ANALYZER : `SelecteurInventaire` reçoit `onLireLore={ouvrirLoreDepuisObjet}` et le passe aux lignes (`LigneObjet`)",
-  /<SelecteurInventaire[\s\S]{0,500}onLireLore=\{ouvrirLoreDepuisObjet\}/.test(P) && (inventaire.match(/onOuvrirForge=\{onOuvrirForge\} onLireLore=\{onLireLore\}/g) ?? []).length === 4);
+  /<SelecteurInventaire[\s\S]{0,500}onLireLore=\{ouvrirLoreDepuisObjet\}/.test(P) && (inventaire.match(/onOuvrirForge=\{onOuvrirForge\} onLireLore=\{onLireLore\}/g) ?? []).length === 5);   // ⚠️ 24/10 : 5 lignes (la section Courrier, point 5.8, en ajoute une)
 ok("⚠️ 21/10 : la popup Détails du Build Analyzer rend le composant `BoutonLireLore` (haut de popup, sous la croix), UNIQUEMENT si `onLireLore` est fourni",
   /import BoutonLireLore from "\.\/BoutonLireLore"/.test(inventaire) && /onLireLore && <BoutonLireLore db=\{db\} itemHash=\{piece\.itemHash\}/.test(inventaire));
 ok("⚠️ 21/10 : `ouvrirLoreDepuisObjet` aiguille vers la vue `bibliotheque` avec la cible `item:<hashObjet>` et la provenance (origine = vue courante)",
