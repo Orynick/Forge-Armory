@@ -31,18 +31,34 @@ export const demoBuild: BuildDraft = {
     { itemHash: 0, slot: "energie", stats: {}, perkHashes: [], isExotic: false },
     { itemHash: 0, slot: "lourde", stats: {}, perkHashes: [], isExotic: false },
   ],
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - les 5 emplacements d'armure sont
+  // des VRAIS placeholders : `stats: {}` (aucune stat fictive), `isExotic:
+  // false` (les jambes ne comptaient plus comme exotique fictive), et le
+  // `setHash: 1002` inventé est supprimé. Auparavant, l'état « vide » du
+  // premier lancement affichait 370 pts de stats fantômes et « 1 armure
+  // exotique équipée ». Le moteur de scoring ignore de toute façon les
+  // pièces `itemHash: 0` (filtre défensif dans `sommerStatsArmure` et le
+  // Pilier 3) ; ce nettoyage rend les données elles-mêmes honnêtes.
+  // EN: ⚠️ FIXED - the 5 armor slots are REAL placeholders: `stats: {}` (no
+  // fake stats), `isExotic: false`, and the invented `setHash: 1002` removed.
   armure: [
-    { itemHash: 0, slot: "casque", stats: { sante: 20, grenade: 30, melee: 10, super: 10, classe: 10, arme: 10 }, perkHashes: [], isExotic: false, setHash: 1002 },
-    { itemHash: 0, slot: "gants", stats: { sante: 10, grenade: 25, melee: 10, super: 10, classe: 10, arme: 10 }, perkHashes: [], isExotic: false, setHash: 1002 },
-    { itemHash: 0, slot: "torse", stats: { sante: 10, grenade: 20, melee: 10, super: 10, classe: 5, arme: 5 }, perkHashes: [], isExotic: false },
-    { itemHash: 0, slot: "jambes", stats: { melee: 30, sante: 20, grenade: 20, super: 5, classe: 5, arme: 5 }, perkHashes: [], isExotic: true },
-    { itemHash: 0, slot: "marque", stats: { sante: 10, grenade: 10, melee: 10, super: 10, classe: 10, arme: 10 }, perkHashes: [], isExotic: false },
+    { itemHash: 0, slot: "casque", stats: {}, perkHashes: [], isExotic: false },
+    { itemHash: 0, slot: "gants", stats: {}, perkHashes: [], isExotic: false },
+    { itemHash: 0, slot: "torse", stats: {}, perkHashes: [], isExotic: false },
+    { itemHash: 0, slot: "jambes", stats: {}, perkHashes: [], isExotic: false },
+    { itemHash: 0, slot: "marque", stats: {}, perkHashes: [], isExotic: false },
   ],
 };
 
 
 // Exemple : une pièce exotique fictive qui exige au moins T10 en Mêlée
 // (calquée sur la logique décrite pour "Caresse du Ver").
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `demoExigences` n'est PLUS passée à
+// `evaluerBuild` par le Dashboard (bug S1 : elle plafonnait le Pilier 5 de
+// TOUS les builds). Conservée uniquement pour les tests de logique, qui
+// l'utilisent pour prouver le mécanisme de plafonnement.
+// EN: ⚠️ CHANGED - `demoExigences` is NO LONGER passed to `evaluerBuild` by
+// the Dashboard (bug S1). Kept for the logic tests only.
 export const demoExigences: ExigenceStat[] = [
   { stat: "melee", palierMinimum: 10, sourceExotique: "Exotique de démonstration" },
 ];
