@@ -1,4 +1,4 @@
-# TODO — D2 Build Analyzer
+# TODO — Forge Armory
 
 Priorités :
 - 🔴 **Bloquant** — fausse le résultat ou empêche d'avancer
@@ -13,7 +13,7 @@ passages retirés ou condensés lors du nettoyage du 06/10/2026 dans
 `documentation/todo/ARCHIVE-TODO-2026-10-06.md`. Conception du scoring :
 section « Le scoring » de `NOTES-CONCEPTION.md`. Tests en cours :
 `A-TESTER-<version>.pdf` (le numéro de version de l'appli est dans le nom ;
-version courante : 0.5.1).
+version courante : 0.5.4).
 
 ---
 
@@ -564,7 +564,7 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 
 **Items retirés le 23/10/2026 (livraison PR #17)** — documentés dans `DEVLOG.md` :
 
-- ~~23. Page « Accomplissements » : afficher les Triomphes du compte~~ → ✅ **LIVRÉ ET VALIDÉ** (Triomphes par sceau, recherche avancée, PR #17 ; présentation en cartes grille, v0.5.2)
+- ~~23. Page « Accomplissements » : afficher les Triomphes du compte~~ → ✅ **LIVRÉ ET VALIDÉ** (Triomphes par sceau, recherche avancée, PR #17 ; présentation en cartes carrées identiques en grille, v0.5.2 — code rétablit sur `main` le 24/10 soir après loupé de resynchronisation, voir DEVLOG)
 
 **Items retirés le 22/10/2026 (nettoyage de la TODO)** — tous documentés dans `DEVLOG.md` :
 

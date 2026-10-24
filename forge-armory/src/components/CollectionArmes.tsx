@@ -12,7 +12,10 @@ import { construireCatalogueArmes, filtrerArmes, valeursDistinctes, FILTRES_ARME
 import { lireCollections, classerObtention, ObtenusParCollectible } from "../lib/bungie/collections";
 import { obtenirOptionsToutesColonnes, ELEMENTS_FILTRE } from "../lib/manifest/doctrine";
 import { ordonnerColonnesPourAffichage } from "../lib/manifest/colonnesArme";
-import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
+import { libelleElement as libelleElementCentral } from "../data/libellesElements";
+import type { DamageElement } from "../types/build";
+// FR : ⚠️ AJOUT (23/10/2026, audit) - styles partagés des fenêtres liste (dedup). / EN: ⚠️ ADDED - shared list-window styles (dedup).
+import { couleurRarete, styleChamp } from "../lib/forge/stylesListes";
 import { SessionExpiree } from "../lib/bungie/oauth";
 import { obtenirDiagnosticPerksArme } from "../lib/manifest/diagnosticPerksArme";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : diagnostic (npm run dev)
 import IconesArme from "./IconesArme";
@@ -21,9 +24,11 @@ import { apparierPerksAmeliores, typeEstAmeliore, OptionJumelee } from "../lib/m
 
 const TAILLE_PAGE = 60;
 const LIBELLES_SLOT = { cinetique: "Cinétique", energie: "Énergétique", lourde: "Lourde" } as const;
-const libelleElement = (el: string | null) => (!el ? "" : el === "cinetique" ? "Cinétique" : LIBELLES_ELEMENT_FR[el as keyof typeof LIBELLES_ELEMENT_FR]);
-const styleChamp = { fontSize: "0.85rem", background: "#0d0f14", color: "#e8e6df", border: "1px solid #3a3f4b", borderRadius: 6, padding: "0.3rem 0.4rem" } as const;
-const couleurRarete = (a: ArmeCatalogue) => (a.estExotique ? "#ceae33" : a.rarete === "Légendaire" ? "#7a4fa3" : "#4a4f5c");
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `libelleElement` local remplacé par la version centralisée (`libellesElements.ts`), avec le cas « cinétique » géré ici (l'élément d'une arme cinétique est null côté filtre, mais le libellé affiché reste « Cinétique »).
+// EN: ⚠️ CHANGED - local `libelleElement` replaced by the centralised one, with the "kinetic" case handled here.
+const libelleElement = (el: string | null) => (!el ? "" : el === "cinetique" ? "Cinétique" : libelleElementCentral(el as DamageElement));
+
+
 
 interface Props {
   db: Database | null;

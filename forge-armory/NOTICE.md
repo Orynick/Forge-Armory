@@ -186,6 +186,18 @@ dans un nouveau dossier **`installateur/`**, nommé
 `Forge-Armory-Setup-<version>.exe`. Double-cliquez dessus pour
 installer. Electron 44 ne fonctionne que sur Windows **64 bits**.
 
+⚠️ **Chemin du projet : court et SANS ESPACE.** La fabrication de
+l'installateur (étape `makensis` d'electron-builder) échoue si le chemin
+complet du projet dépasse ~260 caractères (limite `MAX_PATH` de Windows) ou
+contient un espace dans un dossier intermédiaire : `makensis.exe` ne trouve
+alors pas ses propres fichiers `.nsh` et s'arrôte avec
+`could not open file: ...\node_modules\app-builder-lib\templates\nsis\include\allowOnlyOneInstallerInstance.nsh`.
+Si cela arrive, **déplacez le projet dans un dossier court sans espace**
+(ex: `C:\forge-armory`) et relancez `npm.cmd install` puis
+`npm.cmd run electron:build` depuis ce nouveau dossier. **Pour tester sans
+refaire l'installateur**, le dossier `installateur\win-unpacked\` contient
+déjà l'application complète (`Forge Armory.exe`) : lancez-le directement.
+
 ### Tester sans fabriquer l'installateur
 
 Plus rapide pendant la mise au point : lancez le serveur habituel dans une
@@ -299,7 +311,7 @@ Le bouton **« Carrière »** du bloc Connexion ouvre une page dédiée aux **st
 Le bouton **« Accomplissements »** du bloc Connexion ouvre une page dédiée à **tous vos Triomphes de compte** — obtenus et à obtenir — groupés **par sceau** (comme la hiérarchie Collections→Sceaux du jeu).
 
 - **Compteur global en tête** : « X / Y triomphes obtenus · score total ».
-- **Sceaux en cartes dans une grille** (plusieurs par ligne), repliés par défaut : icône, nom et titre (« débloqué » à 100 %) centrés, **barre de progression sous la carte** et **pourcentage en dessous** (ex. « 50 % »). Un clic sur une carte **déplie ses triomphes dans la carte**. Triez par **progression** ou par **nom**.
+- **Sceaux en cartes carrées identiques dans une grille** (plusieurs par ligne), repliés par défaut : zone carrée (icône, nom tronqué à 2 lignes, titre « débloqué » à 100 %) centrée), **barre de progression sous la carte** et **pourcentage en dessous** (ex. « 50 % »). Un clic sur une carte **déplie ses triomphes dans la carte**. Triez par **progression** ou par **nom**.
 - Chaque triomphe affiche : icône, nom, description, progression des objectifs (« 3 / 10 »), badge ✅ (obtenu) ou ⬜ (à obtenir), et ses points.
 - **Recherche avancée** dans tous les sceaux (nom + description des triomphes, nom du sceau) : guillemets `"phrase exacte"`, `+obligatoire`, `-exclu`, case « Aa » pour respecter la casse. Exemple : `+"solo sans mourir" -gambit`.
 - Les triomphes **absents de votre profil** sont affichés comme « à obtenir » — jamais masqués, jamais estimés.

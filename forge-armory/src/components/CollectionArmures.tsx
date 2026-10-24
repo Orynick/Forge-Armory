@@ -1,6 +1,8 @@
 // FR : ⚠️ AJOUT (16/10/2026, v0.4.12), demande de l'utilisateur : « on enchaîne sur les armures de la Collection » - TOUTES LES ARMURES DU JEU (Manifest), avec leurs emplacements et leurs plugs possibles, grisées quand le compte ne les a jamais obtenues (collections du compte, comme pour les armes). LECTURE SEULE : rien n'est simulé, rien n'est écrit ; pas de lien avec le score.
 // Une fenêtre par armure : son ENSEMBLE et ses bonus (Armor 3.0), puis ses EMPLACEMENTS lus dans la définition du modèle (archétype, amélioration… avec tous les plugs possibles et leurs bonus de statistiques). Les emplacements de MODS (listes très longues) et COSMÉTIQUES sont repliés par défaut (cases à cocher). ⚠️ Structure réelle des armures non vérifiée sur le Manifest de l'utilisateur : voir le diagnostic en `npm run dev`. EN: ⚠️ ADDED - the game's armors (Manifest) with their sockets and possible plugs, greyed when never obtained; read-only.
 import { useEffect, useMemo, useState } from "react";
+// FR : ⚠️ AJOUT (23/10/2026, audit) - styles partagés des fenêtres liste (dedup). / EN: ⚠️ ADDED - shared list-window styles (dedup).
+import { couleurRarete, styleChamp } from "../lib/forge/stylesListes";
 import type { Database } from "sql.js";
 import BoutonLireLore from "./BoutonLireLore";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : bouton « Lire le Lore » (fiche → page de Lore)
 import type { DestinyMembership } from "../lib/bungie/api";
@@ -17,8 +19,8 @@ import IconeSlotArmure from "./icones/IconeSlotArmure";
 
 const TAILLE_PAGE = 60;
 const CLASSES: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste" };
-const styleChamp = { fontSize: "0.85rem", background: "#0d0f14", color: "#e8e6df", border: "1px solid #3a3f4b", borderRadius: 6, padding: "0.3rem 0.4rem" } as const;
-const couleurRarete = (a: ArmureCatalogue) => (a.estExotique ? "#ceae33" : a.rarete === "Légendaire" ? "#7a4fa3" : "#4a4f5c");
+
+
 const signe = (n: number) => (n > 0 ? `+${n}` : `−${Math.abs(n)}`);
 /** FR : « Santé +17 · Classe +12 » : les bonus de statistiques d'un plug, dans l'ordre habituel des six statistiques. / EN: a plug's stat bonuses. */
 const texteStats = (p: PlugArmure) => ORDRE_STATS.filter((k) => p.stats[k]).map((k) => `${LIBELLES_STAT[k]} ${signe(p.stats[k] as number)}`).join(" · ");

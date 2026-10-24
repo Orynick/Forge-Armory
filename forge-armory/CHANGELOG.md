@@ -3,6 +3,25 @@
 > **Ce fichier est désormais un changelog orienté utilisateur.**
 > L'historique complet et détaillé du développement (DEVLOG) se trouve dans [`DEVLOG.md`](DEVLOG.md).
 
+## v0.5.5 — 24/10/2026
+
+- **Livraison de l'audit du 23/10** (double audit Vibe + Opus 5.5, validé par les tests post-audit) : correctifs de scoring (Pilier 5 non plafonné, build vide honnête, pénalité des slots d'armes vides, détection « Radiance »), robustesse (bloc HMR mort supprimé, debounce annulé), code mort supprimé (icônes fantômes, 11 diagnostics archivés…), doublons centralisés (libellés de stats, normalisation de recherche, nommage de fichiers export, échappement HTML…).
+- **Correctif** : le contenu du courrier (postmaster) n'apparaissait pas dans « Mon Inventaire » (point 5.8 des tests post-audit, non testable tant que le courrier n'était pas affiché). Les objets en attente y sont maintenant listés dans leur propre section « 📨 Courrier », et le bouton « Transférer vers » y est grisé avec l'explication : un objet au courrier ne se déplace pas d'ici (il faut d'abord le récupérer en jeu). L'équipement d'un objet au courrier reste refusé avec le même message.
+
+→ Détails complets : [DEVLOG.md](DEVLOG.md)
+
+## v0.5.4 — 23/10/2026
+
+- **Correctif** : le chargement du Manifest ne fonctionnait plus dans le logiciel installé (bouton « charger le Manifest (FR+EN) » sans effet, `CompileError: WebAssembly.instantiate()` dans la console) : la politique de sécurité (CSP) bloquait la compilation WebAssembly de SQLite. Corrigé.
+
+→ Détails complets : [DEVLOG.md](DEVLOG.md)
+
+## v0.5.3 — 23/10/2026
+
+- **Correctif** : la connexion à Bungie ne répondait plus après le clic sur la plateforme (Steam, PlayStation, Xbox, Google, Epic…) : la fenêtre de connexion restait blanche. Corrigé.
+
+→ Détails complets : [DEVLOG.md](DEVLOG.md)
+
 ## v0.5.1 — 23/10/2026
 
 - **Legendarium** : bibliothèque de Lore complète (Grimoire D1, Légendes D2, armes, armures, cosmétiques) avec export infographique PNG.
