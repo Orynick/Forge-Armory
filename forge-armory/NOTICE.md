@@ -186,6 +186,18 @@ dans un nouveau dossier **`installateur/`**, nommé
 `Forge-Armory-Setup-<version>.exe`. Double-cliquez dessus pour
 installer. Electron 44 ne fonctionne que sur Windows **64 bits**.
 
+⚠️ **Chemin du projet : court et SANS ESPACE.** La fabrication de
+l'installateur (étape `makensis` d'electron-builder) échoue si le chemin
+complet du projet dépasse ~260 caractères (limite `MAX_PATH` de Windows) ou
+contient un espace dans un dossier intermédiaire : `makensis.exe` ne trouve
+alors pas ses propres fichiers `.nsh` et s'arrôte avec
+`could not open file: ...\node_modules\app-builder-lib\templates\nsis\include\allowOnlyOneInstallerInstance.nsh`.
+Si cela arrive, **déplacez le projet dans un dossier court sans espace**
+(ex: `C:\forge-armory`) et relancez `npm.cmd install` puis
+`npm.cmd run electron:build` depuis ce nouveau dossier. **Pour tester sans
+refaire l'installateur**, le dossier `installateur\win-unpacked\` contient
+déjà l'application complète (`Forge Armory.exe`) : lancez-le directement.
+
 ### Tester sans fabriquer l'installateur
 
 Plus rapide pendant la mise au point : lancez le serveur habituel dans une
