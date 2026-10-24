@@ -73,6 +73,8 @@ export interface OptionSocket {
   icone?: string;
   /** FR : true si c'est réellement ce qui est équipé en jeu en ce moment (pas juste sélectionné dans l'outil). / EN: true if this is what's actually equipped in-game right now (not just selected in the tool). */
   equipeEnJeu?: boolean;
+  /** FR : type d'objet brut du Manifest, pour deviner la catégorie d'une prise inconnue. / EN: raw item type from the Manifest, to guess an unknown socket's category. */
+  _itemTypeDisplayName?: string;
 }
 
 export interface GroupeSocket {
@@ -256,7 +258,7 @@ export function obtenirOptionsSousClasse(
           icone: urlIcone(defOption.displayProperties.icon),
           equipeEnJeu: hashesEquipesEnJeu.includes(hashOption),
           _itemTypeDisplayName: defOption.itemTypeDisplayName,
-        } as OptionSocket & { _itemTypeDisplayName?: string });
+        });
       }
       if (optionsDuSocket.length === 0) continue;
 
@@ -307,7 +309,7 @@ export function obtenirOptionsSousClasse(
             nomAffichage = LIBELLES_CATEGORIE_SOCKET_AFFICHAGE[categoriePosition];
           }
         } else {
-          const texteIndice = `${optionsDuSocket[0].nom} ${(optionsDuSocket[0] as any)._itemTypeDisplayName ?? ""}`;
+          const texteIndice = `${optionsDuSocket[0].nom} ${optionsDuSocket[0]._itemTypeDisplayName ?? ""}`;
           const categorieDevinee = devinerCategorieSocket(texteIndice);
           if (categorieDevinee !== "autre") {
             categorieSocket = categorieDevinee;
@@ -742,8 +744,10 @@ export async function listerSousClassesPossedees(
     profil.itemComponents?.sockets?.data ?? {};
 
   for (const charId of personnagesDeLaClasse) {
-    const itemsInventaire = (profil.characterInventories?.data?.[charId]?.items ?? []).map((it: any) => ({ ...it, equipe: false }));
-    const itemsEquipes = (profil.characterEquipment?.data?.[charId]?.items ?? []).map((it: any) => ({ ...it, equipe: true }));
+    // FR : ⚠️ CHANGÉ (23/10/2026, audit) - `it: any` remplacé par le type minimal lu (itemHash + itemInstanceId).
+    // EN: ⚠️ CHANGED - `it: any` replaced by the minimal read type (itemHash + itemInstanceId).
+    const itemsInventaire = (profil.characterInventories?.data?.[charId]?.items ?? []).map((it: { itemHash: number; itemInstanceId?: string }) => ({ ...it, equipe: false }));
+    const itemsEquipes = (profil.characterEquipment?.data?.[charId]?.items ?? []).map((it: { itemHash: number; itemInstanceId?: string }) => ({ ...it, equipe: true }));
     const items = [...itemsInventaire, ...itemsEquipes];
 
     for (const item of items) {

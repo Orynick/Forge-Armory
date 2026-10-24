@@ -19,7 +19,7 @@ import { ARTEFACTS, CONTRAINTES_ARTEFACT, PLAFOND_TIER_PAR_SLOT, Artefact, PerkA
 import { infobulleDePerk, texteAffichable } from "../lib/artefacts/infobulle";
 import { rendreTextePerk } from "./RenduTextePerk";
 import { Database } from "sql.js";
-import { obtenirDiagnosticArtefactManifest, extraireArtefactActif } from "../lib/manifest/doctrine";
+import { extraireArtefactActif } from "../lib/manifest/doctrine";
 import { comparerCandidatsIcone, urlIcone } from "../lib/manifest/search";
 import { iconeDuPerk } from "../data/iconesPerksArtefact";
 import { obtenirDefinition } from "../lib/manifest/download";
@@ -27,7 +27,7 @@ import IconeElement from "./icones/IconeElement";
 import IconeTypeArme from "./icones/IconeTypeArme";
 import { obtenirIconeElementDoctrine, obtenirIconeCinetique } from "../lib/manifest/doctrine";
 import { ArtifactSelection, DamageElement } from "../types/build";
-import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
+import { libelleElement as libelleElementCentral } from "../data/libellesElements";
 
 interface Props {
   artifact: ArtifactSelection;
@@ -178,10 +178,9 @@ const LIBELLES_ARME_FR: Record<string, string> = {
   "Linear Fusion Rifles": "Fusils à fusion linéaire",
 };
 
-/** FR : traduit un élément, avec repli sur la valeur brute si inconnue (mieux vaut afficher l'anglais qu'un vide). */
-function libelleElement(e: string): string {
-  return LIBELLES_ELEMENT_FR[e as DamageElement] ?? e;
-}
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `libelleElement` local remplacé par la version centralisée (`libellesElements.ts`). La différence : la version locale retombait sur la valeur BRUTE si inconnue ; la version centralisée renvoie "" pour null et le libellé français sinon (les clés sont le type `DamageElement`, donc toujours connues).
+// EN: ⚠️ CHANGED - local `libelleElement` replaced by the centralised one. Difference: the local one fell back to the raw value if unknown; the centralised one returns "" for null and the French label otherwise (keys are the `DamageElement` type, always known).
+const libelleElement = (e: string): string => (e ? libelleElementCentral(e as DamageElement) : "");
 
 /** FR : traduit un type d'arme, avec repli sur la valeur brute si inconnue. */
 function libelleArme(a: string): string {
@@ -326,17 +325,6 @@ export default function SelecteurArtefact({ artifact, elementBuild, onChanger, d
           EN: ⚠️ ADDED - extraction of the ACTIVE artifact to get Bungie's REAL
           translations. The user's idea: the Manifest only holds the equipped
           artifact, so switching in game and re-extracting covers all 7. */}
-          {/* FR : ⚠️ CORRIGÉ (26/08/2026) - même piège que "🖼️ hashes" hier :
-          ce bouton (le plus utile des deux, celui qui a servi aux
-          traductions ET aux icônes de perks) était resté imbriqué dans le
-          bloc `diagnosticManifestArtefact`, archivé - invisible depuis le
-          début, alors que je n'avais sorti QUE "🖼️ hashes" de ce même
-          bloc hier. Signalé par l'utilisateur, qui cherchait ce bouton
-          précisément pour l'audit des icônes de perks.
-          EN: ⚠️ FIXED - same trap as "🖼️ hashes" yesterday: this button
-          (the most useful of the two, used for translations AND perk
-          icons) had stayed nested inside the archived block - only
-          "🖼️ hashes" was extracted yesterday, not this one. */}
           {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.extraireArtefactActif && db && (
             <button
               onClick={() => {
@@ -361,23 +349,6 @@ export default function SelecteurArtefact({ artifact, elementBuild, onChanger, d
               ⬇ Extraire l'artefact actif
             </button>
           )}
-          {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.diagnosticManifestArtefact && db && (
-            <button
-              onClick={() => setDiagArtefact(obtenirDiagnosticArtefactManifest(db))}
-              style={{ fontSize: "0.7rem", fontWeight: 400 }}
-              title="Diagnostic brut du Manifest (mode développement)"
-            >
-              🔍 dev
-            </button>
-          )}
-          {/* FR : ⚠️ CORRIGÉ (25/08/2026) - ce bouton avait été inséré à
-          tort DANS le bloc conditionné par `diagnosticManifestArtefact`,
-          archivé (false) depuis le nettoyage du registre - il n'apparaissait
-          donc jamais, quel que soit le mode développement. Sorti du bloc,
-          avec sa propre entrée `diagnosticHashesArtefact`.
-          EN: ⚠️ FIXED - this button had been wrongly nested inside the
-          block gated by an ARCHIVED diagnostic - it never showed. Moved
-          out, with its own registry entry. */}
           {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.diagnosticHashesArtefact && db && (
             <button
               onClick={() => {
