@@ -4,7 +4,161 @@
 
 ---
 
-## 23/10/2026 — CORRECTION : le code des cartes de sceaux avait été perdu de `main` (loupé lors de la resynchronisation post-PR #17) +affinage « carrés identiques en taille » (branche `draft-update-triomphes`)
+## 24/10/2026 — LIVRAISON v0.5.5 : merge PR #21 (audit 23/10 + point 5.8 — courrier/postmaster affiché)
+
+**Livraison** : la PR #21 (branche `vibe/postmaster-5-8-c40641`, base `main` après rebasage de `test`) est mergée dans `main`. Elle regroupe :
+
+- **L'audit du 23/10** (commit `ac6ec81`, déjà sur `test`) : corrections post double-audit (Vibe + Opus 5.5) — bugs S1–S4, robustesse B1–B2, code mort M1–M7, doublons D1–D7, cosmétique C1–C8. **Validé par les tests post-audit de l'utilisateur** (retour du 24/10 : tout ✅ sauf le point 5.8).
+- **Le point 5.8** (commit `da73189`) : le courrier (postmaster) est affiché dans « Mon Inventaire ».
+
+**Vérifié** : CI GitHub Actions verte (2 runs SUCCESS : `tsc -b` strict + `vite build` + batterie logique) ; `npm run test:logique` **41/41 suites, 801/801 contrôles** ; `npm run build` OK (`dist/index.html` contient la CSP avec `wasm-unsafe-eval`).
+
+**Test manuel restant** : le point 5.8 en conditions réelles (un objet au courrier en jeu) — procédure dans la description de la PR #21.
+
+**Tag** : `v0.5.5`. **Branche supprimée** après livraison : `vibe/postmaster-5-8-c40641`.
+
+**Version 0.5.5.**
+
+---
+
+## 24/10/2026 — v0.5.5 (PR #21) : CORRECTIF — le courrier (postmaster) n'était pas affiché (point 5.8 des tests post-audit)
+
+**Retour des tests** : la liste de tests post-audit (branche `test`) est revenue à 100 % sauf le **point 5.8**, non testable : « essayer de déplacer/équiper un objet situé au courrier (postmaster) → refus avec le bon message (« ne se déplace pas d'ici ») ». **Blocage constaté** : Forge Armory ne mettait pas le contenu du postmaster dans l'inventaire affiché.
+
+**Diagnostic** : le refus existait déjà, côté logique — `planifierDeplacement` refuse `location === 4` (code « courrier », message « Cet objet est dans le courrier (récupération) : il ne peut pas être transféré d'ici. », `src/lib/bungie/deplacer.ts`) et `equiperObjet` refuse pareil (`src/lib/bungie/equiper.ts`). Mais en AMONT, `listerObjetsPossedes` (`src/lib/bungie/inventaire.ts`) ne lit que le coffre (composant 102) + les inventaires/équipements des personnages (201/205) **sans distinguer le courrier** : un objet avec `location: 4` dans l'inventaire d'un personnage était étiqueté… « titan »/« chasseur »/« arcaniste », comme s'il était dans l'inventaire du personnage. Résultat : (1) le postmaster n'avait aucune visibilité propre, (2) un objet qui y attendait était proposé au transfert comme s'il était sur le personnage — le refus ne se déclenchait que par la relecture en direct du profil, sans que l'utilisateur comprenne pourquoi.
+
+**Correctif** (5 fichiers + 1 test) :
+
+- `src/lib/bungie/inventaire.ts` : les objets avec `location: 4` dans l'inventaire d'un personnage sont lus et étiquetés origine **« courrier »** (jamais mélangés à l'inventaire du personnage). C'est la seule source Bungie pour ces objets (ni coffre ni équipement).
+- `src/types/build.ts` : `origine` accepte « courrier ».
+- `src/lib/bungie/deplacer.ts` : `Lieu` accepte « courrier » (origine possible), avec son libellé « le courrier » ; `LIEU_COURRIER` importé depuis `equiper.ts` (dedup, le refactor avait laissé le doublon).
+- `src/components/SelecteurInventaire.tsx` : **nouvelle section « 📨 Courrier »** (visible seulement s'il y a des objets en attente), listée par emplacement, avec la note « un objet au courrier ne peut pas être équipé ni transféré d'ici ». Le courrier est EXCLU de « Mon Inventaire » (filtres/recherche) et du Coffre. Sous-titre : « personnages + coffre + courrier ».
+- `src/components/BoutonTransfert.tsx` : un objet au courrier a le bouton « Transférer vers » **grisé avec l'explication** (comme un objet équipé), au lieu de proposer des destinations qui échoueraient toutes.
+- `src/components/InventaireArmes.tsx` / `InventaireArmures.tsx` : libellé « Courrier » dans les filtres de lieu (l'objet y est listé, non simulable).
+- **Test** : `tests/logique/inventaire-courrier.test.ts` (10 contrôles) — profil Bungie faussé (`location: 4`) + faux Manifest : les objets du courrier sont lus et étiquetés « courrier », l'inventaire du personnage et le coffre ne sont pas pollués, et le déplacement depuis le courrier est refusé (code « courrier », message « ne peut pas être transféré d'ici », aucune étape tentée). `cablage-forge.test.ts` : le compteur de lignes `LigneObjet` passe de 4 à 5 (la section Courrier).
+
+**Vérifié** : `npm run test:logique` **41/41 suites, 801/801 contrôles** ; `npm run build` OK (tsc + vite, `dist/index.html` contient la CSP `wasm-unsafe-eval`).
+
+**Non fait (volontaire)** : l'appli n'appelle PAS `Destiny2.PullFromPostmaster` — récupérer un objet au courrier reste une action en jeu (TODO.md le demandait en « objet au courrier » ; la récupération automatique est une évolution séparée, hors périmètre du point 5.8 qui ne demande que le refus correct).
+
+**Version 0.5.5.**
+
+---
+
+## 24/10/2026 — PROPAGATION : v0.5.4 répercutée sur les branches de chantier
+
+**Propagation** : la livraison v0.5.4 (merge PR #20 dans `main`, tag `v0.5.4`) a été répercutée sur les 7 branches actives pour limiter les conflits futurs : les 6 branches de chantier (`draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`) + `draft-mod-armures` (branche de la PR #19 ouverte).
+
+**Conflits** : un seul, sur `draft-sec` (commentaires FR/EN `script-src` dans `vite.config.ts`, branche en « React 19 » contre « React 18 » sur main) — résolu en gardant la directive `script-src 'self' 'wasm-unsafe-eval'` de main + « React 19 » de la branche. Merge propre sur les 6 autres branches. Tests de câblage vérifiés sur les branches en conflit (`draft-sec` 39/39 suites, 777/777 contrôles ; `test` 40/40 suites, 791/791 contrôles — la branche `test` embarque une suite supplémentaire).
+
+**Note** : la branche `vibe/fix-connexion-bungie-fenetre-blanche-4bde13` est supprimée après livraison (PR #20 mergée). La PR #19 (`draft-mod-armures`) reste ouverte, non concernée par cette propagation.
+
+**Version 0.5.4.**
+
+---
+
+## 24/10/2026 — LIVRAISON v0.5.4 : merge PR #20 (deux correctifs validés par l'utilisateur)
+
+**Livraison** : la PR #20 (branche `vibe/fix-connexion-bungie-fenetre-blanche-4bde13`, 3 commits) est mergée dans `main` (merge commit `bcfa983`). Elle livre les deux correctifs bloquants du logiciel installé, **tous deux validés corrigés par l'utilisateur** (« Ok je suis connecté » pour la v0.5.3, « OK, les deux bugs sont corrigés » pour la v0.5.4) :
+
+- **v0.5.3** — Connexion Bungie (fenêtre blanche au clic sur la plateforme) : la fenêtre de connexion a sa propre session (partition mémoire `connexion-bungie`), hors du filtre « liste blanche » qui annulait les navigations vers les fournisseurs d'identité. Fichiers : `electron/main.cjs`, test `tests/logique/cablage-connexion-bungie.test.ts`.
+- **v0.5.3 (suite)** — Documentation : avertissement `NOTICE.md` sur le chemin du projet (makensis / MAX_PATH) pour la fabrication de l'installateur.
+- **v0.5.4** — Chargement du Manifest (CSP bloquait la compilation WebAssembly de sql.js) : `script-src 'self' 'wasm-unsafe-eval'` (directive la plus étroite, PAS `'unsafe-eval'`). Fichiers : `vite.config.ts`, test `tests/logique/cablage-csp-wasm.test.ts`.
+
+**Vérifié** : CI GitHub Actions verte (tsc + build + batterie logique, 2 runs SUCCESS) ; `npm run test:logique` **39/39 suites, 777/777 contrôles** ; `npm run build` OK (`dist/index.html` contient la CSP avec `wasm-unsafe-eval`). **Validation utilisateur** : les deux bugs sont corrigés (connexion + chargement du Manifest).
+
+**Tag** : `v0.5.4` (tag annoté sur le merge commit). **Branche supprimée** après livraison : `vibe/fix-connexion-bungie-fenetre-blanche-4bde13`.
+
+**Version 0.5.4.**
+
+---
+
+## 23/10/2026 — v0.5.4 : CORRECTIF — chargement du Manifest impossible (CSP bloquait WebAssembly)
+
+**Retour de l'utilisateur** : « Ok je suis connecté mais il y a un problème sur le chargement des Manifest. Cliquer sur le bouton "charger le Manifest (FR+EN)" ne change rien. ⚠️ CompileError: WebAssembly.instantiate(): Compiling or instantiating WebAssembly module violates the following Content Security policy directive because 'unsafe-eval' is not an allowed source of script in the following Content Security Policy directive: "script-src 'self'". »
+
+**Diagnostic** : la connexion Bungie fonctionne (le correctif v0.5.3 est validé par l'utilisateur). Nouveau bug, indépendant : le Manifest est lu via **sql.js** (SQLite compilé en WebAssembly), initialisé dans `src/lib/manifest/download.ts` par `initSqlJs({ locateFile: () => sqlWasmUrl })` — le `.wasm` est fetché depuis `'self'` (autorisé par `connect-src 'self'`) puis **compilé** par `WebAssembly.instantiate()`. Or la compilation/instanciation d'un module WebAssembly est traitée comme un **script** par la CSP : elle exige `'wasm-unsafe-eval'` dans `script-src` (CSP3, Chromium 95+). La CSP de production (`CSP_PRODUCTION` dans `vite.config.ts`) ne contenait que `script-src 'self'` → `CompileError` → le chargement du Manifest échouait silencieusement (le bouton semblait « ne rien faire »). **Ce bug n'existe qu'à l'installé** : la CSP n'est injectée qu'au BUILD (`apply: "build"`), jamais en dev — c'est pourquoi il n'a pas été vu avant. Un commentaire du code affirmait le contraire (« pas de 'wasm-unsafe-eval' nécessaire, la compilation passe par WebAssembly.instantiate, pas par eval ») : ce commentaire était **erroné** (`WebAssembly.instantiate` EST soumis à la CSP de script).
+
+**Correction** (`vite.config.ts`) :
+- `CSP_PRODUCTION` : `script-src 'self'` → **`script-src 'self' 'wasm-unsafe-eval'`**. `'wasm-unsafe-eval'` est la directive la **PLUS ÉTROITE** : elle n'autorise QUE la compilation de modules wasm, **PAS** `eval()` — on n'utilise volontairement **pas** `'unsafe-eval'` (la défense en profondeur de l'audit du 21/10/2026 est conservée : aucun script inline, aucun script externe, `object-src 'none'`, `frame-ancestors 'none'`, `connect-src` limité à la liste blanche).
+- Commentaires FR + EN corrigés : explication du besoin réel (`WebAssembly.instantiate` = compilation wasm = script, CSP3), dans la liste des règles et dans le bloc dédié.
+
+**Tests** : nouveau `tests/logique/cablage-csp-wasm.test.ts` (15 contrôles, lit le texte de `vite.config.ts` + `index.html`) : `script-src` contient `'wasm-unsafe-eval'`, ne contient **pas** `'unsafe-eval'` ni `'unsafe-inline'`, le reste de la CSP stricte est intact (`default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, `connect-src` liste blanche), l'injection reste **build-only** (`apply: "build"`), `index.html` source n'a pas de CSP en dur, et les commentaires erronés (« pas de 'wasm-unsafe-eval' nécessaire » / « no 'wasm-unsafe-eval' needed ») sont partis. **Le test échoue sur l'ancien code (11/15)** : il attrape bien le bug.
+
+**Vérifié** : `npm run build` (tsc -b + vite) OK ; `dist/index.html` contient bien la balise meta CSP avec `script-src 'self' 'wasm-unsafe-eval'` ; `npm run test:logique` **39/39 suites, 777/777 contrôles** OK (38 suites d'origine + la nouvelle).
+
+**NON vérifié** (impossible sans le logiciel installé) : le chargement effectif du Manifest FR+EN dans l'installateur Windows. **À tester par l'utilisateur** : relancer `npm.cmd run electron:build` (ou utiliser `installateur\win-unpacked\Forge Armory.exe` du build précédent si seul le front change), ouvrir l'appli, se connecter, cliquer sur « charger le Manifest (FR+EN) » — le Manifest doit se charger sans `CompileError`.
+
+**Version : 0.5.3 → 0.5.4.** `package.json`, `package-lock.json`, `TODO.md` (version courante du PDF de tests) mis à jour. CHANGELOG : ligne « Correctif : le chargement du Manifest ne fonctionnait plus dans le logiciel installé … CSP bloquait WebAssembly. Corrigé. »
+
+---
+
+## 23/10/2026 — v0.5.3 (suite) : retour de fabrication de l'installateur (chemin trop long)
+
+**Retour de l'utilisateur** : `npm.cmd run electron:build` échoue à la DERNIÈRE étape, après un `tsc` et un `vite build` propres et un packaging Electron réussi : `makensis.exe` s'arrôte avec `!include: could not open file: "...\node_modules\app-builder-lib\templates\nsis\include\allowOnlyOneInstallerInstance.nsh"` (`ERR_ELECTRON_BUILDER_CANNOT_EXECUTE`, exit 1).
+
+**Diagnostic** : AUCUN rapport avec le correctif v0.5.3 (le code compile et se package). Le chemin du projet chez l'utilisateur (`C:\Users\nicod\Desktop\Forge Armory - D2 Build Analyzer\Forge-Armory-vibe-...\Forge-Armory-vibe-...\forge-armory`) dépasse ~285 caractères : au-delà de la limite `MAX_PATH` de Windows (~260), `makensis` ne résout plus ses propres fichiers `.nsh` internes d'electron-builder. Un espace dans un dossier intermédiaire (`Forge Armory - D2 Build Analyzer`) aggrave le problème.
+
+**Documentation** (pas de code modifié) : avertissement ajouté dans `NOTICE.md`, section « Fabriquer l'installateur » : chemin du projet **court et sans espace** ; si l'erreur `allowOnlyOneInstallerInstance.nsh` apparaît, déplacer le projet (ex: `C:\forge-armory`) et relancer `npm.cmd install` + `npm.cmd run electron:build`. Contournement immédiat pour tester le correctif : le dossier `installateur\win-unpacked\` contient déjà l'application complète (`Forge Armory.exe`) — lancer directement, pas besoin de l'installateur.
+
+**Version inchangée (0.5.3).**
+
+---
+
+## 23/10/2026 — v0.5.3 : CORRECTIF BLOQUANT — fenêtre blanche à la connexion Bungie (retour utilisateur)
+
+**Retour de l'utilisateur** : « Bug de connexion. Sur la dernière version, quand j'installe l'app : la fenêtre de connexion à Bungie s'ouvre, je clique sur la plateforme pour me connecter, et ça ne réagit pas, fenêtre blanche. »
+
+**Diagnostic** : la fenêtre de connexion (`bungie:connexion`, `electron/main.cjs`) partageait la `session.defaultSession`. Or, dans le logiciel installé, `restreindreReseauSessionPrincipale()` (défense XSS, ajoutée le 21/10/2026, branche draft-sec) pose un `webRequest.onBeforeRequest({ urls: ["*://*/*"] })` qui annule toute requête hors liste blanche. **`onBeforeRequest` filtre AUSSI les navigations de page** (resourceType `mainFrame`), pas seulement les requêtes de ressources/fetch — un commentaire du code disait le contraire, et c'est ce commentaire erroné qui a induit le bug. Conséquence : la page Bungie s'affichait (bungie.net est dans la liste), mais le clic sur la plateforme (Steam, PlayStation, Xbox, Google, Epic…) déclenchait une navigation vers le fournisseur d'identité, **hors de la liste blanche** : la navigation était annulée, et la fenêtre restait sur un fond blanc. Le mode navigateur et le mode développement n'étaient pas concernés (pas de filtre en dev).
+
+**Correction** (`electron/main.cjs`) :
+- La fenêtre de connexion a désormais sa **PROPRE session** (`partition: "connexion-bungie"`, fonction `preparerSessionConnexion()`), **hors du filtre liste blanche** de la session principale. Cette session est préparée AVANT le chargement de la page.
+- Cette session dédiée n'a **AUCUNE liste blanche d'hôtes** (les fournisseurs d'identité et leurs CDN sont imprévisibles ; en bloquer un re-créerait le bug). Seuls garde-fous : le web uniquement (http/https — `file:`, `chrome:`, etc. annulés) et le refus de TOUTE permission matérielle.
+- La partition est **en mémoire** (sans `persist:`) : aucun cookie Bungie ne touche le disque.
+- Les autres protections de la fenêtre sont inchangées : `sandbox: true`, `contextIsolation`, `nodeIntegration: false`, aucun preload, URL initiale validée (https + www.bungie.net), redirection de retour interceptée et jamais chargée.
+- Le **commentaire erroné** de la section « liste blanche » est corrigé (FR + EN) : `onBeforeRequest` filtre aussi les navigations (`mainFrame`).
+- Le filtre liste blanche de la session principale est **conservé tel quel** (défense XSS, logiciel installé uniquement).
+
+**Tests** : nouveau `tests/logique/cablage-connexion-bungie.test.ts` (15 contrôles, lit le texte de `electron/main.cjs`) : partition dédiée déclarée, session préparée avant `loadURL`, aucune liste blanche dans la session dédiée, http/https uniquement, permissions refusées, partition sans `persist:`, filtre principal conservé et limité au logiciel installé, sandbox/preload/validation d'URL conservés, commentaire erroné corrigé. **Le test échoue sur l'ancien code (7/15)** : il attrape bien le bug.
+
+**Vérifié** : `node --check electron/main.cjs` OK ; `npm run build` (tsc -b + vite) OK ; `npm run test:logique` **38/38 suites, 762/762 contrôles** OK (37 suites d'origine + la nouvelle).
+
+**NON vérifié** (impossible sans le logiciel installé + un vrai compte Bungie) : la connexion complète dans l'installateur Windows. **À tester par l'utilisateur** : installer la v0.5.3, ouvrir la connexion Bungie, cliquer sur sa plateforme — la page du fournisseur d'identité doit s'afficher, et le retour automatique après connexion.
+
+**Version : 0.5.2 → 0.5.3.** `package.json`, `package-lock.json`, `TODO.md` (version courante du PDF de tests) mis à jour. CHANGELOG : ligne « Correctif : la connexion à Bungie ne répondait plus après le clic sur la plateforme … fenêtre blanche. Corrigé. »
+
+---
+
+## 23/10/2026 — NOUVEAU LOGO : l'en-tête, l'icône Windows et les favicons utilisent désormais le logo à cristaux cyan (paquet refait sur la v0.5.2)
+
+**Demande de l'utilisateur** : « Vérifie quelle est le logo+titre de Forge Armory qui est utilisé. Montre moi le fichier. » puis « Oui, il faut utiliser le nouveau logo. Régénère le ZIP en ce sens. » **Version inchangée (0.5.2).**
+**Constat** (vérifié sur le zip v0.5.2) : l'en-tête (`EnTeteApp.tsx`) charge `public/logo-forge-armory-embleme.png` (304 × 342) et `public/logo-forge-armory-texte.png` (803 × 158), **encore dérivés de l'ANCIEN logo** (identiques, octet pour octet, à ceux de la v0.5.0) : le « O » de FORGE est vide, celui d'ARMORY porte l'ancien cristal argenté, sans cyan. Le NOUVEAU logo (1092 × 1092, cristaux cyan dans les deux « O ») est bien dans le dépôt, **identique octet pour octet à celui envoyé le 19/10**, sous `public/assets/marque/logo-forge-armory.png` (copie livrée) et dans le kit `app-assets/assets/marque/` (catalogue : `marque.logo-forge-armory`), mais **aucune partie de l'appli ne l'appelait** : seul le catalogue le citait. La source du générateur d'icônes, elle, était toujours l'ancienne image de 1254 × 1254.
+**Fait** :
+- **Source unique, sans doublon** : `ressources-installateur/forge-armory/generer-icones.py` et `scripts/generer-titre-svg.py` lisent DIRECTEMENT le logo du kit (`app-assets/assets/marque/logo-forge-armory.png`). L'ancienne image de 1254 × 1254 est déplacée dans `archives-precedentes/identite-forge-armory-source-2026-10-01.png` (plus aucun outil ne la lit).
+- **Images de l'en-tête régénérées** depuis ce logo, aux **mêmes dimensions** (304 × 342 et 803 × 158) et aux mêmes proportions internes : `geometrieIdentite.ts` et `EnTeteApp.tsx` ne changent pas. La nouvelle image est l'ancienne à l'échelle 0,8712 (diamètre du cercle 504 contre 578,5) ; les zones de découpe sont les anciennes zones transportées par cette similitude. **Plus aucun cristal dessiné ni copié à la main** : les deux cristaux cyan sont ceux de l'image. L'export PNG du Legendarium réutilise l'emblème (`exportImage.ts`) : il profite du même fichier.
+- **DÉCISION CHANGÉE (01/10/2026 → 23/10/2026)** : l'icône Windows (`ressources-installateur/icon.ico`, 7 tailles de 16 à 256 px) et les favicons (`public/favicon-16/32/48.png`) ne sont plus le papillon seul mais **l'icône d'application de la planche de déclinaisons** (tuile sombre à coins arrondis portant l'emblème complet). Le papillon seul reste disponible (`declinaisons/papillon-seul-256.png`) si le favicon de 16 px est jugé illisible. Commentaire de `index.html` mis à jour.
+- **Déclinaisons** (`ressources-installateur/forge-armory/declinaisons/`, non livrées avec l'appli) : logo complet (PNG, WEBP), icône d'application 512 (PNG, WEBP), monochromes blanc sur noir et noir sur blanc, emblème de 1024 à 32, favicons 16 et 32 (PNG et `.ico`), papillon seul. Les monochromes sont refaits depuis le logo (leurs cristaux gardent sa forme ; ceux de la planche, maquette, sont plus larges).
+- **SVG du titre** : `ressources-installateur/forge-armory/logo-titre/forge-armory-titre.svg` (cadre 896 × 176), produit par `scripts/generer-titre-svg.py` : vrais contours des lettres et du sous-titre, cristaux (losanges) et étoile reconstruits à partir de leurs extrémités mesurées ; aucune police, aucun script, aucune ressource externe.
+- **Tests** : `tests/ui/identite-visuels.py` (14) et `tests/ui/titre-svg.py` (10).
+- **Documents** : `SCRIPTS-VISUELS.md`, `CHARTE-GRAPHIQUE.md`, `ressources-installateur/forge-armory/LISEZ-MOI.md` mis à jour (source = copie du kit) ; ligne `identite-visuelle/` ajoutée à l'index `documentation/LISEZ-MOI.md`.
+**Vérifié** : batterie complète sur le projet modifié : **52 séries sur 56** ; les **4 séries en échec sont exactement celles de la v0.5.2 d'origine** (`forge`, `manifest-demarrage` 17/18, `vue-accomplissements`, `vue-carriere` 24/29, mesurées dans le même environnement : 50 séries sur 54) ; aucune nouvelle. `identite-visuels.py` **14/14** (source du kit identique à la copie de `public/`, dimensions de l'en-tête inchangées, **cristaux cyan dans les deux « O » à l'endroit exact de l'image**, géométrie de l'en-tête inchangée d'après `MESURES_IDENTITE`, icône Windows de 7 tailles à coins transparents, favicons, monochromes, déclinaisons, **reproductibilité de bout en bout** depuis la seule copie du kit) ; `titre-svg.py` **10/10** (recouvrement de la silhouette avec l'image de l'en-tête 94,8 % ; deux cristaux en losanges nets à moins d'une unité de l'image d'origine ; reproductible). Les images produites sont identiques, octet pour octet, à celles de la première version de ce paquet (construite sur la v0.5.0) : la source est la même.
+**Défauts de MON travail, rattrapés** : (a) un premier paquet, construit sur la v0.5.0, aurait ramené un projet déjà en v0.5.2 à l'état de la v0.5.0 (détecté en lisant l'historique public des exécutions du dépôt) ; (b) ce premier paquet recopiait le logo sous l'ancien nom de la source (320 Ko en double) alors que le kit le contenait déjà ; (c) il embarquait une page de test de la fenêtre Carrière que la v0.5.2 a remplacée par une page (`vue-carriere.py`) : elle n'est PAS reprise.
+**NON vérifié** : l'aspect de l'icône Windows et des favicons dans le logiciel INSTALLÉ ; l'en-tête et l'export du Legendarium à l'écran (les proportions sont vérifiées, pas le rendu) ; l'emblème VECTORIEL du filigrane (`forge-armory-emblem.svg`) n'a pas été refait ; les monochromes SVG de la planche ne sont produits qu'en PNG.
+**Ligne proposée pour le `CHANGELOG.md` (à la prochaine version, à ta convenance)** : « **Nouveau logo** : cristaux cyan dans les deux « O » du titre ; nouvelle icône d'application (tuile sombre) pour Windows et l'onglet du navigateur. »
+
+---
+
+## 24/10/2026 (soir) — PROPAGATION : rétablissement des cartes de sceaux + carrés identiques répercutés sur les branches de chantier
+
+**Propagation** : le rétablissement du code des cartes de sceaux (récupéré du commit orphelin `f9f1e9d`) + l'affinage « carrés identiques en taille » (voir entrée ci-dessous) ont été répercutés sur les branches de chantier actives : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-mod-armures`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`.
+
+**Conflits** : résolus sur `draft-netlify` (netlify.toml + DEVLOG), `draft-optimiseur` (DashboardPage.tsx : fix audit S1 de main + chantier optimiseur, `StatKey` et `origine: « courrier »` conservés ; buildOptimizer.ts), `draft-deps` (CHANGELOG.md : format orienté utilisateur de main + entrée Electron du chantier conservée). Les autres branches : merge propre.
+
+**Note** : entre-temps, un autre agent a livré les versions **v0.5.3, v0.5.4 et v0.5.5** sur `main` (correctifs connexion/Manifest, audit 23/10, courrier/postmaster) — la propagation a été faite sur ce `main` courant. La branche `draft-update-triomphes` reste ouverte (le chantier carrés identiques est livré, en attente de validation utilisateur en `npm run dev`).
+
+**Version inchangée (0.5.5).**
+
+## 24/10/2026 (soir) — CORRECTION : le code des cartes de sceaux avait été perdu de `main` (loupé lors de la resynchronisation post-PR #17) + affinage « carrés identiques en taille » (branche `draft-update-triomphes`)
 
 **Loupé détecté (retour utilisateur)** : « Je pense qu'il y a eu un loupé de mon coté ». Vérification : `VueAccomplissements.tsx` sur `main` était la version **avant** les cartes de sceaux, alors que les livrables v0.5.2 (DEVLOG, TODO, NOTICE) décrivaient la présentation en cartes. **Cause** : lors du retour de tests (après le merge de la PR #17 par l'utilisateur), la branche `draft-update-triomphes` a été resynchronisée sur `origin/main` (force-push) — le commit `f9f1e9d` (cartes) est devenu **orphelin** (aucune branche ne le contenait), et les commits de livraison suivants (`019f171`, `5b95bed`) ont été faits sur `main` SANS le code des cartes. L'utilisateur avait validé « ça fonctionne ! » en testant la branche alors qu'elle existait encore au commit `f9f1e9d`.
 
@@ -22,7 +176,7 @@
 
 **Vérifié** : `npx tsc -b` 0 erreur, `npm run build` ✓, `npm run test:logique` 37/37 suites (747/747 contrôles) ✓, pages UI construites ✓, `ast.parse` OK.
 
-**Version inchangée (0.5.2)** — le tag `v0.5.2` existe déjà ; cette livraison ne fait que rétablir le code promis par la v0.5.2 et l'affiner.
+**Version inchangée (0.5.5)** — la version courante est désormais 0.5.5 (livraisons v0.5.3/v0.5.4/v0.5.5 par un autre agent entre-temps) ; cette livraison ne fait que rétablir le code des cartes promis par la v0.5.2 et l'affiner (carrés identiques).
 
 ---
 
@@ -54,7 +208,7 @@
 
 **Conflits** : aucun (merge propre sur les 6 branches).
 
-**Note** : la branche `draft-update-triomphes` est supprimée après livraison. Tag `v0.5.2` créé.
+**Note** : la branche `draft-update-triomphes` est supprimée après livraison. Tag `v0.5.2` créé. La branche `draft-deps` reste en l'état (chantier déjà livré, branche conservée).
 
 **Version 0.5.2.**
 
@@ -554,7 +708,6 @@ Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carri
 
 **À valider en `npm run dev`** : onglet Legendarium → une page de Lore → bouton « ⟳ Exporter en image » (haut droite) → télécharger le PNG → vérifier l'encart (parchemin/hologramme), le texte lisible, la couverture, le filigrane + le crédit en bas.
 
-
 ## 22/10/2026 (branche `draft-legendarium`, étape 6) — VÉRIFICATION : LES 9 CRITÈRES D'ACCEPTATION SONT AU VERT (34/34)
 
 **Fait** : nouveau test d'acceptation **`tests/logique/legendarium-acceptation.test.ts`** (34 contrôles) qui vérifie les **9 critères d'acceptation** de la spécification verrouillée (`documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md` §7), chacun par lecture du code (comme `cablage-forge.test.ts`) ou exécution du modèle :
@@ -571,7 +724,6 @@ Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carri
 
 **Vérifié** : `legendarium-acceptation` **34/34** ; batterie logique complète **35/35 suites, 686/686 contrôles** ; `tsc` 0 erreur ; `npm run build` strict ✓.
 
-
 ## 22/10/2026 (branche `draft-legendarium`, suite 15) — RECHERCHE AVANCÉE : GUILLEMETS (PHRASE EXACTE), `+` (OBLIGATOIRE), `-` (EXCLU), CASE « Aa » (RESPECTER LA CASSE)
 
 **Demande de l'utilisateur (avant test de la suite 14)** : « pour la recherche, il faudrait pouvoir utiliser **les guillemets, + et -, ainsi que respecter la casse** ».
@@ -583,7 +735,6 @@ Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carri
   - **`rechercherPages(livresParSection, motCle, options?: { respecterCasse?: boolean })`** : le `respecterCasse: true` rend la recherche **sensible à la casse** (majuscules/minuscules ; les accents restent ignorés — é = e — via la normalisation NFD dans les deux modes). Par défaut (`false`) : comportement historique (insensible à la casse, accents ignorés).
 - **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) — nouvelle **case « Aa »** (`data-respecter-casse`) dans le bandeau, à droite du champ de recherche (title « Respecter la casse »), **décochée par défaut** ; état `respecterCasse` EN MÉMOIRE uniquement (lecture passive), passé à `rechercherPages` via le `useMemo` des résultats.
 - **Tests** : `legendarium-modele` **107/107** (11 nouveaux suite 15 : découpage du parser, guillemet non fermé, phrase exacte `"casque raid"` vs OU libre, exclusion `-donjon`, `+casque +raid` = ET, `+casque +a`, casse par défaut vs `respecterCasse: true`, `CASQUE` vs `Casque`, requête uniquement-exclue) ; `legendarium-page` **66/66** (2 nouveaux : case « Aa » présente et décochée par défaut, cochée quand actif) ; `legendarium-fixtures` **19/19** ; `legendarium-grimoire` **23/23** ; `legendarium` **5/5**. `tsc` 0 erreur, `npm run build` strict ✓, batterie logique 34/34 suites au vert (les 16 « interface · » Playwright ne tournent pas dans le bac à sable).
-
 
 ## 22/10/2026 (branche `draft-legendarium`, suite 14) — CORRECTION MALENTENDU : HIÉRARCHIE ARMURES = CLASSE → ENSEMBLE → PIÈCES ; COSMÉTIQUES « AUTRES » CLASSÉS PAR CLASSE (icônes)
 
@@ -597,7 +748,6 @@ Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carri
   - `rechercherPages` : les noms des sous-groupes (classes, ensembles) sont cherchés, ET une requête **multi-mots** (ex: « raid A ») correspond si chaque mot est trouvé dans le livre ou ses pages.
 - **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) — `LivreAvecGroupes` rend un livre `groupesPages` comme un **repliable de classes** (replié par défaut) ; `GroupeClasse` rend le niveau 2 (classe + icône + compteur justifié à droite, replié par défaut) avec SOIT des sous-groupes repliables **par ensemble** (nouveau `SousGroupeEnsemble`, niveau 3 : nom → pièces, clic direct), SOIT la liste directe des noms. Groupe « Sans classe » : pas d'icône, libellé « Sans classe ». `ListeLivresGroupee` gère le nouveau genre `classes` (avant `groupesPages` → `LivreAvecGroupes`).
 - **Tests** : `legendarium-modele` **96/96** (hiérarchie Classe → Ensemble → pièces, cosmétiques par classe, recherche multi-mots, repli sans collectibles) ; `legendarium-page` **64/64** (repliable de classes replié par défaut, coexistence listePages + classes, groupe « Sans classe ») ; `legendarium-fixtures` **19/19**. `tsc` 0 erreur, `npm run build` strict ✓, batterie logique 16/16 suites au vert.
-
 
 ## 22/10/2026 (branche `draft-legendarium`, suite 13) — COMPTEUR « page X/Y » DANS L'ŒILleton + ENSEMBLES D'ARMURES : DEUX NIVEAUX REPLIABLES PAR CLASSE (icônes)
 

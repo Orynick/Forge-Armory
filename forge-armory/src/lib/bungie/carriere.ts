@@ -23,6 +23,7 @@
 import { BUNGIE_API_ROOT, bungieConfig } from "./config";
 import { obtenirAccessTokenValide } from "./oauth";
 import type { DestinyMembership } from "./api";
+import { NOMS_CLASSE_PAR_INDEX } from "../loadouts/classePersonnage";
 
 async function appelBungieCarriere<T>(chemin: string): Promise<T> {
   const accessToken = await obtenirAccessTokenValide();
@@ -164,9 +165,10 @@ export function extraireMinutesParClasse(profil: unknown): { classe: string; min
   const p = profil as { characters?: { data?: Record<string, { classType?: number; minutesPlayedTotal?: string | number }> } } | null;
   const entrees = Object.entries(p?.characters?.data ?? {});
   if (entrees.length === 0) return null;
-  const NOMS_CLASSE = ["Titan", "Chasseur", "Arcaniste"];
+  // FR : ⚠️ CHANGÉ (23/10/2026, audit) - `NOMS_CLASSE` local remplacé par la constante centralisée `NOMS_CLASSE_PAR_INDEX` (dedup).
+  // EN: ⚠️ CHANGED - local `NOMS_CLASSE` replaced by the centralised `NOMS_CLASSE_PAR_INDEX` (dedup).
   const lignes = entrees.map(([, c]) => ({
-    classe: NOMS_CLASSE[c.classType ?? -1] ?? "?",
+    classe: NOMS_CLASSE_PAR_INDEX[c.classType ?? -1] ?? "?",
     minutes: Number(c.minutesPlayedTotal ?? 0),
   }));
   return lignes.some((l) => Number.isFinite(l.minutes) && l.minutes > 0) ? lignes : null;
