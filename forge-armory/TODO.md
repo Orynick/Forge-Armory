@@ -560,6 +560,19 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 À prévoir ensuite : libellé du lien, test du lien dans l'appli installée (ouverture du navigateur ou de la messagerie), et une phrase dans le guide de démarrage pour les invités.
 
 
+### 24. PWA / expérience mobile de la version navigateur (demande du 23/10/2026)
+
+**Contexte** : question de l'utilisateur du 23/10/2026 (« Il y a une application Netlify pour portable ? »). Réponse donnée : Netlify n'a **aucune app mobile officielle** (tout se gère sur https://app.netlify.com, utilisable dans le navigateur du téléphone ; apps tierces non officielles existent, à éviter — elles exigent le jeton d'accès Netlify). **Rien à faire côté Netlify.**
+
+**Ce qui en découle pour l'appli** : une fois le site Netlify en ligne (branché sur la mise en ligne, bloquée tant qu'Electron 45 n'est pas validé par un lancement réel de l'installateur sur Windows — décision du 22/10/2026), la version navigateur de Forge Armory fonctionnera telle quelle sur téléphone. Piste notée pour aller plus loin : une **PWA** (manifeste d'application, icône installable sur l'écran d'accueil, éventuellement mise en cache pour un usage partiel hors ligne).
+
+**Rien n'est décidé ni développé**. À cadrer avant de coder :
+- **manifeste web** (nom, icônes — reprendre le papillon du favicon, couleurs de l'appli) ;
+- **icônes adaptées aux tailles attendues** (les PNG 16/32/48 px du favicon sont trop petits : il faut 192 et 512 px minimum, maskable) ;
+- **choix de ne PAS mettre en cache** les données du Manifest Bungie ni l'inventaire (volumineux, changeants : la connexion et le téléchargement restent le comportement normal) ; à l'inverse, cacher l'ossature de l'appli est possible ;
+- **vérifier l'érgonomie tactile** : l'appli est conçue pour un écran ≥ 820 px de large (retour à la ligne en dessous) — sur téléphone, l'usage restera marginal sans un vrai chantier d'interface mobile ; le dire clairement si la PWA est livrée.
+
+
 ---
 
 **Items retirés le 23/10/2026 (livraison PR #17)** — documentés dans `DEVLOG.md` :
