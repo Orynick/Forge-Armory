@@ -149,6 +149,30 @@
 ---
 
 
+## 24/10/2026 (soir) — PROPAGATION : rétablissement des cartes de sceaux + carrés identiques répercutés sur les branches de chantier
+
+**Propagation** : le rétablissement du code des cartes de sceaux (récupéré du commit orphelin `f9f1e9d`) + l'affinage « carrés identiques en taille » (voir entrée ci-dessous) ont été répercutés sur les branches de chantier actives : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-mod-armures`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`.
+
+**Conflits** : résolus sur `draft-netlify` (netlify.toml + DEVLOG), `draft-optimiseur` (DashboardPage.tsx : fix audit S1 de main + chantier optimiseur, `StatKey` et `origine: « courrier »` conservés ; buildOptimizer.ts), `draft-deps` (CHANGELOG.md : format orienté utilisateur de main + entrée Electron du chantier conservée). Les autres branches : merge propre.
+
+**Note** : entre-temps, un autre agent a livré les versions **v0.5.3, v0.5.4 et v0.5.5** sur `main` (correctifs connexion/Manifest, audit 23/10, courrier/postmaster) — la propagation a été faite sur ce `main` courant. La branche `draft-update-triomphes` reste ouverte (le chantier carrés identiques est livré, en attente de validation utilisateur en `npm run dev`).
+
+**Version inchangée (0.5.5).**
+
+---
+
+## 24/10/2026 (soir) — PROPAGATION : rétablissement des cartes de sceaux + carrés identiques répercutés sur les branches de chantier
+
+**Propagation** : le rétablissement du code des cartes de sceaux (récupéré du commit orphelin `f9f1e9d`) + l'affinage « carrés identiques en taille » (voir entrée ci-dessous) ont été répercutés sur les branches de chantier actives : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-mod-armures`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`.
+
+**Conflits** : résolus sur `draft-netlify` (netlify.toml + DEVLOG), `draft-optimiseur` (DashboardPage.tsx : fix audit S1 de main + chantier optimiseur, `StatKey` et `origine: « courrier »` conservés ; buildOptimizer.ts), `draft-deps` (CHANGELOG.md : format orienté utilisateur de main + entrée Electron du chantier conservée). Les autres branches : merge propre.
+
+**Note** : entre-temps, un autre agent a livré les versions **v0.5.3, v0.5.4 et v0.5.5** sur `main` (correctifs connexion/Manifest, audit 23/10, courrier/postmaster) — la propagation a été faite sur ce `main` courant. La branche `draft-update-triomphes` reste ouverte (chantier carrés identiques livré, en attente de validation utilisateur en `npm run dev`).
+
+**Version inchangée (0.5.5).**
+
+---
+
 ## 24/10/2026 (soir) — CORRECTION : le code des cartes de sceaux avait été perdu de `main` (loupé lors de la resynchronisation post-PR #17) + affinage « carrés identiques en taille » (branche `draft-update-triomphes`)
 
 **Loupé détecté (retour utilisateur)** : « Je pense qu'il y a eu un loupé de mon coté ». Vérification : `VueAccomplissements.tsx` sur `main` était la version **avant** les cartes de sceaux, alors que les livrables v0.5.2 (DEVLOG, TODO, NOTICE) décrivaient la présentation en cartes. **Cause** : lors du retour de tests (après le merge de la PR #17 par l'utilisateur), la branche `draft-update-triomphes` a été resynchronisée sur `origin/main` (force-push) — le commit `f9f1e9d` (cartes) est devenu **orphelin** (aucune branche ne le contenait), et les commits de livraison suivants (`019f171`, `5b95bed`) ont été faits sur `main` SANS le code des cartes. L'utilisateur avait validé « ça fonctionne ! » en testant la branche alors qu'elle existait encore au commit `f9f1e9d`.
