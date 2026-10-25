@@ -148,6 +148,29 @@
 
 ---
 
+
+## 24/10/2026 (soir) — CORRECTION : le code des cartes de sceaux avait été perdu de `main` (loupé lors de la resynchronisation post-PR #17) + affinage « carrés identiques en taille » (branche `draft-update-triomphes`)
+
+**Loupé détecté (retour utilisateur)** : « Je pense qu'il y a eu un loupé de mon coté ». Vérification : `VueAccomplissements.tsx` sur `main` était la version **avant** les cartes de sceaux, alors que les livrables v0.5.2 (DEVLOG, TODO, NOTICE) décrivaient la présentation en cartes. **Cause** : lors du retour de tests (après le merge de la PR #17 par l'utilisateur), la branche `draft-update-triomphes` a été resynchronisée sur `origin/main` (force-push) — le commit `f9f1e9d` (cartes) est devenu **orphelin** (aucune branche ne le contenait), et les commits de livraison suivants (`019f171`, `5b95bed`) ont été faits sur `main` SANS le code des cartes. L'utilisateur avait validé « ça fonctionne ! » en testant la branche alors qu'elle existait encore au commit `f9f1e9d`.
+
+**Récupération** : le commit `f9f1e9d` a été retrouvé dans les objets git (commit orphelin) ; seuls ses DEUX fichiers de code ont été récupérés sur `main` (`git checkout f9f1e9d -- src/components/VueAccomplissements.tsx tests/ui/vue-accomplissements.py`) — ses éditions de CHANGELOG/TODO étaient obsolètes (docs plus récents sur `main`, et règle confirmée : les cartes relèvent du DEVLOG, pas du CHANGELOG).
+
+**Affinage — carrés identiques (demande utilisateur)** : « Les cartes de Sceaux doivent être des carrés identiques en taille. Attention aux alignements. » Implémentation dans `VueAccomplissements.tsx` :
+- la **zone cliquable** de chaque carte est un **carré** (`aspectRatio: "1 / 1"`, `boxSizing: "border-box"`, `justifyContent: "center"`, `overflow: "hidden"`) — largeur = hauteur, identique pour TOUTES les cartes ;
+- le **nom** est tronqué à **2 lignes max** (ellipsis `…`, nom complet en infobulle `title`) et le **titre du sceau à 1 ligne** — le contenu ne peut plus déformer le carré ;
+- la **barre de progression + le pourcentage** restent SOUS le carré, dans une zone de **hauteur fixe** (`flexShrink: 0`) — toutes les cartes ont la **même largeur et la même hauteur totale**, alignées en grille ;
+- le dépliage des triomphes se fait toujours DANS la carte (la carte grandit verticalement, `alignItems: "start"` sur la grille garde les cartes alignées en haut).
+
+**Tests** : `tests/ui/vue-accomplissements.py` — nouveau contrôle source (carré + clamps + zone fixe) et nouveau contrôle navigateur « CARRÉS IDENTIQUES » (largeurs égales ±1 px, hauteurs totales égales ±1 px, zone cliquable carrée ±2 px, zone barre sous le carré). Contrôles navigateur à valider par l'utilisateur en `npm run dev` (Playwright indisponible dans le bac à sable).
+
+**Documentation** : DEVLOG (cette entrée), NOTICE.md (ligne « carrés identiques »), TODO.md (item 23 : précision). **CHANGELOG inchangé** (règle confirmée : détail d'interface = DEVLOG).
+
+**Vérifié** : `npx tsc -b` 0 erreur, `npm run build` ✓, `npm run test:logique` 37/37 suites (747/747 contrôles) ✓, pages UI construites ✓, `ast.parse` OK.
+
+**Version inchangée (0.5.5)** — la version courante est désormais 0.5.5 (livraisons v0.5.3/v0.5.4/v0.5.5 par un autre agent entre-temps) ; cette livraison ne fait que rétablir le code des cartes promis par la v0.5.2 et l'affiner (carrés identiques).
+
+---
+
 ## 23/10/2026 — PROPAGATION : correction CHANGELOG répercutée sur les branches de chantier
 
 **Propagation** : la correction « la présentation en cartes ne relève pas du CHANGELOG » (CHANGELOG restauré à l'état v0.5.1, README simplifié, DEVLOG mis à jour) a été répercutée sur les 6 branches de chantier actives : `draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`.
