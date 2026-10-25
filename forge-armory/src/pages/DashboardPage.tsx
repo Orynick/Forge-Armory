@@ -14,12 +14,11 @@ import { evaluerBuild } from "../lib/scoring/pillars";
 import { useSimulations } from "../lib/forge/storeSimulations";
 import { appliquerSimulations, pieceReelle, nbArmesSimulees } from "../lib/forge/appliquerSimulation";
 import type { CibleForge } from "../components/InventaireArmes";
-// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `demoBuild` seul est importé : `demoExigences`
-// (Mêlée T10, « Exotique de démonstration ») n'est plus passée à `evaluerBuild`
-// (bug S1 : elle plafonnait le Pilier 5 de TOUS les builds et affichait une
-// ligne « ⚠️ Exotique de démonstration » fictive).
-// EN: ⚠️ CHANGED - only `demoBuild` is imported: `demoExigences` is no longer
-// passed to `evaluerBuild` (bug S1).
+// FR : ⚠️ RÉSOLU (24/10/2026, merge main dans draft-optimiseur) - on garde le fix
+// S1 de main (`demoExigences` n'est plus passée à `evaluerBuild`) ET le chantier
+// optimiseur (`StatKey` reste importé : `changerAjustementStat` l'utilise).
+// EN: RESOLVED - keep main's S1 fix (`demoExigences` no longer passed) AND the
+// optimizer work (`StatKey` stays imported: `changerAjustementStat` uses it).
 import { demoBuild } from "../data/demoBuild";
 import { BuildDraft, GearPiece, StatKey, SubclassConfig, poserPieceDansBuild } from "../types/build";
 import PilierCarte from "../components/PilierCarte";
