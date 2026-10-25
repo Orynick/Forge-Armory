@@ -593,7 +593,7 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 
 **Items retirés le 23/10/2026 (livraison PR #17)** — documentés dans `DEVLOG.md` :
 
-- ~~23. Page « Accomplissements » : afficher les Triomphes du compte~~ → ✅ **LIVRÉ ET VALIDÉ** (Triomphes par sceau, recherche avancée, PR #17 ; présentation en cartes grille, v0.5.2)
+- ~~23. Page « Accomplissements » : afficher les Triomphes du compte~~ → ✅ **LIVRÉ ET VALIDÉ** (Triomphes par sceau, recherche avancée, PR #17 ; présentation en cartes carrées identiques en grille, v0.5.2 — code rétablit sur `main` le 24/10 soir après loupé de resynchronisation, voir DEVLOG)
 
 **Items retirés le 22/10/2026 (nettoyage de la TODO)** — tous documentés dans `DEVLOG.md` :
 
