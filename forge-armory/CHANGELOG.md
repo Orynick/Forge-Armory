@@ -22,6 +22,13 @@
 
 → Détails complets : [DEVLOG.md](DEVLOG.md)
 
+## v0.5.2 — 23/10/2026
+
+- **Page Accomplissements finalisée** : les sceaux s'affichent en cartes (plusieurs par ligne), validée par les tests utilisateur — le chantier « Triomphes par sceau » est complet.
+- **Nouveau logo** : l'en-tête, l'icône Windows et les favicons utilisent désormais le logo à cristaux cyan (identité visuelle du 19/10/2026).
+
+→ Détails complets : [DEVLOG.md](DEVLOG.md)
+
 ## v0.5.1 — 23/10/2026
 
 - **Legendarium** : bibliothèque de Lore complète (Grimoire D1, Légendes D2, armes, armures, cosmétiques) avec export infographique PNG.
