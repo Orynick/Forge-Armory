@@ -66,6 +66,21 @@ Logiciel recommandé pour s'enregistrer (gratuit, simple) :
 - **Téléphone** : application « Magnétophone » native (Android/iOS) ou **Voice Recorder** — exporter en MP3.
 - **PC + casque gaming USB** : **Audacity 4** (gratuit, GPL v3 — audacityteam.org ou MuseHub). Points forts pour la voix : export MP3 **intégré** (l'encodeur LAME n'est plus à installer à la main), marqueurs sur la timeline, support **ASIO** sous Windows (WASAPI sinon). Piste **mono**, 44,1 kHz. (Audacity 4.0 a retiré quelques fonctions avancées d'Audacity 3 — sans impact pour de la voix parlée ; Audacity 3.x reste utilisable.)
 - Astuce : lire le **titre de la page en premier** dans l'enregistrement (comme un chapitre de podcast), puis le texte.
+
+### 5c. Nommer les MP3 sans se tromper (ajouté en cours d'essai)
+
+L'identifiant d'une page n'est pas évident à trouver à la main. Deux aides :
+
+1. **Le lecteur affiche l'identifiant en dev** : sous le titre de la page, une
+   ligne `id : lore:1716568313` avec un bouton **« copier l'id »**
+   (`import.meta.env.DEV` uniquement — invisible dans la version installée).
+2. **`scripts/associer-podcast.mjs` (`npm run podcast:associer`)** apparie les
+   MP3 aux pages via un fichier `public/podcast/association.txt` (une ligne =
+   un MP3 dans l'ordre alphabétique des noms, la ligne = l'identifiant de la
+   page). **Simulation par défaut** (`--appliquer` pour renommer de vrai, puis
+   l'index est régénéré et `association.txt` consommé). Le script ne supprime
+   ni n'écrase jamais un fichier ; un nom cible existant ou un nombre
+   d'associations incohérent bloque tout.
 - Déposer chaque fichier dans `forge-armory/public/podcast/` avec le nom de la convention (§2), puis lancer `node scripts/generer-index-podcast.mjs` (ou `npm run podcast:index`).
 
 ## 6. Sécurité / CSP (verrouillée)
@@ -90,14 +105,16 @@ Logiciel recommandé pour s'enregistrer (gratuit, simple) :
 | `public/podcast/README.md` | Convention de nommage + guide de dépôt (versionné). |
 | `public/podcast/index.modele.json` | Structure vide de l'index, versionnée (documente le format). |
 | `public/podcast/index.json` | Index généré localement, **ignoré** par git. |
-| `scripts/generer-index-podcast.mjs` | Génère `index.json` depuis les MP3 présents (local). |
-| `package.json` | Script `podcast:index` → `node scripts/generer-index-podcast.mjs`. |
+| `scripts/generer-index-podcast.mjs` | Génère `index.json` depuis les MP3 présents (local). Logique exportée, réutilisée par le script d'association. |
+| `scripts/associer-podcast.mjs` | Apparier les MP3 bruts aux pages (fichier `association.txt`), renommage selon la convention (simulation par défaut, `--appliquer` pour de vrai), régénère l'index. |
+| `package.json` | Scripts `podcast:index` et `podcast:associer`. |
 | `src/lib/legendarium/podcast.ts` | Bus en mémoire (publication/abonnement) + résolution `pageId → nom de fichier` + chargement de l'index. |
-| `src/components/LecteurPodcast.tsx` | Panneau flottant (ouvert/réduit), lecteur audio, barre de progression, enchainement. |
+| `src/components/LecteurPodcast.tsx` | Panneau flottant (ouvert/réduit), lecteur audio, barre de progression, enchainement. **Affiche l'identifiant de la page + « copier l'id » en dev** (aide au nommage des MP3). |
 | `src/App.tsx` | Montage du `LecteurPodcast` au-dessus du routeur. |
 | `src/pages/DashboardPage.tsx` | Fournit `onAllerPageSuivante` + `onAllerPageCourante` (bascule de vue + état mémoire). |
 | `src/components/Bibliotheque.tsx` | Publie la page courante + la page suivante à chaque changement. |
 | `tests/logique/podcast-cablage.test.ts` | Tests de câblage (CSP, convention, index, bus). |
+| `tests/logique/podcast-associer.test.ts` | Tests du script d'association (appariement par ordre alphabétique, sécurités, câblage). |
 | `.gitignore` | Ignore `public/podcast/*.mp3` et l'`index.json` généré. |
 
 ## 9. Critères d'acceptation de l'essai

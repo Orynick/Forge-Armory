@@ -14,6 +14,7 @@
     "preview": "vite preview",
     "test:logique": "node scripts/test-logique.mjs",
     "podcast:index": "node scripts/generer-index-podcast.mjs",
+    "podcast:associer": "node scripts/associer-podcast.mjs",
     "electron:dev": "electron .",
     "electron:build": "npm run build && electron-builder"
   },

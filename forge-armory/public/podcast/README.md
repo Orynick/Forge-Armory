@@ -45,6 +45,39 @@ Cela régénère `index.json` (liste des enregistrements + date). Le lecteur le 
 une fois au démarrage. `index.json` est **ignoré par git** ; le fichier
 `index.modele.json` (structure vide) est versionné pour documenter le format.
 
+## Nommer les fichiers sans se tromper (recommandé)
+
+Si vos MP3 portent des noms libres (« chapitre 1.mp3 », « 2026-10-23 page 3.mp3 »…),
+un script apparie chaque fichier à sa page **sans deviner** :
+
+1. **En dev** (`npm run dev`), ouvrez le Legendarium : le lecteur affiche, sous le
+   titre, l'**identifiant de la page** avec un bouton **« copier l'id »** (dev
+   uniquement — invisible dans la version installée).
+2. Créez `public/podcast/association.txt` : **une ligne par MP3**, dans **l'ordre
+   alphabétique des noms de fichiers**, chaque ligne = l'identifiant de la page
+   (`lore:1716568313` ou `grimoire:603020342`). Lignes vides et `#` ignorés.
+
+   Exemple (MP3 triés : `chapitre 1.mp3`, `chapitre 2.mp3`) :
+   ```
+   # mes enregistrements
+   lore:1716568313
+   grimoire:603020342
+   ```
+
+3. **Simulation** (rien n'est modifié) :
+   ```bash
+   npm run podcast:associer
+   ```
+4. **Application** (renomme les MP3 selon la convention, consomme
+   `association.txt`, régénère l'index) :
+   ```bash
+   npm run podcast:associer -- --appliquer
+   ```
+
+   **Sécurité** : le script ne supprime ni n'écrase jamais un fichier existant ;
+   un nom cible déjà présent ou un nombre d'associations incohérent bloque tout
+   (corrigez `association.txt` et relancez).
+
 ## Confidentialité
 
 - `*.mp3` et `index.json` (généré) sont **ignorés par git** (voir `.gitignore`) :

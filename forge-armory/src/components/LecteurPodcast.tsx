@@ -36,6 +36,18 @@ export default function LecteurPodcast() {
   const [fichier, setFichier] = useState<string | null>(null);
   // FR : demande d'enchaînement en attente : la page suivante a été demandée, on attend que Bibliotheque publie la page suivante (qui portera le fichier suivant). / EN: pending auto-chain: the next page was requested, we wait for Bibliotheque to publish it (it will carry the next file).
   const [enchainementEnAttente, setEnchainementEnAttente] = useState(false);
+  // FR : ⚠️ AJOUT (23/10/2026, vibe/draft-podcast-840f64, suite) - « identifiant copié » (affichage transitoire 1,5 s après un clic sur « copier l'id » : l'utilisateur sait quel nom donner à son MP3). Mémoire uniquement.
+  // EN: ADDED (draft-podcast) - "id copied" (transient display 1.5 s after clicking "copy id": the user knows which name to give their MP3). Memory only.
+  const [idCopie, setIdCopie] = useState(false);
+  const copierId = async () => {
+    try {
+      await navigator.clipboard.writeText(page!.id);
+      setIdCopie(true);
+      window.setTimeout(() => setIdCopie(false), 1500);
+    } catch {
+      setIdCopie(false);
+    }
+  };
 
   useEffect(() => {
     chargerIndexPodcast().then(setIndex);
@@ -179,6 +191,15 @@ export default function LecteurPodcast() {
         <button data-lecteur-reduire="" onClick={() => setReduit(true)} title="Réduire le lecteur" style={{ ...styleBouton, border: "none", padding: "0.1rem 0.3rem" }}>▾</button>
       </div>
       <p style={{ margin: "0 0 0.4rem", fontSize: "0.75rem", color: "#9a968a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{page.livre}</p>
+      {/* FR : ⚠️ AJOUT (23/10/2026, vibe/draft-podcast-840f64, suite) - l'IDENTIFIANT de la page, avec un bouton « copier » : c'est le NOM que l'enregistrement MP3 de cette page doit porter (convention `lore-<hash>.mp3` / `grimoire-<id>.mp3`). Affiché uniquement en DEV (outil de préparation des enregistrements) : en production, il n'apparaît pas (l'utilisateur n'a pas à le manipuler une fois les fichiers nommés). / EN: ADDED (draft-podcast) - the page's ID, with a "copy" button: it is the NAME this page's MP3 recording must carry (convention `lore-<hash>.mp3` / `grimoire-<id>.mp3`). Shown in DEV only (recording-preparation tool): in production it does not appear (the user has no use for it once files are named). */}
+      {import.meta.env.DEV && (
+        <p data-lecteur-id-page="" style={{ margin: "0 0 0.4rem", fontSize: "0.72rem", color: "#7d7a70", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          <span style={{ fontFamily: "monospace" }}>id : {page.id}</span>
+          <button data-lecteur-copier-id="" onClick={copierId} style={{ ...styleBouton, fontSize: "0.68rem", padding: "0.05rem 0.4rem" }}>
+            {idCopie ? "✅ copié" : "📋 copier l'id"}
+          </button>
+        </p>
+      )}
       {!avecAudio ? (
         <p data-lecteur-sans-audio="" style={{ margin: "0.2rem 0 0.4rem", fontSize: "0.8rem", color: "#7d7a70" }}>
           Pas d'enregistrement pour cette page (lecture texte seule).
