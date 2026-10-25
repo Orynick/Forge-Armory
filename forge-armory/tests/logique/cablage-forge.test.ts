@@ -38,7 +38,7 @@ ok("v0.4.12 : la Collection des armures est en LECTURE SEULE par le code : aucun
 
 // --- ⚠️ AJOUT (21/10/2026, Legendarium étape 5, retours utilisateur) : câblage du bouton « Lire le Lore » ---
 ok("⚠️ 21/10 : le bouton « Lire le Lore » est branché dans la popup Détails du BUILD ANALYZER : `SelecteurInventaire` reçoit `onLireLore={ouvrirLoreDepuisObjet}` et le passe aux lignes (`LigneObjet`)",
-  /<SelecteurInventaire[\s\S]{0,500}onLireLore=\{ouvrirLoreDepuisObjet\}/.test(P) && (inventaire.match(/onOuvrirForge=\{onOuvrirForge\} onLireLore=\{onLireLore\}/g) ?? []).length === 4);
+  /<SelecteurInventaire[\s\S]{0,500}onLireLore=\{ouvrirLoreDepuisObjet\}/.test(P) && (inventaire.match(/onOuvrirForge=\{onOuvrirForge\} onLireLore=\{onLireLore\}/g) ?? []).length === 5);   // ⚠️ 24/10 : 5 lignes (la section Courrier, point 5.8, en ajoute une)
 ok("⚠️ 21/10 : la popup Détails du Build Analyzer rend le composant `BoutonLireLore` (haut de popup, sous la croix), UNIQUEMENT si `onLireLore` est fourni",
   /import BoutonLireLore from "\.\/BoutonLireLore"/.test(inventaire) && /onLireLore && <BoutonLireLore db=\{db\} itemHash=\{piece\.itemHash\}/.test(inventaire));
 ok("⚠️ 21/10 : `ouvrirLoreDepuisObjet` aiguille vers la vue `bibliotheque` avec la cible `item:<hashObjet>` et la provenance (origine = vue courante)",
@@ -50,12 +50,12 @@ ok("⚠️ 22/10 (TODO §25) : les deux pages du compte sont montées comme des 
   // persos ainsi que les 10 dernières activités ») : la page Carrière reçoit le PROFIL COMPLET (`profilComplet`, composant
   // 200 → temps de jeu), pas `profilTriomphes` (composant 900 seul, sans temps de jeu), et N'A PLUS la prop
   // `personnages` (section « Personnages » supprimée avec « 10 dernières activités »).
-  /\{vue === "carriere" && <VueCarriere membership=\{memberships\[0\] \?\? null\} profil=\{profilComplet\} \/>\}/.test(P) && /\{vue === "accomplissements" && <VueAccomplissements \/>\}/.test(P) && !/<ModaleCarriere|from "\.\.\/components\/ModaleCarriere"/.test(P) && !/tiroirTriomphesOuvert|setTiroirTriomphesOuvert|carriereOuverte|setCarriereOuverte/.test(P) && /<PanneauTriomphes profil=\{profilTriomphes\} db=\{db\} \/>/.test(P) && /recupererResumeEtPersonnages\(comptes\[0\]\)/.test(P) && /setProfilComplet\(profil\)/.test(P));
+  /\{vue === "carriere" && <VueCarriere membership=\{memberships\[0\] \?\? null\} profil=\{profilComplet\} \/>\}/.test(P) && /\{vue === "accomplissements" && <VueAccomplissements profil=\{profilTriomphes\} db=\{db\} \/>\}/.test(P) && !/<ModaleCarriere|from "\.\.\/components\/ModaleCarriere"/.test(P) && !/tiroirTriomphesOuvert|setTiroirTriomphesOuvert|carriereOuverte|setCarriereOuverte/.test(P) && /<PanneauTriomphes profil=\{profilTriomphes\} db=\{db\} \/>/.test(P) && /recupererResumeEtPersonnages\(comptes\[0\]\)/.test(P) && /setProfilComplet\(profil\)/.test(P));
 {
   const acc = fs.readFileSync("src/components/VueAccomplissements.tsx", "utf-8");
   const codeAcc = acc.replace(/\/\*.*?\*\//gs, "").replace(/\/\/[^\n]*/g, "");
-  ok("⚠️ 22/10 (retour utilisateur : « Accomplissement ne doit pas afficher la Vitrine Solo sans mourir ») : la page Accomplissements n'affiche PLUS la vitrine `VitrineSoloFlawless` (elle reste UNIQUEMENT dans le tiroir `PanneauTriomphes`) — la page affiche un emplacement réservé pour les triomphes à venir",
-    !/VitrineSoloFlawless/.test(codeAcc) && /Bientôt/.test(codeAcc) && /import VitrineSoloFlawless/.test(fs.readFileSync("src/components/PanneauTriomphes.tsx", "utf-8")));
+  ok("⚠️ 22/10 (retour utilisateur : « Accomplissement ne doit pas afficher la Vitrine Solo sans mourir ») : la page Accomplissements n'affiche PLUS la vitrine `VitrineSoloFlawless` (elle reste UNIQUEMENT dans le tiroir `PanneauTriomphes`) ; ⚠️ CHANGÉ (23/10, TODO n°23) : la page affiche désormais les TRIOMPHES DU COMPTE PAR SCEAU (`regrouperParSceau`, compteur global, recherche avancée `filtrerSceaux`, tri `trierSceaux`)",
+    !/VitrineSoloFlawless/.test(codeAcc) && !/Bientôt/.test(codeAcc) && /regrouperParSceau/.test(codeAcc) && /compteursGlobaux/.test(codeAcc) && /filtrerSceaux/.test(codeAcc) && /trierSceaux/.test(codeAcc) && /import VitrineSoloFlawless/.test(fs.readFileSync("src/components/PanneauTriomphes.tsx", "utf-8")));
 }
 {
   const sel = fs.readFileSync("src/components/SelecteurVues.tsx", "utf-8");

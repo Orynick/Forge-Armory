@@ -73,6 +73,8 @@ export interface OptionSocket {
   icone?: string;
   /** FR : true si c'est réellement ce qui est équipé en jeu en ce moment (pas juste sélectionné dans l'outil). / EN: true if this is what's actually equipped in-game right now (not just selected in the tool). */
   equipeEnJeu?: boolean;
+  /** FR : type d'objet brut du Manifest, pour deviner la catégorie d'une prise inconnue. / EN: raw item type from the Manifest, to guess an unknown socket's category. */
+  _itemTypeDisplayName?: string;
 }
 
 export interface GroupeSocket {
@@ -256,7 +258,7 @@ export function obtenirOptionsSousClasse(
           icone: urlIcone(defOption.displayProperties.icon),
           equipeEnJeu: hashesEquipesEnJeu.includes(hashOption),
           _itemTypeDisplayName: defOption.itemTypeDisplayName,
-        } as OptionSocket & { _itemTypeDisplayName?: string });
+        });
       }
       if (optionsDuSocket.length === 0) continue;
 
@@ -307,7 +309,7 @@ export function obtenirOptionsSousClasse(
             nomAffichage = LIBELLES_CATEGORIE_SOCKET_AFFICHAGE[categoriePosition];
           }
         } else {
-          const texteIndice = `${optionsDuSocket[0].nom} ${(optionsDuSocket[0] as any)._itemTypeDisplayName ?? ""}`;
+          const texteIndice = `${optionsDuSocket[0].nom} ${optionsDuSocket[0]._itemTypeDisplayName ?? ""}`;
           const categorieDevinee = devinerCategorieSocket(texteIndice);
           if (categorieDevinee !== "autre") {
             categorieSocket = categorieDevinee;
@@ -348,7 +350,7 @@ export function obtenirOptionsSousClasse(
  * Demande explicite de l'utilisateur (26/08) : les mêlées/grenades/
  * compétences de classe sont le texte le MOINS bien classé par
  * `sourcePayoff.ts` aujourd'hui (voir le principe des "identités de
- * capacité" dans `CHANGELOG.md`), et ce sont elles qui définissent
+ * capacité" dans `DEVLOG.md`), et ce sont elles qui définissent
  * concrètement ce qu'une capacité APPLIQUE - contrairement aux
  * aspects/fragments qui expriment de vrais synergies conditionnelles.
  *
@@ -742,8 +744,10 @@ export async function listerSousClassesPossedees(
     profil.itemComponents?.sockets?.data ?? {};
 
   for (const charId of personnagesDeLaClasse) {
-    const itemsInventaire = (profil.characterInventories?.data?.[charId]?.items ?? []).map((it: any) => ({ ...it, equipe: false }));
-    const itemsEquipes = (profil.characterEquipment?.data?.[charId]?.items ?? []).map((it: any) => ({ ...it, equipe: true }));
+    // FR : ⚠️ CHANGÉ (23/10/2026, audit) - `it: any` remplacé par le type minimal lu (itemHash + itemInstanceId).
+    // EN: ⚠️ CHANGED - `it: any` replaced by the minimal read type (itemHash + itemInstanceId).
+    const itemsInventaire = (profil.characterInventories?.data?.[charId]?.items ?? []).map((it: { itemHash: number; itemInstanceId?: string }) => ({ ...it, equipe: false }));
+    const itemsEquipes = (profil.characterEquipment?.data?.[charId]?.items ?? []).map((it: { itemHash: number; itemInstanceId?: string }) => ({ ...it, equipe: true }));
     const items = [...itemsInventaire, ...itemsEquipes];
 
     for (const item of items) {
@@ -1677,7 +1681,7 @@ export function deduireAntiChampion(db: Database, itemHash: number): "surcharge"
 /**
  * FR : correspondance armature (archétype) -> type de champion contré,
  * d'après la règle Anti-Champion 2.0 de la mise à jour 9.7.0.
- * Les mots-clés sont volontairement COURTS : on a appris (cf. CHANGELOG,
+ * Les mots-clés sont volontairement COURTS : on a appris (cf. DEVLOG,
  * épisode "Fusil à rayon" vs "rayons") que les textes Bungie varient en
  * genre/nombre et en formulation. Les cas les plus spécifiques doivent
  * être placés AVANT les plus génériques, .find() s'arrêtant au premier.
@@ -2957,7 +2961,7 @@ export function obtenirElementFiltre(db: Database, itemHash: number): ElementFil
 // dégâts « cinétiques » au sens élémentaire), il est isolé dans le drapeau
 // `soutientCinetique` des artefacts. Le réintroduire dans ENUM_VERS_ELEMENT
 // pour récupérer son icône aurait cassé cette séparation, qui avait été
-// posée délibérément (voir CHANGELOG du 04/08).
+// posée délibérément (voir DEVLOG du 04/08).
 // EN: ⚠️ ADDED - official KINETIC icon (enum 1). Deliberately a separate
 // function: Kinetic is NOT in `DamageElement` (it's not a subclass), it
 // lives in the artifacts' `soutientCinetique` flag. Adding it to

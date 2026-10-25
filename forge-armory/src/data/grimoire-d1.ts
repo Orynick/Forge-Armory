@@ -12,9 +12,6 @@ interface RepliGrimoireJson {
 
 const repli = repliJson as RepliGrimoireJson;
 
-/** FR : provenance du jeu de données (traçabilité). / EN: dataset provenance (traceability). */
-export const SOURCE_REPLI_GRIMOIRE = repli.source;
-export const NOTE_SOURCE_REPLI_GRIMOIRE = repli.sourceNote;
-
+// FR : ⚠️ RETIRÉ (23/10/2026, audit) - `SOURCE_REPLI_GRIMOIRE` / `NOTE_SOURCE_REPLI_GRIMOIRE` : AUCUN import hors de ce fichier. La provenance reste dans le JSON lui-même (`repli.source`, `repli.sourceNote`). / EN: ⚠️ REMOVED - dead exports, no importer.
 /** FR : les livres du Grimoire D1 en français (6 livres, 834 cartes), DANS L'ORDRE OFFICIEL (Gardiens → Inventaire → Alliés → Ennemis → Lieux → Activités). Structure identique à la sortie de `lireGrimoire` : l'interface ne voit aucune différence API/repli. / EN: the French D1 Grimoire books (6 books, 834 cards), IN OFFICIAL ORDER (Guardians → Inventory → Allies → Enemies → Places → Activities). Same shape as `lireGrimoire`'s output: the UI sees no difference between API and fallback. */
 export const REPLI_GRIMOIRE: readonly LivreLore[] = repli.livres;

@@ -356,40 +356,7 @@ export function obtenirIndexTable(db: Database, table: string): LigneIndexee[] {
  * exposes the old system). Strict rules: artifact-looking items only, exact
  * name, and no icon at all if several different icons share the name.
  */
-const CACHE_ICONES_PERKS_ARTEFACT = new WeakMap<Database, Map<string, Set<string>>>();
-
-function indexIconesPerksArtefact(db: Database): Map<string, Set<string>> {
-  let index = CACHE_ICONES_PERKS_ARTEFACT.get(db);
-  if (index) return index;
-  index = new Map();
-  for (const ligne of obtenirIndexTable(db, "DestinyInventoryItemDefinition")) {
-    if (!ligne.jsonNormalise.includes("artifact") && !ligne.jsonNormalise.includes("artefact")) continue;
-    const def = obtenirDefinition<{
-      displayProperties?: { name?: string; icon?: string };
-      itemTypeDisplayName?: string;
-      plug?: { plugCategoryIdentifier?: string };
-    }>(db, "DestinyInventoryItemDefinition", idSqliteVersHash(ligne.id)); // FR : l'index stocke l'id SQLite, pas le hash / EN: the index stores the SQLite id, not the hash
-    const nom = def?.displayProperties?.name;
-    const icone = def?.displayProperties?.icon;
-    if (!nom || !icone) continue;
-    const type = normaliser(def?.itemTypeDisplayName ?? "");
-    const categorie = normaliser(def?.plug?.plugCategoryIdentifier ?? "");
-    const estPerkArtefact = type.includes("artefact") || type.includes("artifact") || categorie.includes("artifact");
-    if (!estPerkArtefact) continue;
-    const cle = normaliser(nom).trim();
-    const icones = index.get(cle) ?? new Set<string>();
-    icones.add(icone);
-    index.set(cle, icones);
-  }
-  CACHE_ICONES_PERKS_ARTEFACT.set(db, index);
-  return index;
-}
-
-/** FR : URL de la miniature d'un perk d'artefact, ou undefined si introuvable ou ambiguë. / EN: artifact perk thumbnail URL, or undefined if not found or ambiguous. */
-export function trouverIconePerkArtefact(db: Database, nomPerk: string): string | undefined {
-  const icones = indexIconesPerksArtefact(db).get(normaliser(nomPerk).trim());
-  return icones && icones.size === 1 ? urlIcone([...icones][0]) : undefined;
-}
+// FR : ⚠️ RETIRÉ (23/10/2026, audit) - `trouverIconePerkArtefact` (et son index `indexIconesPerksArtefact` + cache) : AUCUN appelant (le diagnostic `controleIconesPerksArtefact` ne l'appelait pas, il ne faisait que le citer dans un commentaire). Code mort supprimé. / EN: ⚠️ REMOVED - dead code, no caller.
 
 /**
  * FR : ⚠️ CHANGÉ (03/08/2026) - Construit l'index de recherche, mais

@@ -2,7 +2,7 @@
 
 **Destiny 2 Build Analyzer**, par Orynick/Orygamer. Ce document explique comment installer, configurer et utiliser l'application. Pour un aperçu rapide, voir le `README.md`.
 
-**Sommaire** : Démarrage · Créer votre application Bungie · Fabriquer le logiciel installable · Fonctionnalités · Comprendre le score · Télécharger les Manifests · Loadouts · Le Legendarium (lire le Lore).
+**Sommaire** : Démarrage · Créer votre application Bungie · Fabriquer le logiciel installable · Fonctionnalités · Comprendre le score · Télécharger les Manifests · Loadouts · Le Legendarium (lire le Lore) · La page Carrière (vos statistiques) · La page Accomplissements (vos Triomphes).
 
 ---
 
@@ -186,6 +186,18 @@ dans un nouveau dossier **`installateur/`**, nommé
 `Forge-Armory-Setup-<version>.exe`. Double-cliquez dessus pour
 installer. Electron 44 ne fonctionne que sur Windows **64 bits**.
 
+⚠️ **Chemin du projet : court et SANS ESPACE.** La fabrication de
+l'installateur (étape `makensis` d'electron-builder) échoue si le chemin
+complet du projet dépasse ~260 caractères (limite `MAX_PATH` de Windows) ou
+contient un espace dans un dossier intermédiaire : `makensis.exe` ne trouve
+alors pas ses propres fichiers `.nsh` et s'arrôte avec
+`could not open file: ...\node_modules\app-builder-lib\templates\nsis\include\allowOnlyOneInstallerInstance.nsh`.
+Si cela arrive, **déplacez le projet dans un dossier court sans espace**
+(ex: `C:\forge-armory`) et relancez `npm.cmd install` puis
+`npm.cmd run electron:build` depuis ce nouveau dossier. **Pour tester sans
+refaire l'installateur**, le dossier `installateur\win-unpacked\` contient
+déjà l'application complète (`Forge Armory.exe`) : lancez-le directement.
+
 ### Tester sans fabriquer l'installateur
 
 Plus rapide pendant la mise au point : lancez le serveur habituel dans une
@@ -264,7 +276,9 @@ npm run electron:dev   (fenêtre 2)
 | **Saison de sortie** en clair sur la fiche d'un résultat de recherche | ✅ Fonctionnel — nom, numéro et dates |
 | **Catégorie de source** en clair sur la fiche (« — Raid — Source: "Last Wish" Raid ») | ✅ Fonctionnel — tables dérivées de d2-additional-info (MIT) |
 | Section **« Crédits »** (pied de page) | ✅ Fonctionnel — pop-up : projet de fan non affilié à Bungie + crédit MIT |
-| Onglet **Legendarium** — bibliothèque de Lore (Grimoire D1, Légendes D2, armes, armures, cosmétiques) | ✅ Fonctionnel — lecture passive, recherche avancée, parcours inverse, bouton « Lire le Lore » dans les fiches, export infographique PNG |
+| Onglet **Legendarium** — bibliothèque de Lore (Grimoire D1, Légendes D2, armes, armures, cosmétiques) | ✅ Fonctionnel — lecture passive, recherche avancée, parcours inverse, bouton « 📖 Lire le Lore » dans les fiches, export infographique PNG |
+| Page **Carrière** — statistiques du compte (bouton du bloc Connexion) | ✅ Fonctionnel — temps de jeu (total + par classe) et toutes les statistiques de carrière (74 libellés traduits en français) |
+| Page **Accomplissements** — Triomphes du compte, groupés par sceau (bouton du bloc Connexion) | ✅ Fonctionnel — tous les triomphes (obtenus et à obtenir), recherche avancée, compteur global, score total |
 
 ---
 
@@ -279,6 +293,32 @@ L'onglet **Legendarium** (anciennement « Bibliothèque ») est une bibliothèqu
 - **Export infographique** : bouton « ⟳ Exporter en image » en haut à droite de chaque page — génère un PNG (1200 px) avec la palette de l'ère (parchemin D1 / hologramme D2), le filigrane Forge Armory centré, et le crédit Bungie / Destiny.
 
 Le Legendarium fonctionne **hors-ligne** pour le Grimoire D1 (données embarquées) ; les sections D2 nécessitent le Manifest (chargé automatiquement au démarrage si une connexion Bungie est active).
+
+---
+
+## La page Carrière : vos statistiques de compte
+
+Le bouton **« Carrière »** du bloc Connexion ouvre une page dédiée aux **statistiques de votre compte Bungie** (lecture seule, aucune modification en jeu).
+
+- **Temps de jeu** : total et par classe (Titan, Chasseur, Arcaniste), avec les icônes de classe. Le total est lu depuis votre profil Bungie (composant « personnages »), avec un repli sur la statistique `secondsPlayed` de l'API si le profil ne le porte pas.
+- **Statistiques de carrière** : **toutes les statistiques** retournées par l'API Bungie (`GetHistoricalStatsForAccount`, filtre « Carrière »), dans l'ordre de la réponse. Les libellés connus sont traduits en français (74 statIds : éliminations par type d'arme, distances en mètres, efficacités, scores, durées…). Une statistique inconnue affiche son identifiant brut (jamais renommée à l'aveugle). Les durées en secondes s'affichent en « X h Y min ».
+- La page ne fait **qu'une seule requête réseau** à l'ouverture.
+- Un **compteur** indique le nombre de statistiques affichées.
+- En mode développement (`npm run dev`), un panneau de diagnostic détaille la structure de la réponse API et la source des données lues.
+
+## La page Accomplissements : vos Triomphes par sceau
+
+Le bouton **« Accomplissements »** du bloc Connexion ouvre une page dédiée à **tous vos Triomphes de compte** — obtenus et à obtenir — groupés **par sceau** (comme la hiérarchie Collections→Sceaux du jeu).
+
+- **Compteur global en tête** : « X / Y triomphes obtenus · score total ».
+- **Sceaux en cartes carrées identiques dans une grille** (plusieurs par ligne), repliés par défaut : zone carrée (icône, nom tronqué à 2 lignes, titre « débloqué » à 100 %) centrée), **barre de progression sous la carte** et **pourcentage en dessous** (ex. « 50 % »). Un clic sur une carte **déplie ses triomphes dans la carte**. Triez par **progression** ou par **nom**.
+- Chaque triomphe affiche : icône, nom, description, progression des objectifs (« 3 / 10 »), badge ✅ (obtenu) ou ⬜ (à obtenir), et ses points.
+- **Recherche avancée** dans tous les sceaux (nom + description des triomphes, nom du sceau) : guillemets `"phrase exacte"`, `+obligatoire`, `-exclu`, case « Aa » pour respecter la casse. Exemple : `+"solo sans mourir" -gambit`.
+- Les triomphes **absents de votre profil** sont affichés comme « à obtenir » — jamais masqués, jamais estimés.
+- Seuls les triomphes de **portée compte** sont listés (pas les triomphes de personnage).
+- La vitrine « Solo sans mourir » reste disponible dans le tiroir du Build Analyzer.
+
+> Données lues depuis votre profil Bungie (composant « records ») croisées avec le Manifest. Une donnée manquante affiche « non disponible » (jamais d'estimation).
 
 ---
 

@@ -1,7 +1,7 @@
 // FR : ⚠️ AJOUT (20/10/2026, chantier Legendarium, branche draft-legendarium) - MODÈLE du Legendarium : lecture des tables `DestinyLoreDefinition` et `DestinyItemDefinition` (champ `lore`) dans le cache manifeste EXISTANT (`lib/manifest/download.ts`) — AUCUN second mécanisme de téléchargement. Fonctions PURES ou à effets de lecture uniquement : rien n'écrit, rien ne persiste. / EN: Legendarium model: reads the `DestinyLoreDefinition` and `DestinyItemDefinition` (field `lore`) tables from the EXISTING manifest cache (`lib/manifest/download.ts`) — NO second download mechanism. Pure or read-only functions: nothing writes, nothing persists.
 import type { Database } from "sql.js";
 import { obtenirDefinition, lireTable, idSqliteVersHash } from "../manifest/download";
-import { normaliser } from "../manifest/search";
+import { normaliserRecherche } from "../manifest/search";
 import { BUCKET_HASH_VERS_SLOT, CLASS_TYPE_VERS_CLASSE } from "../../data/constantesManifest";
 import { CATEGORIE_FACTICE } from "../manifest/search";
 import type { DestinyCollectibleDefinition, DestinyItemDefinition, DestinyLoreDefinition, DestinyPresentationNodeDefinition, DestinyRecordDefinition } from "../../types/manifest";
@@ -239,25 +239,7 @@ export function diagnostiquerLore(db: Database | null | undefined): DiagnosticLo
   return { tableLoreExiste, nbLores, nbLoresAvecCorps, tableObjetsExiste, nbObjets, nbObjetsAvecLore, nbObjetsAvecLoreLisible, exemples };
 }
 
-/** FR : l'objet porteur d'une page de Lore, pour le parcours inverse (depuis la page, voir l'objet). / EN: the carrier item of a lore page, for the reverse path (from the page, see the item). */
-export function objetPorteur(db: Database | null | undefined, itemHash: number): ObjetPorteur | undefined {
-  if (!db) return undefined;
-  let def: DestinyItemDefinition | undefined;
-  try {
-    def = obtenirDefinition<DestinyItemDefinition>(db, TABLE_OBJETS, itemHash);
-  } catch {
-    return undefined;
-  }
-  const nom = def?.displayProperties?.name?.trim();
-  if (!def || !nom || !estPorteur(def)) return undefined;
-  return {
-    hash: itemHash,
-    nom,
-    emplacement: emplacementObjet(def),
-    classe: classeObjet(def),
-    slotArmure: slotArmureObjet(def),
-  };
-}
+// FR : ⚠️ RETIRÉ (23/10/2026, audit) - `objetPorteur` (parcours inverse page de Lore → objet) : AUCUN appelant. Code mort supprimé. / EN: ⚠️ REMOVED - dead code, no caller.
 
 /** FR : ⚠️ AJOUT (21/10/2026, étape 2) - INDEX des porteurs de Lore, construit en UN SEUL balayage de la table des objets et mis en cache par base (WeakMap) : `porteursDeLore` et les constructeurs de livres le lisent ensuite en O(1). Sans cet index, construire les livres appelait `porteursDeLore` pour CHAQUE porteur, et chaque appel re-balayait la table (~60 000 lignes) — des milliers de balayages, la page figerait. / EN: ⚠️ ADDED - lore-carrier INDEX, built in ONE scan of the items table and cached per database (WeakMap): `porteursDeLore` and the book builders then read it in O(1). Without it, building the books called `porteursDeLore` for EVERY carrier, and each call re-scanned the table (~60,000 rows) — thousands of scans, the page would freeze. */
 interface IndexPorteurs {
@@ -855,15 +837,17 @@ export function parserRecherche(requete: string): RequeteRecherche {
   return { termes, exactes, obligatoires, exclus };
 }
 
-/** FR : ⚠️ AJOUT (22/10/2026, suite 15) - la requête est-elle VIDE (aucun terme de recherche) ? / EN: ADDED - is the query EMPTY (no search term)? */
-function requeteVide(r: RequeteRecherche): boolean {
+/** FR : ⚠️ AJOUT (22/10/2026, suite 15) - la requête est-elle VIDE (aucun terme de recherche) ? ⚠️ CHANGÉ (23/10/2026, TODO n°23, page Accomplissements) : EXPORTÉE pour être réutilisée par la recherche des triomphes (même règle : requête vide = tout afficher). / EN: ADDED - is the query EMPTY (no search term)? CHANGED - EXPORTED for reuse by the triumphs search (same rule: empty query = show everything). */
+export function requeteVide(r: RequeteRecherche): boolean {
   return r.termes.length === 0 && r.exactes.length === 0 && r.obligatoires.length === 0 && r.exclus.length === 0;
 }
 
 /** FR : ⚠️ AJOUT (22/10/2026, suite 15) - une page correspond-elle à la requête parsée ? Règles : (1) chaque terme EXCLU (`-`) rejette la page si présent ; (2) chaque terme OBLIGATOIRE (`+`) et chaque EXPRESSION EXACTE (guillemets) doit être présent ; (3) si des termes libres existent, AU MOINS UN doit être présent (OU) — sauf si des obligatoires/exactes existent déjà (auquel cas les libres sont ignorés, comme Google). Si la requête n'a QUE des exclus, une page sans les exclus correspond. `respecterCasse` : quand VRAI, la comparaison respecte la casse (accents toujours normalisés) ; quand FAUX (défaut), tout est en minuscules. / EN: ADDED - does a page match the parsed query? Rules: (1) each EXCLUDED term (`-`) rejects the page if present; (2) each REQUIRED term (`+`) and each EXACT PHRASE (quotes) must be present; (3) if free terms exist, AT LEAST ONE must be present (OR) — unless required/exact terms already exist (then free terms are ignored, like Google). If the query has ONLY exclusions, a page without them matches. `respecterCasse`: when TRUE, comparison is case-sensitive (accents still normalized); when FALSE (default), everything is lowercased. */
-function correspondRecherche(haystackBrut: string, requete: RequeteRecherche, respecterCasse: boolean): boolean {
+export function correspondRecherche(haystackBrut: string, requete: RequeteRecherche, respecterCasse: boolean): boolean {
   // ⚠️ AJOUT (22/10/2026, suite 15) : `respecterCasse` VRAIMENT appliqué — les accents sont TOUJOURS normalisés (NFD), mais la CASSE est conservée quand demandé (sinon tout en minuscules, comportement historique).
-  const prep = (t: string) => (respecterCasse ? t.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : normaliser(t));
+  // FR : ⚠️ CHANGÉ (23/10/2026, audit) - mode insensible à la casse : `normaliser` remplacé par `normaliserRecherche` (même NFD + minuscules, PLUS tolérance aux variantes typographiques françaises). Comportement strictement plus tolérant, cohérent avec la recherche du Manifest. Le mode `respecterCasse` (NFD seul, casse conservée) est inchangé.
+  // EN: ⚠️ CHANGED - case-insensitive mode: `normaliser` replaced by `normaliserRecherche` (same NFD + lowercase, PLUS French typographic variants). Strictly more tolerant, consistent with the Manifest search. The `respecterCasse` mode (NFD only, case preserved) is unchanged.
+  const prep = (t: string) => (respecterCasse ? t.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : normaliserRecherche(t));
   const haystack = prep(haystackBrut);
   // Exclusions d'abord : présent = rejet
   for (const e of requete.exclus) {

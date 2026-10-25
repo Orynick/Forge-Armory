@@ -14,7 +14,13 @@ import { evaluerBuild } from "../lib/scoring/pillars";
 import { useSimulations } from "../lib/forge/storeSimulations";
 import { appliquerSimulations, pieceReelle, nbArmesSimulees } from "../lib/forge/appliquerSimulation";
 import type { CibleForge } from "../components/InventaireArmes";
-import { demoBuild, demoExigences } from "../data/demoBuild";
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `demoBuild` seul est importé : `demoExigences`
+// (Mêlée T10, « Exotique de démonstration ») n'est plus passée à `evaluerBuild`
+// (bug S1 : elle plafonnait le Pilier 5 de TOUS les builds et affichait une
+// ligne « ⚠️ Exotique de démonstration » fictive).
+// EN: ⚠️ CHANGED - only `demoBuild` is imported: `demoExigences` is no longer
+// passed to `evaluerBuild` (bug S1).
+import { demoBuild } from "../data/demoBuild";
 import { BuildDraft, GearPiece, SubclassConfig, poserPieceDansBuild } from "../types/build";
 import PilierCarte from "../components/PilierCarte";
 import BlocContexte from "../components/BlocContexte";
@@ -96,8 +102,17 @@ export default function DashboardPage() {
   const buildEffectif = useMemo(() => appliquerSimulations(monBuild, simulations), [monBuild, simulations]);
   const nbSimulees = nbArmesSimulees(buildEffectif);
   const idsDansBuild = useMemo(() => new Set(monBuild.armes.map((a) => a.itemInstanceId).filter((i): i is string => !!i)), [monBuild]);
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit, bug S1) - aucune exigence d'exotique
+  // n'est passée tant que les VRAIES exigences ne sont pas branchées (la
+  // détection « Caresse du Ver → Grenade T10 » n'existe pas encore) : avant,
+  // `demoExigences` (Mêlée T10, « Exotique de démonstration ») était passée
+  // pour TOUS les builds, plafonnant le Pilier 5 à 60 dès que Mêlée < 91 et
+  // affichant une ligne fictive. Passer `[]` = comportement par défaut du
+  // moteur (aucune exigence, aucun plafonnement).
+  // EN: ⚠️ FIXED (bug S1) - no exotic requirement is passed until the REAL
+  // ones are wired in: `[]` = the engine's default (no requirement, no cap).
   const resultat = useMemo(
-    () => evaluerBuild(buildEffectif, demoExigences, db ?? undefined, poidsActifsEnFractions(ponderations)),
+    () => evaluerBuild(buildEffectif, [], db ?? undefined, poidsActifsEnFractions(ponderations)),
     [buildEffectif, db, ponderations]
   );
 
@@ -568,8 +583,8 @@ export default function DashboardPage() {
       supprimée avec la section « 10 dernières activités » — la page ne lit plus que le profil et les stats). */}
       {vue === "carriere" && <VueCarriere membership={memberships[0] ?? null} profil={profilComplet} />}
 
-      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte, ouverte par le bouton « Accomplissements » du bloc Connexion. ⚠️ CHANGÉ (22/10/2026, retour utilisateur) : la page n'affiche PAS la vitrine « Solo sans mourir » (elle reste dans le tiroir latéral du Build Analyzer) : elle affichera plus tard tous les triomphes obtenus et à obtenir. / EN: the Accomplishments page (placeholder for the account Triumphs; no Solo Flawless showcase here). */}
-      {vue === "accomplissements" && <VueAccomplissements />}
+      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte, ouverte par le bouton « Accomplissements » du bloc Connexion. ⚠️ CHANGÉ (22/10/2026, retour utilisateur) : la page n'affiche PAS la vitrine « Solo sans mourir » (elle reste dans le tiroir latéral du Build Analyzer). ⚠️ CHANGÉ (23/10/2026, TODO n°23) : la page reçoit le PROFIL DES TRIOMPHES (`profilTriomphes`, composant 900 → records du compte) et le MANIFEST (`db`) pour les noms/descriptions FR des triomphes et des sceaux. / EN: the Accomplishments page (no Solo Flawless showcase here). CHANGED - the page gets the TRIUMPHS PROFILE (`profilTriomphes`, component 900) and the Manifest (`db`) for the FR names/descriptions. */}
+      {vue === "accomplissements" && <VueAccomplissements profil={profilTriomphes} db={db} />}
 
       {/* FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - la vue Build Analyzer est
       MASQUÉE (display: none) et non retirée quand la Bibliothèque est

@@ -2,7 +2,7 @@
 
 FR : copie INTÉGRALE, mot pour mot, de `TODO.md` avant le tri du 30/09/2026
 demandé par l'utilisateur (« enlever de la TODO ce qui a été fait ; le
-CHANGELOG contient tous les changements »). Conservée pour ne perdre aucune
+DEVLOG contient tous les changements »). Conservée pour ne perdre aucune
 remarque : les sections terminées retirées de la TODO sont ici telles
 qu'elles étaient. Ne pas modifier : c'est une trace historique.
 EN: FULL verbatim copy of TODO.md before the 30/09/2026 cleanup.
@@ -16,7 +16,7 @@ Priorités :
 - 🟡 **Important** — limite la valeur de l'appli
 - 🔵 **Confort / plus tard**
 
-Pour l'historique de ce qui a été fait, voir `CHANGELOG.md`.
+Pour l'historique de ce qui a été fait, voir `DEVLOG.md`.
 Pour la conception du scoring (pondérations, calibration), voir la section
 « Le scoring » du `README.md`.
 Pour ce qui reste à tester, voir `A-TESTER.pdf`.
@@ -38,14 +38,14 @@ inventaire, doctrine, scoring des 5 piliers).
 24/09/2026.** Le filtre (exclusion du texte d'ambiance `flavorText`,
 codé le 24/08) est confirmé en jeu par l'utilisateur ; le diagnostic
 `diagnosticCheminsJson` est archivé, conservé pour rouvrir le sujet si
-une réplique réapparaît. Détail dans `CHANGELOG.md`.
+une réplique réapparaît. Détail dans `DEVLOG.md`.
 
 ✅ **Expiration de la connexion — CODÉE le 24/09/2026**, reste à vérifier
 en jeu (`A-TESTER.pdf`). Une session expirée est détectée (`etatSession`),
 les jetons sont effacés, l'appli repasse en « non connecté » et affiche
 une bannière expliquant qu'il suffit de se reconnecter. Un bouton de test
 (mode dev) permet de simuler l'expiration sans attendre une heure. Détail
-dans `CHANGELOG.md`.
+dans `DEVLOG.md`.
 
 ✅ **Logiciel installable (Windows) — FAIT et CONFIRMÉ le 26/09/2026
 (v0.2.1).** Installateur NSIS, icône, connexion Bungie et stockage
@@ -56,7 +56,7 @@ identifiant, utile surtout pour les invités.
 ✅ **Partage des builds — FAIT du 26 au 28/09/2026 (v0.2.2 à v0.2.8).**
 Export d'un build seul, fiche « 👁 Voir », copie en texte, export
 infographique JPEG/PNG/PDF fidèle à la maquette v7, et bloc « Partage du
-build » pour exporter sans enregistrer. Détail dans `CHANGELOG.md`.
+build » pour exporter sans enregistrer. Détail dans `DEVLOG.md`.
 
 ✅ **Pondération personnalisée des piliers — FAITE le 28/09/2026
 (v0.2.8).** Réglages nommés, total de 100 %, mode Automatique conservé.
@@ -146,7 +146,7 @@ via `obtenirDescriptionComplete` ; le scoring, jamais mis à jour en
 conséquence, en divergeait silencieusement depuis 3 semaines. Trouvé par
 l'utilisateur en testant "Esquive furtive" (Pilier 2 : "Aucun verbe
 détecté" malgré "Invisible" surligné en cyan à l'écran). Détail complet
-du diagnostic dans `CHANGELOG.md`.
+du diagnostic dans `DEVLOG.md`.
 
 ✅ **VÉRIFIÉ SUR DONNÉES RÉELLES (06/09/2026)** via le bouton de
 diagnostic ajouté le 31/08 : sur "Esquive furtive", la lecture directe
@@ -193,7 +193,7 @@ false`), code conservé.
 ### 0. ✅ FAIT (06/09) — Réorganisation du scoring
 
 Ordre, renommages et source unique livrés. Détail complet dans
-`CHANGELOG.md`. En résumé : nouvel ordre (Élément et Doctrine → Artefact →
+`DEVLOG.md`. En résumé : nouvel ordre (Élément et Doctrine → Artefact →
 Armes et Armures → Effets du Build → Statistiques), pondérations
 inchangées, et création de `src/data/piliers.ts` comme source unique après
 avoir découvert une TROISIÈME copie des libellés non repérée le 26/08
@@ -276,7 +276,7 @@ Vérifié par typecheck isolé complet (stubs sql.js/idb/fflate), 0 erreur.
   orphelin" malgré une source réelle et visible (cyan), ce qui cassait
   TOUTE la chaîne Ralentissement→Gel→Brisure→Armure de givre. ✅ Corrigé
   le même jour dans `sourcePayoff.ts` (retrait de marqueurs payoff bruts
-  trop larges — voir `CHANGELOG.md` pour le détail complet du diagnostic
+  trop larges — voir `DEVLOG.md` pour le détail complet du diagnostic
   et du correctif). **Les 2 autres points de la checklist n'ont pas encore
   été retestés** suite à cette correction — priorité pour la prochaine
   session : reprendre `A-TESTER.pdf` depuis le début du point 1.
@@ -309,7 +309,7 @@ Vérifié par typecheck isolé complet (stubs sql.js/idb/fflate), 0 erreur.
 
 ✅ **Passe d'audit du scoring effectuée (26/08)** — relecture des 5
 fichiers de `src/lib/scoring/` (2229 lignes), 4 bugs corrigés + 1
-optimisation. Détail complet dans `CHANGELOG.md`. En résumé : barème
+optimisation. Détail complet dans `DEVLOG.md`. En résumé : barème
 orphelin incohérent (un build défectueux notait moins qu'un build vide),
 synergie d'artefact aveugle aux accents (30 % du Pilier 3 sous-évalué),
 vérification des liens conditionnels trop fragile (échec silencieux au
@@ -346,7 +346,7 @@ démarrait jamais :
   entrées. Les 3 corrections ont été vérifiées ENSEMBLE sur un test
   d'intégration utilisant les vraies fonctions du projet (pas des
   extraits isolés) : la chaîne complète se propage maintenant jusqu'à Gel
-  et Brisure. Détail complet dans `CHANGELOG.md`.
+  et Brisure. Détail complet dans `DEVLOG.md`.
 
 ✅ **Confirmé par l'utilisateur le 06/09** (Singularité glacée : « appliqué mais rien n'en profite », conforme). Énoncé d'origine : les 3 correctifs ci-dessus
 n'ont été vérifiés que par script isolé (texte de Transcendance réel
@@ -363,7 +363,7 @@ captures d'écran). Demande de l'utilisateur, suite au constat que les
 mêlées/grenades/compétences de classe sont le texte le MOINS bien classé
 aujourd'hui — ce sont des descriptions DÉFINITIVES de ce qu'applique une
 capacité équipée, contrairement aux aspects/fragments qui expriment de
-vraies synergies conditionnelles. Détail dans `CHANGELOG.md`.
+vraies synergies conditionnelles. Détail dans `DEVLOG.md`.
 
 ✅ **Audit des 387 compétences EFFECTUÉ (26/08)** : l'utilisateur a
 transmis les 18 fichiers via le bouton de diagnostic (3 classes × 6
@@ -373,7 +373,7 @@ boucle après 4 correctifs (gérondifs manquants, contamination
 inter-phrase dans la fenêtre de 55 caractères, variante "sous les
 effets", mot-clé "invisible" manquant — celui-ci avait fait complètement
 rater "Esquiver vous rend invisible.", une capacité de BASE du Chasseur).
-Détail complet du diagnostic et de chaque correctif dans `CHANGELOG.md`.
+Détail complet du diagnostic et de chaque correctif dans `DEVLOG.md`.
 Les 13 orphelins restants sont soit corrects en isolation (sourcés par
 une AUTRE capacité de la même doctrine, absente du texte testé seul),
 soit des ambiguïtés de sens non résolubles sans grammaire complète.
@@ -491,7 +491,7 @@ mêmes règles s'appliquent à la **fiche « 👁 Voir » et à la copie en
 texte** (liste nettoyée commune dans `fiche.ts`, armature et origine à
 part, doublons « ×2 ») ; **Mon Build et l'Inventaire restent inchangés**.
 Ajouts du même jour : « Emplacement de souvenance vide » écarté ; perks
-d'artefact en rangées équilibrées et justifiées (7 → 3 puis 4). En test. Ce qui a été fait (détail dans `CHANGELOG.md`) :
+d'artefact en rangées équilibrées et justifiées (7 → 3 puis 4). En test. Ce qui a été fait (détail dans `DEVLOG.md`) :
 - A : classification des plugs (`obtenirPlugsDetailles`, `NaturePlug`,
   `doctrine.ts`) ; « Memento Mori » protégé (le mot « memento » n'est
   jamais cherché dans le nom) ; ornements reconnus aussi par le type et la
@@ -896,7 +896,7 @@ sur la page d'autorisation), dans ses réglages, SANS en créer une nouvelle
 
 ## Comment tenir cette liste à jour
 
-- Un item **résolu** est retiré d'ici et décrit dans `CHANGELOG.md` — pas
+- Un item **résolu** est retiré d'ici et décrit dans `DEVLOG.md` — pas
   laissé barré : la liste doit rester lisible.
 - Un item qui **attend une information** précise l'action attendue, pas
   seulement le problème.

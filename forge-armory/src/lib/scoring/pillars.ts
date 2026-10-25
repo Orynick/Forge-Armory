@@ -540,7 +540,12 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
   const details: string[] = [];
   let score = 100;
 
-  const exotiquesArmure = build.armure.filter((p) => p.isExotic).length;
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - les emplacements VIDES (`itemHash: 0`,
+  // placeholders) ne comptent PAS comme exotiques : sinon l'état « vide » du
+  // premier lancement créditait « 1 armure exotique équipée » fictive.
+  // EN: ⚠️ FIXED - empty slots (`itemHash: 0`, placeholders) do NOT count as
+  // exotics: otherwise the initial "empty" state credited a fictitious one.
+  const exotiquesArmure = build.armure.filter((p) => p.isExotic && p.itemHash !== 0).length;
   if (exotiquesArmure > 1) {
     score -= 100; // configuration illégale in-game
     details.push("Plus d'une pièce d'armure exotique équipée : configuration invalide");
@@ -556,7 +561,10 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
   // que l'armure ci-dessus.
   // EN: ⚠️ ADDED (2026-08-03) - the "only one exotic weapon at a time"
   // rule was never checked (only armor was). Same logic as armor above.
-  const exotiquesArmes = build.armes.filter((p) => p.isExotic).length;
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - idem pour les armes : un placeholder
+  // (`itemHash: 0`) n'est jamais un exotique.
+  // EN: ⚠️ FIXED - same for weapons: a placeholder (`itemHash: 0`) is never an exotic.
+  const exotiquesArmes = build.armes.filter((p) => p.isExotic && p.itemHash !== 0).length;
   if (exotiquesArmes > 1) {
     score -= 100; // configuration illégale in-game
     details.push("Plus d'une arme exotique équipée : configuration invalide");
@@ -564,9 +572,17 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
     details.push("1 arme exotique équipée");
   }
 
-  if (build.armes.length < 3) {
-    score -= (3 - build.armes.length) * 15;
-    details.push(`${build.armes.length}/3 emplacements d'armes remplis`);
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - on compte les emplacements RÉELLEMENT
+  // remplis (`itemHash !== 0`, comme `calculerCompletion`) : avec les
+  // placeholders `itemHash: 0` du build vide, `build.armes.length` valait
+  // toujours 3 et la pénalité ne s'appliquait jamais.
+  // EN: ⚠️ FIXED - count ACTUALLY filled slots (`itemHash !== 0`, like
+  // `calculerCompletion`): with the empty build's `itemHash: 0` placeholders,
+  // `build.armes.length` was always 3 and the penalty never applied.
+  const armesEquipees = build.armes.filter((a) => a.itemHash !== 0).length;
+  if (armesEquipees < 3) {
+    score -= (3 - armesEquipees) * 15;
+    details.push(`${armesEquipees}/3 emplacements d'armes remplis`);
   }
 
   // FR : ⚠️ CORRIGÉ (04/08/2026) - le pilier notait les sets d'après
@@ -592,7 +608,7 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
   // rarement les 3 Champions à la fois.
   //
   // ⚠️ TROIS sources, désormais. La 3e (capacités de DOCTRINE) avait
-  // d'abord été EXCLUE (voir historique CHANGELOG du 05/08, plus tôt dans
+  // d'abord été EXCLUE (voir historique DEVLOG du 05/08, plus tôt dans
   // la journée) : la seule source alors disponible
   // (13_ARTIFACTS_2_0_ET_ANTI_CHAMPION.md) datait d'avant la 9.7.0 et se
   // contredisait sur un point. Ce blocage est levé : la 3e source vient

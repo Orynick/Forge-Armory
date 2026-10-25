@@ -15,25 +15,20 @@
 // HERE, without touching the component. Flip back to `true` to reactivate -
 // the button's code stays intact, ready to be used again.
 export const DIAGNOSTICS_ACTIFS = {
-  /** FR : "Tester l'insertion de plug" (GrilleDoctrine) — répondait à "peut-on équiper une doctrine complète via l'API ?". Réponse obtenue (non), le rappel manuel après équipement existe depuis en conséquence. / EN: answered "can a full subclass be equipped via the API?" (no) - the manual reminder popup exists because of this answer. */
-  testInsertionPlug: false,
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
 
-  /** FR : capacité en fragments par aspect (GrilleDoctrine) — confirmé correct par les tests réels de l'utilisateur. / EN: fragment capacity per aspect - confirmed correct by the user's real tests. */
-  capaciteFragmentsAspect: false,
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
 
-  /** FR : élément figé (Filobscur/Stase) d'un loadout — a permis de trouver le décalage d'énumération (Raid=5 manquant), résolu depuis le tout début de la session. Masqué le 25/08 à la demande de l'utilisateur. / EN: frozen element - found the enum offset bug, fixed since the very start of the session. Hidden on 25/08 at the user's request. */
-  elementFigeLoadout: false,
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
 
-  /** FR : état brut des triomphes Solo Flawless — a permis de trouver le bug Flèche de la vigie (characterRecords, pas profileRecords), résolu depuis. Masqué le 25/08 à la demande de l'utilisateur. / EN: raw triumph state - found the Spire of the Watcher bug, fixed since. Hidden on 25/08 at the user's request. */
-  etatBrutTriomphes: false,
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
   /** FR : ⚠️ AJOUT (20/10/2026, v0.4.14) - vue « Carrière » : liste les statIds BRUTS réellement retournés par GetHistoricalStats (allTime, characterId = 0) pour figer la sélection des stats affichées sur des données réelles (même démarche que le composant 310 et les filigranes de saison). Une fois la sélection figée et validée par l'utilisateur, remettre à false. / EN: Career view - raw statIds diagnostic. */
   statIdsCarriere: true,
 
   /** FR : ✅ RÉSOLU (24/09/2026) - chemins JSON d'une recherche (RechercheManifest), avec le verdict de la recherche normale par objet (affiché / filtré / masqué). A servi à identifier puis vérifier le filtre anti-dialogue (`flavorText`), confirmé en jeu par l'utilisateur le 24/09. Masqué, mais conservé : à remettre à `true` si une réplique ou un texte sans rapport réapparaît un jour dans les résultats, pour identifier son champ avant d'étendre le filtre. / EN: ✅ RESOLVED - JSON paths of a search with the normal search's verdict per item; used to identify and then verify the anti-dialogue filter, confirmed in game on 24/09. Hidden but kept: set back to `true` if unrelated text ever reappears in results. */
   diagnosticCheminsJson: false,
 
-  /** FR : recherche des triomphes Flawless — les 11 hashes ont été trouvés et figés dans triomphesSoloFlawless.ts. / EN: Flawless triumph search - all 11 hashes found and hardcoded. */
-  rechercheTriomphesFlawless: false,
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
 
   /** FR : ⚠️ LIMITATION CONFIRMÉE (26/08) - `DestinyArtifactDefinition`
    * (la table lue par cette extraction) n'expose que l'ANCIEN système
@@ -56,30 +51,24 @@ export const DIAGNOSTICS_ACTIFS = {
    */
   extraireArtefactActif: true,
 
-  /** FR : contenu du Manifest pour un artefact — a confirmé le cul-de-sac (structure héritée, 5 paliers), la traduction se fait à la main depuis. / EN: Manifest content for an artifact - confirmed the dead end, translation is now done by hand. */
-  diagnosticManifestArtefact: false,
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
 
   /** FR : ⚠️ ACTIF - compare les 3 hashes candidats par artefact pour identifier lequel a une vraie icône. Bouton invisible jusqu'ici : imbriqué par erreur dans le bloc de diagnosticManifestArtefact, déjà archivé. / EN: ⚠️ ACTIVE - compares the 3 candidate hashes per artifact. Was invisible until now: wrongly nested inside the already-archived diagnosticManifestArtefact block. */
   diagnosticHashesArtefact: true,
 
-  /** FR : correspondances anti-champion brutes sur une arme (SelecteurInventaire) — ancien, jamais réutilisé depuis sa création. / EN: raw anti-champion matches on a weapon - old, never reused since creation. */
-  diagnosticAntiChampionArme: false,
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
 
-  /** FR : stats brutes d'une pièce d'armure (SelecteurInventaire) — a permis de trouver et corriger le bug du masterwork puis des fragments, confirmé résolu. / EN: raw armor piece stats - found and fixed the masterwork then fragment bugs, confirmed resolved. */
-  diagnosticStatsArmure: false,
-  /** FR : hashes bruts de doctrine (Super/Mêlée/Grenade/Classe/Saut) sur chaque loadout affiché — a permis de trouver le bug du Super non sélectionné. Gardé actif "au cas où" jusqu'ici (demande explicite antérieure) ; masqué le 25/08, l'utilisateur revenant sur cette décision pour masquer tous les diagnostics des Loadouts. / EN: raw doctrine hashes - found the unselected-Super bug. Kept active "just in case" until now; hidden on 25/08 as the user reversed that earlier decision. */
-  hashesDoctrineComplets: false,
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
 
-  /** FR : définition complète d'un triomphe (Le Trône brisé) — a permis de confirmer que rewardItems est vide, plus besoin depuis. Masqué le 25/08 à la demande de l'utilisateur. / EN: full triumph definition - confirmed rewardItems is empty, no longer needed. Hidden on 25/08 at the user's request. */
-  definitionCompleteTriomphe: false,
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
 
-  /** FR : vérification des 11 emblèmes (nom, icône simple, image large) — a permis de trouver les 2 hashes erronés (Prophétie, Dogme fragmenté), tous deux corrigés depuis. Masqué le 25/08 à la demande de l'utilisateur. / EN: verification of the 11 emblems - found the 2 wrong hashes, both fixed since. Hidden on 25/08 at the user's request. */
-  verificationEmblemes: false,
+  // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
 
   /** FR : ⚠️ ACTIF (26/08) - dump texte de toutes les options de Super/
    * Mêlée/Grenade/Saut/Compétence de classe/Aspects d'une sous-classe, pour
    * l'audit du texte réel des capacités de base (voir la discussion sur les
-   * "identités de capacité" et l'asymétrie source/payoff, CHANGELOG.md).
+   * "identités de capacité" et l'asymétrie source/payoff, DEVLOG.md).
    * Recurring workflow tool, PAS un diagnostic ponctuel résolu - reste actif
    * tant que l'audit progresse élément par élément.
    * EN: ⚠️ ACTIVE - text dump of all ability options for a subclass, for

@@ -116,7 +116,9 @@ export type PositionObjet =
   | { etat: "localisee"; characterId?: string; location?: number; equipe: boolean; bucketHash?: number };
 
 const LIEU_COFFRE = 2;
-const LIEU_COURRIER = 4;
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `LIEU_COURRIER` exportée (dedup : `deplacer.ts` avait sa propre copie). / EN: ⚠️ CHANGED - `LIEU_COURRIER` exported (dedup: `deplacer.ts` had its own copy).
+/** FR : emplacement « courrier » (récupération) : un objet qui y est ne se déplace/équipe pas d'ici. / EN: postmaster location code. */
+export const LIEU_COURRIER = 4;
 
 export interface ElementInventaire {
   itemInstanceId?: string | number;
