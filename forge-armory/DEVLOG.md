@@ -173,7 +173,6 @@
 
 ---
 
-
 ## 24/10/2026 (soir) — PROPAGATION : rétablissement des cartes de sceaux + carrés identiques répercutés sur les branches de chantier
 
 **Propagation** : le rétablissement du code des cartes de sceaux (récupéré du commit orphelin `f9f1e9d`) + l'affinage « carrés identiques en taille » (voir entrée ci-dessous) ont été répercutés sur les branches de chantier actives : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-mod-armures`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`.
@@ -183,20 +182,6 @@
 **Note** : entre-temps, un autre agent a livré les versions **v0.5.3, v0.5.4 et v0.5.5** sur `main` (correctifs connexion/Manifest, audit 23/10, courrier/postmaster) — la propagation a été faite sur ce `main` courant. La branche `draft-update-triomphes` reste ouverte (le chantier carrés identiques est livré, en attente de validation utilisateur en `npm run dev`).
 
 **Version inchangée (0.5.5).**
-
----
-
-## 24/10/2026 (soir) — PROPAGATION : rétablissement des cartes de sceaux + carrés identiques répercutés sur les branches de chantier
-
-**Propagation** : le rétablissement du code des cartes de sceaux (récupéré du commit orphelin `f9f1e9d`) + l'affinage « carrés identiques en taille » (voir entrée ci-dessous) ont été répercutés sur les branches de chantier actives : `draft-armure-score`, `draft-deps`, `draft-legendarium`, `draft-mod-armures`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`.
-
-**Conflits** : résolus sur `draft-netlify` (netlify.toml + DEVLOG), `draft-optimiseur` (DashboardPage.tsx : fix audit S1 de main + chantier optimiseur, `StatKey` et `origine: « courrier »` conservés ; buildOptimizer.ts), `draft-deps` (CHANGELOG.md : format orienté utilisateur de main + entrée Electron du chantier conservée). Les autres branches : merge propre.
-
-**Note** : entre-temps, un autre agent a livré les versions **v0.5.3, v0.5.4 et v0.5.5** sur `main` (correctifs connexion/Manifest, audit 23/10, courrier/postmaster) — la propagation a été faite sur ce `main` courant. La branche `draft-update-triomphes` reste ouverte (chantier carrés identiques livré, en attente de validation utilisateur en `npm run dev`).
-
-**Version inchangée (0.5.5).**
-
----
 
 ## 24/10/2026 (soir) — CORRECTION : le code des cartes de sceaux avait été perdu de `main` (loupé lors de la resynchronisation post-PR #17) + affinage « carrés identiques en taille » (branche `draft-update-triomphes`)
 
@@ -748,7 +733,6 @@ Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carri
 
 **À valider en `npm run dev`** : onglet Legendarium → une page de Lore → bouton « ⟳ Exporter en image » (haut droite) → télécharger le PNG → vérifier l'encart (parchemin/hologramme), le texte lisible, la couverture, le filigrane + le crédit en bas.
 
-
 ## 22/10/2026 (branche `draft-legendarium`, étape 6) — VÉRIFICATION : LES 9 CRITÈRES D'ACCEPTATION SONT AU VERT (34/34)
 
 **Fait** : nouveau test d'acceptation **`tests/logique/legendarium-acceptation.test.ts`** (34 contrôles) qui vérifie les **9 critères d'acceptation** de la spécification verrouillée (`documentation/specs/SPEC-LEGENDARIUM-2026-10-19.md` §7), chacun par lecture du code (comme `cablage-forge.test.ts`) ou exécution du modèle :
@@ -765,7 +749,6 @@ Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carri
 
 **Vérifié** : `legendarium-acceptation` **34/34** ; batterie logique complète **35/35 suites, 686/686 contrôles** ; `tsc` 0 erreur ; `npm run build` strict ✓.
 
-
 ## 22/10/2026 (branche `draft-legendarium`, suite 15) — RECHERCHE AVANCÉE : GUILLEMETS (PHRASE EXACTE), `+` (OBLIGATOIRE), `-` (EXCLU), CASE « Aa » (RESPECTER LA CASSE)
 
 **Demande de l'utilisateur (avant test de la suite 14)** : « pour la recherche, il faudrait pouvoir utiliser **les guillemets, + et -, ainsi que respecter la casse** ».
@@ -777,7 +760,6 @@ Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carri
   - **`rechercherPages(livresParSection, motCle, options?: { respecterCasse?: boolean })`** : le `respecterCasse: true` rend la recherche **sensible à la casse** (majuscules/minuscules ; les accents restent ignorés — é = e — via la normalisation NFD dans les deux modes). Par défaut (`false`) : comportement historique (insensible à la casse, accents ignorés).
 - **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) — nouvelle **case « Aa »** (`data-respecter-casse`) dans le bandeau, à droite du champ de recherche (title « Respecter la casse »), **décochée par défaut** ; état `respecterCasse` EN MÉMOIRE uniquement (lecture passive), passé à `rechercherPages` via le `useMemo` des résultats.
 - **Tests** : `legendarium-modele` **107/107** (11 nouveaux suite 15 : découpage du parser, guillemet non fermé, phrase exacte `"casque raid"` vs OU libre, exclusion `-donjon`, `+casque +raid` = ET, `+casque +a`, casse par défaut vs `respecterCasse: true`, `CASQUE` vs `Casque`, requête uniquement-exclue) ; `legendarium-page` **66/66** (2 nouveaux : case « Aa » présente et décochée par défaut, cochée quand actif) ; `legendarium-fixtures` **19/19** ; `legendarium-grimoire` **23/23** ; `legendarium` **5/5**. `tsc` 0 erreur, `npm run build` strict ✓, batterie logique 34/34 suites au vert (les 16 « interface · » Playwright ne tournent pas dans le bac à sable).
-
 
 ## 22/10/2026 (branche `draft-legendarium`, suite 14) — CORRECTION MALENTENDU : HIÉRARCHIE ARMURES = CLASSE → ENSEMBLE → PIÈCES ; COSMÉTIQUES « AUTRES » CLASSÉS PAR CLASSE (icônes)
 
@@ -791,7 +773,6 @@ Merge de la branche `draft-update-carriere` (PR #14) sur `main` : pages « Carri
   - `rechercherPages` : les noms des sous-groupes (classes, ensembles) sont cherchés, ET une requête **multi-mots** (ex: « raid A ») correspond si chaque mot est trouvé dans le livre ou ses pages.
 - **`src/components/Bibliotheque.tsx`** (⚠️ CHANGÉ) — `LivreAvecGroupes` rend un livre `groupesPages` comme un **repliable de classes** (replié par défaut) ; `GroupeClasse` rend le niveau 2 (classe + icône + compteur justifié à droite, replié par défaut) avec SOIT des sous-groupes repliables **par ensemble** (nouveau `SousGroupeEnsemble`, niveau 3 : nom → pièces, clic direct), SOIT la liste directe des noms. Groupe « Sans classe » : pas d'icône, libellé « Sans classe ». `ListeLivresGroupee` gère le nouveau genre `classes` (avant `groupesPages` → `LivreAvecGroupes`).
 - **Tests** : `legendarium-modele` **96/96** (hiérarchie Classe → Ensemble → pièces, cosmétiques par classe, recherche multi-mots, repli sans collectibles) ; `legendarium-page` **64/64** (repliable de classes replié par défaut, coexistence listePages + classes, groupe « Sans classe ») ; `legendarium-fixtures` **19/19**. `tsc` 0 erreur, `npm run build` strict ✓, batterie logique 16/16 suites au vert.
-
 
 ## 22/10/2026 (branche `draft-legendarium`, suite 13) — COMPTEUR « page X/Y » DANS L'ŒILleton + ENSEMBLES D'ARMURES : DEUX NIVEAUX REPLIABLES PAR CLASSE (icônes)
 
