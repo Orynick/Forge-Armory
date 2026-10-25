@@ -35,3 +35,14 @@ tests/logique/_sortie/
 # FR : artefacts de construction des pages de test d'interface (tests/ui/build.mjs), ne pas versionner
 # EN: UI test page build artifacts, must not be committed
 tests/ui/_sortie/
+
+# FR : évite de versionner les enregistrements audio PERSONNELS du podcast
+# (branche vibe/draft-podcast-840f64) : les MP3 de public/podcast/ et l'index
+# généré ne quittent jamais la machine. Seuls le README de convention et
+# index.modele.json (structure vide de l'index) sont versionnés.
+# EN: never commit the user's PERSONAL podcast recordings (draft-podcast
+# branch): MP3s in public/podcast/ and the generated index stay local. Only the
+# naming-convention README and index.modele.json (empty index structure) are
+# committed.
+public/podcast/*.mp3
+public/podcast/index.json
