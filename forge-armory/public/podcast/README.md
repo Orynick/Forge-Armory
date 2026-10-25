@@ -24,7 +24,12 @@ D1 (visible dans le diagnostic dev ou dans l'URL de Ishtar Collective).
 ## Comment enregistrer
 
 - **Téléphone** : application « Magnétophone » native, export MP3.
-- **PC + casque gaming USB** : **Audacity** (gratuit) — piste mono, export MP3.
+- **PC + casque gaming USB** : **Audacity 4** (gratuit, GPL — [audacityteam.org](https://www.audacityteam.org/) ou MuseHub). Avantages pour la voix :
+  - **l'export MP3 est INTÉGRÉ** (plus besoin d'installer l'encodeur LAME à la main, comme sur les vieilles versions) ;
+  - nouvelle interface avec **marqueurs sur la timeline** (pratique pour repérer le début de chaque page) ;
+  - support officiel **ASIO** sous Windows (ton casque gaming USB peut l'utiliser, sinon WASAPI marche très bien) ;
+  - enregistrement **mono** recommandé, 44 100 Hz.
+  - Note : Audacity 4.0 a retiré quelques fonctions avancées d'Audacity 3 (MIDI, macros…) — sans importance pour de la voix parlée. Audacity 3.x reste un bon choix aussi si vous préférez l'ancienne interface.
 - Astuce : commencez chaque fichier par le **titre de la page** (comme un chapitre
   de podcast), puis lisez le texte.
 

@@ -64,7 +64,7 @@ Communication **en mémoire uniquement** (aucune persistance, conforme à la lec
 
 Logiciel recommandé pour s'enregistrer (gratuit, simple) :
 - **Téléphone** : application « Magnétophone » native (Android/iOS) ou **Voice Recorder** — exporter en MP3.
-- **PC + casque gaming USB** : **Audacity** (gratuit, open-source, Windows/Mac/Linux) — piste mono, 44,1 kHz, export MP3. Un clic de souris pour marquer le début de chaque page (label), un seul fichier par page.
+- **PC + casque gaming USB** : **Audacity 4** (gratuit, GPL v3 — audacityteam.org ou MuseHub). Points forts pour la voix : export MP3 **intégré** (l'encodeur LAME n'est plus à installer à la main), marqueurs sur la timeline, support **ASIO** sous Windows (WASAPI sinon). Piste **mono**, 44,1 kHz. (Audacity 4.0 a retiré quelques fonctions avancées d'Audacity 3 — sans impact pour de la voix parlée ; Audacity 3.x reste utilisable.)
 - Astuce : lire le **titre de la page en premier** dans l'enregistrement (comme un chapitre de podcast), puis le texte.
 - Déposer chaque fichier dans `forge-armory/public/podcast/` avec le nom de la convention (§2), puis lancer `node scripts/generer-index-podcast.mjs` (ou `npm run podcast:index`).
 
