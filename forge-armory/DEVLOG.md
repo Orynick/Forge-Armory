@@ -4,21 +4,14 @@
 
 ---
 
-## 28/10/2026 — LIVRAISON v0.5.6 : merge PR #19 (draft-mod-armures — modification des mods d'armure complète)
+## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `draft-update-triomphes`
 
-**Livraison** : la PR #19 (branche `draft-mod-armures`) est mergée dans `main` (merge commit, le merge GitHub était en conflit après l'avance de `main` — résolu en local, conflit DEVLOG : entrées de `main` conservées). Le chantier « modification des mods d'armure » est **bouclé** : simulation des mods d'armure dans les pop-ups Détails (Mon Inventaire, Coffre, Mon Build) **et** dans la Forge, avec **budget d'énergie** (jauge + garde-fou : une simulation qui dépasse l'énergie est ignorée par le score), **lien score/Mon Build en temps réel** (comparaison « réel → simulé », delta des stats, badge « 🔨 simulé » sur l'origine d'un verbe), **ajustement** (règle du « + » propre à chaque armure, symbole ⇅), et interface allégée (composant partagé `SimulationModsArmure`, `StatsArmure`). **Rien n'est écrit chez Bungie** (Phase 1).
-
-**Contenu détaillé** : entrées du 24/10 (étape 2, fondations + validation utilisateur 8/8), 25/10 (budget d'énergie), 26/10 (règle de l'ajustement, correctif 3 fenêtres), 27/10 (⇅, lien score visible, badge verbe simulé, deux défauts Mon Build corrigés), 28/10 (régression évitée : page Accomplissements restaurée à l'identique de la v0.5.5).
-
-**Vérifié** : `npx tsc -b` 0 erreur ; batterie **48/48 suites, 981/981 contrôles** ; `npm run build` ✓ ; CI GitHub Actions verte (PR #19). **Validé par l'utilisateur** : 8/8 le 24/10 (données réelles, `npm run dev`) + évolutions 25-27/10 validées au fil de l'eau.
-
-**Pourquoi v0.5.6** : fonctionnalité complète et visible pour l'utilisateur (édition des mods d'armure hors Forge, budget d'énergie, comparaison de score) — au-delà d'un correctif (0.5.x incrémental, pas de 0.6 car pas de rupture ni de chantier majeur nouveau, la suite « Phase 2 » reste à décider).
-
-**Tag** : `v0.5.6`. **Branche supprimée** après livraison : `draft-mod-armures`. **Propagation** : `main` (v0.5.6) répercutée sur les branches de chantier actives (voir entrée de propagation ci-dessous).
+**Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6` — modification des mods d'armure : pop-up Détails + Forge, budget d'énergie, lien score) a été répercutée sur la branche `draft-update-triomphes` pour limiter les conflits futurs. Merge propre (aucun conflit). La branche `draft-mod-armures` est supprimée après livraison.
 
 **Version 0.5.6.**
 
 ---
+
 
 ## 24/10/2026 (soir, après la livraison v0.5.5) — branche `draft-mod-armures` (PR #19) : Forge des armures, étape 2 — modification des mods DANS la pop-up Détails + lien avec le score et Mon Build
 
