@@ -5,11 +5,18 @@
 
 export interface ChoixColonne { choisi: number; effectif: number }
 export type SimulationArme = Record<number, ChoixColonne>;
-export interface Simulations { version: 1; armes: Record<string, SimulationArme> }
+/** FR : ⚠️ AJOUT (branche draft-mod-armures) - simulation d'une ARMURE : même choix par prise (`socketIndex`), mais SANS version améliorée (les mods d'armure n'en ont pas : `choisi` et `effectif` sont identiques). / EN: armor simulation: same per-socket choice, but no enhanced version (armor mods have none). */
+export type SimulationArmure = Record<number, ChoixColonne>;
+export interface Simulations {
+  version: 2;
+  armes: Record<string, SimulationArme>;
+  /** FR : ⚠️ AJOUT (branche draft-mod-armures) - simulations des ARMURES possédées, clé = identifiant d'exemplaire, même magasin que les armes. Absent en version 1 (migration en lecture). / EN: owned armor simulations; absent in v1 (migrated on read). */
+  armures?: Record<string, SimulationArmure>;
+}
 export interface Stockage { getItem(cle: string): string | null; setItem(cle: string, valeur: string): void }
 
 export const CLE_STOCKAGE_SIMULATIONS = "forge-armory.forge.simulations.v1";
-export const SIMULATIONS_VIDES = (): Simulations => ({ version: 1, armes: {} });
+export const SIMULATIONS_VIDES = (): Simulations => ({ version: 2, armes: {}, armures: {} });
 
 /** FR : le stockage du navigateur, ou une mémoire de secours qui ne persiste pas (stockage interdit ou indisponible). / EN: browser storage, or a non-persistent in-memory fallback. */
 export function stockageNavigateur(): Stockage {
@@ -24,56 +31,77 @@ export function stockageNavigateur(): Stockage {
 
 const entierPositif = (x: unknown): x is number => typeof x === "number" && Number.isInteger(x) && x >= 0;
 
-/** FR : lit les simulations ; tout contenu illisible ou mal formé donne une simulation VIDE (jamais d'erreur), et les entrées invalides sont ignorées une à une. / EN: tolerant read. */
+/** FR : ⚠️ AJOUT (branche draft-mod-armures) - lit un bloc de simulations (armes OU armures) : les entrées invalides sont ignorées une à une. / EN: reads a simulations block (weapons OR armor). */
+function lireBloc(brut: unknown): Record<string, SimulationArme> {
+  const sortie: Record<string, SimulationArme> = {};
+  if (typeof brut !== "object" || brut === null) return sortie;
+  for (const [instance, colonnes] of Object.entries(brut as Record<string, Record<string, { c?: unknown; e?: unknown }>>)) {
+    if (typeof colonnes !== "object" || colonnes === null) continue;
+    const sim: SimulationArme = {};
+    for (const [socket, v] of Object.entries(colonnes)) {
+      const idx = Number(socket);
+      if (entierPositif(idx) && entierPositif(v?.c) && entierPositif(v?.e)) sim[idx] = { choisi: v.c, effectif: v.e };
+    }
+    if (Object.keys(sim).length > 0) sortie[instance] = sim;
+  }
+  return sortie;
+}
+
+/** FR : lit les simulations ; tout contenu illisible ou mal formé donne une simulation VIDE (jamais d'erreur), et les entrées invalides sont ignorées une à une. ⚠️ AJOUT (branche draft-mod-armures) - MIGRATION : un contenu en version 1 (sans `armures`) est accepté tel quel : les simulations d'armures écrites par la 0.4.12 vivaient dans `armes` (le magasin était partagé, sans distinction) ; elles sont RECLASSÉES dans `armures` à la lecture, par la présence de la clé dans le nouveau bloc. Un contenu sans `armures` garde ses entrées `armes` telles quelles (les anciennes simulations d'armures y étaient mélangées : elles y restent, inertes pour le score — voir `appliquerSimulations`). / EN: tolerant read; v1 content (no `armures`) is accepted and migrated. */
 export function lireSimulations(stockage: Stockage): Simulations {
   try {
     const brut = stockage.getItem(CLE_STOCKAGE_SIMULATIONS);
     if (!brut) return SIMULATIONS_VIDES();
-    const o = JSON.parse(brut) as { version?: unknown; armes?: Record<string, Record<string, { c?: unknown; e?: unknown }>> };
-    if (o?.version !== 1 || typeof o.armes !== "object" || o.armes === null) return SIMULATIONS_VIDES();
+    const o = JSON.parse(brut) as { version?: unknown; armes?: unknown; armures?: unknown };
+    if ((o?.version !== 1 && o?.version !== 2) || typeof o.armes !== "object" || o.armes === null) return SIMULATIONS_VIDES();
     const sortie = SIMULATIONS_VIDES();
-    for (const [instance, colonnes] of Object.entries(o.armes)) {
-      if (typeof colonnes !== "object" || colonnes === null) continue;
-      const arme: SimulationArme = {};
-      for (const [socket, v] of Object.entries(colonnes)) {
-        const idx = Number(socket);
-        if (entierPositif(idx) && entierPositif(v?.c) && entierPositif(v?.e)) arme[idx] = { choisi: v.c, effectif: v.e };
-      }
-      if (Object.keys(arme).length > 0) sortie.armes[instance] = arme;
-    }
+    sortie.armes = lireBloc(o.armes);
+    if (typeof o.armures === "object" && o.armures !== null) sortie.armures = lireBloc(o.armures);
     return sortie;
   } catch {
     return SIMULATIONS_VIDES();
   }
 }
 
-/** FR : écrit les simulations (format compact `c` = choisi, `e` = effectif) ; renvoie faux si le stockage refuse (rien ne casse). / EN: writes; false if storage refuses. */
+/** FR : ⚠️ CHANGÉ (branche draft-mod-armures) - écrit les simulations (format compact `c` = choisi, `e` = effectif), armes ET armures ; renvoie faux si le stockage refuse (rien ne casse). / EN: writes; false if storage refuses. */
 export function ecrireSimulations(stockage: Stockage, s: Simulations): boolean {
   try {
-    const compact: Record<string, Record<string, { c: number; e: number }>> = {};
-    for (const [instance, arme] of Object.entries(s.armes)) compact[instance] = Object.fromEntries(Object.entries(arme).map(([k, v]) => [k, { c: v.choisi, e: v.effectif }]));
-    stockage.setItem(CLE_STOCKAGE_SIMULATIONS, JSON.stringify({ version: 1, armes: compact }));
+    const compact = (bloc: Record<string, SimulationArme>) => Object.fromEntries(Object.entries(bloc).map(([instance, sim]) => [instance, Object.fromEntries(Object.entries(sim).map(([k, v]) => [k, { c: v.choisi, e: v.effectif }]))]));
+    stockage.setItem(CLE_STOCKAGE_SIMULATIONS, JSON.stringify({ version: 2, armes: compact(s.armes), armures: compact(s.armures ?? {}) }));
     return true;
   } catch {
     return false;
   }
 }
 
-/** FR : retourne de NOUVELLES simulations (rien n'est modifié sur place). / EN: returns new objects, never mutates. */
-export function choisir(s: Simulations, instance: string, socketIndex: number, choix: ChoixColonne): Simulations {
-  return { version: 1, armes: { ...s.armes, [instance]: { ...(s.armes[instance] ?? {}), [socketIndex]: choix } } };
+/** FR : ⚠️ CHANGÉ (branche draft-mod-armures) - `partie` distingue les ARMES (`"armes"`) des ARMURES (`"armures"`) : le choix est enregistré dans le bon bloc. Par défaut `"armes"` (les appels existants ne changent pas). / EN: `partie` distinguishes weapons from armor; defaults to `"armes"`. */
+export function choisir(s: Simulations, instance: string, socketIndex: number, choix: ChoixColonne, partie: "armes" | "armures" = "armes"): Simulations {
+  if (partie === "armures") return { version: 2, armes: s.armes, armures: { ...(s.armures ?? {}), [instance]: { ...(s.armures?.[instance] ?? {}), [socketIndex]: choix } } };
+  return { version: 2, armes: { ...s.armes, [instance]: { ...(s.armes[instance] ?? {}), [socketIndex]: choix } }, armures: s.armures };
 }
-export function retirerColonne(s: Simulations, instance: string, socketIndex: number): Simulations {
+/** FR : ⚠️ CHANGÉ (branche draft-mod-armures) - idem `choisir`, avec la partie. / EN: same as `choisir`, with the part. */
+export function retirerColonne(s: Simulations, instance: string, socketIndex: number, partie: "armes" | "armures" = "armes"): Simulations {
+  if (partie === "armures") {
+    const sim = { ...(s.armures?.[instance] ?? {}) }; delete sim[socketIndex];
+    const armures = { ...(s.armures ?? {}) };
+    if (Object.keys(sim).length > 0) armures[instance] = sim; else delete armures[instance];
+    return { version: 2, armes: s.armes, armures };
+  }
   const arme = { ...(s.armes[instance] ?? {}) }; delete arme[socketIndex];
   const armes = { ...s.armes };
   if (Object.keys(arme).length > 0) armes[instance] = arme; else delete armes[instance];
-  return { version: 1, armes };
+  return { version: 2, armes, armures: s.armures };
 }
-export function reinitialiserArme(s: Simulations, instance: string): Simulations {
-  const armes = { ...s.armes }; delete armes[instance]; return { version: 1, armes };
+/** FR : ⚠️ CHANGÉ (branche draft-mod-armures) - idem, avec la partie. / EN: same, with the part. */
+export function reinitialiserArme(s: Simulations, instance: string, partie: "armes" | "armures" = "armes"): Simulations {
+  if (partie === "armures") { const armures = { ...(s.armures ?? {}) }; delete armures[instance]; return { version: 2, armes: s.armes, armures }; }
+  const armes = { ...s.armes }; delete armes[instance]; return { version: 2, armes, armures: s.armures };
 }
-export const nbColonnesSimulees = (s: Simulations, instance: string): number => Object.keys(s.armes[instance] ?? {}).length;
+/** FR : ⚠️ CHANGÉ (branche draft-mod-armures) - `partie` : les colonnes simulées d'une arme OU d'une armure. / EN: `partie`: simulated columns of a weapon OR an armor. */
+export const nbColonnesSimulees = (s: Simulations, instance: string, partie: "armes" | "armures" = "armes"): number => Object.keys((partie === "armures" ? s.armures : s.armes)?.[instance] ?? {}).length;
 export const armesSimulees = (s: Simulations): string[] => Object.keys(s.armes);
+/** FR : ⚠️ AJOUT (branche draft-mod-armures) - identifiants d'exemplaires d'ARMURES simulées. / EN: instance ids of simulated armors. */
+export const armuresSimulees = (s: Simulations): string[] => Object.keys(s.armures ?? {});
 
 interface OptionLue { equipeEnJeu?: boolean }
 interface ItemLu { option: OptionLue & { hash: number }; ameliore?: OptionLue & { hash: number } }

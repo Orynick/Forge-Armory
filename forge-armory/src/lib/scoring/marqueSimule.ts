@@ -1,0 +1,2 @@
+// FR : ⚠️ AJOUT (27/10/2026) - le MARQUEUR ajouté à la suite du nom d'une origine de verbe qui est un perk SIMULÉ, dans les lignes de détail du pilier « Effets du Build ». Module minuscule, partagé par le moteur (`lib/scoring/verbes.ts`) qui l'écrit et par `PilierCarte` qui le remplace par le badge « 🔨 simulé » (même style que dans Mon Build). Lu comme du texte simple partout ailleurs. / EN: ⚠️ ADDED - the marker appended after a simulated verb origin; `PilierCarte` turns it into the badge.
+export const MARQUE_SIMULE = " 🔨 simulé";
