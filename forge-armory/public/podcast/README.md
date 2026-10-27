@@ -33,6 +33,39 @@ D1 (visible dans le diagnostic dev ou dans l'URL de Ishtar Collective).
 - Astuce : commencez chaque fichier par le **titre de la page** (comme un chapitre
   de podcast), puis lisez le texte.
 
+## Poids des fichiers (important)
+
+De la voix en **stéréo 192 kbps** (le réglage par défaut d'Audacity) produit
+~1,4 Mo par minute — 45 min ≈ 460 Mo, ingérable pour l'application. Pour de la
+parole, le manuel Audacity recommande **mono 64 kbps CBR** (« qualité
+raisonnable » ; 96 kbps = « excellente »). À ce débit : **~0,5 Mo par minute**,
+soit **45 min ≈ 22 Mo** (et un installateur Electron qui reste raisonnable).
+
+Deux façons d'y arriver :
+
+**A. À l'enregistrement (recommandé)** — dans Audacity, avant d'exporter :
+1. Piste → Mixage → **« Mixage stéréo vers mono »** ;
+2. Effets → **Normaliser** → −1,0 dB ;
+3. Fichier → Exporter → **MP3** → options : **Constant (CBR), 64 kbps, Mono**.
+
+**B. Après coup (tes 13 fichiers déjà enregistrés)** — le script
+`npm run podcast:optimiser` les ré-encode en lot (simulation par défaut,
+`--appliquer` pour de vrai, originaux sauvegardés dans `originaux/`) :
+
+```bash
+npm run podcast:optimiser            # simulation : estime le gain
+npm run podcast:optimiser -- --appliquer   # ré-encode les 13 fichiers
+```
+
+Le script a besoin de **ffmpeg**. S'il ne le trouve pas, il affiche la procédure
+Audacity équivalente (méthode A). Pour lui donner ffmpeg : télécharger
+[ffmpeg-release-essentials.zip](https://www.gyan.dev/ffmpeg/builds/) (gratuit),
+décompresser, et **copier `ffmpeg.exe` dans ce dossier** (`public/podcast/`) —
+le script le trouvera tout seul. (Ou définir la variable d'environnement `FFMPEG`
+vers le chemin de `ffmpeg.exe`.)
+
+> `ffmpeg.exe` et le dossier `originaux/` sont ignorés par git.
+
 ## Mise à jour de l'index
 
 Après avoir déposé des fichiers :

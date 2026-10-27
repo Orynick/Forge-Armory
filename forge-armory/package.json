@@ -16,7 +16,8 @@
     "podcast:index": "node scripts/generer-index-podcast.mjs",
     "podcast:associer": "node scripts/associer-podcast.mjs",
     "electron:dev": "electron .",
-    "electron:build": "npm run build && electron-builder"
+    "electron:build": "npm run build && electron-builder",
+    "podcast:optimiser": "node scripts/optimiser-podcast.mjs"
   },
   "dependencies": {
     "react": "^19.2.9",

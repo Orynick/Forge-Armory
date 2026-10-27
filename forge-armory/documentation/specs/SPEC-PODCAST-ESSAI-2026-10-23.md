@@ -81,6 +81,23 @@ L'identifiant d'une page n'est pas évident à trouver à la main. Deux aides :
    l'index est régénéré et `association.txt` consommé). Le script ne supprime
    ni n'écrase jamais un fichier ; un nom cible existant ou un nombre
    d'associations incohérent bloque tout.
+
+### 5d. Poids des fichiers (ajouté en cours d'essai — constat utilisateur : 13 pages = 45 min ≈ 460 Mo)
+
+Retour d'essai : l'enregistrement par défaut d'Audacity (stéréo ~192 kbps)
+produit ~1,4 Mo/min — ingérable embarqué dans l'installateur Electron. Pour de
+la **parole**, le manuel Audacity recommande **mono 64 kbps CBR** (« qualité
+raisonnable » ; 96 kbps = « excellente ») → ~0,5 Mo/min, soit **45 min ≈ 22 Mo**.
+
+- **À l'enregistrement** : piste mono + *Normaliser −1 dB* + export MP3 **CBR
+  64 kbps mono**.
+- **Après coup** : `scripts/optimiser-podcast.mjs` (`npm run podcast:optimiser`)
+  ré-encode les MP3 existants en lot (simulation par défaut, `--appliquer` pour
+  de vrai, `--bitrate 96` pour « excellente »). **Sécurité** : originaux déplacés
+  dans `public/podcast/originaux/` (jamais supprimés), index régénéré.
+- **ffmpeg requis** : le script le cherche (variable `FFMPEG`, PATH, ou
+  `ffmpeg.exe` déposé dans `public/podcast/`). Sinon il affiche la procédure
+  Audacity équivalente. `ffmpeg.exe` et `originaux/` sont ignorés par git.
 - Déposer chaque fichier dans `forge-armory/public/podcast/` avec le nom de la convention (§2), puis lancer `node scripts/generer-index-podcast.mjs` (ou `npm run podcast:index`).
 
 ## 6. Sécurité / CSP (verrouillée)
@@ -107,6 +124,7 @@ L'identifiant d'une page n'est pas évident à trouver à la main. Deux aides :
 | `public/podcast/index.json` | Index généré localement, **ignoré** par git. |
 | `scripts/generer-index-podcast.mjs` | Génère `index.json` depuis les MP3 présents (local). Logique exportée, réutilisée par le script d'association. |
 | `scripts/associer-podcast.mjs` | Apparier les MP3 bruts aux pages (fichier `association.txt`), renommage selon la convention (simulation par défaut, `--appliquer` pour de vrai), régénère l'index. |
+| `scripts/optimiser-podcast.mjs` | Ré-encode les MP3 en mono 64 kbps CBR (voix) en lot — simulation par défaut, `--appliquer` pour de vrai, originaux sauvegardés dans `originaux/`, index régénéré. Sans ffmpeg : affiche la procédure Audacity équivalente. |
 | `package.json` | Scripts `podcast:index` et `podcast:associer`. |
 | `src/lib/legendarium/podcast.ts` | Bus en mémoire (publication/abonnement) + résolution `pageId → nom de fichier` + chargement de l'index. |
 | `src/components/LecteurPodcast.tsx` | Panneau flottant (ouvert/réduit), lecteur audio, barre de progression, enchainement. **Affiche l'identifiant de la page + « copier l'id » en dev** (aide au nommage des MP3). |
@@ -115,6 +133,7 @@ L'identifiant d'une page n'est pas évident à trouver à la main. Deux aides :
 | `src/components/Bibliotheque.tsx` | Publie la page courante + la page suivante à chaque changement. |
 | `tests/logique/podcast-cablage.test.ts` | Tests de câblage (CSP, convention, index, bus). |
 | `tests/logique/podcast-associer.test.ts` | Tests du script d'association (appariement par ordre alphabétique, sécurités, câblage). |
+| `tests/logique/podcast-optimiser.test.ts` | Tests du script d'optimisation (mono CBR 64 kbps, bitrate paramétrable, échec ffmpeg, câblage, originaux sauvegardés). |
 | `.gitignore` | Ignore `public/podcast/*.mp3` et l'`index.json` généré. |
 
 ## 9. Critères d'acceptation de l'essai

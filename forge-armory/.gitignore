@@ -47,3 +47,4 @@ tests/ui/_sortie/
 public/podcast/*.mp3
 public/podcast/index.json
 public/podcast/association.txt
+public/podcast/originaux/
