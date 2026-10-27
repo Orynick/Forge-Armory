@@ -10,6 +10,7 @@ import { obtenirDefinition } from "../manifest/download";
 import { normaliser, positionsMotCleStrict } from "../manifest/search";
 import { CATALOGUE_VERBES, VerbeCatalogue } from "../../data/elementVerbs";
 import { BuildDraft } from "../../types/build";
+import { MARQUE_SIMULE } from "./marqueSimule";   // ⚠️ AJOUT (27/10/2026)
 import { ARTEFACTS } from "../../data/artefacts";
 import { analyserTexte } from "./sourcePayoff";
 import { obtenirAntiChampion, obtenirAntiChampionArmure, obtenirDescriptionComplete } from "../manifest/doctrine";
@@ -404,7 +405,36 @@ export function extraireTextesEffetsBuild(build: BuildDraft, db: Database): stri
  * "Indeterminate" gets half credit rather than penalising the user for a
  * limitation of OUR detection.
  */
-export function scoreVerbesDetectes(verbesDetectes: VerbeDetecte[]): { score: number; details: string[] } {
+/**
+ * FR : ⚠️ AJOUT (27/10/2026, « dans le bloc Effets du Build, quand un des verbes vient d'une perk simulée, mets le badge « simulé » à côté de l'origine du verbe ») - le MARQUEUR ajouté à la suite du nom d'une origine simulée dans les lignes de détail du pilier ; `PilierCarte` le remplace par le badge « 🔨 simulé » (même style que dans Mon Build). Lu comme du texte simple partout ailleurs (« Surcharge d'arme solaire 🔨 simulé »).
+ * EN: ⚠️ ADDED - the marker appended after the name of a simulated origin in the pillar's detail lines; `PilierCarte` turns it into the "simulé" badge.
+ */
+export { MARQUE_SIMULE };
+
+/**
+ * FR : ⚠️ AJOUT (27/10/2026) - les NOMS des perks / mods SIMULÉS du build (armes et armures dont la simulation est appliquée), tels qu'ils apparaissent comme ORIGINE d'un verbe. Un perk est « simulé » par différence entre les perks du build avec simulation et les perks RÉELS (`perkHashesReels`, mémorisés par `appliquerSimulations`) ; un NOM n'est retenu que si TOUTES ses occurrences dans les textes du build sont simulées : si le même perk existe aussi en réel (ou dans la doctrine, l'artefact, un set), le verbe existerait sans la simulation et n'est pas marqué. Ensemble vide quand rien n'est simulé.
+ * EN: ⚠️ ADDED - the NAMES of the build's simulated perks/mods; a name counts only if ALL its occurrences are simulated.
+ */
+export function extraireNomsPerksSimules(build: BuildDraft, db: Database): Set<string> {
+  const simules = new Map<string, number>();
+  for (const piece of [...build.armes, ...build.armure]) {
+    if (!(piece.perksSimules || piece.modsSimules) || !piece.perkHashesReels) continue;
+    const reels = new Map<number, number>();
+    for (const h of piece.perkHashesReels) reels.set(h, (reels.get(h) ?? 0) + 1);
+    for (const h of piece.perkHashes) {
+      const restant = reels.get(h) ?? 0;
+      if (restant > 0) { reels.set(h, restant - 1); continue; }
+      const nom = obtenirDefinition<{ displayProperties?: { name?: string } }>(db, "DestinyInventoryItemDefinition", h)?.displayProperties?.name;
+      if (nom) simules.set(nom, (simules.get(nom) ?? 0) + 1);
+    }
+  }
+  if (simules.size === 0) return new Set();
+  const total = new Map<string, number>();
+  for (const t of extraireTextesEffetsBuild(build, db)) { const nom = t.split(" — ")[0]?.trim(); if (nom) total.set(nom, (total.get(nom) ?? 0) + 1); }
+  return new Set([...simules].filter(([nom, n]) => n >= (total.get(nom) ?? 0)).map(([nom]) => nom));
+}
+
+export function scoreVerbesDetectes(verbesDetectes: VerbeDetecte[], nomsSimules?: ReadonlySet<string>): { score: number; details: string[] } {
   const details: string[] = [];
   const boucles = verbesDetectes.filter((v) => v.confiance === "boucle");
   const sourcesSeules = verbesDetectes.filter((v) => v.confiance === "source_seule");
@@ -454,8 +484,11 @@ export function scoreVerbesDetectes(verbesDetectes: VerbeDetecte[]): { score: nu
       const sourcesUtiles = v.sources.filter(
         (s) => normaliser(s) !== normaliser(v.verbe.nomFr) && normaliser(s) !== normaliser(v.verbe.nomEn)
       );
-      const suffixe = sourcesUtiles.length > 0 ? ` (${sourcesUtiles.join(", ")})` : "";
-      details.push(`  ${v.verbe.nomFr}${suffixe}`);
+      // FR : ⚠️ AJOUT (27/10/2026) - badge « simulé » à côté de l'ORIGINE du verbe quand cette origine est un perk simulé (`MARQUE_SIMULE`, remplacé par le badge dans `PilierCarte`). Une origine qui porte EXACTEMENT le nom du verbe n'est pas affichée (voir ci-dessus) : le badge est alors placé à côté du verbe lui-même. / EN: ⚠️ ADDED - "simulated" badge next to the verb's origin.
+      const marque = (s: string) => (nomsSimules?.has(s) ? `${s}${MARQUE_SIMULE}` : s);
+      const origineCacheeSimulee = v.sources.some((s) => !sourcesUtiles.includes(s) && nomsSimules?.has(s));
+      const suffixe = sourcesUtiles.length > 0 ? ` (${sourcesUtiles.map(marque).join(", ")})` : "";
+      details.push(`  ${v.verbe.nomFr}${origineCacheeSimulee ? MARQUE_SIMULE : ""}${suffixe}`);
     }
   }
 
