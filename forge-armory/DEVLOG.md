@@ -31,6 +31,18 @@
 
 ---
 
+## 28/10/2026 — RÉGRESSION ÉVITÉE (résolution des conflits du stash) : page « Accomplissements » restaurée
+
+**Incident** : en résolvant les 16 conflits de merge laissés par un `git stash pop` non résolu (commit `acf0228`), le commit de l'utilisateur embarquait aussi une **ancienne version de `VueAccomplissements.tsx` et de son test UI `vue-accomplissements.py`** — antérieure à la livraison v0.5.5 : la page « Accomplissements » revenait à des sceaux en LIGNES repliables (style Legendarium) au lieu des **cartes carrées identiques en taille** livrées le 24/10 (TODO n°23, retour utilisateur « Les cartes de Sceaux doivent être des carrés identiques en taille »). La branche `Import-modif-mods-armures` (qui a le même merge-base) porte la bonne version : c'est elle qui a servi de référence.
+
+**Détection** : revérification complète demandée par l'utilisateur (« Je ne veux pas qu'on ait une régression maintenant ») — comparaison `origin/main` vs la branche, fichier par fichier. Seuls ces 2 fichiers étaient hors périmètre du chantier « mods d'armure ».
+
+**Correctif** : `VueAccomplissements.tsx` et `tests/ui/vue-accomplissements.py` restaurés **à l'identique de `origin/main`** (cartes carrées `aspect-ratio: 1/1`, nom tronqué 2 lignes, zone barre/pourcentage à hauteur fixe, contrôles UI des carrés). **Re-vérifié** : `tsc -b` 0 erreur ; batterie **48/48 suites, 981/981 contrôles** (dont `sceaux` 31/31) ; `npm run build` ✓ ; les autres fichiers « hors périmètre » (`pillars.ts`, `inventaire.ts`, `armure.ts`, `verbes.ts`, `PageForge.tsx`, `NOTICE.md`, `package-lock.json`) ne diffèrent de `main` que par les évolutions VOLONTAIRES du chantier (badge verbe simulé, audit 23/10, courrier, énergie, plugs insérables, ajustement, texte de la note Forge).
+
+**Version 0.5.6 (inchangée).**
+
+---
+
 ## 27/10/2026 (fin) — BADGE « SIMULÉ » SUR L'ORIGINE D'UN VERBE, dans le bloc « Effets du Build »
 
 **Demande de l'utilisateur** : « Dans le scoring, bloc Effets du Build, quand un des verbes vient d'une perk simulée, c'est possible de mettre le badge « simulé » à côté de l'origine du verbe ? » **Version inchangée (0.5.5).**
