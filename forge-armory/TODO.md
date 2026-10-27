@@ -13,7 +13,7 @@ passages retirés ou condensés lors du nettoyage du 06/10/2026 dans
 `documentation/todo/ARCHIVE-TODO-2026-10-06.md`. Conception du scoring :
 section « Le scoring » de `NOTES-CONCEPTION.md`. Tests en cours :
 `A-TESTER-<version>.pdf` (le numéro de version de l'appli est dans le nom ;
-version courante : 0.5.4).
+version courante : 0.5.6).
 
 ---
 
@@ -103,8 +103,9 @@ l'utilisateur du 28/09/2026. Electron est à niveau et validé : c'est, avec
 l'onglet Load-out (section 16), l'un des deux prochains chantiers de
 développement (3e étape de l'ordre du 30/09/2026).
 
-✅ **Niveau 1 (simulation dans l'appli) FAIT le 24/10/2026** (branche
-`draft-mod-armures`, PR #19 — validé par l'utilisateur, 8/8) :
+✅ **Niveau 1 (simulation dans l'appli) FAIT** (branche
+`draft-mod-armures`, PR #19 — validé par l'utilisateur, 8/8 le 24/10, puis
+évolutions 25-27/10 validées) :
 - **Armes** : simulation des perks dans la fenêtre Forge (depuis la 0.4.x),
   lien avec le score en place (`appliquerSimulations` parcourt `build.armes`).
 - **Armures** : simulation des mods **directement dans la pop-up Détails**
@@ -112,6 +113,24 @@ développement (3e étape de l'ordre du 30/09/2026).
   Mon Build réagissent en temps réel** (bloc `armures` du magasin, format
   stocké v2, `appliquerSimulationArmure` recalcule les stats via
   `statsSimulees`). Détails dans le DEVLOG (entrée du 24/10, PR #19).
+- **Interface allégée** (27/10, maquette validée) : composant partagé
+  `SimulationModsArmure` (statistiques réelles → simulées, **jauge
+  d'énergie**, résumé compact + « Modifier », blocs statistique / ajustement /
+  cumulables) utilisé par les 3 fenêtres Détails ET la Forge ; composant
+  `StatsArmure` (2 lignes de 3 stats, ⇅ vert devant la stat « + » d'une armure
+  légendaire) sur toutes les lignes d'armures (Inventaire, Mon Build, Forge).
+- **Lien score visible et fiabilisé** (27/10) : comparaison « Score réel →
+  simulé (+N) » avec les piliers et statistiques qui changent
+  (`scoreSimule.ts` + `ComparaisonScore.tsx`) ; delta des stats totales dans
+  Mon Build (`deltaStatsArmure`) ; badge « 🔨 simulé » sur l'origine d'un verbe
+  du bloc « Effets du Build » quand il vient d'une perk simulée
+  (`marqueSimule.ts`) ; **garde-fou d'énergie** : une simulation qui dépasse
+  l'énergie de la pièce est IGNORÉE par le score (badge « simulation ignorée »
+  dans Mon Build + bandeau sur la page principale) ; une entrée égale au mod
+  équipé n'est plus une simulation ; l'export retire aussi
+  `plugsInsertablesParColonne` et `energie` ; deux défauts Mon Build corrigés
+  (`LignePieceStable` : la fenêtre Détails ne se refermait plus à chaque clic ;
+  les armures simulées mémorisent leurs mods/stats réels comme les armes).
 - Rien n'est écrit chez Bungie ; enregistrement/partage/export/équipement
   gardent les mods réels.
 
@@ -123,8 +142,6 @@ droits OAuth nécessaires, coûts en matériaux exclus) sont **à vérifier
 dans la documentation de Bungie** avant toute promesse.
 
 **Reste à faire — niveau 1 (évolutions)** :
-- **énergie des mods** (coût/capacité) : des combinaisons impossibles en jeu
-  sont possibles dans la simulation (liste « Pas fait » du DEVLOG 15/10) ;
 - **Collection des armures** (toutes les armures du jeu) et **ensembles et
   bonus d'ensemble** dans la fenêtre/pop-up Détails ;
 - les builds enregistrés gardent leurs `perkHashes` ; `rafraichirStats`

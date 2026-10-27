@@ -119,12 +119,9 @@ export interface GearPiece {
    * EN: ⚠️ ADDED - set only on a COPY of an ARMOR by the simulation overlay: the flags, the REAL stats before simulation, and the number of simulated mods. In the copy, `perkHashes`/`perksParColonne` hold the SIMULATED mods and `stats` the recomputed stats: this is what the score reads.
    */
   modsSimules?: boolean;
-<<<<<<< Updated upstream
-=======
   /** FR : ⚠️ AJOUT (27/10/2026, « travaille sur le lien entre stats simulées et score ») - la simulation de mods de cette armure DÉPASSE l'énergie de la pièce : elle est IGNORÉE par le score (une configuration irréalisable en jeu ne doit pas le faire monter) ; `energieDepassee` = l'excédent. / EN: ⚠️ ADDED - this armor's mod simulation exceeds its energy: ignored by the score. */
   simulationRejetee?: boolean;
   energieDepassee?: number;
->>>>>>> Stashed changes
   statsReelles?: Partial<StatBlock>;
   nbModsSimules?: number;
   /** FR : nom officiel de l'élément de l'arme (Cinétique/Solaire/Arc/Abyssal/Stase/Filobscur), résolu via le Manifest - absent pour l'armure. / EN: weapon's official element name (Kinetic/Solar/Arc/Void/Stasis/Strand), resolved via the Manifest - absent for armor. */

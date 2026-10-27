@@ -6,16 +6,10 @@
 // ⚠️ AJOUT (branche draft-mod-armures) - ARMURES : `appliquerSimulationArmure` applique la simulation des MODS d'une armure possédée : la copie porte les mods simulés (`perkHashes`/`perksParColonne` lus par le Pilier 2) ET ses STATISTIQUES recalculées (`stats` lus par le pilier stats_2_0 via `sommerStatsArmure`) : le changement de mod se voit dans le score. Mêmes règles : copie uniquement, exemplaire avec `itemInstanceId` seulement, même objet si rien à faire. Les statistiques réelles sont mémorisées (`statsReelles`) pour l'affichage. Le calcul de `statsSimulees` a besoin du Manifest (`db`) : sans Manifest, la simulation de perk est appliquée mais les stats ne sont PAS recalculées (elles restent réelles) — l'affichage le dira.
 // EN: ⚠️ ADDED - ARMOR: `appliquerSimulationArmure` applies an owned armor's MOD simulation: the copy carries the simulated mods (read by Pillar 2) AND its recomputed STATS (read by the stats pillar): a mod change shows in the score. Same rules: copy only, owned instance only, same object when nothing to apply.
 import type { Database } from "sql.js";
-<<<<<<< Updated upstream
-import type { BuildDraft, GearPiece } from "../../types/build";
-import type { SimulationArme, Simulations } from "./simulation";
-import { statsSimulees } from "./armure";
-=======
 import type { BuildDraft, GearPiece, StatKey } from "../../types/build";
 import type { SimulationArme, Simulations } from "./simulation";
 import { colonnesArmure, statsSimulees } from "./armure";
 import { energieSimulee } from "./energieMods";   // ⚠️ AJOUT (27/10/2026) : budget d'énergie
->>>>>>> Stashed changes
 
 export function appliquerSimulationPiece(piece: GearPiece, simulation: SimulationArme | undefined): GearPiece {
   if (!simulation || !piece.itemInstanceId) return piece;
@@ -52,11 +46,6 @@ export function pieceReelle(piece: GearPiece): GearPiece {
  */
 export function appliquerSimulationArmure(piece: GearPiece, simulation: SimulationArme | undefined, db: Database | null): GearPiece {
   if (!simulation || !piece.itemInstanceId) return piece;
-<<<<<<< Updated upstream
-  const colonnes = Object.entries(simulation);
-  if (colonnes.length === 0) return piece;
-  if (!piece.perksParColonne) return piece;
-=======
   if (!piece.perksParColonne) return piece;
   // FR : ⚠️ CHANGÉ (27/10/2026) - une entrée de simulation ÉGALE au mod équipé n'est PAS une simulation (aucun écart avec la pièce réelle) : elle ne fait ni « simulé », ni badge, ni calcul inutile. L'interface ne les enregistre jamais, mais un magasin ancien ou modifié à la main peut en contenir. / EN: ⚠️ CHANGED - a simulation entry equal to the equipped mod is not a simulation.
   const equipes = new Map<number, number>(piece.perksParColonne.map((p) => [p.socketIndex, p.hash]));
@@ -67,7 +56,6 @@ export function appliquerSimulationArmure(piece: GearPiece, simulation: Simulati
     const e = energieSimulee(db, piece, colonnesArmure(db, piece), simulation);
     if (e && e.restante < 0) return { ...piece, simulationRejetee: true, energieDepassee: -e.restante, nbModsSimules: colonnes.length };
   }
->>>>>>> Stashed changes
   const parColonne = new Map<number, number>((piece.perksParColonne ?? []).map((p) => [p.socketIndex, p.hash]));
   for (const [index, choix] of colonnes) parColonne.set(Number(index), choix.effectif);
   const perksParColonne = [...parColonne.entries()].sort((a, b) => a[0] - b[0]).map(([socketIndex, hash]) => ({ socketIndex, hash }));
@@ -77,12 +65,9 @@ export function appliquerSimulationArmure(piece: GearPiece, simulation: Simulati
     perksParColonne,
     perkHashes: perksParColonne.map((p) => p.hash),
     modsSimules: true,
-<<<<<<< Updated upstream
-=======
     // FR : ⚠️ AJOUT (27/10/2026) - les mods RÉELS sont mémorisés, comme pour une arme (`perkHashesReels`, `perksParColonneReels`) : sans eux, la fenêtre Détails de Mon Build prenait les mods SIMULÉS pour les mods équipés (le delta tombait à zéro, « revenir au réel » ne ramenait rien) et « Envoyer à la Forge » aurait envoyé l'armure SIMULÉE. / EN: ⚠️ ADDED - the REAL mods are remembered, as for weapons.
     perkHashesReels: piece.perkHashes,
     perksParColonneReels: piece.perksParColonne,
->>>>>>> Stashed changes
     statsReelles: piece.stats,
     nbModsSimules: colonnes.length,
     ...(stats && stats.nbChangements > 0 ? { stats: { ...stats.simulees } } : {}),
@@ -114,8 +99,6 @@ export function appliquerSimulations(build: BuildDraft, simulations: Simulations
 export const nbArmesSimulees = (build: BuildDraft): number => build.armes.filter((a) => a.perksSimules).length;
 /** FR : ⚠️ AJOUT (branche draft-mod-armures) - combien d'armures du build portent des mods simulés. / EN: how many armor pieces of the build carry simulated mods. */
 export const nbArmuresSimulees = (build: BuildDraft): number => build.armure.filter((a) => a.modsSimules).length;
-<<<<<<< Updated upstream
-=======
 /** FR : ⚠️ AJOUT (27/10/2026) - combien d'armures du build ont une simulation IGNORÉE par le score parce qu'elle dépasse l'énergie. / EN: how many armor pieces have a simulation ignored because it exceeds the energy. */
 export const nbArmuresRejetees = (build: BuildDraft): number => build.armure.filter((a) => a.simulationRejetee).length;
 /** FR : ⚠️ AJOUT (27/10/2026) - le DELTA des statistiques TOTALES des armures dû à la simulation (somme, par statistique, de `stats` − `statsReelles` sur les armures simulées). Vide quand rien n'est simulé. Les bonus de la doctrine, identiques avec ou sans simulation, s'annulent : on ne les ajoute pas ici. / EN: ⚠️ ADDED - the armor stat totals delta caused by the simulation. */
@@ -130,4 +113,3 @@ export function deltaStatsArmure(armure: GearPiece[]): Partial<Record<StatKey, n
   }
   return delta;
 }
->>>>>>> Stashed changes

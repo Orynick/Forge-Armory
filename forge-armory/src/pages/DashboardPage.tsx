@@ -12,13 +12,9 @@ import { Database } from "sql.js";
 import { evaluerBuild } from "../lib/scoring/pillars";
 // FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - lien Forge → score : les simulations de la Forge (magasin partagé) sont appliquées au build pour le SCORE et l'affichage de Mon Build ; le build réel (enregistrement, partage, équipement en jeu) n'est jamais modifié. / EN: Forge → score link: simulations applied to the build for scoring and display only.
 import { useSimulations } from "../lib/forge/storeSimulations";
-<<<<<<< Updated upstream
-import { appliquerSimulations, pieceReelle, nbArmesSimulees, nbArmuresSimulees } from "../lib/forge/appliquerSimulation";
-=======
 import { appliquerSimulations, pieceReelle, nbArmesSimulees, nbArmuresSimulees, nbArmuresRejetees } from "../lib/forge/appliquerSimulation";
 import { comparerScores } from "../lib/forge/scoreSimule";   // ⚠️ AJOUT (27/10/2026)
 import ComparaisonScore from "../components/ComparaisonScore";   // ⚠️ AJOUT (27/10/2026)
->>>>>>> Stashed changes
 import type { CibleForge } from "../components/InventaireArmes";
 // FR : ⚠️ CHANGÉ (23/10/2026, audit) - `demoBuild` seul est importé : `demoExigences`
 // (Mêlée T10, « Exotique de démonstration ») n'est plus passée à `evaluerBuild`
@@ -762,8 +758,6 @@ export default function DashboardPage() {
             🔨 Score calculé avec des mods d'armure simulés ({nbArmuresSim} armure{nbArmuresSim > 1 ? "s" : ""})
           </div>
         )}
-<<<<<<< Updated upstream
-=======
         {/* FR : ⚠️ AJOUT (27/10/2026) - « Score réel → simulé » + le détail (piliers, statistiques) : la simulation SE VOIT dans le score. / EN: ⚠️ ADDED - "real → simulated score" + detail. */}
         {comparaisonScore && <ComparaisonScore comparaison={comparaisonScore} />}
         {nbArmuresRejetes > 0 && (
@@ -771,7 +765,6 @@ export default function DashboardPage() {
             ⚠️ {nbArmuresRejetes} armure{nbArmuresRejetes > 1 ? "s" : ""} : simulation ignorée par le score (dépasse l'énergie)
           </div>
         )}
->>>>>>> Stashed changes
         <div
           title={
             resultat.completion.manquants.length > 0

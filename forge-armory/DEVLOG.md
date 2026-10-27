@@ -4,10 +4,9 @@
 
 ---
 
-<<<<<<< Updated upstream
 ## 24/10/2026 (soir, après la livraison v0.5.5) — branche `draft-mod-armures` (PR #19) : Forge des armures, étape 2 — modification des mods DANS la pop-up Détails + lien avec le score et Mon Build
 
-**Demande** : « Création du "draft-mod-armures" — En lien avec l'optimiseur, et parce qu'on a mis ce sujet de côté : il va falloir finir la modification des mods d'armure via la pop-up Détails des armures. Je crois qu'on avait commencé à travailler dessus. Il faut voir ce qui est déjà en place, adapter aux dernières versions de Forge Armory, et continuer. » Reprise du chantier mis de côté après la 0.4.12 : c'est le premier item de la liste « Pas fait (étapes suivantes à décider) » de l'entrée du 15/10/2026 (lien avec le score et Mon Build) et le **niveau 1** (simulation dans l'appli, sans rien toucher en jeu) du TODO §2 pour les armures. **Version inchangée (0.5.5)** : livraison sur la branche `draft-mod-armures` (PR #19), à merger dans `main` après validation ; la livraison sur `main` portera le numéro 0.5.6.
+**Demande** : « Création du "draft-mod-armures" — En lien avec l'optimiseur, et parce qu'on a mis ce sujet de côté : il va falloir finir la modification des mods d'armure via la pop-up Détails des armures. Je crois qu'on avait commencé à travailler dessus. Il faut voir ce qui est déjà en place, adapter aux dernières versions de Forge Armory, et continuer. » Reprise du chantier mis de côté après la 0.4.12 : c'est le premier item de la liste « Pas fait (étapes suivantes à décider) » de l'entrée du 15/10/2026 (lien avec le score et Mon Build) et le **niveau 1** (simulation dans l'appli, sans rien toucher en jeu) du TODO §2 pour les armures. **Version inchangée (0.5.5)** à cette étape : livraison sur la branche `draft-mod-armures` (PR #19) ; les évolutions du 25-27/10 portent la branche vers la **v0.5.6**.
 
 **État des lieux retrouvé** (ce qui était déjà en place) : `lib/forge/armure.ts` (`colonnesArmure`, `statsSimulees`, `regrouperColonnesArmure`, `diagnosticArmure`), `InventaireArmures.tsx` (Forge des armures : liste, fenêtre, simulation locale), bouton « 🔨 Forge » dans les 3 pop-ups Détails (ajout du 16/10). **Limite documentée** (entrée du 15/10, « Isolation prouvée par les tests ») : les simulations d'armures étaient écrites dans le magasin des armes (pas de distinction) et `appliquerSimulations` ne parcourait que `build.armes` — une simulation d'armure ne changeait NI le score, NI Mon Build. Aucune édition n'existait dans les pop-ups Détails.
 
@@ -24,10 +23,14 @@
 
 **Validé par l'utilisateur** (retour du 24/10, 8/8) : (1) section « Simuler les mods » dans la pop-up Détails (Mon Inventaire) ; (2) Coffre idem ; (3) Mon Build idem + badge « N mods simulés » ; (4) score en temps réel + bandeau « mods d'armure simulés » ; (5) « Revenir à l'équipement réel » → retour exact au score réel ; (6) aller-retour bouton « Forge » (pop-up → Forge → retour) ; (7) avertissement à l'équipement d'une armure simulée ; (8) persistance des simulations après redémarrage.
 
-**Pas fait (volontairement)** : RIEN n'est écrit chez Bungie (Phase 1 de la spécification du 12/10/2026 ; la Phase 2, `InsertSocketPlugFree`, reste le niveau 2 du TODO §2). Les autres items de la liste « Pas fait » du 15/10 restent ouverts : énergie des mods (coût/capacité), Collection des armures dans la pop-up, ensembles et bonus d'ensemble dans la fenêtre.
+**Évolutions 25-27/10 (même branche, PR #19)** : budget d'énergie (coût/capacité, jauge + garde-fou), interface allégée (composant partagé `SimulationModsArmure`, `StatsArmure` avec ⇅), lien score visible (comparaison réel → simulé, `deltaStatsArmure`, badge « simulé » sur l'origine d'un verbe), ajustement (règle du « + » propre à chaque armure), correctifs Mon Build (`LignePieceStable`, mémorisation des mods réels des armures). **Détails dans les entrées du 24-27/10 ci-dessous.**
 
-**Version inchangée (0.5.5)** — branche `draft-mod-armures`, PR #19.
-=======
+**Pas fait (volontairement)** : RIEN n'est écrit chez Bungie (Phase 1 de la spécification du 12/10/2026 ; la Phase 2, `InsertSocketPlugFree`, reste le niveau 2 du TODO §2). Les autres items de la liste « Pas fait » du 15/10 restent ouverts : Collection des armures dans la pop-up, ensembles et bonus d'ensemble dans la fenêtre.
+
+**Version 0.5.6 (branche `draft-mod-armures`, PR #19).**
+
+---
+
 ## 27/10/2026 (fin) — BADGE « SIMULÉ » SUR L'ORIGINE D'UN VERBE, dans le bloc « Effets du Build »
 
 **Demande de l'utilisateur** : « Dans le scoring, bloc Effets du Build, quand un des verbes vient d'une perk simulée, c'est possible de mettre le badge « simulé » à côté de l'origine du verbe ? » **Version inchangée (0.5.5).**
@@ -112,7 +115,7 @@
 **Vérifié** : batterie complète : **59 séries sur 66** ; les **7 séries en échec sont exactement celles du zip reçu, avec les mêmes décomptes** (`forge-armures`, `forge` et `vue-accomplissements` qui s'interrompent, `forge-inventaire` 68/69, `identite-visuels` 13/14, `manifest-demarrage` 17/18, `vue-carriere` 24/29) ; mes séries passent (`energie-mods` 34/34, `simulation-mods-armure` 33/33, diagnostics inchangés). **16 casses volontaires détectées** (ajustement de nouveau « fixe », collection ignorée, coût du mod remplacé ignoré, `<` au lieu de `<=`, répartition non minimale, simulation égale à l'équipé enregistrée, « + » jamais fixe, rôle de l'ajustement, retrait du mod équipé, mods non grisés par manque d'énergie, niveaux non grisés, jauge réelle au lieu de simulée, ouverture par défaut, avertissement d'énergie non lue, ancien composant, bloc des autres emplacements). Types : `tsc` strict avec types de substitution pour React et sql.js sur les deux nouveaux fichiers (une erreur volontaire y est bien détectée) ; comparaison avant/après du projet complet : aucune erreur nouvelle.
 **Défauts de MON travail, rattrapés** : (a) mon hypothèse « le « + » de l'ajustement est imposé sur la tertiaire » (tirée d'une seule pièce) était FAUSSE, corrigée par l'utilisateur et par les 52 armures du compte ; (b) mon premier contrôle de types ne vérifiait RIEN (une option périmée du compilateur l'interrompait avant toute analyse : une erreur volontaire passait inaperçue) : refait, avec une erreur volontaire détectée ; (c) une vraie erreur de type (`undefined` affecté à `DefVersion | null`) corrigée avant livraison ; (d) mon test d'interface plantait (attente de 30 s d'un élément absent) au lieu d'échouer : lectures et clics rendus tolérants ; (e) mes données d'essai ne distinguaient pas le critère « collection » du critère « règles » (ils vont dans le même sens) : un cas où ils s'opposent a été ajouté ; (f) le nom de la statistique d'armes est `arme` (singulier), pas `armes`.
 **NON vérifié** : le RENDU dans l'application réelle (la fenêtre Détails d'une vraie armure, avec la vraie base du Manifest) : les tests utilisent le vrai composant et les vraies fonctions sur des données d'essai calquées sur ton casque ; le temps de calcul sur une armure aux listes de 35 mods (calculs mémorisés par rendu) ; la Forge des armures n'utilise PAS encore ce composant ; le lien avec le score et Mon Build (la simulation est enregistrée comme avant) ; les bonus conditionnels des Sources.
-**Suite prévue** : confronter les valeurs de l'écran à celles du jeu (les coûts, la capacité, les statistiques) ; faire utiliser ce composant par la Forge des armures ; alimenter le score ; puis l'Optimiseur de statistiques d'armure (qui lira le « + » de chaque pièce).
+**Suite prévue** : confronter les valeurs de l'écran à celles du jeu (les coûts, la capacité, les statistiques) ; faire utiliser ce composant par la Forge des armures ; alimenter le score ; puis l'Optimiseur de statistiques d'armure (qui lira le « + » de chaque pièce). **⏭️ CETTE SUITE EST FAITE** (25-27/10, entrées ci-dessous : budget d'énergie dans la simulation, composant partagé `SimulationModsArmure` dans les 3 fenêtres + la Forge, lien score visible, règle de l'ajustement « + »).
 
 ---
 
@@ -154,7 +157,6 @@
 **Défauts de MON travail, rattrapés** : mon extraction du style du bloc de texte existant a visé deux fois la mauvaise ligne (le bouton, puis une expression qui s'arrêtait à une flèche `=>`) avant de lire la bonne ; les pièces SANS emplacement de mod affichaient « somme lue 0 » (faux zéro trompeur) : elles disent maintenant « aucun emplacement de mod » ; deux de mes contrôles plantaient au lieu d'échouer quand le bouton manquait.
 **NON vérifié** : (a) la présence réelle de `energyCost`, `energyCapacity` et `energyUsed` dans les données du compte de l'utilisateur : c'est exactement ce que le diagnostic doit révéler (si ces champs manquent, il le dit : « non lue », « illisible ») ; (b) ce que compte exactement `energyUsed` (mods d'ajustement, mods cosmétiques) : un « écart » généralisé le montrerait ; (c) le temps de calcul sur un gros inventaire (plusieurs centaines d'armures) : les lectures sont mémorisées par modèle et par mod ; (d) le rendu dans le logiciel installé : sans objet (mode développement seulement).
 **Suite prévue** : quand le texte du diagnostic réel aura été renvoyé : brancher le budget d'énergie dans la simulation des mods (jauge « énergie utilisée / capacité », mods trop chers grisés), avec les VRAIS coûts, puis reprendre les maquettes.
->>>>>>> Stashed changes
 
 ---
 

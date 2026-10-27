@@ -242,11 +242,6 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
               <label style={{ fontSize: "0.8rem", display: "inline-flex", gap: "0.4rem", alignItems: "center" }}>
                 <input type="checkbox" checked={voirCosmetiques} onChange={(e) => setVoirCosmetiques(e.target.checked)} /> Afficher les emplacements cosmétiques
               </label>
-<<<<<<< Updated upstream
-              <span data-nb-simulees={instance ? nbColonnesSimulees(simulations, instance, "armures") : 0} style={{ fontSize: "0.78rem", color: "#e8c547" }}>{instance && nbColonnesSimulees(simulations, instance, "armures") > 0 ? `${nbColonnesSimulees(simulations, instance, "armures")} emplacement${nbColonnesSimulees(simulations, instance, "armures") > 1 ? "s" : ""} simulé${nbColonnesSimulees(simulations, instance, "armures") > 1 ? "s" : ""}` : "aucune simulation"}</span>
-              <button disabled={!instance || nbColonnesSimulees(simulations, instance, "armures") === 0} onClick={() => instance && appliquer((s) => reinitialiserArme(s, instance, "armures"))} style={{ fontSize: "0.78rem" }}>↺ Revenir à l'équipement réel</button>
-=======
->>>>>>> Stashed changes
             </div>
             {import.meta.env.DEV && (
               <div style={{ marginBottom: "0.6rem" }}>

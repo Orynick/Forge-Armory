@@ -24,7 +24,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Database } from "sql.js";
 import { BuildDraft, GearPiece, SlotArme, SlotArmure, StatKey } from "../types/build";
 import { LIBELLES_ELEMENT_FR as LIBELLES_ELEMENT } from "../data/libellesElements";
-import { LIBELLES_SLOT, LIBELLES_CATEGORIE, LIBELLES_STAT as LIBELLES_STAT_MODS, ORDRE_STATS as ORDRE_STATS_MODS } from "../data/libellesUI";
+import { LIBELLES_SLOT, LIBELLES_CATEGORIE } from "../data/libellesUI";
 import { STAT_MAX, sommerStatsArmure } from "../lib/scoring/stats";
 import { obtenirChampionsCouverts } from "../lib/scoring/verbes";
 import { obtenirBonusSetsActifs } from "../lib/scoring/armorSets";
@@ -60,18 +60,12 @@ import { equiperObjet, equiperPlusieursObjets, diagnostiquerExistenceObjet } fro
 import { obtenirOptionsSousClasse, CategorieSocket, GroupeSocket, obtenirAntiChampion, obtenirAntiChampionArmure, obtenirIconesPerksArme, obtenirOptionsToutesColonnes, raccourcirNom, obtenirBonusSet, obtenirBonusStatsDoctrine, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
 import { texteSurvol } from "./SelecteurInventaire";
 // ⚠️ AJOUT (branche draft-mod-armures) : édition des MODS d'armure dans la pop-up Détails de Mon Build (même magasin partagé que la Forge).
-<<<<<<< Updated upstream
-import { colonnesArmure, regrouperColonnesArmure, statsSimulees } from "../lib/forge/armure";
-import type { ColonneArmure, PlugArmure, GroupeColonneArmure } from "../lib/forge/armure";
-import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees } from "../lib/forge/simulation";
-=======
 import { colonnesArmure, statsSimulees } from "../lib/forge/armure";
 import { reinitialiserArme, nbColonnesSimulees } from "../lib/forge/simulation";
 import { deltaStatsArmure } from "../lib/forge/appliquerSimulation";   // ⚠️ AJOUT (27/10/2026)
 import { appliquerChangements } from "../lib/forge/energieMods";   // ⚠️ AJOUT (26/10/2026)
 import SimulationModsArmure from "./SimulationModsArmure";   // ⚠️ AJOUT (26/10/2026)
 import StatsArmure from "./StatsArmure";   // ⚠️ AJOUT (27/10/2026)
->>>>>>> Stashed changes
 import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 
 
@@ -326,18 +320,6 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
       () => (!estArme && detailsOuverts && db && instance ? statsSimulees(db, pieceReelleSim, choixArmure) : null),
       [estArme, detailsOuverts, db, pieceReelleSim, instance, choixArmure]
     );
-<<<<<<< Updated upstream
-    function choisirMod(col: ColonneArmure, plug: PlugArmure) {
-      if (!instance || !col.modifiable) return;
-      if (plug.hash === col.equipe.hash || choixArmure?.[col.socketIndex]?.choisi === plug.hash) mettreAJourSimulations((s) => retirerColonne(s, instance, col.socketIndex, "armures"));
-      else mettreAJourSimulations((s) => choisir(s, instance, col.socketIndex, { choisi: plug.hash, effectif: plug.hash }, "armures"));
-    }
-    function choisirModGroupe(groupe: GroupeColonneArmure, plug: PlugArmure) {
-      const cible = groupe.colonnes.find((c) => choixArmure?.[c.socketIndex]?.choisi !== plug.hash) ?? groupe.colonnes[0];
-      choisirMod(cible, plug);
-    }
-=======
->>>>>>> Stashed changes
     return (
       <li style={{ marginBottom: "0.3rem" }}>
         {/* FR : ⚠️ CORRIGÉ (04/08/2026) - le libellé d'emplacement était
@@ -378,15 +360,12 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                 </span>
               )}
               {/* ⚠️ AJOUT (branche draft-mod-armures) - badge « simulé » sur une ARMURE dont des mods sont simulés (même repère que les armes). */}
-<<<<<<< Updated upstream
-=======
               {/* FR : ⚠️ AJOUT (27/10/2026) - la simulation de cette armure DÉPASSE son énergie : le score l'ignore (garde-fou de `appliquerSimulationArmure`). / EN: ⚠️ ADDED - this armor's simulation exceeds its energy: ignored by the score. */}
               {piece.simulationRejetee && (
                 <span data-badge-simulation-rejetee="" title={`La simulation dépasse l'énergie de la pièce de ${piece.energieDepassee ?? 0} : ce n'est pas réalisable en jeu, le score l'ignore.`} style={{ fontSize: "0.7rem", color: "#e0a080", cursor: "help" }}>
                   ⚠️ simulation ignorée (énergie dépassée de {piece.energieDepassee ?? 0})
                 </span>
               )}
->>>>>>> Stashed changes
               {piece.modsSimules && (
                 <span data-badge-simule-armure="" title={`${piece.nbModsSimules ?? 0} mod(s) simulé(s) dans la Forge : pris en compte dans le score et Mon Build, pas appliqués en jeu.`} style={{ fontSize: "0.7rem", color: "#e8c547", border: "1px solid #e8c547", borderRadius: 999, padding: "0 0.4rem", cursor: "help" }}>
                   🔨 {piece.nbModsSimules ?? 0} mod{(piece.nbModsSimules ?? 0) > 1 ? "s" : ""} simulé{(piece.nbModsSimules ?? 0) > 1 ? "s" : ""}
@@ -597,61 +576,6 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                   </div>
                 );
               })()}
-<<<<<<< Updated upstream
-              {/* ⚠️ AJOUT (branche draft-mod-armures) - SIMULATION DES MODS dans la pop-up Détails d'une ARMURE de Mon Build : mêmes colonnes, niveaux et magasin partagé que la Forge ; les stats affichées sont RÉELLES → SIMULÉES (la pièce affichée ici est déjà la copie simulée : on repart des données RÉELLES `statsReelles`/`perkHashesReels` pour ne jamais simuler sur du simulé). */}
-              {!estArme && instance && db && colonnesMods.length > 0 && statsMods && (
-                <div data-mods-armure-simulation="" style={{ marginBottom: "0.8rem" }}>
-                  <strong style={{ fontSize: "0.8rem" }}>🔨 Simuler les mods</strong>
-                  {piece.modsSimules && (
-                    <span style={{ fontSize: "0.72rem", color: "#e8c547", marginLeft: "0.4rem" }}>
-                      ({piece.nbModsSimules ?? 0} mod{(piece.nbModsSimules ?? 0) > 1 ? "s" : ""} simulé{(piece.nbModsSimules ?? 0) > 1 ? "s" : ""} — le score et Mon Build en tiennent compte)
-                    </span>
-                  )}
-                  <p style={{ fontSize: "0.72rem", color: "#9a968a", margin: "0.2rem 0 0.4rem" }}>
-                    Cliquez un mod pour le simuler (un seul par emplacement) ; cliquez le mod équipé, ou de nouveau le mod simulé, pour revenir à l'équipement réel. <strong>Rien n'est modifié en jeu</strong>.
-                  </p>
-                  <div data-stats-armure="" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(7.5rem, 1fr))", gap: "0.3rem 0.7rem", margin: "0 0 0.5rem", fontSize: "0.78rem" }}>
-                    {ORDRE_STATS_MODS.map((cle) => {
-                      const reel = statsMods.reelles[cle] ?? 0, sim = statsMods.simulees[cle] ?? 0, d = statsMods.delta[cle] ?? 0;
-                      return (
-                        <span key={cle} data-stat={cle} data-reelle={reel} data-simulee={sim} data-delta={d} style={{ display: "flex", justifyContent: "space-between", gap: "0.4rem", borderBottom: "1px solid #232733", paddingBottom: "0.15rem" }}>
-                          <span style={{ color: "#b7b3a8" }}>{LIBELLES_STAT_MODS[cle]}</span>
-                          <span>{d !== 0 ? <><span style={{ color: "#7d7a70" }}>{reel} → </span><strong style={{ color: d > 0 ? "#7fd88f" : "#e0a080" }}>{sim}</strong> <span style={{ color: d > 0 ? "#7fd88f" : "#e0a080", fontSize: "0.7rem" }}>({d > 0 ? `+${d}` : d < 0 ? `−${Math.abs(d)}` : "±0"})</span></> : <strong>{reel}</strong>}</span>
-                        </span>
-                      );
-                    })}
-                  </div>
-                  <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.5rem" }}>
-                    <span data-nb-simulees={nbColonnesSimulees(simulations, instance, "armures")} style={{ fontSize: "0.78rem", color: "#e8c547" }}>{nbColonnesSimulees(simulations, instance, "armures") > 0 ? `${nbColonnesSimulees(simulations, instance, "armures")} mod${nbColonnesSimulees(simulations, instance, "armures") > 1 ? "s" : ""} simulé${nbColonnesSimulees(simulations, instance, "armures") > 1 ? "s" : ""}` : "aucune simulation"}</span>
-                    <button disabled={nbColonnesSimulees(simulations, instance, "armures") === 0} onClick={() => mettreAJourSimulations((s) => reinitialiserArme(s, instance, "armures"))} style={{ fontSize: "0.78rem" }}>↺ Revenir à l'équipement réel</button>
-                  </div>
-                  {regrouperColonnesArmure(colonnesMods).map((groupe) => {
-                    const premier = groupe.colonnes[0];
-                    const nbSimGroupe = groupe.colonnes.filter((c) => choixArmure?.[c.socketIndex]?.choisi !== undefined && choixArmure?.[c.socketIndex]?.choisi !== c.equipe.hash).length;
-                    return (
-                      <div key={premier.socketIndex} data-colonne={premier.socketIndex} data-groupe-prises={groupe.colonnes.length > 1 ? groupe.colonnes.map((c) => c.socketIndex).join(",") : ""} data-modifiable={groupe.modifiable ? "1" : ""} style={{ marginBottom: "0.6rem" }}>
-                        <strong style={{ fontSize: "0.75rem", color: "#7d7a70" }}>{groupe.categorie || `Emplacement ${premier.socketIndex}`}{groupe.colonnes.length > 1 && <span data-multiplicite={groupe.colonnes.length}> × {groupe.colonnes.length}</span>}{nbSimGroupe > 0 && <span style={{ color: "#e8c547" }}> · {nbSimGroupe} simulé{nbSimGroupe > 1 ? "s" : ""}</span>}{!groupe.modifiable && <span style={{ fontWeight: 400, color: "#6b6860" }}> · {groupe.fixe ? "fixe" : groupe.cosmetique ? "cosmétique" : "un seul plug disponible"}</span>}</strong>
-                        {groupe.theorique && groupe.modifiable && <p data-plugs-theoriques="" style={{ fontSize: "0.7rem", color: "#9a8a6a", margin: "0.2rem 0" }}>Plugs possibles lus sur le modèle du jeu (votre exemplaire n'en liste aucun) : la simulation est locale, rien ne prouve que cette pièce les accepte.</p>}
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.25rem" }}>
-                          {premier.options.map((plug) => {
-                            const reel = plug.hash === premier.equipe.hash;
-                            const simule = groupe.colonnes.some((c) => choixArmure?.[c.socketIndex]?.choisi === plug.hash);
-                            const niveau = simule ? "simule" : reel ? "reel" : plug.theorique ? "theorique" : "disponible";
-                            return (
-                              <button key={plug.hash} type="button" disabled={!groupe.modifiable} onClick={() => (groupe.colonnes.length > 1 ? choisirModGroupe(groupe, plug) : choisirMod(premier, plug))} title={plug.description || plug.nom} data-plug={plug.hash} data-niveau={niveau} data-reel={reel ? "1" : ""} data-theorique={plug.theorique ? "1" : ""}
-                                style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.75rem", padding: "0.15rem 0.5rem", borderRadius: 999, cursor: groupe.modifiable ? "pointer" : "default", color: simule ? "#f4e3a0" : reel ? "#e8e6df" : groupe.modifiable ? "#b9bcc6" : "#8a8a96", background: simule ? "#2a2412" : "#0d0f14", border: `1px solid ${simule ? "#e8c547" : reel ? "#7aa2f7" : "#4a4f5c"}`, fontStyle: plug.theorique && !reel ? "italic" : "normal" }}>
-                                {reel && <span style={{ color: "#7aa2f7" }}>✓</span>}
-                                {plug.icone && <img src={plug.icone} alt="" width={16} height={16} style={{ borderRadius: 3 }} />}
-                                <span>{plug.nom}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-=======
 {/* FR : ⚠️ CHANGÉ (26/10/2026, retour de l'utilisateur : « Je ne vois pas les nouvelles fenêtres ») - la fenêtre Détails de MON BUILD avait sa propre COPIE de l'ancienne simulation (je n'avais remplacé que celle de l'Inventaire) : elle utilise maintenant le composant `SimulationModsArmure`, avec la note « le score et Mon Build en tiennent compte ». EN: ⚠️ CHANGED - Mon Build's Details pop-up now uses the shared `SimulationModsArmure` component. */}
               {!estArme && instance && db && colonnesMods.length > 0 && statsMods && (
                 <SimulationModsArmure
@@ -665,7 +589,6 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                   onChanger={(changements) => mettreAJourSimulations((s) => appliquerChangements(s, instance, colonnesMods, changements))}
                   onReinitialiser={() => mettreAJourSimulations((s) => reinitialiserArme(s, instance, "armures"))}
                 />
->>>>>>> Stashed changes
               )}
               {estArme && colonnesDetails.length === 0 && (
                 <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucune option trouvée pour cette arme.</p>
