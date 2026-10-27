@@ -25,7 +25,8 @@ ok("le perk à COMPTER : sa version améliorée si l'arme est améliorée ET que
 ok("le perk du roll réel est reconnu, qu'il soit la version de base OU la version améliorée dans la paire", estLeRollReel(item(1, true, 2)) && estLeRollReel(item(1, false, 2, true)) && !estLeRollReel(item(3, false, 4)));
 // ---------- persistance ----------
 const st = memoire();
-ok("écrire puis relire redonne les mêmes simulations ; le format stocké est compact et versionné", ecrireSimulations(st, s3) && JSON.stringify(lireSimulations(st)) === JSON.stringify(s3) && JSON.parse(st.contenu.get(CLE_STOCKAGE_SIMULATIONS)!).version === 1, st.contenu.get(CLE_STOCKAGE_SIMULATIONS));
+// ⚠️ CHANGÉ (branche draft-mod-armures) : le format stocké passe en version 2 (bloc `armures` ajouté).
+ok("écrire puis relire redonne les mêmes simulations ; le format stocké est compact et versionné", ecrireSimulations(st, s3) && JSON.stringify(lireSimulations(st)) === JSON.stringify(s3) && JSON.parse(st.contenu.get(CLE_STOCKAGE_SIMULATIONS)!).version === 2, st.contenu.get(CLE_STOCKAGE_SIMULATIONS));
 ok("stockage vide, JSON illisible, mauvaise version ou mauvaise forme : simulation VIDE, jamais d'erreur", [memoire(), memoire("{pas du json"), memoire('{"version":2,"armes":{}}'), memoire("null"), memoire('{"version":1,"armes":5}'), memoire('{"version":1}')].every((m) => Object.keys(lireSimulations(m).armes).length === 0));
 const abime = lireSimulations(memoire(JSON.stringify({ version: 1, armes: { ok: { "1": { c: 10, e: 11 }, "x": { c: 1, e: 2 }, "2": { c: -3, e: 4 }, "3": { c: 5 } }, vide: {}, faux: 7 } })));
 ok("les entrées abîmées sont écartées UNE à UNE : seule la colonne valide de l'exemplaire valide est conservée (index non numérique, nombre négatif, valeur manquante, exemplaire vide ou mal formé écartés)", JSON.stringify(abime.armes) === JSON.stringify({ ok: { 1: { choisi: 10, effectif: 11 } } }), abime);
@@ -36,4 +37,20 @@ ok("un stockage dont la lecture lève une erreur donne une simulation vide", Obj
 (globalThis as unknown as { window: unknown }).window = { get localStorage(): Storage { throw new Error("SecurityError"); } };
 const secours = stockageNavigateur(); secours.setItem("a", "b");
 ok("sans stockage du navigateur (accès interdit), une mémoire de secours prend le relais (elle ne persiste pas mais l'appli fonctionne)", secours.getItem("a") === "b" && secours.getItem("z") === null);
+// ---------- ⚠️ AJOUT (branche draft-mod-armures) : le bloc ARMURES ----------
+import { armuresSimulees } from "../../src/lib/forge/simulation";
+const a0 = choisir(s0, "a1", 2, { choisi: 7412, effectif: 7412 }, "armures");
+ok("choisir un mod d'armure enregistre dans le bloc `armures`, sans toucher aux armes", Object.keys(a0.armures!).length === 1 && a0.armures!["a1"][2].choisi === 7412 && Object.keys(a0.armes).length === 0 && nbColonnesSimulees(a0, "a1", "armures") === 1 && nbColonnesSimulees(a0, "a1") === 0, a0);
+const a1 = choisir(a0, "a1", 3, { choisi: 7422, effectif: 7422 }, "armures");
+const a2 = retirerColonne(a1, "a1", 2, "armures");
+ok("armures : une seule prise par colonne, retour au réel sur une prise, les autres restent ; retirer la dernière retire l'armure de la liste", nbColonnesSimulees(a2, "a1", "armures") === 1 && !(2 in a2.armures!["a1"]) && armuresSimulees(retirerColonne(a2, "a1", 3, "armures")).length === 0 && armuresSimulees(a2).join() === "a1", a2);
+ok("armures : réinitialiser une armure n'affecte pas les armes ni les autres armures", (() => { const x = choisir(choisir(a1, "a2", 1, { choisi: 1, effectif: 1 }, "armures"), "w1", 1, { choisi: 9, effectif: 9 }); const r = reinitialiserArme(x, "a1", "armures"); return armuresSimulees(r).join() === "a2" && Object.keys(r.armes).join() === "w1" && nbColonnesSimulees(r, "a1", "armures") === 0; })());
+const stA = memoire();
+ok("armures : écrire puis relire conserve le bloc `armures` (format version 2)", ecrireSimulations(stA, a1) && JSON.stringify(lireSimulations(stA)) === JSON.stringify(a1) && JSON.parse(stA.contenu.get(CLE_STOCKAGE_SIMULATIONS)!).version === 2 && !!JSON.parse(stA.contenu.get(CLE_STOCKAGE_SIMULATIONS)!).armures.a1, stA.contenu.get(CLE_STOCKAGE_SIMULATIONS));
+const v1 = lireSimulations(memoire(JSON.stringify({ version: 1, armes: { w1: { "1": { c: 10, e: 11 } } } })));
+ok("MIGRATION : un contenu version 1 (sans bloc `armures`) est accepté : les armes sont lues, le bloc armures est vide", v1.version === 2 && JSON.stringify(v1.armes) === JSON.stringify({ w1: { 1: { choisi: 10, effectif: 11 } } }) && Object.keys(v1.armures!).length === 0, v1);
+const v1b = lireSimulations(memoire(JSON.stringify({ version: 1, armes: { a1: { "2": { c: 7412, e: 7412 } } } })));
+ok("MIGRATION : une ancienne simulation d'armure (écrite dans `armes` par la 0.4.12, magasin partagé sans distinction) RESTE dans `armes` à la lecture : elle y est inerte pour le score (qui ne lit plus `armes` pour les armures) — aucun reclassement risqué", JSON.stringify(v1b.armes) === JSON.stringify({ a1: { 2: { choisi: 7412, effectif: 7412 } } }) && Object.keys(v1b.armures!).length === 0, v1b);
+const abimeA = lireSimulations(memoire(JSON.stringify({ version: 2, armes: {}, armures: { ok: { "2": { c: 7412, e: 7412 }, "x": { c: 1, e: 2 } }, faux: 7 } })));
+ok("armures : les entrées abîmées du bloc `armures` sont écartées une à une, comme pour les armes", JSON.stringify(abimeA.armures) === JSON.stringify({ ok: { 2: { choisi: 7412, effectif: 7412 } } }), abimeA);
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`); process.exit(res.every(Boolean) ? 0 : 1);

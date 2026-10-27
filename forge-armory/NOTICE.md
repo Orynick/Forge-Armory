@@ -315,7 +315,7 @@ Le bouton **« Carrière »** du bloc Connexion ouvre une page dédiée aux **st
 Le bouton **« Accomplissements »** du bloc Connexion ouvre une page dédiée à **tous vos Triomphes de compte** — obtenus et à obtenir — groupés **par sceau** (comme la hiérarchie Collections→Sceaux du jeu).
 
 - **Compteur global en tête** : « X / Y triomphes obtenus · score total ».
-- **Sceaux en cartes carrées identiques dans une grille** (plusieurs par ligne), repliés par défaut : zone carrée (icône, nom tronqué à 2 lignes, titre « débloqué » à 100 %) centrée), **barre de progression sous la carte** et **pourcentage en dessous** (ex. « 50 % »). Un clic sur une carte **déplie ses triomphes dans la carte**. Triez par **progression** ou par **nom**.
+- **Sceaux en cartes dans une grille** (plusieurs par ligne), repliés par défaut : icône, nom et titre (« débloqué » à 100 %) centrés, **barre de progression sous la carte** et **pourcentage en dessous** (ex. « 50 % »). Un clic sur une carte **déplie ses triomphes dans la carte**. Triez par **progression** ou par **nom**.
 - Chaque triomphe affiche : icône, nom, description, progression des objectifs (« 3 / 10 »), badge ✅ (obtenu) ou ⬜ (à obtenir), et ses points.
 - **Recherche avancée** dans tous les sceaux (nom + description des triomphes, nom du sceau) : guillemets `"phrase exacte"`, `+obligatoire`, `-exclu`, case « Aa » pour respecter la casse. Exemple : `+"solo sans mourir" -gambit`.
 - Les triomphes **absents de votre profil** sont affichés comme « à obtenir » — jamais masqués, jamais estimés.
