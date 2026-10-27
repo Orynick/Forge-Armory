@@ -1,7 +1,7 @@
 {
   "name": "forge-armory",
   "private": true,
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Analyseur de builds Destiny 2 : score un build sur 5 piliers a partir de vos donnees Bungie.net.",
   "author": "Orynick/Orygamer",
   "type": "module",

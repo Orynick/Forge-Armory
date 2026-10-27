@@ -3,6 +3,17 @@
 > **Ce fichier est désormais un changelog orienté utilisateur.**
 > L'historique complet et détaillé du développement (DEVLOG) se trouve dans [`DEVLOG.md`](DEVLOG.md).
 
+## v0.5.6 — 28/10/2026
+
+- **Forge des armures, étape 2 — la simulation des mods d'armure est terminée** : vous pouvez modifier les mods d'une armure **directement dans la pop-up « Détails »** (Mon Inventaire, Coffre et Mon Build), sans passer par la fenêtre Forge. Le **score et Mon Build réagissent en temps réel** : les statistiques de l'armure sont recalculées avec les mods simulés, et le bandeau « Score calculé avec des mods d'armure simulés » s'affiche à côté du score.
+- **Budget d'énergie** : la simulation affiche une **jauge d'énergie** (coût de chaque mod / capacité de la pièce). Une simulation qui **dépasse l'énergie** de l'armure n'est pas réalisable en jeu : le score l'ignore et un avertissement vous le signale (badge dans Mon Build, bandeau sur la page principale).
+- **Score réel → simulé** : à côté du score global, l'appli affiche la **comparaison** « réel → simulé (+N) » avec les piliers et les statistiques qui changent ; dans Mon Build, le delta des statistiques totales s'affiche à côté de chaque statistique (« Santé 5 (+5) »). Dans le bloc « Effets du Build », l'origine d'un verbe venant d'un perk **simulé** porte un badge « 🔨 simulé ».
+- **Ajustement** : la statistique « + » propre à une armure légendaire est marquée du symbole **⇅** (en vert, devant le nom) partout où les six statistiques d'une armure s'affichent (sauf la Collection) ; la simulation permet de choisir l'ajustement (rien / équilibré / directionnel).
+- **Interface allégée** : la fenêtre de simulation des mods est un **composant unique et compact** (résumé + « Modifier »), identique dans les trois pop-ups Détails et dans la Forge ; les statistiques s'affichent sur 2 lignes de 3, sans total.
+- **Rien n'est modifié en jeu** : la simulation reste locale. L'enregistrement, le partage, l'export et l'équipement gardent vos mods réels.
+
+→ Détails complets : [DEVLOG.md](DEVLOG.md)
+
 ## 23/10/2026 — DÉPENDANCES : ÉLECTRON 44 → 45 (majeur, sécurité) — `draft-deps`, palier 2bis
 
 **Demande** : mise à jour d'Electron exigée avant toute mise en ligne ou diffusion (question de sécurité — décision de l'utilisateur du 22/10).
