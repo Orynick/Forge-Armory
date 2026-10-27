@@ -50,8 +50,11 @@ Le renommage « Forge Armory » est lui aussi validé (06/10/2026, section 12).
    - **Forge : points à trancher** (le document en annonçait aucun ; détail et défauts dans `NOTES-CONCEPTION.md`) : (1) « Transférer vers » existe déjà depuis la 0.4.2 : en Phase 2 il reste « équiper vers un personnage » et l'écriture des perks ; (2) perks simulés et équipement en jeu : badge « simulé » et avertissement ; (3) « pas de combinaison impossible » : le Manifest n'a pas de règles d'exclusion entre colonnes, garantie = une perk par colonne, prise dans son pool ; (4) « version améliorée » ≠ masterwork, et l'état masterwork d'une arme n'est pas lu aujourd'hui : lecture à ajouter et lien perk ↔ jumeau amélioré à vérifier sur ton Manifest ; (5) Collection grisée : nouvelle lecture Bungie (collections) ; un objet sans `collectibleHash` ne peut pas être classé ; (6) anti-bruit : filtre fondé sur le Manifest + liste modifiable, pas de dépendance à DIM, light.gg ou DestinyRecipes ; (7) Manifest : vérification de version automatique à la connexion, téléchargement automatique seulement si un cache existe ; (8) l'onglet Forge héberge les deux vues, le bouton « Forge » des popups y mène directement ; (9) l'impact en temps réel s'affiche dans les cartes du Scoring (le bloc Doctrine est la sous-classe) ; (10) armures : à définir (que sélectionne-t-on sur une armure ?), armes d'abord ; (11) données : clé `socketIndex`, hashes en nombres, sélection par `itemInstanceId` ; (12) limite du jeu pour la Phase 2 : les traits d'une arme à rolls aléatoires non forgée ne sont pas modifiables en jeu (à vérifier avec l'API).
    - **Reste de la liste du 12/10** : ~~logos « Arme » et « Armure » dans l'export~~ ✅ intégrés en 0.4.1 (archive de visuels v3) ; ~~bug du Filobscur~~ ✅ cause établie (les objets du Filobscur réutilisent les fichiers d'icône de la Stase dans les données de Bungie) et corrigé en 0.4.1 par recoloration, ✅ validé le 12/10/2026 (tous les tests cochés, sans demande de réglage de la teinte).
 3. **Sécurité, avant toute ouverture à des tiers** : ~~Vite, React Router~~ ✅
-   (faits en v0.5.1, voir section 1), puis la politique de sécurité de contenu
-   (CSP — reste de la section 1, chantier `draft-sec`).
+   (faits en v0.5.1, voir section 1), ~~politique de sécurité de contenu (CSP)~~ ✅
+   (livrée en v0.5.4, voir section 1) — reste : fusionner proprement la branche
+   `draft-sec` (chiffrement des jetons `safeStorage`, liste blanche réseau,
+   permissions refusées), et Node.js >=24.22.1 exigé depuis le 24/10/2026
+   (correctifs CVE octobre 2026).
 
 ⏸️ **En attente d'une décision** : l'agent IA (section 3). **À décider** :
 le canal du lien « Contact » (section 23).
@@ -80,10 +83,14 @@ et revue des changements incompatibles : `DEVLOG.md`.
 
 ✅ **TERMINÉ en v0.5.1 (23/10/2026, chantier `draft-deps`).** `npm audit` : **0 vulnérabilité** (contre 18 au départ, 4 le 30/09).
 - ✅ **Vite / esbuild** : `vite` 5 → **7.3.7** (+ `@vitejs/plugin-react` 4 → 5, `vite-plugin-mkcert` 1 → 2) ;
-- ✅ **React Router** : `react-router-dom` 6 → **7.18.4** (+ React 18 → **19.2.9**, Electron 44 → **45.0.0**) ;
-- 🟡 **Reste : ajouter une politique de sécurité de contenu (CSP)**, à écrire puis tester pas à pas : une CSP trop
-  stricte casse silencieusement les appels Bungie, le WebAssembly de sql.js ou les images distantes.
-  (Chantier `draft-sec` en cours.)
+- ✅ **React Router** : `react-router-dom` 6 → **7.18.4** (+ React 18 → **19.3.1**, Electron 44 → **45.0.0**) ;
+- ✅ **Politique de sécurité de contenu (CSP) livrée en v0.5.4** (23/10/2026, chantier `draft-sec` + correctif
+  `wasm-unsafe-eval`) : injectée au build uniquement, `default-src 'self'`, `object-src 'none'`,
+  `frame-ancestors 'none'`, `connect-src` limité à la liste blanche (Bungie, DIM, GitHub),
+  `script-src 'self' 'wasm-unsafe-eval'` (pas de `'unsafe-eval'` ni `'unsafe-inline'`).
+  Test : `tests/logique/cablage-csp-wasm.test.ts` (15 contrôles). **Validée par l'utilisateur**
+  (chargement du Manifest réparé dans le logiciel installé). Branche `draft-sec` à fusionner
+  proprement (chiffrement des jetons `safeStorage`, liste blanche réseau, permissions refusées).
 
 **Rappels utiles :**
 - sous PowerShell, utiliser `npm.cmd` : la commande `npm` seule est bloquée par la politique d'exécution des

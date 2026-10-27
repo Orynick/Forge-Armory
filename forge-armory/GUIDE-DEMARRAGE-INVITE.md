@@ -10,9 +10,10 @@ vous l'a partagée.
 
 ## Ce qu'il vous faut avant de commencer
 
-- **Node.js** installé sur votre ordinateur (version 18 ou plus récente).
+- **Node.js** installé sur votre ordinateur (**version 24.22.1 ou plus
+  récente** — les versions antérieures sont refusées par l'application).
   Si vous ne l'avez pas : téléchargez-le sur https://nodejs.org (choisissez
-  la version "LTS").
+  la version "LTS" la plus récente).
 - Un compte Bungie.net avec au moins un personnage Destiny 2.
 - Windows : utilisez l'invite de commandes (`cmd`), pas PowerShell.
 
