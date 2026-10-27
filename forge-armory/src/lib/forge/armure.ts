@@ -9,6 +9,7 @@ import { normaliser, urlIcone } from "../manifest/search";
 import { resoudreStatKey } from "../manifest/statsArmure";
 import { diagnosticSaisonObjet } from "../manifest/saison";
 import type { ChoixColonne } from "./simulation";
+import { effetAjustement, infoAjustement, lirePlus, nonIntrinsequesDePiece } from "./ajustement";   // ⚠️ AJOUT (26/10/2026) : règle de l'ajustement
 
 export type StatsPartielles = Partial<Record<StatKey, number>>;
 export interface PlugArmure { hash: number; nom: string; description: string; icone?: string; categoriePlug: string; ornement: boolean; stats: StatsPartielles; /** FR : ⚠️ AJOUT (19/10/2026) - plug lu sur le MODÈLE (pas l'exemplaire) : possible en théorie, non garanti sur CET exemplaire. / EN: plug read from the model, not this instance. */ theorique?: boolean }
@@ -40,6 +41,8 @@ interface DefNommee { displayProperties?: { name?: string } }
 const MOTS_COSMETIQUES = /shader|skin|ornament|ornement|cosmetic|cosmetique|transmat|emote|projection|memento|souvenir|tracker|apparence|teinture|spawn/;
 /** FR : catégories de plug qui ne se changent JAMAIS à la main (archétype, maîtrise, intrinsèque, exotique, bonus d'ensemble) : jamais simulées, même si l'exemplaire en listait plusieurs. / EN: plug categories a player never changes by hand. */
 const CATEGORIES_FIXES = /masterwork|armor_stats|intrinsic|exotic|set_perk|armor_tier|archetype/i;
+/** FR : ⚠️ AJOUT (25/10/2026, maquette validée) - l'AJUSTEMENT (« core.gear_systems.armor_tiering.plugs.tuning.mods ») se change à la main : sa catégorie contient `armor_tier`, ce qui le faisait classer « fixe » donc IMPOSSIBLE à simuler (« fixe : oui | modifiable : non » dans les diagnostics réels de l'utilisateur). Il est exempté de la règle des catégories fixes. / EN: ⚠️ ADDED - the tuning socket is changeable; its category contains `armor_tier`, which wrongly made it "fixed". */
+const estCategorieFixe = (categoriePlug: string): boolean => CATEGORIES_FIXES.test(categoriePlug) && !/tuning/i.test(categoriePlug);
 
 const memoStats = new WeakMap<Database, Map<number, StatKey | undefined>>();
 function cleStat(db: Database, statHash: number): StatKey | undefined {
@@ -90,6 +93,20 @@ function completerParModele(db: Database, piece: GearPiece, socketIndex: number,
   return ajoutes;
 }
 
+/** FR : ⚠️ AJOUT (26/10/2026) - le plug « vide » d'un emplacement d'AJUSTEMENT (« Emplacement de mod d'ajustement vide »), lu dans le MODÈLE du jeu : l'exemplaire ne le liste pas parmi ses plugs disponibles, or « laisser l'ajustement vide » est l'une des trois issues du jeu. Seuls les plugs « vides » sont ajoutés, jamais les autres combinaisons du modèle. Marqués `theorique`. / EN: ⚠️ ADDED - the empty tuning plug read from the model definition. */
+function videsParModele(db: Database, piece: GearPiece, socketIndex: number, vus: Set<number>): PlugArmure[] {
+  const def = obtenirDefinition<DefObjetArmure>(db, "DestinyInventoryItemDefinition", piece.itemHash);
+  const entree = def?.sockets?.socketEntries?.[socketIndex];
+  if (!entree) return [];
+  const ajoutes: PlugArmure[] = [];
+  for (const h of hashesPossibles(db, entree)) {
+    if (vus.has(h)) continue;
+    const p = lirePlugArmure(db, h);
+    if (p && !p.ornement && infoAjustement(p).genre === "vide") { vus.add(h); ajoutes.push({ ...p, theorique: true }); }
+  }
+  return ajoutes;
+}
+
 export function colonnesArmure(db: Database, piece: GearPiece, inclureCosmetiques = false): ColonneArmure[] {
   const def = obtenirDefinition<DefObjetArmure>(db, "DestinyInventoryItemDefinition", piece.itemHash);
   const noms = new Map<number, string>();
@@ -114,12 +131,13 @@ export function colonnesArmure(db: Database, piece: GearPiece, inclureCosmetique
     }
     // FR : ⚠️ AJOUT (19/10/2026) - l'exemplaire ne propose RIEN d'autre que son plug équipé sur une prise qui devrait être changeable : les plugs POSSIBLES du modèle complètent (théoriques).
     let theorique = false;
-    const fixe = CATEGORIES_FIXES.test(equipe.categoriePlug);
+    const fixe = estCategorieFixe(equipe.categoriePlug);
     if (!fixe && !cosmetique && options.length < 2) {
       const modele = completerParModele(db, piece, socketIndex, vus);
       theorique = modele.length > 0;
       options.push(...modele);
     }
+    if (/tuning/i.test(equipe.categoriePlug) && !fixe && !cosmetique) options.push(...videsParModele(db, piece, socketIndex, vus));   // ⚠️ AJOUT (26/10/2026) : « rien » est une issue de l'ajustement
     colonnes.push({ socketIndex, categorie, equipe, options, cosmetique, fixe, modifiable: !fixe && !cosmetique && options.length >= 2, theorique: theorique || undefined });
   }
   colonnes.sort((a, b) => a.socketIndex - b.socketIndex);
@@ -146,13 +164,18 @@ export function statsSimulees(db: Database, piece: GearPiece, choix?: Record<num
   const delta: StatsPartielles = {};
   let nbChangements = 0;
   if (choix) {
-    for (const col of colonnesArmure(db, piece, true)) {
+    const cols = colonnesArmure(db, piece, true);
+    const nonIntrinseques = nonIntrinsequesDePiece(piece.stats, cols);   // ⚠️ AJOUT (26/10/2026) : les 3 statistiques que l'ajustement ÉQUILIBRÉ augmente de 1
+    for (const col of cols) {
       const c = choix[col.socketIndex];
       if (!c || !col.modifiable || c.effectif === col.equipe.hash) continue;
       const nouveau = col.options.find((o) => o.hash === c.effectif);
       if (!nouveau) continue;
       nbChangements++;
-      for (const k of new Set([...Object.keys(nouveau.stats), ...Object.keys(col.equipe.stats)]) as Set<StatKey>) delta[k] = (delta[k] ?? 0) + (nouveau.stats[k] ?? 0) - (col.equipe.stats[k] ?? 0);
+      // FR : ⚠️ CHANGÉ (26/10/2026) - pour un ajustement, l'effet est celui de la RÈGLE du jeu (rien / +1 sur 3 statistiques / +5 et −5), pas celui lu dans le Manifest. / EN: for tuning, the effect follows the game's rule.
+      const effet = (p: PlugArmure): StatsPartielles => (/tuning/i.test(col.equipe.categoriePlug) ? effetAjustement(p, nonIntrinseques) : p.stats);
+      const enPlus = effet(nouveau), enMoins = effet(col.equipe);
+      for (const k of new Set([...Object.keys(enPlus), ...Object.keys(enMoins)]) as Set<StatKey>) delta[k] = (delta[k] ?? 0) + (enPlus[k] ?? 0) - (enMoins[k] ?? 0);
     }
   }
   const reelles = piece.stats ?? {};
@@ -176,7 +199,38 @@ export function diagnosticArmure(db: Database, piece: GearPiece): string {
     lignes.push(`prise ${c.socketIndex} | catégorie « ${c.categorie || "?"} » | équipé : ${c.equipe.nom} (hash ${c.equipe.hash}, catégorie de plug « ${c.equipe.categoriePlug || "?"} », stats : ${Object.entries(c.equipe.stats).map(([k, v]) => `${k} ${v >= 0 ? "+" : ""}${v}`).join(", ") || "aucune"}) | disponibles : ${dispo.length}${noms ? ` (autres : ${noms}${c.options.length > 7 ? " …" : ""})` : ""} | cosmétique : ${c.cosmetique ? "oui" : "non"} | fixe : ${c.fixe ? "oui" : "non"} | modifiable : ${c.modifiable ? "OUI" : "non"}`);
   }
   for (const p of piece.perksParColonne ?? []) if (!lues.has(p.socketIndex)) lignes.push(`prise ${p.socketIndex} | plug illisible dans le Manifest (hash ${p.hash})`);
+  // FR : ⚠️ AJOUT (26/10/2026, règle de l'ajustement : le « + » est propre à la pièce) - pour CHAQUE emplacement d'ajustement : le « + » lu et SA SOURCE, les plugs que l'API dit insérables, la présence du plug « vide » dans le modèle, et les VRAIES valeurs du Manifest de chaque plug d'ajustement (l'« Ajustement équilibré » : sont-elles +1 +1 +1, ou aucune ?). / EN: ⚠️ ADDED - per tuning socket: the "+" stat read and its source, insertable plugs, empty plug presence, real Manifest values.
+  const nonInt = nonIntrinsequesDePiece(piece.stats, colonnes);
+  for (const c of colonnes.filter((x) => /tuning/i.test(x.equipe.categoriePlug))) {
+    const insertables = piece.plugsInsertablesParColonne?.[c.socketIndex];
+    const { plus, source } = piece.isExotic ? { plus: null, source: "aucune" as const } : lirePlus(c.options, c.equipe, insertables);
+    const plusDistincts = [...new Set(c.options.map(infoAjustement).filter((i) => i.genre === "directionnel").map((i) => i.plus))];
+    lignes.push(`  ↳ AJUSTEMENT (prise ${c.socketIndex}) : ${piece.isExotic ? "pièce EXOTIQUE : pas de « + » propre à la pièce (tous les ajustements sont possibles)" : `« + » de la pièce : ${plus ?? "ILLISIBLE"} (source : ${{ propositions: "les propositions de l'exemplaire n'ont qu'UN « + »", equipe: "l'ajustement équipé (les propositions ont plusieurs « + »)", insertables: "les plugs insérables (`canInsert`)", aucune: "aucune : ajustement équipé non directionnel et aucun indicateur d'insertion utile" }[source]})`} | « + » distincts parmi les ${c.options.length} plug(s) lus : ${plusDistincts.join(", ") || "aucun"} | plugs INSÉRABLES (canInsert) : ${insertables === undefined ? "indicateur ABSENT de l'API" : `${insertables.length} (${c.options.filter((o) => insertables.includes(o.hash)).map((o) => o.nom).slice(0, 8).join(" | ")})`} | plug « vide » lu dans le modèle : ${c.options.some((o) => infoAjustement(o).genre === "vide") ? "oui" : "NON"} | statistiques non intrinsèques calculées : ${nonInt ? nonInt.join(", ") : "illisibles"}`);
+    for (const o of c.options.slice(0, 40)) { const i = infoAjustement(o); if (i.genre === "equilibre" || i.genre === "vide" || i.genre === "autre") lignes.push(`  ↳ plug d'ajustement « ${o.nom} » (hash ${o.hash}) : genre ${i.genre} | statistiques lues dans le Manifest : ${Object.entries(o.stats).map(([k, v]) => `${k} ${v}`).join(", ") || "AUCUNE"}`); }
+  }
   return lignes.join("\n");
+}
+
+/**
+ * FR : ⚠️ AJOUT (26/10/2026, « ajoute le ⇅ aussi dans les deux lignes montrant les 6 stats de l'armure ») - la statistique « + » PROPRE à une armure LÉGENDAIRE (le symbole ⇅ du jeu), ou `null` : pièce exotique (pas de « + » propre), « + » illisible, ou aucun ajustement lu. Version LÉGÈRE pour les LISTES (des centaines de lignes) : elle ne lit que l'emplacement d'ajustement (jamais les listes complètes du modèle) et mémorise son résultat par pièce. / EN: ⚠️ ADDED - a legendary piece's own "+" stat (the ⇅ marker), lightweight and cached, for long lists.
+ */
+const cachePlus = new WeakMap<object, WeakMap<GearPiece, StatKey | null>>();
+export function statPlusDePiece(db: Database, piece: GearPiece): StatKey | null {
+  if (piece.isExotic) return null;
+  let parDb = cachePlus.get(db as object);
+  if (!parDb) { parDb = new WeakMap(); cachePlus.set(db as object, parDb); }
+  if (parDb.has(piece)) return parDb.get(piece) as StatKey | null;
+  let plus: StatKey | null = null;
+  for (const { socketIndex, hash } of piece.perksParColonne ?? []) {
+    const equipe = lirePlugArmure(db, hash);
+    if (!equipe || !/tuning/i.test(equipe.categoriePlug)) continue;
+    const options: PlugArmure[] = [equipe];
+    for (const h of piece.plugsDisponiblesParColonne?.[socketIndex] ?? []) { if (h === hash) continue; const p = lirePlugArmure(db, h); if (p && !p.ornement) options.push(p); }
+    plus = lirePlus(options, equipe, piece.plugsInsertablesParColonne?.[socketIndex]).plus;
+    break;
+  }
+  parDb.set(piece, plus);
+  return plus;
 }
 
 // ==================== ⚠️ AJOUT (16/10/2026, v0.4.12) : LES EMPLACEMENTS D'UN MODÈLE D'ARMURE (Collection, lecture seule) ====================
@@ -218,7 +272,7 @@ export function colonnesModeleArmure(db: Database, itemHash: number, options: { 
     const mod = estEmplacementMod(premier.categoriePlug, categorie);
     if ((cosmetique && !options.cosmetiques) || (mod && !options.mods)) return;   // replié : on ne lit pas ses autres plugs
     const lus = hashes.map((h) => lirePlugArmure(db, h)).filter((p): p is PlugArmure => !!p && !p.ornement);
-    colonnes.push({ socketIndex, categorie, options: lus, cosmetique, mod, fixe: CATEGORIES_FIXES.test(premier.categoriePlug) });
+    colonnes.push({ socketIndex, categorie, options: lus, cosmetique, mod, fixe: estCategorieFixe(premier.categoriePlug) });
   });
   return colonnes;
 }

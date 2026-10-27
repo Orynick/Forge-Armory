@@ -33,7 +33,7 @@
 // app). Displaying it makes it visible, and the "Transfer to" button
 // explains it (disabled).
 
-import { extrairePlugsDisponibles, extraireGearTier } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7) ; ⚠️ AJOUT (19/10/2026) : `extraireGearTier`
+import { extrairePlugsDisponibles, extraireGearTier, extraireEnergie, extrairePlugsInsertables } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7) ; ⚠️ AJOUT (19/10/2026) : `extraireGearTier`
 import { Database } from "sql.js";
 import { obtenirDefinition } from "../manifest/download";
 import { urlIcone } from "../manifest/search";
@@ -407,6 +407,8 @@ export async function listerObjetsPossedes(
       ...(item.itemInstanceId ? { plugsDisponiblesParColonne: extrairePlugsDisponibles(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),   // ⚠️ CHANGÉ (15/10/2026, v0.4.12) : lus aussi pour les ARMURES (Forge des armures : mods disponibles sur l'exemplaire)
       // FR : ⚠️ AJOUT (19/10/2026, branche test) - PALIER de l'exemplaire (composant 300) ; absent de la réponse = pas de champ (on n'affirme rien). / EN: instance gear tier (component 300); absent from the response = no field.
       ...(item.itemInstanceId ? { gearTier: extraireGearTier(gearTierParInstance[item.itemInstanceId]) } : {}),
+      ...(item.itemInstanceId && extraireEnergie(gearTierParInstance[item.itemInstanceId]) ? { energie: extraireEnergie(gearTierParInstance[item.itemInstanceId]) } : {}),
+      ...(item.itemInstanceId && extrairePlugsInsertables(plugsReutilisablesParInstance[item.itemInstanceId]) ? { plugsInsertablesParColonne: extrairePlugsInsertables(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),   // ⚠️ AJOUT (26/10/2026) : plugs réellement insérables (« + » de l'ajustement d'une armure)   // ⚠️ AJOUT (24/10/2026) : énergie de l'exemplaire (diagnostic des coûts d'énergie des mods)
       isExotic: def.inventory?.tierTypeHash === TIER_TYPE_HASH_EXOTIQUE,
       classeRequise,
       elementArme,
