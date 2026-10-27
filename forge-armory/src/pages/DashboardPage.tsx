@@ -63,6 +63,9 @@ import BoutonsVuesCompte from "../components/BoutonsVuesCompte";   // ⚠️ CHA
 import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic";
 import Bibliotheque from "../components/Bibliotheque";
 import type { ProvenanceObjet } from "../lib/legendarium/types";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : provenance transitoire (fiche Détails → page de Lore)
+// FR : ⚠️ AJOUT (23/10/2026, vibe/draft-podcast-840f64) - le lecteur podcast flottant (monté dans App.tsx) demande parfois à revenir dans le Legendarium (page suivante en enchaînement, ou clic sur le titre) : on s'abonne aux demandes de navigation du bus pour basculer la vue. La page à ouvrir est consommée par Bibliotheque au montage.
+// EN: ADDED (draft-podcast) - the floating podcast player (mounted in App.tsx) sometimes asks to come back into the Legendarium (next page when chaining, or title click): we subscribe to the bus' navigation requests to switch the view. The page to open is consumed by Bibliotheque on mount.
+import { prendreDemandePageSuivante, prendreDemandeRetour, useDemandeNavigationLegende } from "../lib/legendarium/podcast";
 import { EtatPonderations, lirePonderations, poidsActifsEnFractions } from "../lib/scoring/ponderations";
 
 export default function DashboardPage() {
@@ -241,6 +244,17 @@ export default function DashboardPage() {
     setVue(cibleLegendarium?.provenance.origine ?? "analyseur");
     setCibleLegendarium(null);
   }
+  // FR : ⚠️ AJOUT (23/10/2026, vibe/draft-podcast-840f64) - le lecteur podcast (App.tsx) demande à revenir dans le Legendarium (page suivante en enchaînement automatique, ou clic sur le titre du lecteur). On bascule la vue ; Bibliotheque consomme la page à ouvrir au montage (`prendreDemandePageSuivante` / `prendreDemandeRetour`). Mémoire uniquement, aucune persistance.
+  // EN: ADDED (draft-podcast) - the podcast player (App.tsx) asks to come back into the Legendarium (next page when auto-chaining, or a click on the player's title). We switch the view; Bibliotheque consumes the page to open on mount.
+  const [pagePodcastEnAttente, setPagePodcastEnAttente] = useState<string | null>(null);
+  useDemandeNavigationLegende(() => {
+    const demande = prendreDemandePageSuivante() ?? prendreDemandeRetour();
+    if (demande) {
+      setPagePodcastEnAttente(demande);
+      setVue("bibliotheque");
+      window.scrollTo({ top: 0 });
+    }
+  });
   // FR : ⚠️ AJOUT (07/10/2026, v0.3.7) - après « Charger » dans l'onglet « Load-outs », la page revient au Build Analyzer ET amène le bloc « Mon Build » à l'écran : sans cela, l'utilisateur se retrouvait en haut d'une longue
   // page, loin du build chargé, et croyait à un bug. Le compteur déclenche l'effet ci-dessous à chaque chargement (même si c'est le même build deux fois de suite).
   // EN: ⚠️ ADDED - after "Charger" in the Load-outs tab, the page returns to the Build Analyzer AND brings the "Mon Build" block into view.
@@ -566,7 +580,7 @@ export default function DashboardPage() {
       <SelecteurVues vue={vue} onChanger={setVue} />
 
       {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} onLireLore={ouvrirLoreDepuisObjet} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
-      {vue === "bibliotheque" && <Bibliotheque db={db} pageCible={cibleLegendarium?.pageId} provenance={cibleLegendarium?.provenance} onRetourObjet={cibleLegendarium ? retourDepuisLegendarium : undefined} />}   {/* ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : lien profond fiche Détails → page de Lore + retour vers l'objet */}
+      {vue === "bibliotheque" && <Bibliotheque db={db} pageCible={cibleLegendarium?.pageId ?? pagePodcastEnAttente ?? undefined} provenance={cibleLegendarium?.provenance} onRetourObjet={cibleLegendarium ? retourDepuisLegendarium : undefined} onPagePodcastConsommee={() => setPagePodcastEnAttente(null)} />}   {/* ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : lien profond fiche Détails → page de Lore + retour vers l'objet. ⚠️ AJOUT (23/10/2026, vibe/draft-podcast-840f64) : `pagePodcastEnAttente` = page demandée par le lecteur podcast (enchaînement page suivante / retour page courante) */}
 
       {/* FR : ⚠️ AJOUT (06/10/2026, v0.3.5) - vue « Load-outs » : le MÊME panneau que le tiroir, en pleine page (mode « page »). Le tiroir, lui, est masqué avec la vue Build Analyzer (qui reste montée) : les deux se tiennent
       à jour par l'événement du stockage. « Charger » ramène au Build Analyzer pour montrer le build chargé.

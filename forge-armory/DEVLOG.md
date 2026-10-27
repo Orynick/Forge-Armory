@@ -4,6 +4,19 @@
 
 ---
 
+## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `vibe/draft-podcast-840f64`
+
+**Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6`) a été répercutée sur la branche `vibe/draft-podcast-840f64` pour limiter les conflits futurs.
+
+**Conflit** : un seul, dans `package-lock.json` (les deux côtés avaient fait avancer la version : 0.5.5 branche / 0.5.6 main) — résolu par régénération (`npm install --package-lock-only`) : version **0.5.6**, 415 packages identiques, aucune dépendance ajoutée ni retirée par le chantier podcast. `package.json` et `DashboardPage.tsx` ont fusionné proprement (les 3 scripts `podcast:*` de la branche + les évolutions v0.5.6 de main coexistent).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie logique 48/48 suites, 981/981 contrôles ; `npm run build` ✓.
+
+**Version 0.5.6.**
+
+---
+
+
 ## 28/10/2026 — LIVRAISON v0.5.6 : merge PR #19 (draft-mod-armures — modification des mods d'armure complète)
 
 **Livraison** : la PR #19 (branche `draft-mod-armures`) est mergée dans `main` (merge commit, le merge GitHub était en conflit après l'avance de `main` — résolu en local, conflit DEVLOG : entrées de `main` conservées). Le chantier « modification des mods d'armure » est **bouclé** : simulation des mods d'armure dans les pop-ups Détails (Mon Inventaire, Coffre, Mon Build) **et** dans la Forge, avec **budget d'énergie** (jauge + garde-fou : une simulation qui dépasse l'énergie est ignorée par le score), **lien score/Mon Build en temps réel** (comparaison « réel → simulé », delta des stats, badge « 🔨 simulé » sur l'origine d'un verbe), **ajustement** (règle du « + » propre à chaque armure, symbole ⇅), et interface allégée (composant partagé `SimulationModsArmure`, `StatsArmure`). **Rien n'est écrit chez Bungie** (Phase 1).
