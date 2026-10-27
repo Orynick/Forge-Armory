@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import SelecteurInventaire, { CibleInventaire } from "../../src/components/SelecteurInventaire";
 import { hashVersIdSqlite } from "../../src/lib/manifest/download";
 import { installerFauxBungie } from "./faux/bungie";
+import { creerCasqueChatoyant } from "../logique/fixtures/casqueChatoyant";
 import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeFaconnee, ajouterSaisons, T_OBJET } from "../logique/fixtures/fauxManifest";
 
 // Bungie : defaultDamageType Kinetic=1, Thermal(Solaire)=3 ; itemType Armor=2, Weapon=3
@@ -15,7 +16,10 @@ objets[222] = { ...objets[5008], itemType: 3, defaultDamageType: 1 };   // « Ar
 objets[333] = { itemType: 2, defaultDamageType: 0 };
 objets[444] = { itemType: 3, defaultDamageType: 1 };
 if (/saisons/.test(location.search)) ajouterSaisons(defsBase, [111, 333], { sansHash: /saisonsvoisin/.test(location.search), remplissage: /lent/.test(location.search) ? 100 : 0 });   // `?saisonsvoisin` : sans seasonHash, nom déduit d'un autre objet de même filigrane   // ⚠️ v0.4.11 : filigrane et saison pour l'arme 111 (Arme A) et l'armure 333
-const fausseDb = creerFausseDb(defsBase, { ralentirBalayage: /lent/.test(location.search) ? 15 : 0 }).db as never;   // ⚠️ v0.4.11 (soir) : `?lent` : balayage des saisons ralenti (15 ms par objet de référence)
+// FR : ⚠️ AJOUT (26/10/2026, « Je ne vois pas les nouvelles fenêtres ») - `?casquechatoyant` (+ `&porte` : l'armure est PORTÉE par le Chasseur, équipée, au lieu d'être au Coffre) : la VRAIE fenêtre d'inventaire avec UNE armure : le casque calqué sur le casque chatoyant réel (capacité 11, énergie utilisée 10), fournie par `window.__piecesForge`, pour tester de bout en bout la fenêtre Détails d'une armure. / EN: ⚠️ ADDED - `?casquechatoyant`: the real inventory window with one armor piece (the shared helmet fixture).
+const casqueChat = /casquechatoyant/.test(location.search) ? creerCasqueChatoyant() : null;
+if (casqueChat) (window as unknown as { __piecesForge: unknown[] }).__piecesForge = [{ ...casqueChat.c1, origine: /porte/.test(location.search) ? "chasseur" : "coffre", classeRequise: "chasseur", equipe: /porte/.test(location.search) }];
+const fausseDb = (casqueChat ? casqueChat.db : creerFausseDb(defsBase, { ralentirBalayage: /lent/.test(location.search) ? 15 : 0 }).db) as never;   // ⚠️ v0.4.11 (soir) : `?lent` : balayage des saisons ralenti (15 ms par objet de référence)
 
 function Hote() {
   const [cible, setCible] = useState<CibleInventaire | null>(null);
