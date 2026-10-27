@@ -20,7 +20,7 @@ import TitreRepliable from "./TitreRepliable";
 import PastilleContexte, { ECHELLE_CONTEXTE_RANGEE } from "./PastilleContexte";
 import { LIBELLES_CONTEXTE, ORDRE_CONTEXTES } from "./icones/BadgeContexte";
 import type { ContexteBuild } from "../lib/scoring/stats";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Database } from "sql.js";
 import { BuildDraft, GearPiece, SlotArme, SlotArmure, StatKey } from "../types/build";
 import { LIBELLES_ELEMENT_FR as LIBELLES_ELEMENT } from "../data/libellesElements";
@@ -60,9 +60,18 @@ import { equiperObjet, equiperPlusieursObjets, diagnostiquerExistenceObjet } fro
 import { obtenirOptionsSousClasse, CategorieSocket, GroupeSocket, obtenirAntiChampion, obtenirAntiChampionArmure, obtenirIconesPerksArme, obtenirOptionsToutesColonnes, raccourcirNom, obtenirBonusSet, obtenirBonusStatsDoctrine, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
 import { texteSurvol } from "./SelecteurInventaire";
 // ⚠️ AJOUT (branche draft-mod-armures) : édition des MODS d'armure dans la pop-up Détails de Mon Build (même magasin partagé que la Forge).
+<<<<<<< Updated upstream
 import { colonnesArmure, regrouperColonnesArmure, statsSimulees } from "../lib/forge/armure";
 import type { ColonneArmure, PlugArmure, GroupeColonneArmure } from "../lib/forge/armure";
 import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees } from "../lib/forge/simulation";
+=======
+import { colonnesArmure, statsSimulees } from "../lib/forge/armure";
+import { reinitialiserArme, nbColonnesSimulees } from "../lib/forge/simulation";
+import { deltaStatsArmure } from "../lib/forge/appliquerSimulation";   // ⚠️ AJOUT (27/10/2026)
+import { appliquerChangements } from "../lib/forge/energieMods";   // ⚠️ AJOUT (26/10/2026)
+import SimulationModsArmure from "./SimulationModsArmure";   // ⚠️ AJOUT (26/10/2026)
+import StatsArmure from "./StatsArmure";   // ⚠️ AJOUT (27/10/2026)
+>>>>>>> Stashed changes
 import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 
 
@@ -317,6 +326,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
       () => (!estArme && detailsOuverts && db && instance ? statsSimulees(db, pieceReelleSim, choixArmure) : null),
       [estArme, detailsOuverts, db, pieceReelleSim, instance, choixArmure]
     );
+<<<<<<< Updated upstream
     function choisirMod(col: ColonneArmure, plug: PlugArmure) {
       if (!instance || !col.modifiable) return;
       if (plug.hash === col.equipe.hash || choixArmure?.[col.socketIndex]?.choisi === plug.hash) mettreAJourSimulations((s) => retirerColonne(s, instance, col.socketIndex, "armures"));
@@ -326,6 +336,8 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
       const cible = groupe.colonnes.find((c) => choixArmure?.[c.socketIndex]?.choisi !== plug.hash) ?? groupe.colonnes[0];
       choisirMod(cible, plug);
     }
+=======
+>>>>>>> Stashed changes
     return (
       <li style={{ marginBottom: "0.3rem" }}>
         {/* FR : ⚠️ CORRIGÉ (04/08/2026) - le libellé d'emplacement était
@@ -366,6 +378,15 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                 </span>
               )}
               {/* ⚠️ AJOUT (branche draft-mod-armures) - badge « simulé » sur une ARMURE dont des mods sont simulés (même repère que les armes). */}
+<<<<<<< Updated upstream
+=======
+              {/* FR : ⚠️ AJOUT (27/10/2026) - la simulation de cette armure DÉPASSE son énergie : le score l'ignore (garde-fou de `appliquerSimulationArmure`). / EN: ⚠️ ADDED - this armor's simulation exceeds its energy: ignored by the score. */}
+              {piece.simulationRejetee && (
+                <span data-badge-simulation-rejetee="" title={`La simulation dépasse l'énergie de la pièce de ${piece.energieDepassee ?? 0} : ce n'est pas réalisable en jeu, le score l'ignore.`} style={{ fontSize: "0.7rem", color: "#e0a080", cursor: "help" }}>
+                  ⚠️ simulation ignorée (énergie dépassée de {piece.energieDepassee ?? 0})
+                </span>
+              )}
+>>>>>>> Stashed changes
               {piece.modsSimules && (
                 <span data-badge-simule-armure="" title={`${piece.nbModsSimules ?? 0} mod(s) simulé(s) dans la Forge : pris en compte dans le score et Mon Build, pas appliqués en jeu.`} style={{ fontSize: "0.7rem", color: "#e8c547", border: "1px solid #e8c547", borderRadius: 999, padding: "0 0.4rem", cursor: "help" }}>
                   🔨 {piece.nbModsSimules ?? 0} mod{(piece.nbModsSimules ?? 0) > 1 ? "s" : ""} simulé{(piece.nbModsSimules ?? 0) > 1 ? "s" : ""}
@@ -392,6 +413,8 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
               comme dans l'Inventaire et le Coffre (demande de l'utilisateur).
               Les garder aux deux endroits aurait produit un doublon. */}
             </span>
+            {/* FR : ⚠️ AJOUT (27/10/2026, « Je veux aussi le ⇅ sur les armures portées. Partout sauf la Collection ») - les deux lignes de six statistiques de l'ARMURE (celles de la pièce telle que le build la porte : simulée si des mods sont simulés), avec le ⇅ vert devant la statistique « + » de l'ajustement. / EN: ⚠️ ADDED - the armor's two stat lines with the green ⇅. */}
+            {!estArme && <StatsArmure db={db} piece={piece} />}
             {db && (() => {
               // FR : ⚠️ ALIGNÉ SUR L'INVENTAIRE (04/08/2026) - même présentation
               // exacte : 5 colonnes de perks, puis la particularité d'origine,
@@ -574,6 +597,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                   </div>
                 );
               })()}
+<<<<<<< Updated upstream
               {/* ⚠️ AJOUT (branche draft-mod-armures) - SIMULATION DES MODS dans la pop-up Détails d'une ARMURE de Mon Build : mêmes colonnes, niveaux et magasin partagé que la Forge ; les stats affichées sont RÉELLES → SIMULÉES (la pièce affichée ici est déjà la copie simulée : on repart des données RÉELLES `statsReelles`/`perkHashesReels` pour ne jamais simuler sur du simulé). */}
               {!estArme && instance && db && colonnesMods.length > 0 && statsMods && (
                 <div data-mods-armure-simulation="" style={{ marginBottom: "0.8rem" }}>
@@ -627,6 +651,21 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                     );
                   })}
                 </div>
+=======
+{/* FR : ⚠️ CHANGÉ (26/10/2026, retour de l'utilisateur : « Je ne vois pas les nouvelles fenêtres ») - la fenêtre Détails de MON BUILD avait sa propre COPIE de l'ancienne simulation (je n'avais remplacé que celle de l'Inventaire) : elle utilise maintenant le composant `SimulationModsArmure`, avec la note « le score et Mon Build en tiennent compte ». EN: ⚠️ CHANGED - Mon Build's Details pop-up now uses the shared `SimulationModsArmure` component. */}
+              {!estArme && instance && db && colonnesMods.length > 0 && statsMods && (
+                <SimulationModsArmure
+                  db={db}
+                  piece={pieceReelleSim}
+                  colonnes={colonnesMods}
+                  choix={choixArmure}
+                  stats={statsMods}
+                  nbSimulees={nbColonnesSimulees(simulations, instance, "armures")}
+                  noteScore={piece.modsSimules ? `(${piece.nbModsSimules ?? 0} mod${(piece.nbModsSimules ?? 0) > 1 ? "s" : ""} simulé${(piece.nbModsSimules ?? 0) > 1 ? "s" : ""} — le score et Mon Build en tiennent compte)` : null}
+                  onChanger={(changements) => mettreAJourSimulations((s) => appliquerChangements(s, instance, colonnesMods, changements))}
+                  onReinitialiser={() => mettreAJourSimulations((s) => reinitialiserArme(s, instance, "armures"))}
+                />
+>>>>>>> Stashed changes
               )}
               {estArme && colonnesDetails.length === 0 && (
                 <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucune option trouvée pour cette arme.</p>
@@ -663,6 +702,11 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
       </li>
     );
   }
+
+  // FR : ⚠️ CORRIGÉ (27/10/2026, révélé par le test de bout en bout du lien simulation → score) - `LignePiece` est définie DANS `ResumeBuild` : sa fonction était donc RECRÉÉE à chaque rendu, et React la considérait comme un NOUVEAU composant : toute la ligne était détruite puis reconstruite, avec son état. Or la page principale recalcule le build « effectif » à CHAQUE changement de simulation : la fenêtre Détails d'une armure de Mon Build (et son panneau « Modifier ») SE REFERMAIT à chaque clic de simulation. Le composant `LignePieceStable` a une identité FIXE (créé une seule fois) et exécute la DERNIÈRE version de `LignePiece` (ses hooks lui appartiennent) : l'état de la ligne survit aux rendus. / EN: ⚠️ FIXED - `LignePiece` was defined inside `ResumeBuild`, so it was a NEW component type on every render: the Details pop-up closed at each simulation click. A stable wrapper keeps the row's state.
+  const refLignePiece = useRef(LignePiece);
+  refLignePiece.current = LignePiece;
+  const LignePieceStable = useMemo(() => function LignePieceStable(props: { piece: GearPiece }) { return refLignePiece.current(props); }, []);
 
   // FR : section Doctrine détaillée - toutes les options par catégorie,
   // avec la sélection actuelle mise en évidence et les effets (description)
@@ -800,7 +844,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
           <strong style={{ fontSize: "0.85rem" }}>Armes</strong>
           <ul style={{ listStyle: "none", padding: 0, margin: "0.5rem 0 0" }}>
             {armesTriees.map((piece) => (
-              <LignePiece key={piece.itemInstanceId ?? `${piece.itemHash}-${piece.slot}`} piece={piece} />
+              <LignePieceStable key={piece.itemInstanceId ?? `${piece.itemHash}-${piece.slot}`} piece={piece} />
             ))}
           </ul>
           {/* FR : ⚠️ CHANGÉ (04/08/2026) - encart anti-champions RÉDUIT
@@ -882,6 +926,8 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                       totaux[cle] = (totaux[cle] ?? 0) + valeur;
                     }
                   }
+                  // FR : ⚠️ AJOUT (27/10/2026, « lien entre stats simulées et score ») - le DELTA dû à la simulation des mods d'armure, affiché à côté de chaque total (« 70 (+10) »). / EN: ⚠️ ADDED - the delta caused by the armor-mod simulation, next to each total.
+                  const deltaSimulation = deltaStatsArmure(build.armure);
                   return ORDRE.map((cle) => {
                     // FR : ⚠️ AJOUT (04/08/2026) - barres de progression,
                     // demande de l'utilisateur. On réutilise STAT_MAX du
@@ -919,7 +965,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                       <div key={cle} style={{ marginBottom: "3px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", gap: "0.6rem", fontSize: "0.72rem" }}>
                           <span style={{ color: "#b7b3a8" }}>{LIBELLES[cle]}</span>
-                          <span style={{ color: estNegatif ? "#e08080" : undefined }}>{valeur}</span>
+                          <span style={{ color: estNegatif ? "#e08080" : undefined }}>{valeur}{(deltaSimulation[cle] ?? 0) !== 0 && <span data-stat-delta-simulation={cle} title="Écart dû aux mods simulés par rapport à vos armures réelles" style={{ marginLeft: 4, color: (deltaSimulation[cle] as number) > 0 ? "#7fd88f" : "#e0a080" }}>({(deltaSimulation[cle] as number) > 0 ? "+" : "−"}{Math.abs(deltaSimulation[cle] as number)})</span>}</span>
                         </div>
                         <div
                           style={{ height: 4, background: "#2a2e38", borderRadius: 2, overflow: "hidden" }}
@@ -939,7 +985,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
           <strong style={{ fontSize: "0.85rem" }}>Armure</strong>
           <ul style={{ listStyle: "none", padding: 0, margin: "0.5rem 0 0" }}>
             {armureTriee.map((piece) => (
-              <LignePiece key={piece.itemInstanceId ?? `${piece.itemHash}-${piece.slot}`} piece={piece} />
+              <LignePieceStable key={piece.itemInstanceId ?? `${piece.itemHash}-${piece.slot}`} piece={piece} />
             ))}
           </ul>
           {/* FR : ⚠️ AJOUT (04/08/2026) - bonus de Set ACTIFS parmi

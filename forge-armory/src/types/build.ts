@@ -104,6 +104,8 @@ export interface GearPiece {
    * EN: ⚠️ ADDED - perks available on THIS instance per socket index (weapons AND, since v0.4.12, armor); undefined = not read.
    */
   plugsDisponiblesParColonne?: Record<number, DefinitionHash[]>;
+  /** FR : ⚠️ AJOUT (26/10/2026) - parmi les plugs disponibles, ceux que l'API dit RÉELLEMENT insérables (`canInsert`) ; absent quand l'API ne donne pas l'indicateur. Sert à retrouver le « + » d'une armure dont l'ajustement équipé n'est pas directionnel. / EN: the plugs the API says are insertable; absent when unknown. */
+  plugsInsertablesParColonne?: Record<number, DefinitionHash[]>;
   /**
    * FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - posés UNIQUEMENT par `lib/forge/appliquerSimulation.ts` sur une COPIE de la pièce (jamais sur le build enregistré) : `perksSimules` = au moins une colonne de cette arme est remplacée par un perk simulé dans la Forge ; `perkHashesReels` = les perks RÉELS de l'exemplaire avant remplacement (pour que les fenêtres « Détails » marquent le vrai roll) ; `nbColonnesSimulees` = combien de colonnes.
    * Dans la copie, `perkHashes` et `perksParColonne` contiennent les perks SIMULÉS : c'est ce que lit le score. EN: ⚠️ ADDED - set only on a COPY by the simulation overlay: flags, the real perks, and the number of simulated columns.
@@ -117,6 +119,12 @@ export interface GearPiece {
    * EN: ⚠️ ADDED - set only on a COPY of an ARMOR by the simulation overlay: the flags, the REAL stats before simulation, and the number of simulated mods. In the copy, `perkHashes`/`perksParColonne` hold the SIMULATED mods and `stats` the recomputed stats: this is what the score reads.
    */
   modsSimules?: boolean;
+<<<<<<< Updated upstream
+=======
+  /** FR : ⚠️ AJOUT (27/10/2026, « travaille sur le lien entre stats simulées et score ») - la simulation de mods de cette armure DÉPASSE l'énergie de la pièce : elle est IGNORÉE par le score (une configuration irréalisable en jeu ne doit pas le faire monter) ; `energieDepassee` = l'excédent. / EN: ⚠️ ADDED - this armor's mod simulation exceeds its energy: ignored by the score. */
+  simulationRejetee?: boolean;
+  energieDepassee?: number;
+>>>>>>> Stashed changes
   statsReelles?: Partial<StatBlock>;
   nbModsSimules?: number;
   /** FR : nom officiel de l'élément de l'arme (Cinétique/Solaire/Arc/Abyssal/Stase/Filobscur), résolu via le Manifest - absent pour l'armure. / EN: weapon's official element name (Kinetic/Solar/Arc/Void/Stasis/Strand), resolved via the Manifest - absent for armor. */
@@ -145,6 +153,11 @@ export interface GearPiece {
    * EN: gear tier of this owned instance, from profile component 300; decides which enhanced-perk version applies to it (Forge TODO open point #2). undefined = absent/not read. Value meaning to be confirmed on real instances.
    */
   gearTier?: number;
+  /**
+   * FR : ⚠️ AJOUT (24/10/2026), demande de l'utilisateur (diagnostic des coûts d'énergie des mods) - énergie de l'EXEMPLAIRE d'une armure, lue dans ses données d'instance Bungie : `capacite` = budget d'énergie pour équiper des mods (10 pour une pièce masterworked, 11 avec Artifice, d'après la documentation du projet) ; `utilisee` = énergie déjà consommée par ses mods. Absent si l'instance n'en porte pas (arme, ancien inventaire à recharger). Ne sert pour l'instant qu'au diagnostic `lib/forge/diagnosticEnergie.ts`.
+   * EN: ⚠️ ADDED - energy of the armor INSTANCE as read from Bungie instance data: `capacite` = mod energy budget, `utilisee` = energy already spent by its mods. Absent when the instance has none. Only used by the energy-cost diagnostic for now.
+   */
+  energie?: { capacite: number; utilisee: number };
 }
 
 export interface BuildDraft {
