@@ -10,10 +10,15 @@ import { SessionExpiree } from "../lib/bungie/oauth";
 import { obtenirBonusSet } from "../lib/manifest/doctrine";
 import { normaliser } from "../lib/manifest/search";
 import { colonnesArmure, diagnosticArmure, statsSimulees, regrouperColonnesArmure } from "../lib/forge/armure";
+import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";   // ⚠️ AJOUT (24/10/2026)
+import { diagnosticEnergieMods, diagnosticModsEnDouble } from "../lib/forge/diagnosticEnergie";   // ⚠️ AJOUT (24/10/2026)
 import type { ColonneArmure, PlugArmure, GroupeColonneArmure } from "../lib/forge/armure";
-import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees, Simulations } from "../lib/forge/simulation";
+import { choisir, retirerColonne, reinitialiserArme, nbColonnesSimulees, armuresSimulees, Simulations } from "../lib/forge/simulation";
 import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
-import { LIBELLES_SLOT, LIBELLES_STAT, ORDRE_STATS } from "../data/libellesUI";
+import { appliquerChangements, estGereeParSimulation } from "../lib/forge/energieMods";   // ⚠️ AJOUT (26/10/2026)
+import SimulationModsArmure from "./SimulationModsArmure";   // ⚠️ AJOUT (26/10/2026)
+import StatsArmure from "./StatsArmure";   // ⚠️ AJOUT (27/10/2026)
+import { LIBELLES_SLOT } from "../data/libellesUI";
 // FR : ⚠️ AJOUT (23/10/2026, audit) - styles partagés des fenêtres liste (dedup). / EN: ⚠️ ADDED - shared list-window styles (dedup).
 import { couleurRarete, styleChamp } from "../lib/forge/stylesListes";
 import IconeSaison from "./IconeSaison";
@@ -34,8 +39,6 @@ const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", ar
 
 const estArmure = (p: GearPiece) => SLOTS_ARMURE.includes(p.slot as string);
 
-const signe = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "±0");
-const total = (s: Partial<Record<string, number>>) => Object.values(s).reduce<number>((a, v) => a + (v ?? 0), 0);
 
 interface Props {
   db: Database | null;
@@ -67,6 +70,8 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
   const [ouverte, setOuverte] = useState<GearPiece | null>(null);
   const [voirCosmetiques, setVoirCosmetiques] = useState(false);
   const [diagnostic, setDiagnostic] = useState<string | null>(null);
+  const [diagnosticDoublons, setDiagnosticDoublons] = useState<string | null>(null);   // ⚠️ AJOUT (24/10/2026) : texte du diagnostic des mods en double
+  const [diagnosticEnergie, setDiagnosticEnergie] = useState<string | null>(null);   // ⚠️ AJOUT (24/10/2026) : texte du diagnostic global des coûts d'énergie
   useEffect(() => { if (cible) { setOuverte(cible.piece); setDiagnostic(null); } }, [cible?.demande]);   // eslint-disable-line react-hooks/exhaustive-deps
   const simulations = useSimulations();
   const appliquer = (transformation: (s: Simulations) => Simulations) => mettreAJourSimulations(transformation);
@@ -84,7 +89,7 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
     }
   }
 
-  const nbSim = (p: GearPiece) => (p.itemInstanceId ? nbColonnesSimulees(simulations, p.itemInstanceId) : 0);
+  const nbSim = (p: GearPiece) => (p.itemInstanceId ? nbColonnesSimulees(simulations, p.itemInstanceId, "armures") : 0);
   /** FR : nom de l'ensemble d'armure (Armor 3.0), lu une fois par armure. / EN: armor set name, read once per piece. */
   const ensembles = useMemo(() => {
     const m = new Map<GearPiece, string | undefined>();
@@ -102,22 +107,23 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
   const ensemblesDistincts = useMemo(() => [...new Set((pieces ?? []).map((p) => ensembles.get(p)).filter((n): n is string => !!n))].sort((a, b) => a.localeCompare(b, "fr")), [pieces, ensembles]);
 
   const instance = ouverte?.itemInstanceId;
-  const choixOuverte = instance ? simulations.armes[instance] : undefined;
+  const choixOuverte = instance ? simulations.armures?.[instance] : undefined;
   const colonnes = useMemo(() => (db && ouverte ? colonnesArmure(db, ouverte, voirCosmetiques) : []), [db, ouverte, voirCosmetiques]);
   const stats = useMemo(() => (db && ouverte ? statsSimulees(db, ouverte, choixOuverte) : null), [db, ouverte, choixOuverte]);
 
   function choisirPlug(col: ColonneArmure, plug: PlugArmure) {
     if (!instance || !col.modifiable) return;
-    if (plug.hash === col.equipe.hash || choixOuverte?.[col.socketIndex]?.choisi === plug.hash) appliquer((s) => retirerColonne(s, instance, col.socketIndex));
-    else appliquer((s) => choisir(s, instance, col.socketIndex, { choisi: plug.hash, effectif: plug.hash }));
+    if (plug.hash === col.equipe.hash || choixOuverte?.[col.socketIndex]?.choisi === plug.hash) appliquer((s) => retirerColonne(s, instance, col.socketIndex, "armures"));
+    else appliquer((s) => choisir(s, instance, col.socketIndex, { choisi: plug.hash, effectif: plug.hash }, "armures"));
   }
   // FR : ⚠️ AJOUT (19/10/2026) - un clic sur le plug d'un GROUPE de prises identiques simule la PREMIÈRE prise non simulée du groupe : chaque prise reste simulée séparément (le magasin de simulations est par prise), mais l'utilisateur ne voit la liste qu'une seule fois. / EN: a click on a grouped socket's plug simulates the first unsimulated socket of the group.
   function choisirPlugGroupe(groupe: GroupeColonneArmure, plug: PlugArmure) {
     const cible = groupe.colonnes.find((c) => choixOuverte?.[c.socketIndex]?.choisi !== plug.hash) ?? groupe.colonnes[0];
     choisirPlug(cible, plug);
   }
-  /** FR : efface les simulations des ARMURES chargées (pas celles des armes). / EN: clears the loaded armor pieces' simulations only. */
+  /** FR : ⚠️ CHANGÉ (branche draft-mod-armures) - efface les simulations des ARMURES chargées (bloc `armures`, pas celui des armes). / EN: clears the loaded armor pieces' simulations only (`armures` block). */
   const idsAvecSimulation = (pieces ?? []).filter((p) => p.itemInstanceId && nbSim(p) > 0).map((p) => p.itemInstanceId as string);
+  const nbArmuresSim = armuresSimulees(simulations).length;
 
   if (!membership) return <p style={{ margin: 0, fontSize: "0.85rem", color: "#e0c080" }}>⚠️ Vous n'êtes pas connecté à Bungie : connectez-vous (bloc « Connexion à Bungie ») pour voir vos armures.</p>;
   if (!db) return <p style={{ margin: 0, fontSize: "0.85rem", color: "#e0c080" }}>⚠️ Manifest pas encore chargé. Chargez-le depuis Build Analyzer, dans le bloc « Recherche dans le Manifest ».</p>;
@@ -125,11 +131,12 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
   return (
     <div>
       <p style={{ margin: "0 0 0.5rem", fontSize: "0.85rem", maxWidth: "70ch" }}>
-        Vos armures (personnages et Coffre). Ouvrez une armure pour voir ses <strong>emplacements</strong> et <strong>simuler</strong> d'autres <strong>mods</strong>, avec l'effet sur les statistiques. <strong>Rien n'est modifié dans le jeu</strong> ; pour l'instant, la simulation reste dans l'appli et <strong>n'influence ni le score ni Mon Build</strong>.
+        Vos armures (personnages et Coffre). Ouvrez une armure pour voir ses <strong>emplacements</strong> et <strong>simuler</strong> d'autres <strong>mods</strong>, avec l'effet sur les statistiques. <strong>Rien n'est modifié dans le jeu</strong> ; la simulation reste dans l'appli, mais <strong>le score et Mon Build en tiennent compte</strong> (statistiques recalculées, « réel → simulé » à côté du score). Une simulation qui dépasse l'énergie de la pièce est ignorée par le score.
       </p>
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
         <button onClick={charger} disabled={enCours}>{enCours ? "Chargement…" : pieces ? "↻ Recharger mon inventaire" : "Charger mon inventaire"}</button>
-        {idsAvecSimulation.length > 0 && <button onClick={() => appliquer((s) => idsAvecSimulation.reduce((acc, id) => reinitialiserArme(acc, id), s))} data-effacer-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer les simulations d'armures ({idsAvecSimulation.length})</button>}
+        {idsAvecSimulation.length > 0 && <button onClick={() => appliquer((s) => idsAvecSimulation.reduce((acc, id) => reinitialiserArme(acc, id, "armures"), s))} data-effacer-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer les simulations d'armures ({idsAvecSimulation.length})</button>}
+        {nbArmuresSim > idsAvecSimulation.length && <button onClick={() => appliquer((s) => armuresSimulees(s).reduce((acc, id) => reinitialiserArme(acc, id, "armures"), s))} data-effacer-toutes-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer TOUTES les simulations d'armures ({nbArmuresSim})</button>}
       </div>
       {erreur && <p role="alert" style={{ fontSize: "0.8rem", color: "#e0a080", margin: "0 0 0.5rem" }}>⚠️ {erreur}</p>}
       {pieces && (
@@ -164,6 +171,20 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
               <input type="checkbox" checked={seulementSimulees} onChange={(e) => { setSeulementSimulees(e.target.checked); setAffichees(TAILLE_PAGE); }} /> Seulement les armures simulées
             </label>
           </div>
+          {/* FR : ⚠️ AJOUT (24/10/2026, demande de l'utilisateur : « un diagnostic pour relever rapidement combien coûte chaque mod de chaque pièce d'armure ») - diagnostic GLOBAL (toutes les armures chargées, pas seulement celle qui est ouverte) : coût de chaque mod, énergie de chaque pièce, écarts. Réservé au mode développement, comme les autres diagnostics ; registre : `DIAGNOSTICS_ACTIFS.coutsEnergieMods`. EN: ⚠️ ADDED - GLOBAL energy-cost diagnostic (all loaded armors), dev mode only. */}
+          {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.coutsEnergieMods && (
+            <div data-diagnostic-energie="" style={{ marginBottom: "0.6rem" }}>
+              <button onClick={() => setDiagnosticEnergie(diagnosticEnergieMods(db, pieces))} style={{ fontSize: "0.72rem" }}>🔍 Diagnostic : coûts d'énergie des mods de toutes les armures chargées (à copier à Claude)</button>
+              {diagnosticEnergie && <textarea readOnly data-diagnostic-energie-texte="" value={diagnosticEnergie} onFocus={(e) => e.currentTarget.select()} rows={14} style={{ display: "block", width: "100%", marginTop: "0.4rem", fontSize: "0.7rem", background: "#0d0f14", color: "#c8c5bb", border: "1px solid #3a3f4b", borderRadius: 6, padding: "0.4rem" }} />}
+            </div>
+          )}
+          {/* FR : ⚠️ AJOUT (24/10/2026, « Diag d'abord ») - second diagnostic GLOBAL : les mods qui existent en deux versions de coûts différents (même nom, hashes différents), avec la comparaison brute de leurs définitions du Manifest. Mode développement seulement ; registre : `DIAGNOSTICS_ACTIFS.modsEnDouble`. EN: ⚠️ ADDED - GLOBAL duplicate-mod diagnostic, dev mode only. */}
+          {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.modsEnDouble && (
+            <div data-diagnostic-doublons="" style={{ marginBottom: "0.6rem" }}>
+              <button onClick={() => setDiagnosticDoublons(diagnosticModsEnDouble(db, pieces))} style={{ fontSize: "0.72rem" }}>🔍 Diagnostic : mods en double, même nom et coûts différents (à copier à Claude)</button>
+              {diagnosticDoublons && <textarea readOnly data-diagnostic-doublons-texte="" value={diagnosticDoublons} onFocus={(e) => e.currentTarget.select()} rows={14} style={{ display: "block", width: "100%", marginTop: "0.4rem", fontSize: "0.7rem", background: "#0d0f14", color: "#c8c5bb", border: "1px solid #3a3f4b", borderRadius: 6, padding: "0.4rem" }} />}
+            </div>
+          )}
           <p data-nb-armures-possedees={liste.length} style={{ fontSize: "0.8rem", color: "#9a968a", margin: "0 0 0.5rem" }}>{liste.length} armure{liste.length > 1 ? "s" : ""}{liste.length === 0 ? " : aucune ne correspond." : ""}</p>
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(17rem, 1fr))", gap: "0.5rem" }}>
             {liste.slice(0, affichees).map((p) => (
@@ -180,7 +201,9 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
                     </span>
                     {ensembles.get(p) && <span data-ensemble="" style={{ display: "block", fontSize: "0.72rem", color: "#9a968a" }}>Ensemble « {ensembles.get(p)} »</span>}
                     <span data-lieu-texte="" style={{ display: "block", fontSize: "0.72rem", color: "#9a968a" }}>{LIEUX[p.origine ?? ""] ?? "Lieu inconnu"}{p.equipe ? " · équipée" : ""}</span>
-                    {nbSim(p) > 0 && <span data-badge-simulation="" style={{ fontSize: "0.7rem", color: "#e8c547" }}>Simulation ({nbSim(p)} emplacement{nbSim(p) > 1 ? "s" : ""})</span>}
+                    {/* FR : ⚠️ AJOUT (27/10/2026) - les deux lignes de six statistiques sur la carte (celles de l'armure ; les statistiques SIMULÉES quand la carte porte une simulation), avec le ⇅ vert devant la statistique « + » de l'ajustement. */}
+                     {db && <StatsArmure db={db} piece={p} stats={nbSim(p) > 0 && p.itemInstanceId ? statsSimulees(db, p, simulations.armures?.[p.itemInstanceId]).simulees : undefined} />}
+                     {nbSim(p) > 0 && <span data-badge-simulation="" style={{ fontSize: "0.7rem", color: "#e8c547" }}>Simulation ({nbSim(p)} emplacement{nbSim(p) > 1 ? "s" : ""})</span>}
                   </span>
                 </button>
               </li>
@@ -203,7 +226,7 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
             {/* FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - « Lire le Lore » : EN HAUT DE FICHE, JUSTIFIÉ À DROITE, SOUS LA CROIX (spécification §6), affiché UNIQUEMENT si l'objet a un Lore. / EN: ⚠️ ADDED - "Read the Lore": top of sheet, right-justified, under the close cross (spec §6), shown ONLY if the item has a lore. */}
             {onLireLore && <BoutonLireLore db={db} itemHash={ouverte.itemHash} nomObjet={ouverte.nom ?? ""} onLireLore={onLireLore} />}
             <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0.2rem 0 0.4rem" }}>{[LIBELLES_SLOT[ouverte.slot], ouverte.classeRequise ? CLASSES[ouverte.classeRequise] : "", ouverte.isExotic ? "Exotique" : ouverte.rarete, LIEUX[ouverte.origine ?? ""], ouverte.equipe ? "équipée" : "", ensembles.get(ouverte) ? `ensemble « ${ensembles.get(ouverte)} »` : ""].filter(Boolean).join(" · ")} — simulation locale : rien n'est modifié dans le jeu.</p>
-            <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0 0 0.6rem" }}>Cliquez un mod pour le simuler (un seul par emplacement) ; cliquez le mod équipé, ou de nouveau le mod simulé, pour revenir à l'équipement réel. Les emplacements <em>fixes</em> (archétype, amélioration, ensemble, exotique) ne se changent pas.</p>
+            <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0 0 0.6rem" }}>Les emplacements <em>fixes</em> (archétype, amélioration, ensemble, exotique) ne se changent pas : ils sont listés plus bas, en lecture seule.</p>
             {/* FR : ⚠️ AJOUT (16/10/2026, v0.4.12) - quand on vient d'un bouton « Forge » : « Retour » à la vue d'origine, DANS la fenêtre (visible sans la fermer), comme pour les armes ; et un avertissement si la disponibilité des mods n'a pas été lue (inventaire chargé avant la mise à jour). / EN: ⚠️ ADDED - "Back" button inside the window, and a warning when mod availability was not read. */}
             {cible && onRetour && (
               <div data-ligne-actions="" style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", margin: "0 0 0.6rem" }}>
@@ -211,27 +234,14 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
               </div>
             )}
             {ouverte.plugsDisponiblesParColonne === undefined && <p data-dispo-non-lue="" style={{ fontSize: "0.75rem", color: "#e0c080", margin: "0 0 0.6rem" }}>⚠️ La disponibilité des mods sur votre exemplaire n'a pas été lue (inventaire chargé avant la mise à jour) : rechargez votre inventaire dans Build Analyzer pour pouvoir en simuler.</p>}
-            <div data-stats-armure="" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(8.5rem, 1fr))", gap: "0.35rem 0.8rem", margin: "0 0 0.7rem", fontSize: "0.8rem" }}>
-              {ORDRE_STATS.map((cle) => {
-                const reel = stats.reelles[cle] ?? 0, sim = stats.simulees[cle] ?? 0, d = stats.delta[cle] ?? 0;
-                return (
-                  <span key={cle} data-stat={cle} data-reelle={reel} data-simulee={sim} data-delta={d} style={{ display: "flex", justifyContent: "space-between", gap: "0.4rem", borderBottom: "1px solid #232733", paddingBottom: "0.15rem" }}>
-                    <span style={{ color: "#b7b3a8" }}>{LIBELLES_STAT[cle]}</span>
-                    <span>{d !== 0 ? <><span style={{ color: "#7d7a70" }}>{reel} → </span><strong style={{ color: d > 0 ? "#7fd88f" : "#e0a080" }}>{sim}</strong> <span style={{ color: d > 0 ? "#7fd88f" : "#e0a080", fontSize: "0.72rem" }}>({signe(d)})</span></> : <strong>{reel}</strong>}</span>
-                  </span>
-                );
-              })}
-              <span data-stat-total="" data-reelle={total(stats.reelles)} data-simulee={total(stats.simulees)} style={{ display: "flex", justifyContent: "space-between", gap: "0.4rem", fontWeight: 600 }}>
-                <span style={{ color: "#b7b3a8" }}>Total</span>
-                <span>{stats.nbChangements > 0 ? `${total(stats.reelles)} → ${total(stats.simulees)}` : total(stats.reelles)}</span>
-              </span>
-            </div>
+{/* FR : ⚠️ CHANGÉ (26/10/2026, retour de l'utilisateur : « Je ne vois pas les nouvelles fenêtres » ; « inutile d'afficher le total des stats » ; « 2 lignes, 3 stats par ligne ») - la fenêtre de la FORGE des armures utilise le composant `SimulationModsArmure` (statistiques sur 2 lignes de 3, SANS total, jauge d'énergie, résumé compact + « Modifier »). Restent ici : la case des cosmétiques et, plus bas, les emplacements NON pris en charge par le composant (archétype, amélioration, ensemble, exotique, cosmétiques) en lecture seule. EN: ⚠️ CHANGED - the Forge armor window uses the shared component (3 columns, no total). */}
+            {instance && stats && (
+              <SimulationModsArmure db={db} piece={ouverte} colonnes={colonnes} choix={choixOuverte} stats={stats} nbSimulees={nbColonnesSimulees(simulations, instance, "armures")} onChanger={(changements) => appliquer((s) => appliquerChangements(s, instance, colonnes, changements))} onReinitialiser={() => appliquer((s) => reinitialiserArme(s, instance, "armures"))} />
+            )}
             <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
               <label style={{ fontSize: "0.8rem", display: "inline-flex", gap: "0.4rem", alignItems: "center" }}>
                 <input type="checkbox" checked={voirCosmetiques} onChange={(e) => setVoirCosmetiques(e.target.checked)} /> Afficher les emplacements cosmétiques
               </label>
-              <span data-nb-simulees={instance ? nbColonnesSimulees(simulations, instance) : 0} style={{ fontSize: "0.78rem", color: "#e8c547" }}>{instance && nbColonnesSimulees(simulations, instance) > 0 ? `${nbColonnesSimulees(simulations, instance)} emplacement${nbColonnesSimulees(simulations, instance) > 1 ? "s" : ""} simulé${nbColonnesSimulees(simulations, instance) > 1 ? "s" : ""}` : "aucune simulation"}</span>
-              <button disabled={!instance || nbColonnesSimulees(simulations, instance) === 0} onClick={() => instance && appliquer((s) => reinitialiserArme(s, instance))} style={{ fontSize: "0.78rem" }}>↺ Revenir à l'équipement réel</button>
             </div>
             {import.meta.env.DEV && (
               <div style={{ marginBottom: "0.6rem" }}>
@@ -241,7 +251,7 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
             )}
             {colonnes.length === 0 && <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucun emplacement lu pour cette armure (rechargez votre inventaire).</p>}
             {/* FR : ⚠️ AJOUT (19/10/2026, retour de test de la 0.4.12 : « sur certains slots, il y aura forcément des doublons, il faudra une interface spécifique pour ne pas les afficher 3 fois ») - les prices IDENTIQUES (même plug équipé, même catégorie, mêmes options) sont regroupées en UN bloc « × N » ; chaque prise du groupe reste simulée séparément (le magasin est par prise) : le marqueur du bloc dit combien sont simulées. / EN: identical sockets are shown once as one block; each socket stays simulated separately. */}
-            {regrouperColonnesArmure(colonnes).map((groupe) => {
+            {regrouperColonnesArmure(colonnes.filter((c: ColonneArmure) => !estGereeParSimulation(c))).map((groupe) => {
               const premier = groupe.colonnes[0];
               const nbSimuleesGroupe = groupe.colonnes.filter((c) => choixOuverte?.[c.socketIndex]?.choisi !== undefined && choixOuverte?.[c.socketIndex]?.choisi !== c.equipe.hash).length;
               return (

@@ -65,6 +65,13 @@ import { obtenirElementFiltre, obtenirIconeElementDoctrine, obtenirIconeCinetiqu
 import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
 import IconeTypeArme from "./icones/IconeTypeArme";
 import { obtenirSecoursTypeArme } from "../lib/manifest/typeArmeSecours";
+// ⚠️ AJOUT (branche draft-mod-armures) : édition des MODS d'armure dans la pop-up Détails (même magasin partagé que la Forge).
+import { colonnesArmure, statsSimulees, statPlusDePiece } from "../lib/forge/armure";
+import { reinitialiserArme, nbColonnesSimulees } from "../lib/forge/simulation";
+import { appliquerChangements } from "../lib/forge/energieMods";   // ⚠️ AJOUT (25/10/2026)
+import SimulationModsArmure from "./SimulationModsArmure";   // ⚠️ AJOUT (25/10/2026)
+import StatsArmure from "./StatsArmure";   // ⚠️ AJOUT (27/10/2026)
+import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 
 const LIBELLES_PERSONNAGE: Record<"chasseur" | "titan" | "arcaniste", string> = {
   chasseur: "Chasseur",
@@ -117,8 +124,9 @@ export function texteSurvol(piece: GearPiece, db: Database): string {
   const lignes: string[] = [ligneNom, ligneSource];
   if (estArmure) {
     const statsOrdonnees = ORDRE_STATS.map((cle) => [cle, piece.stats[cle]] as [StatKey, number]);
-    const ligne1 = statsOrdonnees.slice(0, 3).map(([cle, val]) => `${LIBELLES_STAT[cle]}: ${val}`).join(" · ");
-    const ligne2 = statsOrdonnees.slice(3, 6).map(([cle, val]) => `${LIBELLES_STAT[cle]}: ${val}`).join(" · ");
+    const plusInfobulle = statPlusDePiece(db, piece);   // ⚠️ AJOUT (26/10/2026) : le symbole ⇅ de la statistique « + » de l'ajustement (armure légendaire)
+    const ligne1 = statsOrdonnees.slice(0, 3).map(([cle, val]) => `${plusInfobulle === cle ? "⇅ " : ""}${LIBELLES_STAT[cle]}: ${val}`).join(" · ");
+    const ligne2 = statsOrdonnees.slice(3, 6).map(([cle, val]) => `${plusInfobulle === cle ? "⇅ " : ""}${LIBELLES_STAT[cle]}: ${val}`).join(" · ");
     if (ligne1 || ligne2) lignes.push(`${ligne1}\n${ligne2}`);
 
     // FR : ⚠️ AJOUT (04/08/2026) - bonus de Set, sur structure confirmée
@@ -261,7 +269,19 @@ function LigneObjet({
   // compare with other copies in the vault).
   const [detailsOuverts, setDetailsOuverts] = useState(false);
   const estArme = (["cinetique", "energie", "lourde"] as (SlotArme | SlotArmure)[]).includes(piece.slot);
-  // FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - ARME FAÇONNÉE : l'icône du jeu en bas à gauche de la vignette (Mon Inventaire et Coffre), comme dans la Forge. Calculé une fois par ligne (`useMemo`). / EN: crafted weapon icon on the thumbnail.
+  // ⚠️ AJOUT (branche draft-mod-armures) - SIMULATION DES MODS d'une armure possédée, DANS la pop-up Détails (Mon Inventaire + Coffre) : mêmes colonnes, mêmes niveaux et même magasin partagé que la Forge des armures (`InventaireArmures`) — un clic ici met le score à jour en temps réel. RIEN n'est modifié en jeu.
+  const simulations = useSimulations();
+  const instance = piece.itemInstanceId;
+  const choixArmure = instance ? simulations.armures?.[instance] : undefined;
+  const colonnesMods = useMemo(
+    () => (!estArme && detailsOuverts && instance ? colonnesArmure(db, piece) : []),
+    [estArme, detailsOuverts, db, piece, instance]
+  );
+  const statsMods = useMemo(
+    () => (!estArme && detailsOuverts && instance ? statsSimulees(db, piece, choixArmure) : null),
+    [estArme, detailsOuverts, db, piece, instance, choixArmure]
+  );
+// FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - ARME FAÇONNÉE : l'icône du jeu en bas à gauche de la vignette (Mon Inventaire et Coffre), comme dans la Forge. Calculé une fois par ligne (`useMemo`). / EN: crafted weapon icon on the thumbnail.
   const faconnee = useMemo(() => estArme && estFaconnee(db, piece.perkHashes), [estArme, db, piece.perkHashes]);
 
   // FR : ⚠️ CHANGÉ (04/08/2026) - 5 colonnes au lieu de 4 (une colonne
@@ -270,12 +290,8 @@ function LigneObjet({
   const perksArme = afficherStats ? { colonnes: [], origine: undefined } : obtenirIconesPerksArme(db, piece.perkHashes, 5);
   const iconesPerks = perksArme.colonnes;
 
-  const statsOrdonneesLigne1 = afficherStats
-    ? ORDRE_STATS.slice(0, 3).map((cle) => `${LIBELLES_STAT[cle]} ${piece.stats[cle]}`).join(" · ")
-    : "";
-  const statsOrdonneesLigne2 = afficherStats
-    ? ORDRE_STATS.slice(3, 6).map((cle) => `${LIBELLES_STAT[cle]} ${piece.stats[cle]}`).join(" · ")
-    : "";
+  // FR : ⚠️ CHANGÉ (27/10/2026, « Je veux aussi le ⇅ sur les armures portées. Partout sauf la Collection. D'ailleurs, affiche ⇅ devant le nom de la stat ») - les deux lignes de trois statistiques sont affichées pour TOUTES les armures de la liste (Coffre, portées par un personnage, équipées) et non plus seulement celles du Coffre ; le composant partagé `StatsArmure` marque, EN VERT et DEVANT son nom, la statistique « + » de l'ajustement d'une armure légendaire. / EN: ⚠️ CHANGED - stat lines for ALL armor rows (vault, carried, equipped), with the green ⇅ before the "+" stat name.
+  const montrerStatsArmure = afficherStats || ["casque", "gants", "torse", "jambes", "marque"].includes(piece.slot);
 
   const colonnesDetails = detailsOuverts ? obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashes, { toutesSources: faconnee, equipesParColonne: piece.perksParColonne }) : [];
 
@@ -429,12 +445,7 @@ function LigneObjet({
               })()}
             </span>
           )}
-          {statsOrdonneesLigne1 && (
-            <span style={{ fontSize: "0.7rem", color: "#7d7a70", display: "block" }}>{statsOrdonneesLigne1}</span>
-          )}
-          {statsOrdonneesLigne2 && (
-            <span style={{ fontSize: "0.7rem", color: "#7d7a70", display: "block" }}>{statsOrdonneesLigne2}</span>
-          )}
+          {montrerStatsArmure && <StatsArmure db={db} piece={piece} />}
           {/* FR : ⚠️ CHANGÉ (04/08/2026) - "Détails" n'existe que pour les
           armes ; sur les armures son absence décalait "+ Ajouter" vers la
           gauche, cassant l'alignement des colonnes d'une ligne à l'autre.
@@ -594,6 +605,19 @@ function LigneObjet({
                   </div>
                 )}
               </div>
+            )}
+{/* FR : ⚠️ CHANGÉ (25/10/2026, maquette validée par l'utilisateur) - la SIMULATION DES MODS d'une armure possédée est le composant `SimulationModsArmure` (statistiques réelles → simulées, JAUGE D'ÉNERGIE, résumé compact + « Modifier », blocs statistique / ajustement / cumulables) ; toute la logique est dans `lib/forge/energieMods.ts`. L'ancienne liste de pastilles par groupe d'emplacements est remplacée. EN: ⚠️ CHANGED - the armor-mod simulation is now the `SimulationModsArmure` component (validated mockup). */}
+            {!estArme && instance && colonnesMods.length > 0 && statsMods && (
+              <SimulationModsArmure
+                db={db}
+                piece={piece}
+                colonnes={colonnesMods}
+                choix={choixArmure}
+                stats={statsMods}
+                nbSimulees={nbColonnesSimulees(simulations, instance, "armures")}
+                onChanger={(changements) => mettreAJourSimulations((s) => appliquerChangements(s, instance, colonnesMods, changements))}
+                onReinitialiser={() => mettreAJourSimulations((s) => reinitialiserArme(s, instance, "armures"))}
+              />
             )}
             {estArme && colonnesDetails.length === 0 && (
               <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucune option trouvée pour cette arme.</p>

@@ -26,3 +26,39 @@ export function extraireGearTier(brut: unknown): number | undefined {
   return gearTier;
 }
 
+/**
+ * FR : ⚠️ AJOUT (24/10/2026) - énergie d'un exemplaire d'armure, lue dans ses données d'instance (`energy.energyCapacity` et `energy.energyUsed`). `undefined` si l'une des deux manque ou n'est pas un entier positif ou nul : on ne devine jamais une valeur (un « utilisé » inventé fausserait la comparaison du diagnostic). Fonction PURE.
+ * EN: ⚠️ ADDED - energy of an armor instance (capacity and used). `undefined` unless both values are valid non-negative integers.
+ */
+export function extraireEnergie(brut: unknown): { capacite: number; utilisee: number } | undefined {
+  if (typeof brut !== "object" || brut === null) return undefined;
+  const e = (brut as { energy?: unknown }).energy;
+  if (typeof e !== "object" || e === null) return undefined;
+  const { energyCapacity, energyUsed } = e as { energyCapacity?: unknown; energyUsed?: unknown };
+  const entierPositif = (v: unknown): v is number => typeof v === "number" && Number.isInteger(v) && v >= 0;
+  if (!entierPositif(energyCapacity) || !entierPositif(energyUsed)) return undefined;
+  return { capacite: energyCapacity, utilisee: energyUsed };
+}
+
+/**
+ * FR : ⚠️ AJOUT (26/10/2026, règle de l'ajustement donnée par l'utilisateur : le « + » d'une armure est propre à la pièce, tiré au hasard, JAMAIS modifiable, y compris sur une exotique alors que l'API en liste 31 combinaisons) - les plugs RÉELLEMENT insérables d'un emplacement : ceux dont l'API dit `canInsert: true` (et `enabled` différent de `false`). Même forme que `extrairePlugsDisponibles`. `undefined` quand l'API ne donne AUCUN indicateur `canInsert` : on ne sait pas (jamais « aucun insérable »). ⚠️ Non vérifié sur les données réelles : le diagnostic de l'armure ouverte affiche ces indicateurs pour l'ajustement ; la valeur n'est utilisée qu'en dernier recours, quand elle désigne UN SEUL « + ».
+ * EN: ⚠️ ADDED - the plugs the API says are actually insertable (`canInsert`); `undefined` when no flag is present.
+ */
+export function extrairePlugsInsertables(brut: unknown): PlugsDisponibles | undefined {
+  if (typeof brut !== "object" || brut === null) return undefined;
+  const plugs = (brut as { plugs?: unknown }).plugs;
+  if (typeof plugs !== "object" || plugs === null) return undefined;
+  const sortie: PlugsDisponibles = {};
+  let indicateurVu = false;
+  for (const [cle, liste] of Object.entries(plugs as Record<string, unknown>)) {
+    const index = Number(cle);
+    if (!Number.isInteger(index) || index < 0 || !Array.isArray(liste)) continue;
+    const hashes: number[] = [];
+    for (const p of liste as Array<{ plugItemHash?: unknown; canInsert?: unknown; enabled?: unknown } | null>) {
+      if (typeof p?.canInsert === "boolean") indicateurVu = true;
+      if (p?.canInsert === true && p.enabled !== false && typeof p.plugItemHash === "number" && Number.isInteger(p.plugItemHash) && p.plugItemHash > 0 && !hashes.includes(p.plugItemHash)) hashes.push(p.plugItemHash);
+    }
+    sortie[index] = hashes;
+  }
+  return indicateurVu ? sortie : undefined;
+}
