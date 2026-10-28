@@ -2,10 +2,14 @@
 // `extraireTextesEffetsBuild`) ; on lui donne des pièces dont `perkHashes` tient compte de la simulation.
 // RÈGLES : (1) seules les ARMES POSSÉDÉES (avec `itemInstanceId`) qui ont une simulation enregistrée sont touchées ; la simulation est cherchée par exemplaire, donc deux exemplaires de la même arme restent indépendants ; (2) la pièce d'origine n'est JAMAIS modifiée : on rend une COPIE (le build enregistré, partagé ou équipé en jeu reste celui des perks RÉELS) ;
 // (3) pour chaque colonne simulée, le perk à COMPTER (`effectif`, version améliorée comprise) remplace celui de la colonne, ou s'ajoute si la colonne n'avait pas de perk connu ; les autres colonnes sont inchangées ; (4) rien à appliquer = le MÊME objet est rendu (les calculs mémorisés ne sont pas relancés pour rien) ; (5) l'armure n'est jamais touchée.
-// Ne recalcule pas les STATISTIQUES de l'arme (stabilité, etc.) : le score n'utilise pas celles des armes. EN: ⚠️ ADDED - applies the Forge simulation to a build for scoring/display: copies only, owned weapons only, same object when nothing to apply.
-import type { BuildDraft, GearPiece } from "../../types/build";
+// Ne recalcule pas les STATISTIQUES de l'arme (stabilité, etc.) : le score n'utilise pas celles des armes.
+// ⚠️ AJOUT (branche draft-mod-armures) - ARMURES : `appliquerSimulationArmure` applique la simulation des MODS d'une armure possédée : la copie porte les mods simulés (`perkHashes`/`perksParColonne` lus par le Pilier 2) ET ses STATISTIQUES recalculées (`stats` lus par le pilier stats_2_0 via `sommerStatsArmure`) : le changement de mod se voit dans le score. Mêmes règles : copie uniquement, exemplaire avec `itemInstanceId` seulement, même objet si rien à faire. Les statistiques réelles sont mémorisées (`statsReelles`) pour l'affichage. Le calcul de `statsSimulees` a besoin du Manifest (`db`) : sans Manifest, la simulation de perk est appliquée mais les stats ne sont PAS recalculées (elles restent réelles) — l'affichage le dira.
+// EN: ⚠️ ADDED - ARMOR: `appliquerSimulationArmure` applies an owned armor's MOD simulation: the copy carries the simulated mods (read by Pillar 2) AND its recomputed STATS (read by the stats pillar): a mod change shows in the score. Same rules: copy only, owned instance only, same object when nothing to apply.
+import type { Database } from "sql.js";
+import type { BuildDraft, GearPiece, StatKey } from "../../types/build";
 import type { SimulationArme, Simulations } from "./simulation";
-import { statsSimulees } from "./armure";   // ⚠️ AJOUT (19/10/2026, §2.1) : le recalcul exact des stats d'une armure simulée
+import { colonnesArmure, statsSimulees } from "./armure";
+import { energieSimulee } from "./energieMods";   // ⚠️ AJOUT (27/10/2026) : budget d'énergie
 
 export function appliquerSimulationPiece(piece: GearPiece, simulation: SimulationArme | undefined): GearPiece {
   if (!simulation || !piece.itemInstanceId) return piece;
@@ -24,11 +28,11 @@ export function appliquerSimulationPiece(piece: GearPiece, simulation: Simulatio
  * EN: the REAL piece of a simulated copy (real perks restored, simulation markers removed).
  */
 export function pieceReelle(piece: GearPiece): GearPiece {
-  // FR : ⚠️ AJOUT (19/10/2026, §2.1) - une ARMURE simulée (badge « simulé ») retrouve ses stats RÉELLES et perd ses repères : la Forge part des mods réels (✓), jamais des simulés. / EN: a simulated ARMOR gets its real stats back.
-  if (!piece.perksSimules && piece.statsSimulees) {
-    const { statsSimulees: _s, statsReelles, nbModsSimules: _n, ...reste } = piece;
-    void _s; void _n;
-    return { ...reste, stats: statsReelles ?? piece.stats };
+  // FR : ⚠️ AJOUT (27/10/2026) - une ARMURE simulée (ou dont la simulation est rejetée) revient à ses mods et à ses statistiques RÉELS, repères retirés : « Envoyer à la Forge » depuis Mon Build ne doit jamais envoyer l'armure SIMULÉE. / EN: ⚠️ ADDED - a simulated (or rejected) armor piece goes back to its real mods and stats.
+  if (piece.modsSimules || piece.simulationRejetee) {
+    const { modsSimules, simulationRejetee, energieDepassee, nbModsSimules, statsReelles, perkHashesReels, perksParColonneReels, ...reste } = piece;
+    void modsSimules; void simulationRejetee; void energieDepassee; void nbModsSimules;
+    return { ...reste, ...(statsReelles ? { stats: statsReelles } : {}), perkHashes: perkHashesReels ?? piece.perkHashes, ...(perksParColonneReels ? { perksParColonne: perksParColonneReels } : {}) };
   }
   if (!piece.perksSimules) return piece;
   const { perksSimules, perkHashesReels, perksParColonneReels, nbColonnesSimulees, ...reste } = piece;
@@ -37,25 +41,41 @@ export function pieceReelle(piece: GearPiece): GearPiece {
 }
 
 /**
- * FR : ⚠️ AJOUT (19/10/2026, chantier « lien armure → score », §2.1 de la feuille de route) - APPLIQUE la simulation des MODS d'une ARMURE à une copie de la pièce : les six STATISTIQUES sont recalculées (le delta exact de `statsSimulees` de lib/forge/armure.ts : la différence des investmentStats du nouveau plug et de l'ancien, sur les colonnes modifiables), les repères de simulation posés (`statsSimulees`, `statsReelles`, `nbModsSimules`).
- * MÊMES RÈGLES que les armes : (1) seule une armure POSSÉDÉE (itemInstanceId) avec une simulation enregistrée est touchée ; (2) l'originale n'est JAMAIS modifié (le build enregistré, partagé ou équipé garde ses stats réelles) ; (3) rien à appliquer = le MÊME objet (pas de recalcul pour rien).
- * Le `db` est requis : les stats des plugs viennent du Manifest (l'identifiant de la pièce ne suffit pas — les investmentStats se lisent dans les définitions).
- * EN: ⚠️ ADDED - applies an armor piece's simulated mods to a COPY: the six stats are recomputed (exact delta), simulation markers are set, the original is never modified.
+ * FR : ⚠️ AJOUT (branche draft-mod-armures) - applique la simulation des MODS d'une armure possédée. Règles : (1) seule une armure AVEC `itemInstanceId` et une simulation enregistrée dans le bloc `armures` est touchée ; (2) la pièce d'origine n'est JAMAIS modifiée (copie) ; (3) `perkHashes`/`perksParColonne` de la copie = les mods simulés à la place des modifiés (mêmes règles que les armes : remplacement par colonne, ajout si la colonne n'avait pas de mod connu) ; (4) `stats` de la copie = les statistiques recalculées par `statsSimulees` (le delta des `investmentStats` des mods simulés) — a besoin du Manifest, passé en `db` ; sans `db`, les stats restent RÉELLES (la simulation de perks est appliquée, le pilier stats ne bouge pas) ; (5) les stats réelles sont mémorisées dans `statsReelles`.
+ * EN: applies an owned armor's mod simulation: copy only, simulated mods in `perkHashes`/`perksParColonne`, recomputed `stats` (needs the Manifest `db`; without it stats stay real), real stats kept in `statsReelles`.
  */
-export function appliquerSimulationArmure(db: import("sql.js").Database, piece: GearPiece, simulation: SimulationArme | undefined): GearPiece {
+export function appliquerSimulationArmure(piece: GearPiece, simulation: SimulationArme | undefined, db: Database | null): GearPiece {
   if (!simulation || !piece.itemInstanceId) return piece;
-  const colonnes = Object.entries(simulation);
+  if (!piece.perksParColonne) return piece;
+  // FR : ⚠️ CHANGÉ (27/10/2026) - une entrée de simulation ÉGALE au mod équipé n'est PAS une simulation (aucun écart avec la pièce réelle) : elle ne fait ni « simulé », ni badge, ni calcul inutile. L'interface ne les enregistre jamais, mais un magasin ancien ou modifié à la main peut en contenir. / EN: ⚠️ CHANGED - a simulation entry equal to the equipped mod is not a simulation.
+  const equipes = new Map<number, number>(piece.perksParColonne.map((p) => [p.socketIndex, p.hash]));
+  const colonnes = Object.entries(simulation).filter(([index, choix]) => equipes.get(Number(index)) !== choix.effectif);
   if (colonnes.length === 0) return piece;
-  // FR : le recalcul exact vient de statsSimulees (lib/forge/armure.ts) — la fonction TESTÉE de la Forge, jamais une duplication du calcul.
-  const { simulees } = statsSimulees(db, piece, Object.fromEntries(colonnes.map(([index, choix]) => [Number(index), choix])));
-  const pieceSimulee: GearPiece = { ...piece, stats: simulees, statsSimulees: true, statsReelles: piece.stats, nbModsSimules: colonnes.length };
-  return pieceSimulee;
+  // FR : ⚠️ AJOUT (27/10/2026) - GARDE-FOU DE L'ÉNERGIE : une simulation qui dépasse l'énergie de la pièce (capacité lue sur l'exemplaire) n'est pas réalisable en jeu : le score l'IGNORE (la pièce reste réelle, marquée `simulationRejetee`). La fenêtre de simulation l'empêche, mais une simulation enregistrée avant le budget, ou une capacité qui change au rechargement, peut encore la contenir. Énergie non lue : on ne peut rien vérifier, la simulation s'applique comme avant. / EN: ⚠️ ADDED - ENERGY GUARD: a simulation above the piece's energy is ignored by the score.
+  if (db) {
+    const e = energieSimulee(db, piece, colonnesArmure(db, piece), simulation);
+    if (e && e.restante < 0) return { ...piece, simulationRejetee: true, energieDepassee: -e.restante, nbModsSimules: colonnes.length };
+  }
+  const parColonne = new Map<number, number>((piece.perksParColonne ?? []).map((p) => [p.socketIndex, p.hash]));
+  for (const [index, choix] of colonnes) parColonne.set(Number(index), choix.effectif);
+  const perksParColonne = [...parColonne.entries()].sort((a, b) => a[0] - b[0]).map(([socketIndex, hash]) => ({ socketIndex, hash }));
+  const stats = db ? statsSimulees(db, piece, simulation) : null;
+  return {
+    ...piece,
+    perksParColonne,
+    perkHashes: perksParColonne.map((p) => p.hash),
+    modsSimules: true,
+    // FR : ⚠️ AJOUT (27/10/2026) - les mods RÉELS sont mémorisés, comme pour une arme (`perkHashesReels`, `perksParColonneReels`) : sans eux, la fenêtre Détails de Mon Build prenait les mods SIMULÉS pour les mods équipés (le delta tombait à zéro, « revenir au réel » ne ramenait rien) et « Envoyer à la Forge » aurait envoyé l'armure SIMULÉE. / EN: ⚠️ ADDED - the REAL mods are remembered, as for weapons.
+    perkHashesReels: piece.perkHashes,
+    perksParColonneReels: piece.perksParColonne,
+    statsReelles: piece.stats,
+    nbModsSimules: colonnes.length,
+    ...(stats && stats.nbChangements > 0 ? { stats: { ...stats.simulees } } : {}),
+  };
 }
 
-/** FR : ⚠️ CHANGÉ (19/10/2026, §2.1) - le build avec la simulation appliquée à ses ARMES ET À SES ARMURES ; le même objet si rien n'est simulé. L'ARMURE a besoin du `db` (les stats des plugs se lisent dans le Manifest) : quand il est absent (pas de Manifest chargé), les armures ne sont PAS simulées — le score reste celui des armes, jamais une erreur. / EN: the build with the simulation applied to its weapons AND armor; the same object if nothing is simulated. Armor needs the db (plug stats are read from the Manifest): without it, armor is not simulated — never an error.
- */
-export function appliquerSimulations(build: BuildDraft, simulations: Simulations, db?: import("sql.js").Database | null): BuildDraft {
-  // FR : ⚠️ CORRIGÉ (20/10/2026) - le tableau des armes n'est reconstruit QUE si une arme CHANGE : une simulation posée sur une ARMURE seule ne doit pas créer un tableau d'armes neuf (l'identité d'objet des pièces non simulées est le contrat des calculs mémorisés). / EN: the weapons array is rebuilt only when a weapon changes.
+/** FR : ⚠️ CHANGÉ (branche draft-mod-armures) - le build avec la simulation appliquée à ses ARMES et à ses ARMURES ; le même objet si rien n'est simulé. `db` sert au recalcul des statistiques des armures simulées (Manifest ; sans lui, seules les perks des armures sont remplacées). / EN: the build with the simulation applied to its weapons AND armor; the same object if none is simulated. */
+export function appliquerSimulations(build: BuildDraft, simulations: Simulations, db: Database | null = null): BuildDraft {
   let change = false;
   let armes = build.armes;
   if (build.armes.some((a) => a.itemInstanceId && simulations.armes[a.itemInstanceId] && Object.keys(simulations.armes[a.itemInstanceId]).length > 0)) {
@@ -65,14 +85,34 @@ export function appliquerSimulations(build: BuildDraft, simulations: Simulations
       return copie;
     });
   }
-  // FR : ⚠️ AJOUT (19/10/2026, §2.1) - les ARMURES du build, sur le MÊME magasin (identifiant d'exemplaire + index de prise) : le score réagit aux mods simulés.
-  const armure = db ? build.armure.map((p) => {
-    const copie = appliquerSimulationArmure(db, p, p.itemInstanceId ? simulations.armes[p.itemInstanceId] : undefined);
-    if (copie !== p) change = true;
-    return copie;
-  }) : build.armure;
+  // ⚠️ AJOUT (branche draft-mod-armures) - seule une armure RÉELLEMENT simulée (copie) force la copie du tableau : sinon le tableau d'origine est réutilisé tel quel (mêmes objets, pas de recopie inutile).
+  let armure = build.armure;
+  for (let i = 0; i < build.armure.length; i++) {
+    const a = build.armure[i];
+    const copie = appliquerSimulationArmure(a, a.itemInstanceId ? simulations.armures?.[a.itemInstanceId] : undefined, db);
+    if (copie === a) continue;
+    if (armure === build.armure) armure = [...build.armure];
+    armure[i] = copie;
+    change = true;
+  }
   return change ? { ...build, armes, armure } : build;
 }
 
 /** FR : combien d'armes du build portent des perks simulés. / EN: how many weapons of the build carry simulated perks. */
 export const nbArmesSimulees = (build: BuildDraft): number => build.armes.filter((a) => a.perksSimules).length;
+/** FR : ⚠️ AJOUT (branche draft-mod-armures) - combien d'armures du build portent des mods simulés. / EN: how many armor pieces of the build carry simulated mods. */
+export const nbArmuresSimulees = (build: BuildDraft): number => build.armure.filter((a) => a.modsSimules).length;
+/** FR : ⚠️ AJOUT (27/10/2026) - combien d'armures du build ont une simulation IGNORÉE par le score parce qu'elle dépasse l'énergie. / EN: how many armor pieces have a simulation ignored because it exceeds the energy. */
+export const nbArmuresRejetees = (build: BuildDraft): number => build.armure.filter((a) => a.simulationRejetee).length;
+/** FR : ⚠️ AJOUT (27/10/2026) - le DELTA des statistiques TOTALES des armures dû à la simulation (somme, par statistique, de `stats` − `statsReelles` sur les armures simulées). Vide quand rien n'est simulé. Les bonus de la doctrine, identiques avec ou sans simulation, s'annulent : on ne les ajoute pas ici. / EN: ⚠️ ADDED - the armor stat totals delta caused by the simulation. */
+export function deltaStatsArmure(armure: GearPiece[]): Partial<Record<StatKey, number>> {
+  const delta: Partial<Record<StatKey, number>> = {};
+  for (const p of armure) {
+    if (!p.modsSimules || !p.statsReelles) continue;
+    for (const cle of new Set([...Object.keys(p.stats), ...Object.keys(p.statsReelles)]) as Set<StatKey>) {
+      const d = (p.stats[cle] ?? 0) - (p.statsReelles[cle] ?? 0);
+      if (d !== 0) delta[cle] = (delta[cle] ?? 0) + d;
+    }
+  }
+  return delta;
+}

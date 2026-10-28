@@ -21,7 +21,7 @@ const construire = (armes: GearPiece[], armurePieces: GearPiece[]): BuildDraft =
   ({ ...structuredClone(demoBuild), armes, armure: armurePieces });
 
 const sim = (instance: string, colonnes: Record<number, [number, number]>) =>
-  Object.entries(colonnes).reduce((s, [i, [c, e]]) => choisir(s, instance, Number(i), { choisi: c, effectif: e }), SIMULATIONS_VIDES());
+  Object.entries(colonnes).reduce((s, [i, [c, e]]) => choisir(s, instance, Number(i), { choisi: c, effectif: e }, "armures"), SIMULATIONS_VIDES());
 
 (async () => {
   // FR : le faux Manifest du projet : les plugs 7411 (mod de santé) et 7412 (mod de classe) y ont leurs investmentStats (tests de la Forge des armures).
@@ -36,7 +36,7 @@ const sim = (instance: string, colonnes: Record<number, [number, number]>) =>
 
   ok("une armure SIMULÉE du build est remplacée par une COPIE (jamais le même objet) : le lien armure → score est branché", eff.armure[0] !== a1 && eff.armure[0] !== undefined, eff.armure[0]);
   ok("la pièce d'ORIGINE n'est jamais modifiée (le build enregistré garde ses stats réelles)", a1.stats.sante === 20 && a1.stats.classe === 12);
-  ok("la copie porte les repères de simulation (badge « simulé » de Mon Build) et ses stats RÉELLES d'origine", (eff.armure[0] as GearPiece & { statsSimulees?: boolean }).statsSimulees === true && (eff.armure[0] as GearPiece & { statsReelles?: unknown }).statsReelles !== undefined, eff.armure[0]);
+  ok("la copie porte les repères de simulation (badge « simulé » de Mon Build) et ses stats RÉELLES d'origine", (eff.armure[0] as GearPiece & { modsSimules?: boolean }).modsSimules === true && (eff.armure[0] as GearPiece & { statsReelles?: unknown }).statsReelles !== undefined, eff.armure[0]);
   ok("les ARMES ne sont pas touchées par une simulation posée sur une ARMURE du build (l'application est par pièce : une arme sans simulation enregistrée reste le même objet)", eff.armes === build.armes);
 
   // ---------- 2. la chaîne jusqu'au score ----------
@@ -59,7 +59,7 @@ const sim = (instance: string, colonnes: Record<number, [number, number]>) =>
   // ---------- 3. indépendances et cas limites ----------
   ok("une armure du build SANS simulation (ou une simulation d'un autre exemplaire) : le MÊME objet est rendu — les calculs mémorisés ne se relancent pas pour rien", (() => { const b = construire([], [a1]); return appliquerSimulations(b, SIMULATIONS_VIDES(), base) === b && appliquerSimulations(b, sim("autre", { 2: [7412, 7412] }), base) === b; })());
   ok("une armure NON possédée (sans identifiant d'exemplaire) n'est jamais simulée", (() => { const n = armure(undefined, { sante: 10 }); const b = construire([], [n]); return appliquerSimulations(b, sim("x", { 2: [1, 1] }), base).armure[0] === n; })());
-  ok("« Mettre dans Mon Build » puis retour Forge : `pieceReelle` retrouve l'armure réelle (stats d'origine, repères retirés)", (() => { const r = pieceReelle(eff.armure[0]); return JSON.stringify((r as GearPiece).stats) === JSON.stringify(a1.stats) && (r as GearPiece & { statsSimulees?: boolean }).statsSimulees === undefined; })());
+  ok("« Mettre dans Mon Build » puis retour Forge : `pieceReelle` retrouve l'armure réelle (stats d'origine, repères retirés)", (() => { const r = pieceReelle(eff.armure[0]); return JSON.stringify((r as GearPiece).stats) === JSON.stringify(a1.stats) && (r as GearPiece & { modsSimules?: boolean }).modsSimules === undefined; })());
 
   // ---------- 4. deux exemplaires indépendants ----------
   const a2 = armure("a2", { sante: 30 });
