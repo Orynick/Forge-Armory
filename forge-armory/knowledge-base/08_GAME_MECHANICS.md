@@ -138,9 +138,9 @@ Chaque armure droppe basique (T0) et s'upgrade jusqu'à x5 (T5 = masterworked). 
 Une fois à T5, un choix de Tuning devient disponible — **0 coût en énergie**, deux options :
 
 - **Balanced Tuning** : +1 de plus aux 3 mêmes stats déjà boostées par le masterwork (+6 total avec MW complet)
-- **Tuning Directionnel (+5/-5)** : redistribue 5 points d'une stat vers une autre, **cible libre** (y compris les intrinsèques). Convention : sacrifier Health (généralement inutile PvE) pour booster la stat désirée.
+- **Tuning Directionnel (+5/-5)** : redistribue 5 points d'une stat vers une autre. ⚠️ CORRIGÉ (25, 26 puis 27/10/2026, règle donnée par l'utilisateur avec une CAPTURE du jeu, vérifiée sur trois diagnostics de son compte) : la cible n'est PAS libre **sur une armure LÉGENDAIRE** : elle a une statistique « + » **propre à la pièce**, tirée au hasard par le jeu parmi les 6 statistiques (même la primaire), **jamais modifiable** ; le jeu la repère par le symbole **⇅** à côté de la statistique ; les propositions de l'exemplaire n'ont alors qu'UN seul « + » (vérifié sur deux légendaires : Casque chatoyant « + » Super, Heaume chatoyant « + » Mêlée). Sur une armure **EXOTIQUE il n'y a PAS de « + » propre** (« le ⇅ n'existe pas sur les armures exotiques ») : toutes les combinaisons sont possibles, l'API liste 31 ajustements et les marque TOUS insérables (`canInsert`), vérifié sur le Pantalon de chargeur rapide. Dans les deux cas le slot d'ajustement a **trois issues** : (1) **rien** (laissé vide) ; (2) **équilibré** : +1 sur les 3 statistiques non intrinsèques (ni primaire, ni secondaire, ni tertiaire : celles que la maîtrise colore en jaune), **MÊME sur une pièce sans maîtrise** ; (3) **directionnel** : +5 sur la statistique « + » (légendaire : celle de la pièce ; exotique : au choix) et −5 sur l'une des 5 autres. Piège du Manifest : le plug « Ajustement équilibré » y porte **+1 sur les SIX statistiques**, alors que le jeu n'applique +1 qu'aux TROIS non intrinsèques : l'effet est donc appliqué par la règle, jamais lu dans le Manifest. Le plug « Emplacement de mod d'ajustement vide » existe dans le modèle (« rien » est une issue). **Dans l'appli** : le symbole ⇅ (en vert, devant le nom de la statistique) marque le « + » d'une armure légendaire partout où les six statistiques d'une armure s'affichent, sauf dans la Collection.
 
-Pour un objectif Weapons/Super, seul le Tuning Directionnel est utile (Balanced ne touche jamais les intrinsèques). Avec 5 pièces tunées vers la même cible : **jusqu'à +25 sur un seul stat**.
+Pour un objectif Weapons/Super, seul le Tuning Directionnel est utile (Balanced ne touche jamais les intrinsèques). Avec 5 pièces tunées vers la même cible : **jusqu'à +25 sur un seul stat**. ⚠️ CORRIGÉ (25/10/2026) : cela suppose 5 pièces dont le « + » est DÉJÀ la statistique voulue (ou des exotiques) ; le « + » est tiré au hasard sur CHAQUE armure (légendaire ou exotique), donc un calcul d'optimisation doit LIRE le « + » de chaque pièce (voir `lib/forge/ajustement.ts` : `lirePlus`).
 
 ### Slots de mods et budget énergie
 
@@ -151,8 +151,9 @@ Pour un objectif Weapons/Super, seul le Tuning Directionnel est utile (Balanced 
 | 3-4 (ou 3-5) | Armor-specific mod (pool partagée) | Armor-specific mod (pool partagée, 3 slots) |
 
 - **Général Stat Mod** : Major = +10 stat / 3 energy ; Minor = +5 stat / 1 energy — **un seul slot par pièce, pas de stacking multiple**
-- **Budget énergie total par pièce** : 10 (11 avec Artifice — slot mineur bonus)
-- **Font/Surge** : 3 energy chacun, occupent un des 3 slots "armor-specific"
+- **Budget énergie total par pièce** : ⚠️ CORRIGÉ (25/10/2026, mesuré sur 440 armures du compte de l'utilisateur) : il dépend du **palier de la pièce**, pas d'Artifice : **11** aux paliers 4 et 5 (359 pièces), **10** aux paliers 2 et 3 et pour les armures d'avant Armor 3.0 masterworked, 9 pour 16 pièces, et de 1 à 8 pour d'anciens exotiques non améliorés. À LIRE sur chaque pièce (`GearPiece.energie.capacite`), jamais une constante. L'énergie utilisée annoncée par le jeu = la somme des coûts des mods équipés, **un plug sans coût dans le Manifest comptant 0** (ajustements, amélioration, emplacements vides ou verrouillés) : égalité exacte sur 440 pièces sur 440. Les armes n'ont pas de budget d'énergie.
+- **Font/Surge** : 3 energy chacun, occupent un des 3 slots "armor-specific" (coûts mesurés des mods équipés : 1 (98 mods), 2 (48), 3 (316), 4 (12) ; Siphon harmonieux 1, Source de Super 3, Surcharge d'arme solaire 3)
+- **Mods en double** (⚠️ AJOUT 25/10/2026) : 107 noms de mods existent en DEUX versions (coût 1 et 2, 3 ou 4 ; 0 et 1 ou 2 pour la génération de munitions) dans la même liste. La **version standard** (coût le plus haut, identifiant de collection, aucune condition d'artéfact) est la seule jamais équipée ; l'autre exige une option de l'artéfact saisonnier et, pour les mods de statistique, n'a **aucun bonus**. La simulation ne propose que la version standard.
 - Convention de slot par pièce : Helmet=Super Font, Arms=Melee/Grenade Font (selon build), Chest=Health Font (skippable), Legs=Surge élémentaire OU Weapon Font (mutuellement exclusif), Class Item=Class Font (skippable)
 
 ### Fonts — mécanique conditionnelle (pas un ajout de stat statique)
@@ -165,7 +166,7 @@ Les Fonts (Super Font, etc.) donnent un bonus au stat **uniquement tant qu'on a 
 ### Calcul complet — Loadout DPS Weapons/Super (Powerhouse)
 
 Base 5x Powerhouse : Weapons 150 / Super 125.
-Budget flexible (Tuning 25 + Stat Mods 50, hors Fonts) = **75 points combinés** à répartir.
+Budget flexible (Tuning 25 + Stat Mods 50, hors Fonts) = **75 points combinés** à répartir (⚠️ le Tuning 25 suppose le « + » de chaque pièce sur la statistique voulue : voir la correction plus haut).
 
 Pour atteindre Super=200 en priorité (meilleur ratio dégâts/point, voir `01_DAMAGE_STACKING.md`) : dédier tout le budget flexible à Super.
 → **Weapons 150 / Super 200**, atteignable via archétype+tuning+mods seuls, sans utiliser un seul slot de Font.

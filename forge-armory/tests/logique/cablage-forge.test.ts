@@ -11,8 +11,8 @@ const forge = fs.readFileSync("src/components/PageForge.tsx", "utf-8");
 const forgeInv = fs.readFileSync("src/components/InventaireArmes.tsx", "utf-8");
 const code = (t: string) => t.split("\n").filter((l) => !/^\s*(\/\/|\*|\{\/\*)/.test(l)).join("\n");   // sans les lignes de commentaire
 const P = code(page);
-ok("LE SCORE est calculé sur le build AVEC simulation : `evaluerBuild(buildEffectif, …)`, jamais sur `monBuild`", /evaluerBuild\(\s*buildEffectif\s*,/.test(P) && !/evaluerBuild\(\s*monBuild/.test(P));
-ok("le build avec simulation vient bien du magasin partagé : `appliquerSimulations(monBuild, simulations)` avec `useSimulations()`", /const simulations = useSimulations\(\)/.test(P) && /appliquerSimulations\(monBuild, simulations\)/.test(P));
+ok("LE SCORE est calculé sur le build AVEC simulation : `evaluerBuild(buildEffectif, …)`, jamais sur `monBuild` ; ⚠️ 27/10/2026 : la SEULE autre évaluation est le score RÉEL de COMPARAISON (`resultatReel`, calculé seulement quand une simulation est active et affiché comme « réel → simulé ») : elle n'alimente ni le score global, ni l'affichage de Mon Build", /evaluerBuild\(\s*buildEffectif\s*,/.test(P) && (P.match(/evaluerBuild\(\s*monBuild/g) ?? []).length === 1 && /const resultatReel = useMemo\(\s*\(\) => \(simulationActive \? evaluerBuild\(monBuild/.test(P) && /comparerScores\(resultatReel, resultat\)/.test(P));
+ok("le build avec simulation vient bien du magasin partagé : `appliquerSimulations(monBuild, simulations, db)` avec `useSimulations()`", /const simulations = useSimulations\(\)/.test(P) && /appliquerSimulations\(monBuild, simulations, db\)/.test(P));
 ok("MON BUILD (affichage) reçoit le build avec simulation : le badge « simulé » et les avertissements d'équipement en dépendent", /<ResumeBuild[\s\S]{0,120}build=\{buildEffectif\}/.test(P));
 // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - `buildAvecSimulation={buildEffectif}` est un
 // usage AUTORISÉ de buildEffectif : il sert UNIQUEMENT à la détection des perks simulés pour
@@ -20,9 +20,12 @@ ok("MON BUILD (affichage) reçoit le build avec simulation : le badge « simulé
 // EN: `buildAvecSimulation={buildEffectif}` is an ALLOWED use: only to detect simulated perks for the
 // marked save (the save zone still receives `build={monBuild}`, the REAL build).
 ok("L'ENREGISTREMENT et le PARTAGE gardent le build RÉEL : le bloc de partage, l'export vers DIM et le panneau des Load-outs reçoivent `monBuild`, jamais `buildEffectif` en `build=` (jamais de perks simulés enregistrés ou partagés)", /<BlocPartage[\s\S]{0,400}build=\{monBuild\}/.test(P) && /exporterVersDim\(monBuild\)/.test(P) && (P.match(/build=\{monBuild\}/g) ?? []).length >= 2 && !/<BlocPartage[\s\S]{0,400}build=\{buildEffectif\}/.test(P) && !/<PanneauLoadouts[\s\S]{0,600}build=\{buildEffectif\}/.test(P), { blocPartage: /<BlocPartage[\s\S]{0,400}build=\{monBuild\}/.test(P), dim: /exporterVersDim\(monBuild\)/.test(P), nbMonBuild: (P.match(/build=\{monBuild\}/g) ?? []).length });
-// FR : ⚠️ AJOUT (20/10/2026) - 7 usages : les 6 historiques + `buildAvecSimulation={buildEffectif}`
-// (détection des perks simulés pour l'enregistrement marqué, voir le commentaire ci-dessus).
-ok("LISTE FERMÉE des usages de `buildEffectif` : exactement 8 dans le CODE (sa définition, le compteur d'armes simulées, le calcul du score + ses dépendances, le diagnostic du pilier 2, l'affichage de Mon Build, la détection perks simulés du bloc Partage, la détection simulation du panneau Load-outs) ; le 9e occurrence est un COMMENTAIRE (la vue optimiseur, qui reçoit `monBuild`, contrôlée négativement ci-dessous) ; un dixième en `build=`, par exemple vers l'enregistrement, ferait échouer ce test", (P.match(/buildEffectif/g) ?? []).length === 8, (P.match(/buildEffectif/g) ?? []).length);
+// ⚠️ FUSION (28/10/2026, propagation v0.5.6) : la liste fermée compte les usages des DEUX côtés —
+// branche : définition, compteur armes, score + dépendances, diagnostic pilier 2, Mon Build,
+// détection perks simulés (Partage), buildAvecSimulation (Load-outs) ;
+// main v0.5.6 : + compteur ARMURES simulées + compteur simulations REJETÉES.
+// Total : 10 occurrences de `buildEffectif` dans le code (les commentaires sont exclus par `code()`).
+ok("LISTE FERMÉE des usages de `buildEffectif` : exactement 10 dans le CODE (sa définition, les DEUX compteurs simulés armes+armures, le compteur des simulations REJETÉES, le calcul du score + ses dépendances, le diagnostic du pilier 2, l'affichage de Mon Build, la détection perks simulés du bloc Partage, la détection simulation du panneau Load-outs via `buildAvecSimulation`) ; un onzième en `build=`, par exemple vers l'enregistrement, ferait échouer ce test", (P.match(/buildEffectif/g) ?? []).length === 10, (P.match(/buildEffectif/g) ?? []).length);
 
 // FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - l'OPTIMISEUR de build v2 est HORS SCORING
 // et ne modifie JAMAIS le build courant : la page reçoit le build RÉEL (`monBuild`), sa seule écriture

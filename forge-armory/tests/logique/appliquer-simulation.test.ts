@@ -42,8 +42,9 @@ const eff = appliquerSimulations(build, s);
 ok("seules les armes SIMULÉES sont touchées ; DEUX EXEMPLAIRES du même modèle (w2, w3 : mêmes perks réels) restent indépendants et inchangés", eff.armes[0].perksSimules === true && eff.armes[1] === w2 && eff.armes[2] === w3 && nbArmesSimulees(eff) === 1);
 ok("le build d'origine n'est pas modifié et rien d'autre n'est copié que les armes (l'armure, la doctrine, l'artefact sont les mêmes objets)", build.armes[0] === w1 && eff.armure === build.armure && eff.subclass === build.subclass && eff.artifact === build.artifact);
 ok("rien à appliquer (aucune simulation, ou simulation d'une arme qui n'est pas dans le build) : le MÊME build est rendu, donc les calculs mémorisés ne sont pas relancés pour rien", appliquerSimulations(build, SIMULATIONS_VIDES()) === build && appliquerSimulations(build, sim("autre", { 1: [9, 9] })) === build);
+// ⚠️ CHANGÉ (branche draft-mod-armures) : une simulation écrite dans le bloc `armes` pour l'identifiant d'une ARMURE n'est plus appliquée (les armures lisent le bloc `armures`) : l'armure reste telle quelle.
 const armureSimulee = construire([w1], [arme("a1", [[1, 100]], "casque", 5005)]);
-ok("l'ARMURE n'est jamais touchée, même si une simulation existe pour son identifiant", appliquerSimulations(armureSimulee, sim("a1", { 1: [9, 9] })) === armureSimulee);
+ok("une simulation d'arme écrite pour l'identifiant d'une ARMURE (mélange de l'ancienne 0.4.12) n'est PAS appliquée à l'armure : les armures lisent le bloc `armures`", appliquerSimulations(armureSimulee, sim("a1", { 1: [9, 9] })) === armureSimulee);
 // ---------- 3. le magasin partagé ----------
 const memoire = (): Stockage & { contenu: Map<string, string> } => { const contenu = new Map<string, string>(); return { contenu, getItem: (c) => contenu.get(c) ?? null, setItem: (c, v) => void contenu.set(c, v) }; };
 const st = memoire(); const m = creerMagasin(() => st);

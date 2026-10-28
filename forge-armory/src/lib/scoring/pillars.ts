@@ -20,7 +20,7 @@ import { ORDRE_PILIERS } from "../../data/piliers";
 import { BuildDraft, BuildScoreResult, PillarScore } from "../../types/build";
 import { ExigenceStat, scoreStats, sommerStatsArmure, ContexteBuild, appliquerAjustementsStats, aDesAjustementsStats } from "./stats";
 import { scoreBonusSetsReels } from "./armorSets";
-import { detecterVerbes, extraireTextesEffetsBuild, extraireTextesEffetsBuildMarques, scoreVerbesDetectes, obtenirChampionsCouverts, detecterChainesVerbes, detecterRessourcesGenerees, enrichirAvecChaines } from "./verbes";
+import { detecterVerbes, extraireTextesEffetsBuild, extraireTextesEffetsBuildMarques, extraireNomsPerksSimules, scoreVerbesDetectes, obtenirChampionsCouverts, detecterChainesVerbes, detecterRessourcesGenerees, enrichirAvecChaines } from "./verbes";   // ⚠️ FUSION (28/10/2026) : les DEUX sont utilisés — `extraireTextesEffetsBuildMarques` (badge ajustements, branche) + `extraireNomsPerksSimules` (badge perks/mods simulés, main v0.5.6)
 import { obtenirBonusStatsDoctrine, obtenirElementArme } from "../manifest/doctrine";
 import { LIBELLES_CHAMPION } from "../../components/icones/IconeAntiChampion";
 
@@ -282,7 +282,12 @@ function scoreVerbesElement(build: BuildDraft, db?: Database, contexte: Contexte
   // now settled - see the full reasoning on `enrichirAvecChaines`.
   const maillons = detecterChainesVerbes(verbesDetectes, textes);
   const verbesEnrichis = enrichirAvecChaines(verbesDetectes, maillons);
-  const { score: scoreBoucles, details, detailsMarques } = scoreVerbesDetectes(verbesEnrichis);
+  // ⚠️ FUSION (28/10/2026, propagation v0.5.6) : les DEUX mécanismes coexistent —
+  // `detailsMarques` (badge « simulé » des ajustements de stats, branche draft-optimiseur)
+  // + `extraireNomsPerksSimules` (marqueur MARQUE_SIMULE des perks/mods simulés, main v0.5.6).
+  // `scoreVerbesDetectes` fusionnée accepte les DEUX paramètres (voir verbes.ts).
+  const nomsSimules = extraireNomsPerksSimules(build, db);
+  const { score: scoreBoucles, details, detailsMarques } = scoreVerbesDetectes(verbesEnrichis, nomsSimules);
 
   // FR : ⚠️ CHANGÉ (06/09/2026) - regroupées par SOURCE, plus par cible.
   // Motif : demande de l'utilisateur après test réel, où "Charge d'armure"

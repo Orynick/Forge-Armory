@@ -33,7 +33,7 @@
 // app). Displaying it makes it visible, and the "Transfer to" button
 // explains it (disabled).
 
-import { extrairePlugsDisponibles, extraireGearTier } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7) ; ⚠️ AJOUT (19/10/2026) : `extraireGearTier`
+import { extrairePlugsDisponibles, extraireGearTier, extraireEnergie, extrairePlugsInsertables } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7) ; ⚠️ AJOUT (19/10/2026) : `extraireGearTier`
 import { Database } from "sql.js";
 import { obtenirDefinition } from "../manifest/download";
 import { urlIcone } from "../manifest/search";
@@ -417,6 +417,10 @@ export async function listerObjetsPossedes(
       ...(estArmure && item.itemInstanceId ? { estMasterwork: estMasterworkReel } : {}),
       // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - stats intrinsèques de l'exemplaire (voir déclaration plus haut). Sert à l'optimiseur (règle du masterwork). / EN: the instance's intrinsic stats (see declaration above). Used by the optimizer (masterwork rule).
       ...(estArmure && item.itemInstanceId && statsIntrinsequesMesurees ? { statsIntrinseques: statsIntrinsequesMesurees } : {}),
+      // ⚠️ AJOUT (24/10/2026) : énergie de l'exemplaire (diagnostic des coûts d'énergie des mods)
+      ...(item.itemInstanceId && extraireEnergie(gearTierParInstance[item.itemInstanceId]) ? { energie: extraireEnergie(gearTierParInstance[item.itemInstanceId]) } : {}),
+      // ⚠️ AJOUT (26/10/2026) : plugs réellement insérables (« + » de l'ajustement d'une armure)
+      ...(item.itemInstanceId && extrairePlugsInsertables(plugsReutilisablesParInstance[item.itemInstanceId]) ? { plugsInsertablesParColonne: extrairePlugsInsertables(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),
       isExotic: def.inventory?.tierTypeHash === TIER_TYPE_HASH_EXOTIQUE,
       classeRequise,
       elementArme,

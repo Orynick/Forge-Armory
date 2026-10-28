@@ -7,6 +7,17 @@ import BadgeSimule from "./BadgeSimule";   // ⚠️ AJOUT (20/10/2026, branche 
 // EN: ⚠️ CHANGED - labels were redeclared here as a 3rd independent copy.
 // Now imported from the single source.
 import { LIBELLES_PILIER as LIBELLES } from "../data/piliers";
+import { MARQUE_SIMULE } from "../lib/scoring/marqueSimule";   // ⚠️ AJOUT (27/10/2026)
+
+/**
+ * FR : ⚠️ AJOUT (27/10/2026, « dans le bloc Effets du Build, quand un des verbes vient d'une perk simulée, mets le badge « simulé » à côté de l'origine du verbe ») - remplace chaque marqueur de perk simulé par le badge « 🔨 simulé », au même style que celui de Mon Build. Le texte sans marqueur est rendu tel quel.
+ * EN: ⚠️ ADDED - replaces each simulated-perk marker by the "simulé" badge (same style as Mon Build).
+ */
+function avecBadges(texte: string) {
+  const parties = texte.split(MARQUE_SIMULE);
+  if (parties.length === 1) return texte;
+  return parties.flatMap((p, i) => (i < parties.length - 1 ? [p, " ", <span key={`b${i}`} data-badge-simule-verbe="" title="Ce verbe vient d'un perk ou d'un mod SIMULÉ dans la Forge : pris en compte dans le score, pas appliqué en jeu." style={{ fontSize: "0.7rem", color: "#e8c547", border: "1px solid #e8c547", borderRadius: 999, padding: "0 0.4rem", cursor: "help" }}>🔨 simulé</span>] : [p]));
+}
 
 interface Props {
   pilier: PillarScore;
@@ -40,6 +51,9 @@ export default function PilierCarte({ pilier, stats }: Props) {
   // (text display unchanged).
   const marques = pilier.detailsMarques;
   const simuleLigne = (i: number) => marques?.[i]?.simule === true;
+  // ⚠️ FUSION (28/10/2026, propagation v0.5.6) : les DEUX systèmes de badge coexistent —
+  // `simuleLigne(i)` (ajustements de stats, branche) + `avecBadges` (marqueur MARQUE_SIMULE
+  // des perks/mods simulés, main v0.5.6). Les lignes portent les deux traitements.
   const groupes: { titre: string; titreSimule: boolean; sousLignes: { texte: string; simule: boolean }[] }[] = [];
   pilier.details.forEach((ligne, i) => {
     if (ligne.startsWith("  ") && groupes.length > 0) {
@@ -87,13 +101,13 @@ export default function PilierCarte({ pilier, stats }: Props) {
       <ul>
         {groupes.map((g, i) => (
           <li key={i}>
-            {g.titre}
+            {avecBadges(g.titre)}
             {g.titreSimule && <BadgeSimule />}
             {g.sousLignes.length > 0 && (
               <ul style={{ marginTop: "0.15rem" }}>
                 {g.sousLignes.map((s, j) => (
                   <li key={j}>
-                    {s.texte}
+                    {avecBadges(s.texte)}
                     {s.simule && <BadgeSimule />}
                   </li>
                 ))}
