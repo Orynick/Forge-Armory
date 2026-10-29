@@ -4,6 +4,12 @@
 
 ---
 
+## 28/10/2026 — branche `Import-optimiseur` : branche dédiée à l'import de la finalisation « Optimisation »
+
+**Création** : branche `Import-optimiseur` créée depuis `main` (v0.5.6, b2d1c3b), sur le modèle de `Import-modif-mods-armures`. **Rôle** : recevoir l'import de la partie « Optimisation » en cours de finalisation côté utilisateur (optimiseur de build v2 : page dédiée `PageOptimiseur`, module pur `buildOptimizer.ts`, ajustements manuels des stats, recommandation d'archétype — cf. chantier sur `draft-optimiseur`), **isolée du reste** le temps de la revue. Une fois l'import fait et vérifié (tsc + batterie + build), elle pourra être mergée sur le chantier (`draft-optimiseur`) et/ou `main` selon décision de l'utilisateur. La branche distante `draft-optimiseur` a déjà été propagée avec v0.5.6 (résolution en union, 53/53 suites, 1107/1107 contrôles).
+
+---
+
 ## 28/10/2026 — LIVRAISON v0.5.6 : merge PR #19 (draft-mod-armures — modification des mods d'armure complète)
 
 **Livraison** : la PR #19 (branche `draft-mod-armures`) est mergée dans `main` (merge commit, le merge GitHub était en conflit après l'avance de `main` — résolu en local, conflit DEVLOG : entrées de `main` conservées). Le chantier « modification des mods d'armure » est **bouclé** : simulation des mods d'armure dans les pop-ups Détails (Mon Inventaire, Coffre, Mon Build) **et** dans la Forge, avec **budget d'énergie** (jauge + garde-fou : une simulation qui dépasse l'énergie est ignorée par le score), **lien score/Mon Build en temps réel** (comparaison « réel → simulé », delta des stats, badge « 🔨 simulé » sur l'origine d'un verbe), **ajustement** (règle du « + » propre à chaque armure, symbole ⇅), et interface allégée (composant partagé `SimulationModsArmure`, `StatsArmure`). **Rien n'est écrit chez Bungie** (Phase 1).
