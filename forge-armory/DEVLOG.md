@@ -4,6 +4,16 @@
 
 ---
 
+## 28/10/2026 — branche `Import-optimiseur` : garde anti-régression « Sceaux en cartes carrées » + procédure d'import
+
+**Contexte** : l'utilisateur finalise la partie « Optimisation » avec Claude depuis un **ZIP de développement qui date d'avant le correctif bc83d32** (restauration des Sceaux en cartes carrées, v0.5.5). Tout import depuis ce ZIP risquerait de ramener l'ancienne version (sceaux en lignes, style Legendarium) de `VueAccomplissements.tsx` + `tests/ui/vue-accomplissements.py`.
+
+**Garde ajoutée** : nouvelle suite `tests/logique/accomplissements-sceaux-carres.test.ts` (6 contrôles, test de CÂBLAGE sur le modèle de `cablage-forge.test.ts`) — elle vérifie les MARQUEURS des cartes carrées (`aspectRatio: "1 / 1"`, `boxSizing: "border-box"`, `WebkitLineClamp`, `data-zone-progression`, `flexShrink: 0`, grille `repeat(auto-fill, …)`) dans le composant ET dans son test d'interface (les deux fichiers doivent avancer ensemble). **Prouvée** : 6/6 sur la branche ; 0/6 (échec, exit 1) sur l'ancien commit `acf0228` — la batterie BLOQUE tout import qui régresserait ce point, avant même le merge.
+
+**Procédure d'import (côté utilisateur, depuis son PC)** : `git fetch origin` → `git checkout Import-optimiseur` → `git pull` → merger sa branche locale « Optimisation » (résoudre les conflits éventuels sur `VueAccomplissements.tsx` / `vue-accomplissements.py` **EN GARDANT LA VERSION COURANTE** = cartes carrées) → `git push`. Côté revue : `npx tsc -b` + `node scripts/test-logique.mjs` (la garde Sceaux y est intégrée) + `npm run build`, puis merge sur `draft-optimiseur` et/ou `main` selon décision.
+
+---
+
 ## 28/10/2026 — branche `Import-optimiseur` : branche dédiée à l'import de la finalisation « Optimisation »
 
 **Création** : branche `Import-optimiseur` créée depuis `main` (v0.5.6, b2d1c3b), sur le modèle de `Import-modif-mods-armures`. **Rôle** : recevoir l'import de la partie « Optimisation » en cours de finalisation côté utilisateur (optimiseur de build v2 : page dédiée `PageOptimiseur`, module pur `buildOptimizer.ts`, ajustements manuels des stats, recommandation d'archétype — cf. chantier sur `draft-optimiseur`), **isolée du reste** le temps de la revue. Une fois l'import fait et vérifié (tsc + batterie + build), elle pourra être mergée sur le chantier (`draft-optimiseur`) et/ou `main` selon décision de l'utilisateur. La branche distante `draft-optimiseur` a déjà été propagée avec v0.5.6 (résolution en union, 53/53 suites, 1107/1107 contrôles).
