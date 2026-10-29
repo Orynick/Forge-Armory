@@ -4,6 +4,37 @@
 
 ---
 
+## 28/10/2026 — branche `Import-optimiseur` : base du ZIP utilisateur = v0.5.5 (25/10) — écart mesuré, procédure réécrite
+
+**Précision de l'utilisateur** : le ZIP de développement « Optimisation » part d'une **v0.5.5 du 25 octobre** (et non de la v0.5.6). Vérification faite : le tag `v0.5.5` (68238e6, 24/10) **ne contient PAS** les cartes carrées — le commit `a70699d` (24/10 23:54, cartes carrées + rétablissement du code perdu) est **postérieur au tag**, sur `main`. Le ZIP manque donc **tout ce qui est arrivé entre v0.5.5 et v0.5.6** :
+
+1. **Cartes de sceaux CARRÉES** (`a70699d` + test UI) — TODO n°23, 24/10 soir ;
+2. **Le chantier entier « mod-armures » (PR #19, v0.5.6)** : simulation des mods d'armure dans les pop-ups Détails + Forge, budget d'énergie, lien score/Mon Build, ajustement ⇅, badge « 🔨 simulé » — **25 fichiers** sous `forge-armory/src` ;
+3. **Sécurité Node + Netlify** (`40d3002`/`09483fb` : Node.js >= 24.22.1 requis, `.nvmrc`, `netlify.toml`) ;
+4. Notes DEVLOG de propagation (cosmétique).
+
+**Surface de conflit attendue** (fichiers modifiés par l'optimiseur sur `draft-optimiseur` ET par la v0.5.6) : `DashboardPage.tsx`, `ResumeBuild.tsx`, `SelecteurInventaire.tsx`, `InventaireArmures.tsx`, `lib/scoring/{pillars,verbes,stats,marqueSimule}.ts` + les nouveaux fichiers optimiseur (`PageOptimiseur.tsx`, `buildOptimizer.ts`, `recommandationArchetype.ts`). Résolution : **union des deux côtés** (c'est exactement ce qui a été fait pour propager v0.5.6 sur `draft-optimiseur`, commit 31f4ebd — la branche distante en est la référence).
+
+**La garde Sceaux reste le filet de sécurité** : `accomplissements-sceaux-carres.test.ts` (6 contrôles) bloque tout import qui ramènerait la version en lignes de `VueAccomplissements.tsx` + `vue-accomplissements.py`.
+
+**Procédure d'import RÉÉCRITE (depuis le PC, PowerShell)** :
+```powershell
+cd "C:\chemin\vers\ton\clone\Forge-Armory"
+git fetch origin
+git checkout Import-optimiseur
+git pull                       # récupère la garde anti-réreur Sceaux
+git merge <ta-branche-locale-optimisation>
+# Conflits attendus sur : DashboardPage, ResumeBuild, SelecteurInventaire,
+# InventaireArmures, lib/scoring/*  → résous en UNION (garde les deux côtés,
+# comme le merge 31f4ebd sur draft-optimiseur).
+# ⚠️ VueAccomplissements.tsx + tests/ui/vue-accomplissements.py :
+#    garde TOUJOURS la version de Import-optimiseur (cartes CARRÉES).
+git push
+```
+Côté revue (ici) : `npx tsc -b` + `node scripts/test-logique.mjs` (garde Sceaux intégrée) + `npm run build`, puis merge sur `draft-optimiseur` et/ou `main` selon décision de l'utilisateur.
+
+---
+
 ## 28/10/2026 — branche `Import-optimiseur` : garde anti-régression « Sceaux en cartes carrées » + procédure d'import
 
 **Contexte** : l'utilisateur finalise la partie « Optimisation » avec Claude depuis un **ZIP de développement qui date d'avant le correctif bc83d32** (restauration des Sceaux en cartes carrées, v0.5.5). Tout import depuis ce ZIP risquerait de ramener l'ancienne version (sceaux en lignes, style Legendarium) de `VueAccomplissements.tsx` + `tests/ui/vue-accomplissements.py`.
