@@ -4,6 +4,16 @@
 
 ---
 
+## 30/10/2026 (soir) — POINT D'AVANCEMENT sur la branche `test` (documentation seule)
+
+**Livré** : `documentation/suivi/POINT-AVANCEMENT-2026-10-30.md` — instantané du projet au 30/10/2026 (version courante **0.5.6**, recoupement `draft-optimiseur` vs `Import-modif-mods-armures` / `Import-optimiseur`, état des 13 branches, CI 100 % verte, TODO restant, prochaines étapes). La ligne `suivi/` a été ajoutée à l'index `documentation/LISEZ-MOI.md` (nommage `POINT-AVANCEMENT-AAAA-MM-JJ.md`).
+
+**Vérifié avant écriture** : la branche `test` est à jour de `main` (0 commit de retard, merge-base = `b2d1c3b` = tag `v0.5.6`) et **strictement identique à `main` côté code** (0 ligne de diff sur `src/`, `tests/`, `package.json`, `CHANGELOG.md`, `TODO.md`, `NOTICE.md`) — le point Sceaux est donc bien celui de `main` : cartes carrées identiques (`aspect-ratio: 1 / 1`, zone barre/pct à hauteur fixe), 0 diff sur `VueAccomplissements.tsx`.
+
+**Aucun code modifié, version inchangée (0.5.6).**
+
+---
+
 ## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `test`
 
 **Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6` — modification des mods d'armure via les pop-ups Détails + Forge, avec budget d'énergie et lien score) a été répercutée sur la branche `test` pour limiter les conflits futurs. La branche `test` reste OUVERTE (demande de l'utilisateur).
