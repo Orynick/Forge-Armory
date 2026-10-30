@@ -6,9 +6,16 @@ import { pieceReelle } from "../forge/appliquerSimulation";
 
 export function pieceExportable(piece: GearPiece): GearPiece {
   const reelle = pieceReelle(piece);
+<<<<<<< Updated upstream
   if (!("plugsDisponiblesParColonne" in reelle)) return reelle;
   const { plugsDisponiblesParColonne, ...reste } = reelle;
   void plugsDisponiblesParColonne;
+=======
+  // FR : ⚠️ CHANGÉ (27/10/2026) - retire AUSSI `plugsInsertablesParColonne` (sous-ensemble des plugs DISPONIBLES non sélectionnés : même information que `plugsDisponiblesParColonne`, donc même règle) et `energie` (donnée de simulation, inutile hors de l'appli), ajoutés pour la simulation des mods d'armure ; sinon un build enregistré, exporté ou partagé les embarquerait. / EN: ⚠️ CHANGED - also strips the insertable-plugs list and the energy, added for the armor-mod simulation.
+  if (!("plugsDisponiblesParColonne" in reelle) && !("plugsInsertablesParColonne" in reelle) && !("energie" in reelle) && !("statsJeu" in reelle) && !("statsReconstruites" in reelle)) return reelle;
+  const { plugsDisponiblesParColonne, plugsInsertablesParColonne, energie, statsJeu, statsReconstruites, ...reste } = reelle;   // ⚠️ 28/10/2026 : `statsJeu` et `statsReconstruites` aussi (doublons de `stats`, données de diagnostic)
+  void plugsDisponiblesParColonne; void plugsInsertablesParColonne; void energie; void statsJeu; void statsReconstruites;
+>>>>>>> Stashed changes
   return reste;
 }
 

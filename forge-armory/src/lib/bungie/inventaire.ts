@@ -33,7 +33,11 @@
 // app). Displaying it makes it visible, and the "Transfer to" button
 // explains it (disabled).
 
+<<<<<<< Updated upstream
 import { extrairePlugsDisponibles, extraireGearTier } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7) ; ⚠️ AJOUT (19/10/2026) : `extraireGearTier`
+=======
+import { extrairePlugsDisponibles, extraireGearTier, extraireEnergie, extrairePlugsInsertables, extraireStatsJeu } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7) ; ⚠️ AJOUT (19/10/2026) : `extraireGearTier`
+>>>>>>> Stashed changes
 import { Database } from "sql.js";
 import { obtenirDefinition } from "../manifest/download";
 import { urlIcone } from "../manifest/search";
@@ -56,10 +60,18 @@ interface ItemBrut {
   equipe: boolean;
 }
 
+/**
+ * FR : ⚠️ AJOUT (28/10/2026) - INTERRUPTEUR UNIQUE : `true` = pour une ARMURE dont le jeu donne les SIX statistiques (composant 304), ce sont les statistiques du JEU qui deviennent `stats` (affichage, simulation, score) ; les statistiques reconstruites d'après le Manifest sont gardées à part (`statsReconstruites`). `false` = comportement d'avant (reconstruction seule ; `statsJeu` reste disponible pour le diagnostic). À remettre à `false` seulement si l'on découvre que les statistiques du jeu ne sont PAS les totaux affichés en jeu (le diagnostic compare les deux).
+ * EN: ⚠️ ADDED - SINGLE SWITCH: `true` = an armor piece whose six in-game stats are available uses them as `stats`.
+ */
+const STATS_DU_JEU_FONT_FOI = true;
+const SIX_STATS: StatKey[] = ["sante", "melee", "grenade", "super", "classe", "arme"];
+
 async function recupererProfilPourInventaire(membership: DestinyMembership) {
   const accessToken = await obtenirAccessTokenValide();
   // FR : ⚠️ CHANGÉ (13/10/2026, v0.4.7) - + 310 (plugs réutilisables : les perks que chaque exemplaire peut porter dans chaque prise), pour distinguer dans la Forge les perks DISPONIBLES sur l'exemplaire de ceux qui sont seulement possibles sur le modèle. Lecture seule. / EN: + component 310 (reusable plugs).
-  const composants = [102, 200, 201, 205, 300, 302, 305, 310].join(",");
+  // FR : ⚠️ CHANGÉ (28/10/2026, « la version installable devra aussi afficher les vraies stats ») - + 304 (ItemStats : les statistiques RÉELLES de chaque exemplaire), maintenant EN PRODUCTION AUSSI (avant : mode développement seulement). Le diagnostic des statistiques de base de l'utilisateur avait montré que l'appli, qui RECONSTRUIT les statistiques d'après les plugs du Manifest, n'y arrivait que pour ~17 % des armures du nouveau système. / EN: ⚠️ CHANGED - + 304 (real stats) in PRODUCTION too.
+  const composants = [102, 200, 201, 205, 300, 302, 304, 305, 310].join(",");
   const reponse = await fetch(
     `${BUNGIE_API_ROOT}/Destiny2/${membership.membershipType}/Profile/${membership.membershipId}/?components=${composants}`,
     { headers: { "X-API-Key": bungieConfig.apiKey, Authorization: `Bearer ${accessToken}` } }
@@ -202,6 +214,7 @@ export async function listerObjetsPossedes(
   const gearTierParInstance: Record<string, unknown> =
     profil.itemComponents?.instances?.data ?? {};
   const plugsReutilisablesParInstance: Record<string, unknown> = profil.itemComponents?.reusablePlugs?.data ?? {};
+  const statsJeuParInstance: Record<string, unknown> = profil.itemComponents?.stats?.data ?? {};   // ⚠️ AJOUT (28/10/2026) : composant 304, présent seulement en mode développement
 
   const cacheNomsStat = new Map<number, StatKey | undefined>();
   // FR : ⚠️ AJOUT (02/08/2026) - diagnostic pour le bug "stats pas mises à
@@ -283,6 +296,7 @@ export async function listerObjetsPossedes(
     // ARCHETYPE PLUG (e.g. "Bulwark") + mods/masterwork, all readable via
     // sockets (already fetched for perks). We sum the `investmentStats` of
     // EVERY active armor plug to reconstruct the real total.
+    // FR : ⚠️ NOTE (28/10/2026) - dans l'API Bungie, le composant 302 est ItemPerks (les perks) et les statistiques d'un exemplaire sont au composant 304 (ItemStats) : la conclusion ci-dessus (« ItemStats est vide ») reposait très probablement sur le MAUVAIS numéro. On demande maintenant le 304 (voir `statsJeu`) ; cette reconstruction ne sert plus que de REPLI quand le jeu ne donne pas les six statistiques. / EN: ⚠️ NOTE - 302 is ItemPerks; stats are component 304; this reconstruction is now only a fallback.
     const stats: Partial<Record<StatKey, number>> = {};
     if (estArmure) {
       if (!item.itemInstanceId) {
@@ -394,19 +408,30 @@ export async function listerObjetsPossedes(
     const typeArme = !estArmure ? def.itemTypeDisplayName : undefined;
     const typeArmure = estArmure ? def.itemTypeDisplayName : undefined;
 
+    // FR : ⚠️ AJOUT (28/10/2026) - les statistiques RÉELLES du jeu (armures seulement) ; elles font foi quand les SIX sont là (la valeur 0 comprise).
+    const statsJeu = estArmure && item.itemInstanceId ? (extraireStatsJeu(statsJeuParInstance[item.itemInstanceId], resoudreStatKeyAvecCache) as Partial<Record<StatKey, number>> | undefined) : undefined;
+    const statsJeuFontFoi = STATS_DU_JEU_FONT_FOI && !!statsJeu && SIX_STATS.every((k) => typeof statsJeu[k] === "number");
+
     pieces.push({
       itemHash: item.itemHash,
       itemInstanceId: item.itemInstanceId,
       nom: def.displayProperties?.name ?? "(objet sans nom)",
       icone: urlIcone(def.displayProperties?.icon),
       slot,
-      stats,
+      stats: statsJeuFontFoi ? (statsJeu as Partial<Record<StatKey, number>>) : stats,   // ⚠️ CHANGÉ (28/10/2026) : les statistiques du JEU quand elles sont complètes, sinon la reconstruction d'avant
       perkHashes,
       perksParColonne,
       // FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - perks DISPONIBLES sur cet exemplaire, par prise (armes seulement : les builds enregistrés ne grossissent pas pour l'armure). `undefined` = donnée non lue. / EN: perks available on this instance (weapons only).
       ...(item.itemInstanceId ? { plugsDisponiblesParColonne: extrairePlugsDisponibles(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),   // ⚠️ CHANGÉ (15/10/2026, v0.4.12) : lus aussi pour les ARMURES (Forge des armures : mods disponibles sur l'exemplaire)
       // FR : ⚠️ AJOUT (19/10/2026, branche test) - PALIER de l'exemplaire (composant 300) ; absent de la réponse = pas de champ (on n'affirme rien). / EN: instance gear tier (component 300); absent from the response = no field.
       ...(item.itemInstanceId ? { gearTier: extraireGearTier(gearTierParInstance[item.itemInstanceId]) } : {}),
+<<<<<<< Updated upstream
+=======
+      ...(item.itemInstanceId && extraireEnergie(gearTierParInstance[item.itemInstanceId]) ? { energie: extraireEnergie(gearTierParInstance[item.itemInstanceId]) } : {}),
+      ...(statsJeu ? { statsJeu } : {}),   // ⚠️ AJOUT (28/10/2026) : statistiques RÉELLES du jeu (armures)
+      ...(statsJeuFontFoi ? { statsReconstruites: stats } : {}),   // ⚠️ AJOUT (28/10/2026) : la reconstruction d'après le Manifest, gardée pour la COMPARAISON (diagnostic)
+      ...(item.itemInstanceId && extrairePlugsInsertables(plugsReutilisablesParInstance[item.itemInstanceId]) ? { plugsInsertablesParColonne: extrairePlugsInsertables(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),   // ⚠️ AJOUT (26/10/2026) : plugs réellement insérables (« + » de l'ajustement d'une armure)   // ⚠️ AJOUT (24/10/2026) : énergie de l'exemplaire (diagnostic des coûts d'énergie des mods)
+>>>>>>> Stashed changes
       isExotic: def.inventory?.tierTypeHash === TIER_TYPE_HASH_EXOTIQUE,
       classeRequise,
       elementArme,

@@ -104,6 +104,15 @@ export interface GearPiece {
    * EN: ⚠️ ADDED - perks available on THIS instance per socket index (weapons AND, since v0.4.12, armor); undefined = not read.
    */
   plugsDisponiblesParColonne?: Record<number, DefinitionHash[]>;
+<<<<<<< Updated upstream
+=======
+  /** FR : ⚠️ AJOUT (26/10/2026) - parmi les plugs disponibles, ceux que l'API dit RÉELLEMENT insérables (`canInsert`) ; absent quand l'API ne donne pas l'indicateur. Sert à retrouver le « + » d'une armure dont l'ajustement équipé n'est pas directionnel. / EN: the plugs the API says are insertable; absent when unknown. */
+  plugsInsertablesParColonne?: Record<number, DefinitionHash[]>;
+  /** FR : ⚠️ AJOUT (28/10/2026) - les statistiques RÉELLES lues dans le JEU (composant `ItemStats` de l'API), à côté de `stats` (reconstruites par l'appli d'après les plugs du Manifest, souvent incomplètes pour les armures du nouveau système). Demandées aussi en PRODUCTION depuis le 28/10/2026 ; font foi comme `stats` quand les six sont là. / EN: ⚠️ ADDED - the REAL in-game stats (API `ItemStats`), dev mode only for now. */
+  statsJeu?: Partial<Record<StatKey, number>>;
+  /** FR : ⚠️ AJOUT (28/10/2026) - quand `stats` vient du JEU, la reconstruction d'après le Manifest (souvent incomplète) est gardée ici, pour le diagnostic. / EN: when `stats` comes from the game, the Manifest-based reconstruction is kept here. */
+  statsReconstruites?: Partial<Record<StatKey, number>>;
+>>>>>>> Stashed changes
   /**
    * FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - posés UNIQUEMENT par `lib/forge/appliquerSimulation.ts` sur une COPIE de la pièce (jamais sur le build enregistré) : `perksSimules` = au moins une colonne de cette arme est remplacée par un perk simulé dans la Forge ; `perkHashesReels` = les perks RÉELS de l'exemplaire avant remplacement (pour que les fenêtres « Détails » marquent le vrai roll) ; `nbColonnesSimulees` = combien de colonnes.
    * Dans la copie, `perkHashes` et `perksParColonne` contiennent les perks SIMULÉS : c'est ce que lit le score. EN: ⚠️ ADDED - set only on a COPY by the simulation overlay: flags, the real perks, and the number of simulated columns.

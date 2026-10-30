@@ -11,11 +11,8 @@
 // selectable + what's selected + the effects) below, and the entry point
 // of the ONLY button that REALLY touches your account: "Equip".
 
-import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
-import IconeTitreFaconnee from "./IconeTitreFaconnee";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
 import { estFaconnee } from "../lib/forge/faconnee";
-import { ordonnerColonnesPourAffichage, libelleColonne } from "../lib/manifest/colonnesArme";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : règles de tri et d'étiquette partagées avec la Forge
 import TitreRepliable from "./TitreRepliable";
 import PastilleContexte, { ECHELLE_CONTEXTE_RANGEE } from "./PastilleContexte";
 import { LIBELLES_CONTEXTE, ORDRE_CONTEXTES } from "./icones/BadgeContexte";
@@ -29,7 +26,7 @@ import { STAT_MAX, sommerStatsArmure } from "../lib/scoring/stats";
 import { obtenirChampionsCouverts } from "../lib/scoring/verbes";
 import { obtenirBonusSetsActifs } from "../lib/scoring/armorSets";
 import RappelDoctrine from "./RappelDoctrine";
-import { surlignerVerbesConnus, IconeElementArme, IconeMunitionArme } from "./RenduTextePerk";
+import { surlignerVerbesConnus, IconeMunitionArme } from "./RenduTextePerk";
 
 // FR : ⚠️ AJOUT (24/08/2026) - isole les mentions d'impact sur les stats
 // (ex: "Grenade +10", "Santé -10 ▼") sur leur PROPRE LIGNE dans la
@@ -57,8 +54,16 @@ import { obtenirSecoursTypeArme } from "../lib/manifest/typeArmeSecours";
 import IconeAntiChampion, { TypeChampion, LIBELLES_CHAMPION } from "./icones/IconeAntiChampion";
 import { DestinyMembership, Personnage } from "../lib/bungie/api";
 import { equiperObjet, equiperPlusieursObjets, diagnostiquerExistenceObjet } from "../lib/bungie/equiper";
-import { obtenirOptionsSousClasse, CategorieSocket, GroupeSocket, obtenirAntiChampion, obtenirAntiChampionArmure, obtenirIconesPerksArme, obtenirOptionsToutesColonnes, raccourcirNom, obtenirBonusSet, obtenirBonusStatsDoctrine, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
+import { obtenirOptionsSousClasse, CategorieSocket, GroupeSocket, obtenirAntiChampion, obtenirAntiChampionArmure, obtenirIconesPerksArme, raccourcirNom, obtenirBonusSet, obtenirBonusStatsDoctrine, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
 import { texteSurvol } from "./SelecteurInventaire";
+<<<<<<< Updated upstream
+=======
+// ⚠️ AJOUT (branche draft-mod-armures) : édition des MODS d'armure dans la pop-up Détails de Mon Build (même magasin partagé que la Forge).
+import { deltaStatsArmure, pieceReelle } from "../lib/forge/appliquerSimulation";   // ⚠️ AJOUT (27/10/2026)
+import { urlVisuel } from "../lib/visuelsForge";   // ⚠️ AJOUT (29/10/2026) : icône du bouton « Optimiseur »
+import FenetreDetailsPiece from "./FenetreDetailsPiece";   // ⚠️ AJOUT (30/10/2026) : la fenêtre de détails UNIQUE
+import StatsArmure from "./StatsArmure";   // ⚠️ AJOUT (27/10/2026)
+>>>>>>> Stashed changes
 
 
 const ORDRE_ARMES: SlotArme[] = ["cinetique", "energie", "lourde"];
@@ -88,6 +93,10 @@ interface Props {
    * FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - bouton « Forge » de la fenêtre Détails d'une ARME possédée (spécification du 12/10/2026, §1) : envoie l'arme à la vue Inventaire de la Forge (absent : pas de bouton). `build` est ici le build AVEC la simulation appliquée (armes marquées `perksSimules`) : le badge « simulé » et l'avertissement à l'équipement en dépendent. / EN: ⚠️ ADDED - Forge button of a weapon's Details window; `build` here has the simulation applied.
    */
   onOuvrirForge?: (piece: GearPiece) => void;
+  /** FR : ⚠️ AJOUT (29/10/2026) - ouvre l'OPTIMISEUR de la Forge (bouton « Optimiseur » sous le cadre des statistiques). Absent : le bouton n'est pas affiché. / EN: ⚠️ ADDED - opens the Forge optimizer. */
+  onOuvrirOptimiseur?: () => void;
+  /** FR : ⚠️ AJOUT (30/10/2026) - « Lire le Lore » dans la fenêtre Détails de Mon Build (aiguille vers le Legendarium) : il manquait ici alors que l'Inventaire l'avait. / EN: ⚠️ ADDED - the Lore button in My Build's details window. */
+  onLireLore?: (itemHash: number, nomObjet: string) => void;
 }
 
 // FR : ⚠️ AJOUT (24/08/2026) - détermine si un objet est déjà sur le
@@ -109,7 +118,7 @@ function calculerSetsActifsResume(build: BuildDraft, db: Database) {
   return [...parSet.values()];
 }
 
-export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge }: Props) {
+export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge, onOuvrirOptimiseur, onLireLore }: Props) {
   const setsAvecBonusActif = useMemo(() => db ? calculerSetsActifsResume(build, db) : [], [build, db]);
   const [personnageCible, setPersonnageCible] = useState<string>(personnages[0]?.characterId ?? "");
   const [enCours, setEnCours] = useState<string | null>(null);
@@ -291,10 +300,14 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
     // texteSurvol) pour garantir un résultat identique. Limité aux armes
     // possédées (itemInstanceId défini), comme dans l'Inventaire.
     const [detailsOuverts, setDetailsOuverts] = useState(false);
+<<<<<<< Updated upstream
     const colonnesDetails =
       detailsOuverts && db && piece.itemInstanceId && estArme
         ? obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashesReels ?? piece.perkHashes, { toutesSources: faconnee, equipesParColonne: piece.perksParColonneReels ?? piece.perksParColonne })   // ⚠️ v0.4.11 : perks équipés toujours présents, tous les perks possibles d'une arme façonnée ; (v0.4.9) : le ✓ marque le roll RÉEL, jamais un perk simulé
         : [];
+=======
+    // ⚠️ AJOUT (branche draft-mod-armures) - SIMULATION DES MODS d'une armure possédée, DANS la pop-up Détails de Mon Build : mêmes colonnes et même magasin partagé que la Forge. ⚠️ La simulation s'applique sur les DONNÉES RÉELLES de l'exemplaire (`perkHashesReels`/`perksParColonneReels` quand la pièce est déjà simulée) : on part du réel, jamais du simulé.
+>>>>>>> Stashed changes
     return (
       <li style={{ marginBottom: "0.3rem" }}>
         {/* FR : ⚠️ CORRIGÉ (04/08/2026) - le libellé d'emplacement était
@@ -424,7 +437,9 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
         {/* FR : ⚠️ AJOUT (04/08/2026) - popup "Détails", même structure
         que dans l'Inventaire/Coffre (fond assombri, centrée, fermeture
         par ✕ ou clic en dehors), pour un comportement identique. */}
+        {/* FR : ⚠️ NOTE (30/10/2026) - on passe la pièce RÉELLE (`pieceReelle`) : la fenêtre simule elle-même, une copie déjà simulée donnerait de fausses colonnes. CHANGÉ (30/10/2026, demande de l'utilisateur) - la fenêtre Détails de MON BUILD est maintenant LA FENÊTRE UNIQUE `FenetreDetailsPiece` (la même que dans l'Inventaire et la Forge) ; « Lire le Lore » y est donc visible (il manquait ici) ; la pièce est déjà dans Mon Build (`dejaDansBuild`). / EN: ⚠️ CHANGED - My Build's details window is the single shared window (the Lore button is now visible here). */}
         {detailsOuverts && db && (
+<<<<<<< Updated upstream
           <div
             onClick={() => setDetailsOuverts(false)}
             style={{
@@ -568,6 +583,9 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
               ))}
             </div>
           </div>
+=======
+          <FenetreDetailsPiece db={db} piece={pieceReelle(piece)} onFermer={() => setDetailsOuverts(false)} onLireLore={onLireLore} onOuvrirForge={onOuvrirForge} dejaDansBuild />
+>>>>>>> Stashed changes
         )}
       </li>
     );
@@ -753,7 +771,8 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                 })()}
               </div>
 
-              <div style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.4rem 0.6rem", flex: 1, minWidth: "150px" }}>
+              <div data-colonne-stats-build="" style={{ flex: 1, minWidth: "150px", display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+              <div data-bloc-stats-build="" style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.4rem 0.6rem" }}>
                 <div style={{ fontSize: "0.7rem", color: "#7d7a70", marginBottom: "0.25rem" }}>Statistiques du build</div>
                 {(() => {
                   const ORDRE: StatKey[] = ["sante", "melee", "grenade", "super", "classe", "arme"];
@@ -840,6 +859,14 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                     );
                   });
                 })()}
+              </div>
+              {/* FR : ⚠️ AJOUT (29/10/2026, demande de l'utilisateur : « le bouton Optimiseur dans Mon Build, juste sous (et aligné avec) le champ où s'affichent les statistiques ») - ouvre l'OPTIMISEUR de la Forge ; même largeur que le cadre des statistiques (ils partagent la même colonne). / EN: ⚠️ ADDED - "Optimizer" button right under, and aligned with, the stats box: opens the Forge optimizer. */}
+              {onOuvrirOptimiseur && (
+                <button type="button" data-ouvrir-optimiseur="" onClick={onOuvrirOptimiseur} title="Ouvre l'optimiseur de la Forge : cherche, parmi vos armures, les meilleures combinaisons pour atteindre vos objectifs de statistiques." style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.35rem", height: "2.4rem", width: "100%", boxSizing: "border-box", cursor: "pointer", borderRadius: 10, color: "#e8e6df", background: "#12151c", border: "1px solid #3a3f4b", fontSize: "0.85rem" }}>
+                  <img src={urlVisuel("icones.optimisation")} alt="" width={22} height={22} style={{ display: "block", pointerEvents: "none" }} draggable={false} />
+                  <span>Optimiseur</span>
+                </button>
+              )}
               </div>
             </div>
           )}
