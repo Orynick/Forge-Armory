@@ -26,8 +26,6 @@ export function extraireGearTier(brut: unknown): number | undefined {
   return gearTier;
 }
 
-<<<<<<< Updated upstream
-=======
 /**
  * FR : ⚠️ AJOUT (24/10/2026) - énergie d'un exemplaire d'armure, lue dans ses données d'instance (`energy.energyCapacity` et `energy.energyUsed`). `undefined` si l'une des deux manque ou n'est pas un entier positif ou nul : on ne devine jamais une valeur (un « utilisé » inventé fausserait la comparaison du diagnostic). Fonction PURE.
  * EN: ⚠️ ADDED - energy of an armor instance (capacity and used). `undefined` unless both values are valid non-negative integers.
@@ -64,22 +62,3 @@ export function extrairePlugsInsertables(brut: unknown): PlugsDisponibles | unde
   }
   return indicateurVu ? sortie : undefined;
 }
-
-/**
- * FR : ⚠️ AJOUT (28/10/2026, « diag d'abord » : les statistiques de base des armures sont illisibles sur la plupart des pièces du nouveau système) - lit les statistiques RÉELLES d'un exemplaire dans le composant `ItemStats` (304) de l'API Bungie : `{ stats: { <statHash>: { statHash, value } } }`. `resoudre` associe un statHash à l'une des six statistiques (`undefined` : statistique ignorée). `undefined` quand la donnée est absente ou ne contient aucune des six statistiques. ⚠️ L'appli reconstruit d'habitude les statistiques en additionnant les bonus de plugs du Manifest ; ces valeurs-ci sont CELLES DU JEU, mais ne sont demandées qu'en mode développement pour l'instant.
- * EN: ⚠️ ADDED - reads an instance's REAL stats from the `ItemStats` (304) component; `undefined` when absent.
- */
-export function extraireStatsJeu(brut: unknown, resoudre: (statHash: number) => string | undefined): Record<string, number> | undefined {
-  if (typeof brut !== "object" || brut === null) return undefined;
-  const stats = (brut as { stats?: unknown }).stats;
-  if (typeof stats !== "object" || stats === null) return undefined;
-  const sortie: Record<string, number> = {};
-  for (const [cle, v] of Object.entries(stats as Record<string, { statHash?: unknown; value?: unknown } | null>)) {
-    const hash = typeof v?.statHash === "number" ? v.statHash : Number(cle);
-    if (!Number.isInteger(hash) || typeof v?.value !== "number" || !Number.isFinite(v.value)) continue;
-    const nom = resoudre(hash);
-    if (nom) sortie[nom] = v.value;
-  }
-  return Object.keys(sortie).length > 0 ? sortie : undefined;
-}
->>>>>>> Stashed changes

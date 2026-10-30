@@ -12,8 +12,7 @@ export const def = (hash: number, nom: string, categorie: string, o: Opt = {}) =
 });
 export const GEN = "enhancements.v2_general", TETE = "enhancements.v2_head", TUN = "core.gear_systems.armor_tiering.plugs.tuning.mods";
 
-/** FR : ⚠️ AJOUT (30/10/2026) - `avecLore` : le casque chatoyant possède un LORE (table `DestinyLoreDefinition` + `loreHash`) : le bouton « Lire le Lore » doit alors apparaître dans sa fenêtre Détails. Par défaut : aucun Lore (comportement d'avant). / EN: ⚠️ ADDED - `avecLore`: the helmet has a lore entry. */
-export function creerCasqueChatoyant(o: { avecLore?: boolean } = {}) {
+export function creerCasqueChatoyant() {
 const defs = ajouterArmureForge(manifestArmesDeTest());   // fournit les statistiques (8801 santé … 8806 armes) et les catégories de sockets
   const objets = defs[T_OBJET] as Record<number, unknown>;
   const jeux = defs[T_PLUGSET] as Record<number, unknown>;
@@ -48,10 +47,6 @@ const defs = ajouterArmureForge(manifestArmesDeTest());   // fournit les statist
   objets[5400] = modele("Casque chatoyant d'essai", [9001, 9002, 9101, 9201, 9201, 9203, 9301], [null, null, 8900, 8901, 8901, 8901, 8902]);
   objets[5402] = modele("Casque à emplacement de raid d'essai", [9001, 9002, 9101, 9201, 9201, 9203, 9301, 9801], [null, null, 8900, 8901, 8901, 8901, 8902, null]);
   objets[5401] = modele("Plastron exotique d'essai", [9001, 9002, 9101, 9301], [null, null, 8900, 8902]);
-  if (o.avecLore) {
-    (defs as Record<string, unknown>)["DestinyLoreDefinition"] = { 7777: { displayProperties: { name: "Lore du casque chatoyant", description: "Il était une fois un casque qui brillait." } } };
-    (objets[5400] as Record<string, unknown>)["loreHash"] = 7777;
-  }
   const { db } = creerFausseDb(defs);
   
   const STATS_REELLES = { sante: 0, melee: 5, grenade: 5, super: 25, classe: 40, arme: 25 };   // la statistique d'armes s'appelle `arme` (au singulier) dans l'appli

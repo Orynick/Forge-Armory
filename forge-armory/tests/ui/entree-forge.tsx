@@ -5,7 +5,7 @@ import { useSimulations } from "../../src/lib/forge/storeSimulations";
 import { appliquerSimulations, nbArmesSimulees } from "../../src/lib/forge/appliquerSimulation";
 import { demoBuild } from "../../src/data/demoBuild";
 import PageForge from "../../src/components/PageForge";
-import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeRevisionAPaliers, ajouterArmeFaconnee, ajouterCatalogueArmures, ajouterSaisons, T_OBJET } from "../logique/fixtures/fauxManifest";
+import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeRevisionAPaliers, ajouterArmeFaconnee, ajouterCatalogueArmures, ajouterSaisons, T_OBJET, T_PLUGSET } from "../logique/fixtures/fauxManifest";
 
 const params = new URLSearchParams(location.search);
 const defs = manifestArmesDeTest();
@@ -17,8 +17,24 @@ if (params.has("beaucoup")) {
   const modele = (defs[T_OBJET] as Record<number, Record<string, unknown>>)[5003];
   for (let i = 0; i < 130; i++) (defs[T_OBJET] as Record<number, unknown>)[7000 + i] = { ...modele, displayProperties: { name: `Arme numéro ${String(i).padStart(3, "0")}`, icon: "/icons/x.png", description: "" }, collectibleHash: 8000 + i };
 }
+if (params.has("armures") && params.has("energie")) {   // ⚠️ AJOUT (24/10/2026) : coûts d'énergie des mods d'essai pour le DIAGNOSTIC : santé 3, classe 1, armes 3, ajustements 0 ; « Emplacement de mod vide » (198000) n'en a pas (illisible)
+  ajouterCatalogueArmures(defs);
+  const o = (defs as Record<string, Record<number, { plug?: Record<string, unknown> }>>)[T_OBJET];
+  for (const [h, c] of [[7411, 3], [7412, 1], [7413, 3], [7421, 0], [7422, 0]] as Array<[number, number]>) o[h].plug = { ...(o[h].plug ?? {}), energyCost: { energyCost: c, energyTypeHash: 1 } };
+  if (params.has("doublons")) {   // ⚠️ AJOUT (24/10/2026, « Diag d'abord ») : « Mod de santé » en DEUX versions dans le même jeu de plugs : 7411 (coût 3, +10) et 7451 (coût 4, autre description, bonus +5), comme les 107 noms à deux coûts du vrai compte
+    o[7451] = { ...structuredClone(o[7411]), displayProperties: { name: "Mod de santé", description: "Ancienne version." }, investmentStats: [{ statTypeHash: 8801, value: 5 }], plug: { ...(o[7411].plug ?? {}), energyCost: { energyCost: 4, energyTypeHash: 1 } } } as never;
+    (defs as Record<string, Record<number, { reusablePlugItems: Array<{ plugItemHash: number }> }>>)[T_PLUGSET][8301].reusablePlugItems.push({ plugItemHash: 7451 });
+  }
+} else
 if (params.has("armures")) ajouterCatalogueArmures(defs);   // ⚠️ v0.4.12 : armures d'essai (casque, plastron exotique, marque de classe) pour la Forge des armures
 if (params.has("saisons")) ajouterSaisons(defs, [5001, 5010, 5020, 5301]);   // ⚠️ v0.4.11 : filigrane et saison pour ces armes (Collection et Forge)
+// FR : ⚠️ AJOUT (26/10/2026, règle de l'ajustement donnée par l'utilisateur : le « + » est PROPRE à la pièce) - deux ajustements de plus pour le casque a1 (dont le « + » est Mêlée, lu sur son ajustement équipé 7421) : 7423 « mêlée vers classe » et 7424 « Ajustement équilibré » (SANS aucune valeur dans le Manifest : son effet vient de la règle du jeu). Ajoutés ICI et non dans les données partagées, pour ne pas changer les autres tests. / EN: ⚠️ ADDED - two more tuning plugs for helmet a1, local to this page.
+if (params.has("armures")) {
+  const o = (defs as Record<string, Record<number, unknown>>)[T_OBJET];
+  const plugAjust = (nom: string, inv: Array<[number, number]>) => ({ displayProperties: { name: nom, icon: "/icons/x.png", description: "" }, plug: { plugCategoryIdentifier: "enhancements.v2_tuning" }, investmentStats: inv.map(([statTypeHash, value]) => ({ statTypeHash, value })) });
+  o[7423] = plugAjust("Ajustement : mêlée vers classe", [[8802, 5], [8805, -5]]);
+  o[7424] = plugAjust("Ajustement équilibré", []);
+}
 const { db } = creerFausseDb(defs);
 (window as unknown as { __reseau: { url: string; methode: string }[] }).__reseau = [];   // ⚠️ v0.4.6 : journal des appels réseau (la Forge ne doit jamais écrire chez Bungie)
 (window as unknown as { fetch: unknown }).fetch = async (url: string, init?: { method?: string }) => {
@@ -57,11 +73,17 @@ if (params.has("inventaire")) {
     { ...base, itemHash: 5005, itemInstanceId: "c1", nom: "Casque d'essai", slot: "casque", origine: "arcaniste", classeRequise: "arcaniste", perkHashes: [] },
     // FR : ⚠️ AJOUT (15/10/2026, v0.4.12) - avec `?armures` : trois ARMURES à emplacements (le casque « c1 » ci-dessus n'a AUCUN emplacement lu : cas limite) : a1 un casque de bastion de Titan (statistiques 20/10/15/8/12/25 ; un emplacement de mod à trois plugs, un d'ajustement à deux, un cosmétique), a2 un plastron EXOTIQUE d'Arcaniste au Coffre, a3 une marque de classe de Chasseur (rien de modifiable). / EN: ⚠️ ADDED - three armor pieces with sockets.
     ...(params.has("armures") ? [
-      { ...base, itemHash: 5301, itemInstanceId: "a1", nom: "Casque de bastion d'essai", slot: "casque", classeRequise: "titan", origine: "titan", equipe: true, typeArmure: "Casque", stats: { sante: 20, melee: 10, grenade: 15, super: 8, classe: 12, arme: 25 }, perkHashes: [7401, 7402, 7411, 7421, 7431], perksParColonne: [{ socketIndex: 0, hash: 7401 }, { socketIndex: 1, hash: 7402 }, { socketIndex: 2, hash: 7411 }, { socketIndex: 3, hash: 7421 }, { socketIndex: 4, hash: 7431 }], plugsDisponiblesParColonne: { 0: [7401], 1: [7402], 2: [7411, 7412, 7413], 3: [7421, 7422], 4: [7431, 7432, 7433] } },
+      { ...base, itemHash: 5301, itemInstanceId: "a1", nom: "Casque de bastion d'essai", slot: "casque", classeRequise: "titan", origine: "titan", equipe: true, typeArmure: "Casque", stats: { sante: 20, melee: 10, grenade: 15, super: 8, classe: 12, arme: 25 }, perkHashes: [7401, 7402, 7411, 7421, 7431], perksParColonne: [{ socketIndex: 0, hash: 7401 }, { socketIndex: 1, hash: 7402 }, { socketIndex: 2, hash: 7411 }, { socketIndex: 3, hash: 7421 }, { socketIndex: 4, hash: 7431 }], plugsDisponiblesParColonne: { 0: [7401], 1: [7402], 2: [7411, 7412, 7413], 3: [7421, 7422, 7423, 7424], 4: [7431, 7432, 7433] } },
       { ...base, itemHash: 5302, itemInstanceId: "a2", nom: "Plastron exotique d'essai", slot: "torse", classeRequise: "arcaniste", origine: "coffre", isExotic: true, rarete: "Exotique", typeArmure: "Torse", stats: { sante: 30, melee: 5, grenade: 5, super: 20, classe: 10, arme: 20 }, perkHashes: [7401, 7441, 7412], perksParColonne: [{ socketIndex: 0, hash: 7401 }, { socketIndex: 1, hash: 7441 }, { socketIndex: 2, hash: 7412 }], plugsDisponiblesParColonne: { 0: [7401], 1: [7441], 2: [7411, 7412, 7413] } },
       { ...base, itemHash: 5303, itemInstanceId: "a3", nom: "Marque de classe d'essai", slot: "marque", classeRequise: "chasseur", origine: "chasseur", typeArmure: "Marque de classe", perkHashes: [7441], perksParColonne: [{ socketIndex: 0, hash: 7441 }], plugsDisponiblesParColonne: { 0: [7441] } },
     ] : []),
   ];
+}
+// FR : ⚠️ AJOUT (24/10/2026) - `?inventaire&armures&energie` : de l'ÉNERGIE sur les armures d'essai (capacité et énergie utilisée de l'exemplaire) pour le DIAGNOSTIC des coûts d'énergie des mods. Le casque « a1 » : capacité 10, 3 utilisés (= son mod de santé à 3 + son ajustement à 0 : AUCUN écart) ; le plastron « a2 » : capacité 11 (Artifice), 4 utilisés alors que son mod de classe coûte 1 (ÉCART voulu) ; la marque « a3 » et le casque « c1 » : aucune énergie (non lue). EN: ⚠️ ADDED - energy on the test armors for the energy-cost diagnostic.
+if (params.has("energie") && params.has("inventaire")) {
+  const energieParId: Record<string, { capacite: number; utilisee: number }> = { a1: { capacite: 10, utilisee: 3 }, a2: { capacite: 11, utilisee: 4 } };
+  const w = window as unknown as { __piecesForge: Array<{ itemInstanceId?: string }> };
+  w.__piecesForge = w.__piecesForge.map((p) => (p.itemInstanceId && energieParId[p.itemInstanceId] ? { ...p, energie: energieParId[p.itemInstanceId] } : p));
 }
 const membership = params.has("sansCompte") ? null : { membershipId: "1", membershipType: 3, displayName: "Test#1234" };
 // FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - avec `?inventaire` : (1) un ESPION joue le rôle de la page principale : il lit le MÊME magasin de simulations (`useSimulations`) et applique la simulation à un build qui contient « Fusil à paliers » ; il montre combien d'armes sont simulées et les perks qui seraient comptés dans le score : si l'espion réagit au clic dans la Forge, le score réagit aussi ; (2) `onAjouterAuBuild` / `idsDansBuild` / `onRetour` sont fournis et notés (`window.__ajoutsBuild`, `window.__retours`) ; (3) `?cible=1` : la page arrive comme depuis un bouton « Forge » (arme w1 à ouvrir). / EN: ⚠️ ADDED - spy component reading the same simulation store, and callbacks for the Build/return buttons.
@@ -69,7 +91,7 @@ const w1 = ((window as unknown as { __piecesForge?: Record<string, unknown>[] })
 function Espion() {
   const simulations = useSimulations();
   const a1 = ((window as unknown as { __piecesForge?: Record<string, unknown>[] }).__piecesForge ?? []).find((p) => p.itemInstanceId === "a1");   // ⚠️ v0.4.12 : une ARMURE dans le build surveillé
-  const b = appliquerSimulations({ ...structuredClone(demoBuild), armes: [w1 as never], ...(a1 ? { armure: [structuredClone(a1) as never] } : {}) }, simulations);
+  const b = appliquerSimulations({ ...structuredClone(demoBuild), armes: [w1 as never], ...(a1 ? { armure: [structuredClone(a1) as never] } : {}) }, simulations, db);   // ⚠️ 27/10/2026 : AVEC le Manifest, exactement comme `DashboardPage` (les statistiques de l'armure simulée sont recalculées)
   const armure0 = (b as unknown as { armure?: { perkHashes: number[]; stats: Record<string, number> }[] }).armure?.[0];
   return <p data-espion="" data-simulees={nbArmesSimulees(b)} data-hashes={b.armes[0].perkHashes.join(",")} data-armure-hashes={armure0 ? armure0.perkHashes.join(",") : ""} data-armure-stats={armure0 ? JSON.stringify(armure0.stats) : ""} style={{ fontSize: "0.7rem" }}>espion : {nbArmesSimulees(b)} arme(s) simulée(s)</p>;
 }

@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import SelecteurInventaire, { CibleInventaire } from "../../src/components/SelecteurInventaire";
 import { hashVersIdSqlite } from "../../src/lib/manifest/download";
 import { installerFauxBungie } from "./faux/bungie";
+import { creerCasqueChatoyant } from "../logique/fixtures/casqueChatoyant";
 import { creerFausseDb, manifestArmesDeTest, ajouterArmeModPrecoce, ajouterArmeFaconnee, ajouterSaisons, T_OBJET } from "../logique/fixtures/fauxManifest";
 
 // Bungie : defaultDamageType Kinetic=1, Thermal(Solaire)=3 ; itemType Armor=2, Weapon=3
@@ -15,15 +16,10 @@ objets[222] = { ...objets[5008], itemType: 3, defaultDamageType: 1 };   // « Ar
 objets[333] = { itemType: 2, defaultDamageType: 0 };
 objets[444] = { itemType: 3, defaultDamageType: 1 };
 if (/saisons/.test(location.search)) ajouterSaisons(defsBase, [111, 333], { sansHash: /saisonsvoisin/.test(location.search), remplissage: /lent/.test(location.search) ? 100 : 0 });   // `?saisonsvoisin` : sans seasonHash, nom déduit d'un autre objet de même filigrane   // ⚠️ v0.4.11 : filigrane et saison pour l'arme 111 (Arme A) et l'armure 333
-<<<<<<< Updated upstream
-const fausseDb = creerFausseDb(defsBase, { ralentirBalayage: /lent/.test(location.search) ? 15 : 0 }).db as never;   // ⚠️ v0.4.11 (soir) : `?lent` : balayage des saisons ralenti (15 ms par objet de référence)
-=======
 // FR : ⚠️ AJOUT (26/10/2026, « Je ne vois pas les nouvelles fenêtres ») - `?casquechatoyant` (+ `&porte` : l'armure est PORTÉE par le Chasseur, équipée, au lieu d'être au Coffre) : la VRAIE fenêtre d'inventaire avec UNE armure : le casque calqué sur le casque chatoyant réel (capacité 11, énergie utilisée 10), fournie par `window.__piecesForge`, pour tester de bout en bout la fenêtre Détails d'une armure. / EN: ⚠️ ADDED - `?casquechatoyant`: the real inventory window with one armor piece (the shared helmet fixture).
-const casqueChat = /casquechatoyant/.test(location.search) ? creerCasqueChatoyant({ avecLore: /lore/.test(location.search) }) : null;   // ⚠️ 30/10/2026 : `&lore` : le casque possède un Lore
-const leLore = (h: number, n: string) => { const w = window as unknown as { __lore?: Array<[number, string]> }; w.__lore = [...(w.__lore ?? []), [h, n]]; };   // ⚠️ 30/10/2026 : « Lire le Lore » rangé dans window.__lore
+const casqueChat = /casquechatoyant/.test(location.search) ? creerCasqueChatoyant() : null;
 if (casqueChat) (window as unknown as { __piecesForge: unknown[] }).__piecesForge = [{ ...casqueChat.c1, origine: /porte/.test(location.search) ? "chasseur" : "coffre", classeRequise: "chasseur", equipe: /porte/.test(location.search) }];
 const fausseDb = (casqueChat ? casqueChat.db : creerFausseDb(defsBase, { ralentirBalayage: /lent/.test(location.search) ? 15 : 0 }).db) as never;   // ⚠️ v0.4.11 (soir) : `?lent` : balayage des saisons ralenti (15 ms par objet de référence)
->>>>>>> Stashed changes
 
 function Hote() {
   const [cible, setCible] = useState<CibleInventaire | null>(null);
@@ -36,7 +32,7 @@ function Hote() {
         <button data-test="aller-inconnu" onClick={aller(999, "Objet inconnu")}>Aller à inconnu</button>
       </div>
       <div style={{ height: 1800 }}>espace au-dessus de Mon Inventaire (oblige la page à défiler)</div>
-      <SelecteurInventaire onLireLore={leLore} membership={{ membershipId: "1", membershipType: 3, displayName: "Test#1234" }} db={fausseDb} onAjouterObjet={(p) => { const w = window as unknown as { __ajouts?: string[] }; w.__ajouts = [...(w.__ajouts ?? []), p.itemInstanceId ?? "?"]; }} cible={cible} onEffacerCible={() => setCible(null)} onOuvrirForge={(p) => ((window as unknown as { __forge: string[] }).__forge ??= []).push(p.itemInstanceId ?? "?")} />   {/* ⚠️ v0.4.9 : espion du bouton « Forge » de la fenêtre Détails */}
+      <SelecteurInventaire membership={{ membershipId: "1", membershipType: 3, displayName: "Test#1234" }} db={fausseDb} onAjouterObjet={() => {}} cible={cible} onEffacerCible={() => setCible(null)} onOuvrirForge={(p) => ((window as unknown as { __forge: string[] }).__forge ??= []).push(p.itemInstanceId ?? "?")} />   {/* ⚠️ v0.4.9 : espion du bouton « Forge » de la fenêtre Détails */}
       <div style={{ height: 1500 }}>contenu sous Mon Inventaire (comme Mon Build, l'artefact... dans la vraie page : permet à la page de défiler jusqu'à amener le bloc en haut)</div>
     </div>
   );

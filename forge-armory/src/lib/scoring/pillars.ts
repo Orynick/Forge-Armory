@@ -20,7 +20,7 @@ import { ORDRE_PILIERS } from "../../data/piliers";
 import { BuildDraft, BuildScoreResult, PillarScore } from "../../types/build";
 import { ExigenceStat, scoreStats, sommerStatsArmure, ContexteBuild } from "./stats";
 import { scoreBonusSetsReels } from "./armorSets";
-import { detecterVerbes, extraireTextesEffetsBuild, scoreVerbesDetectes, obtenirChampionsCouverts, detecterChainesVerbes, detecterRessourcesGenerees, enrichirAvecChaines } from "./verbes";
+import { detecterVerbes, extraireTextesEffetsBuild, extraireNomsPerksSimules, scoreVerbesDetectes, obtenirChampionsCouverts, detecterChainesVerbes, detecterRessourcesGenerees, enrichirAvecChaines } from "./verbes";
 import { obtenirBonusStatsDoctrine, obtenirElementArme } from "../manifest/doctrine";
 import { LIBELLES_CHAMPION } from "../../components/icones/IconeAntiChampion";
 
@@ -274,7 +274,7 @@ function scoreVerbesElement(build: BuildDraft, db?: Database, contexte: Contexte
   // now settled - see the full reasoning on `enrichirAvecChaines`.
   const maillons = detecterChainesVerbes(verbesDetectes, textes);
   const verbesEnrichis = enrichirAvecChaines(verbesDetectes, maillons);
-  const { score: scoreBoucles, details } = scoreVerbesDetectes(verbesEnrichis);
+  const { score: scoreBoucles, details } = scoreVerbesDetectes(verbesEnrichis, extraireNomsPerksSimules(build, db));   // ⚠️ 27/10/2026 : l'origine d'un verbe qui est un perk SIMULÉ porte le badge « simulé »
 
   // FR : ⚠️ CHANGÉ (06/09/2026) - regroupées par SOURCE, plus par cible.
   // Motif : demande de l'utilisateur après test réel, où "Charge d'armure"

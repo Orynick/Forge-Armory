@@ -15,16 +15,11 @@
 // HERE, without touching the component. Flip back to `true` to reactivate -
 // the button's code stays intact, ready to be used again.
 export const DIAGNOSTICS_ACTIFS = {
-<<<<<<< Updated upstream
-=======
   // FR : ⚠️ AJOUT (24/10/2026, demande de l'utilisateur) - bouton « Diagnostic : coûts d'énergie des mods » de l'inventaire des armures (mode développement) : coût de chaque mod (Manifest) et énergie de chaque pièce (exemplaire), croisés. Sert à vérifier le budget d'énergie (10, 11 avec Artifice) avant de le brancher dans la simulation des mods. / EN: ⚠️ ADDED - energy-cost diagnostic button of the armor inventory (dev mode).
   coutsEnergieMods: true,
   // FR : ⚠️ AJOUT (24/10/2026, « Diag d'abord ») - bouton « Diagnostic : mods en double » de l'inventaire des armures (mode développement) : les noms de mods qui existent en DEUX versions de coûts différents (107 sur le compte de l'utilisateur), avec la comparaison brute de leurs définitions du Manifest. À archiver (false) une fois la bonne version identifiée et branchée. / EN: ⚠️ ADDED - duplicate-mod diagnostic button (dev mode).
   modsEnDouble: true,
-  // FR : ⚠️ AJOUT (27/10/2026, étape 1 de l'optimiseur de statistiques d'armure) - bouton « Diagnostic : statistiques de base des armures » de l'inventaire des armures (mode développement) : pour toutes les armures chargées, les statistiques de base (réelles − mod de statistique − ajustement), leur forme (attendue 30·25·20·5·5·5), l'archétype et les statistiques primaire / secondaire / tertiaire. À archiver (false) une fois le modèle vérifié sur les données réelles. / EN: ⚠️ ADDED - base-stats diagnostic button (dev mode).
-  statsBaseArmures: true,
 
->>>>>>> Stashed changes
   // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
 
   // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
