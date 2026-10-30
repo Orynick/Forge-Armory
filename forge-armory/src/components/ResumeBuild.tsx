@@ -11,11 +11,8 @@
 // selectable + what's selected + the effects) below, and the entry point
 // of the ONLY button that REALLY touches your account: "Equip".
 
-import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
-import IconeTitreFaconnee from "./IconeTitreFaconnee";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
 import { estFaconnee } from "../lib/forge/faconnee";
-import { ordonnerColonnesPourAffichage, libelleColonne } from "../lib/manifest/colonnesArme";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : règles de tri et d'étiquette partagées avec la Forge
 import TitreRepliable from "./TitreRepliable";
 import PastilleContexte, { ECHELLE_CONTEXTE_RANGEE } from "./PastilleContexte";
 import { LIBELLES_CONTEXTE, ORDRE_CONTEXTES } from "./icones/BadgeContexte";
@@ -29,7 +26,7 @@ import { STAT_MAX, sommerStatsArmure } from "../lib/scoring/stats";
 import { obtenirChampionsCouverts } from "../lib/scoring/verbes";
 import { obtenirBonusSetsActifs } from "../lib/scoring/armorSets";
 import RappelDoctrine from "./RappelDoctrine";
-import { surlignerVerbesConnus, IconeElementArme, IconeMunitionArme } from "./RenduTextePerk";
+import { surlignerVerbesConnus, IconeMunitionArme } from "./RenduTextePerk";
 
 // FR : ⚠️ AJOUT (24/08/2026) - isole les mentions d'impact sur les stats
 // (ex: "Grenade +10", "Santé -10 ▼") sur leur PROPRE LIGNE dans la
@@ -57,16 +54,13 @@ import { obtenirSecoursTypeArme } from "../lib/manifest/typeArmeSecours";
 import IconeAntiChampion, { TypeChampion, LIBELLES_CHAMPION } from "./icones/IconeAntiChampion";
 import { DestinyMembership, Personnage } from "../lib/bungie/api";
 import { equiperObjet, equiperPlusieursObjets, diagnostiquerExistenceObjet } from "../lib/bungie/equiper";
-import { obtenirOptionsSousClasse, CategorieSocket, GroupeSocket, obtenirAntiChampion, obtenirAntiChampionArmure, obtenirIconesPerksArme, obtenirOptionsToutesColonnes, raccourcirNom, obtenirBonusSet, obtenirBonusStatsDoctrine, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
+import { obtenirOptionsSousClasse, CategorieSocket, GroupeSocket, obtenirAntiChampion, obtenirAntiChampionArmure, obtenirIconesPerksArme, raccourcirNom, obtenirBonusSet, obtenirBonusStatsDoctrine, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
 import { texteSurvol } from "./SelecteurInventaire";
+import { urlVisuel } from "../lib/visuelsForge";   // ⚠️ AJOUT (29/10/2026) : icône du bouton « Optimiseur »
 // ⚠️ AJOUT (branche draft-mod-armures) : édition des MODS d'armure dans la pop-up Détails de Mon Build (même magasin partagé que la Forge).
-import { colonnesArmure, statsSimulees } from "../lib/forge/armure";
-import { reinitialiserArme, nbColonnesSimulees } from "../lib/forge/simulation";
-import { deltaStatsArmure } from "../lib/forge/appliquerSimulation";   // ⚠️ AJOUT (27/10/2026)
-import { appliquerChangements } from "../lib/forge/energieMods";   // ⚠️ AJOUT (26/10/2026)
-import SimulationModsArmure from "./SimulationModsArmure";   // ⚠️ AJOUT (26/10/2026)
+import { deltaStatsArmure, pieceReelle } from "../lib/forge/appliquerSimulation";   // ⚠️ AJOUT (27/10/2026) ; ⚠️ AJOUT (30/10/2026) : `pieceReelle` (la fenêtre UNIQUE reçoit la pièce réelle)
+import FenetreDetailsPiece from "./FenetreDetailsPiece";   // ⚠️ AJOUT (30/10/2026) : la fenêtre de détails UNIQUE (Build Analyzer et Forge)
 import StatsArmure from "./StatsArmure";   // ⚠️ AJOUT (27/10/2026)
-import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 
 
 const ORDRE_ARMES: SlotArme[] = ["cinetique", "energie", "lourde"];
@@ -96,6 +90,14 @@ interface Props {
    * FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - bouton « Forge » de la fenêtre Détails d'une ARME possédée (spécification du 12/10/2026, §1) : envoie l'arme à la vue Inventaire de la Forge (absent : pas de bouton). `build` est ici le build AVEC la simulation appliquée (armes marquées `perksSimules`) : le badge « simulé » et l'avertissement à l'équipement en dépendent. / EN: ⚠️ ADDED - Forge button of a weapon's Details window; `build` here has the simulation applied.
    */
   onOuvrirForge?: (piece: GearPiece) => void;
+  /**
+   * FR : ⚠️ AJOUT (29/10/2026, demande de l'utilisateur : bouton « Optimiseur » aussi dans Mon Build) - bouton « Optimiseur » sous le cadre « Statistiques du build » : ouvre la Forge directement sur l'optimiseur (absent : pas de bouton). / EN: ⚠️ ADDED - "Optimizer" button under the stats frame: opens the Forge on the optimizer.
+   */
+  onOuvrirOptimiseur?: () => void;
+  /**
+   * FR : ⚠️ AJOUT (30/10/2026) - clic du bouton « Lire le Lore » de la fenêtre Détails de Mon Build (fenêtre UNIQUE) : aiguille vers le Legendarium. / EN: ⚠️ ADDED - "Read the Lore" click from My Build's details window.
+   */
+  onLireLore?: (itemHash: number, nomObjet: string) => void;
 }
 
 // FR : ⚠️ AJOUT (24/08/2026) - détermine si un objet est déjà sur le
@@ -117,7 +119,7 @@ function calculerSetsActifsResume(build: BuildDraft, db: Database) {
   return [...parSet.values()];
 }
 
-export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge }: Props) {
+export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge, onOuvrirOptimiseur, onLireLore }: Props) {
   const setsAvecBonusActif = useMemo(() => db ? calculerSetsActifsResume(build, db) : [], [build, db]);
   const [personnageCible, setPersonnageCible] = useState<string>(personnages[0]?.characterId ?? "");
   const [enCours, setEnCours] = useState<string | null>(null);
@@ -303,23 +305,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
     // texteSurvol) pour garantir un résultat identique. Limité aux armes
     // possédées (itemInstanceId défini), comme dans l'Inventaire.
     const [detailsOuverts, setDetailsOuverts] = useState(false);
-    const colonnesDetails =
-      detailsOuverts && db && piece.itemInstanceId && estArme
-        ? obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashesReels ?? piece.perkHashes, { toutesSources: faconnee, equipesParColonne: piece.perksParColonneReels ?? piece.perksParColonne })   // ⚠️ v0.4.11 : perks équipés toujours présents, tous les perks possibles d'une arme façonnée ; (v0.4.9) : le ✓ marque le roll RÉEL, jamais un perk simulé
-        : [];
-    // ⚠️ AJOUT (branche draft-mod-armures) - SIMULATION DES MODS d'une armure possédée, DANS la pop-up Détails de Mon Build : mêmes colonnes et même magasin partagé que la Forge. ⚠️ La simulation s'applique sur les DONNÉES RÉELLES de l'exemplaire (`perkHashesReels`/`perksParColonneReels` quand la pièce est déjà simulée) : on part du réel, jamais du simulé.
-    const simulations = useSimulations();
-    const instance = piece.itemInstanceId;
-    const pieceReelleSim = piece.perksSimules || piece.modsSimules ? { ...piece, perkHashes: piece.perkHashesReels ?? piece.perkHashes, perksParColonne: piece.perksParColonneReels ?? piece.perksParColonne, stats: piece.statsReelles ?? piece.stats } : piece;
-    const choixArmure = instance ? simulations.armures?.[instance] : undefined;
-    const colonnesMods = useMemo(
-      () => (!estArme && detailsOuverts && db && instance ? colonnesArmure(db, pieceReelleSim) : []),
-      [estArme, detailsOuverts, db, pieceReelleSim, instance]
-    );
-    const statsMods = useMemo(
-      () => (!estArme && detailsOuverts && db && instance ? statsSimulees(db, pieceReelleSim, choixArmure) : null),
-      [estArme, detailsOuverts, db, pieceReelleSim, instance, choixArmure]
-    );
+    // FR : ⚠️ CHANGÉ (30/10/2026) - la fenêtre de détails de Mon Build est la fenêtre UNIQUE : elle lit le magasin partagé des simulations elle-même ; Mon Build lui passe la pièce RÉELLE (`pieceReelle(piece)`), donc plus besoin de `colonnesDetails`/`colonnesMods`/`statsMods` ici.
     return (
       <li style={{ marginBottom: "0.3rem" }}>
         {/* FR : ⚠️ CORRIGÉ (04/08/2026) - le libellé d'emplacement était
@@ -463,164 +449,9 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
         {/* FR : ⚠️ AJOUT (04/08/2026) - popup "Détails", même structure
         que dans l'Inventaire/Coffre (fond assombri, centrée, fermeture
         par ✕ ou clic en dehors), pour un comportement identique. */}
-        {detailsOuverts && db && (
-          <div
-            onClick={() => setDetailsOuverts(false)}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(13,15,20,0.6)",
-              zIndex: 1000,
-              display: "flex",
-              alignItems: "flex-start",
-              justifyContent: "center",
-              paddingTop: "10vh",
-            }}
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: "min(90vw, 480px)",
-                maxHeight: "75vh",
-                overflowY: "auto",
-                background: "#161922",
-                border: "1px solid #3a3f4b",
-                borderRadius: 10,
-                boxShadow: "0 8px 30px rgba(0,0,0,0.5)",
-                padding: "1rem 1.25rem",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
-                <div>
-                  <strong style={{ fontSize: "1rem", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                    {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - icône des armes façonnées À GAUCHE DU NOM (demande de l'utilisateur). / EN: crafted icon at the left of the name. */}
-                  {faconnee && <IconeTitreFaconnee />}
-                  <span>{piece.nom}</span>
-                  {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - ICÔNE DE SAISON directement à droite du nom (demande de l'utilisateur). / EN: season icon right of the name. */}
-                  <IconeSaison db={db} itemHash={piece.itemHash} />
-                    <IconeTypeArme typeArme={piece.typeArme} slot={piece.slot} munition={db ? obtenirTypeMunition(db, piece.itemHash) : undefined} categories={db ? obtenirCategoriesObjet(db, piece.itemHash) : undefined} {...(db ? obtenirSecoursTypeArme(db, piece.itemHash) : {})} taille={35} />
-                    <IconeElementArme db={db} itemHash={piece.itemHash} taille={16} />
-                    {/* FR : ⚠️ AJOUT (30/09/2026, v0.2.9) - type de munitions, à droite de l'élément. / EN: ammo type, right of the element. */}
-                    <IconeMunitionArme db={db} itemHash={piece.itemHash} taille={16} />
-                    {(() => {
-                      const champion = obtenirAntiChampion(db, piece.itemHash);
-                      return champion ? <IconeAntiChampion type={champion} taille={16} /> : null;
-                    })()}
-                  </strong>
-                  {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - BOUTON « FORGE » de la fenêtre Détails de Mon Build (armes possédées seulement) : la Forge s'ouvre sur cette arme à partir de son roll RÉEL ; « Retour » ramène ici. / EN: ⚠️ ADDED - Forge button of Mon Build's Details window. */}
-                  {/* FR : ⚠️ CHANGÉ (16/10/2026, v0.4.12) - le bouton « Forge » existe aussi pour les ARMURES possédées (spécification du 12/10/2026, §1 : « le bouton Détails des armes et armures… un bouton supplémentaire permet de rejoindre la Forge ») : il ouvre la partie Armures de la Forge sur cette armure ; « Retour » ramène ici. / EN: ⚠️ CHANGED - the Forge button now also exists for owned armor pieces. */}
-                  {onOuvrirForge && piece.itemInstanceId && (
-                    <div>
-                      <button data-ouvrir-forge="" onClick={() => onOuvrirForge(piece)} style={{ fontSize: "0.75rem", marginTop: "0.4rem", padding: "0.15rem 0.5rem" }}>
-                        {estArme ? "🔨 Forge : choisir les perks de cette arme" : "🔨 Forge : choisir les mods de cette armure"}
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => setDetailsOuverts(false)}
-                  style={{ background: "none", border: "none", color: "#7d7a70", fontSize: "1rem", cursor: "pointer", padding: 0 }}
-                >
-                  ✕
-                </button>
-              </div>
-              {/* FR : ⚠️ AJOUT (04/08/2026) - bonus de Set dans la popup
-              "Détails" des armures de Mon Build, comme dans
-              l'Inventaire/Coffre. */}
-              {!estArme && (() => {
-                const set = obtenirBonusSet(db, piece.itemHash);
-                if (!set) return (
-                  <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>
-                    Cette armure ne fait partie d'aucun set.
-                  </p>
-                );
-                return (
-                  <div>
-                    <strong style={{ fontSize: "0.8rem" }}>🛡️ Set « {set.nomSet} »</strong>
-                    {set.perks.map((p) => (
-                      <div key={p.requiredSetCount} style={{ marginTop: "0.4rem" }}>
-                        <div style={{ fontSize: "0.75rem", color: "#7aa2f7", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                          {p.icone && <img src={p.icone} alt="" width={16} height={16} style={{ borderRadius: 3 }} />}
-                          {p.requiredSetCount} pièces — {p.nom}
-                        </div>
-                        {p.description && (
-                          <div style={{ fontSize: "0.72rem", color: "#b7b3a8", marginLeft: "0.3rem" }}>{surlignerVerbesConnus(p.description)}</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-              {/* FR : ⚠️ AJOUT (24/08/2026) - particularité d'origine dans la
-              popup « Détails » de Mon Build, comme dans l'Inventaire (demande
-              de l'utilisateur : « applicable partout »). Recalculée ici car
-              `perksArme` est local à la fonction de rendu de la ligne, hors
-              de portée de la popup. */}
-              {estArme && db && (() => {
-                const origine = obtenirIconesPerksArme(db, piece.perkHashes, 5).origine;
-                if (!origine) return null;
-                return (
-                  <div style={{ marginBottom: "0.8rem" }}>
-                    <strong style={{ fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-                      <img src={origine.icone} alt="" width={16} height={16} style={{ borderRadius: 3 }} />
-                      {origine.nom}
-                      <span style={{ color: "#7d7a70", fontWeight: 400, fontSize: "0.72rem" }}>
-                        (particularité d'origine)
-                      </span>
-                    </strong>
-                    {origine.description && (
-                      <div style={{ fontSize: "0.72rem", color: "#b7b3a8", marginTop: "0.2rem" }}>
-                        {surlignerVerbesConnus(origine.description)}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-{/* FR : ⚠️ CHANGÉ (26/10/2026, retour de l'utilisateur : « Je ne vois pas les nouvelles fenêtres ») - la fenêtre Détails de MON BUILD avait sa propre COPIE de l'ancienne simulation (je n'avais remplacé que celle de l'Inventaire) : elle utilise maintenant le composant `SimulationModsArmure`, avec la note « le score et Mon Build en tiennent compte ». EN: ⚠️ CHANGED - Mon Build's Details pop-up now uses the shared `SimulationModsArmure` component. */}
-              {!estArme && instance && db && colonnesMods.length > 0 && statsMods && (
-                <SimulationModsArmure
-                  db={db}
-                  piece={pieceReelleSim}
-                  colonnes={colonnesMods}
-                  choix={choixArmure}
-                  stats={statsMods}
-                  nbSimulees={nbColonnesSimulees(simulations, instance, "armures")}
-                  noteScore={piece.modsSimules ? `(${piece.nbModsSimules ?? 0} mod${(piece.nbModsSimules ?? 0) > 1 ? "s" : ""} simulé${(piece.nbModsSimules ?? 0) > 1 ? "s" : ""} — le score et Mon Build en tiennent compte)` : null}
-                  onChanger={(changements) => mettreAJourSimulations((s) => appliquerChangements(s, instance, colonnesMods, changements))}
-                  onReinitialiser={() => mettreAJourSimulations((s) => reinitialiserArme(s, instance, "armures"))}
-                />
-              )}
-              {estArme && colonnesDetails.length === 0 && (
-                <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucune option trouvée pour cette arme.</p>
-              )}
-              {ordonnerColonnesPourAffichage(colonnesDetails).map((col) => (
-                <div key={col.socketIndex} style={{ marginBottom: "0.6rem" }}>
-                  <strong style={{ fontSize: "0.75rem", color: "#7d7a70" }}>
-                    {libelleColonne(col)}
-                  </strong>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.25rem" }}>
-                    {col.options.map((opt) => (
-                      <span
-                        key={opt.hash}
-                        title={opt.description}
-                        style={{
-                          fontSize: "0.75rem",
-                          padding: "0.15rem 0.5rem",
-                          borderRadius: 999,
-                          border: opt.equipeEnJeu ? "1px solid #7aa2f7" : "1px solid #2a2e38",
-                          color: opt.equipeEnJeu ? "#e8e6df" : "#7d7a70",
-                          background: opt.equipeEnJeu ? "#1a2436" : "transparent",
-                        }}
-                      >
-                        {opt.equipeEnJeu ? "✓ " : ""}
-                        {opt.nom}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* FR : ⚠️ CHANGÉ (30/10/2026) - la fenêtre de Mon Build est LA FENÊTRE UNIQUE `FenetreDetailsPiece` : Mon Build lui passe la pièce RÉELLE (`pieceReelle(piece)` : perks, mods et statistiques réels), pour que le ✓ « équipé en jeu » marque le roll réel et jamais un perk simulé. / EN: Mon Build now uses the shared details window, given the REAL piece. */}
+        {detailsOuverts && (
+          <FenetreDetailsPiece db={db} piece={pieceReelle(piece)} onFermer={() => setDetailsOuverts(false)} onLireLore={onLireLore} onOuvrirForge={onOuvrirForge} dejaDansBuild />
         )}
       </li>
     );
@@ -811,7 +642,8 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                 })()}
               </div>
 
-              <div style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.4rem 0.6rem", flex: 1, minWidth: "150px" }}>
+              <div data-colonne-stats-build="" style={{ display: "flex", flexDirection: "column", gap: "0.35rem", flex: 1, minWidth: "150px" }}>
+              <div data-bloc-stats-build="" style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.4rem 0.6rem" }}>
                 <div style={{ fontSize: "0.7rem", color: "#7d7a70", marginBottom: "0.25rem" }}>Statistiques du build</div>
                 {(() => {
                   const ORDRE: StatKey[] = ["sante", "melee", "grenade", "super", "classe", "arme"];
@@ -901,6 +733,14 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                   });
                 })()}
               </div>
+              {/* FR : ⚠️ AJOUT (29/10/2026) - bouton « Optimiseur » JUSTE SOUS le cadre des statistiques, même colonne (même largeur) : ouvre la Forge sur l'optimiseur. Affiché seulement si la page principale fournit la fonction. / EN: ⚠️ ADDED - "Optimizer" button right under the stats frame, same column. */}
+              {onOuvrirOptimiseur && (
+                <button type="button" data-ouvrir-optimiseur="" onClick={onOuvrirOptimiseur} style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", padding: "0.3rem 0.6rem", borderRadius: 8, border: "1px solid #3a3f4b", background: "#12151c", color: "#b7b3a8", cursor: "pointer", alignSelf: "stretch", justifyContent: "center" }}>
+                  <img src={urlVisuel("icones.optimisation")} alt="" width={18} height={18} style={{ display: "block" }} draggable={false} />
+                  Optimiseur
+                </button>
+              )}
+            </div>
             </div>
           )}
         </div>

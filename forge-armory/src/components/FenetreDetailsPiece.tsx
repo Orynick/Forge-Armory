@@ -194,7 +194,7 @@ export default function FenetreDetailsPiece({ db, piece: ouverte, onFermer, onLi
           <>
             <p style={{ fontSize: "0.75rem", color: "#9a968a", margin: "0 0 0.6rem" }}>Simulation locale : rien n'est modifié dans le jeu. Les emplacements <em>fixes</em> (archétype, amélioration, ensemble, exotique) ne se changent pas : ils sont listés plus bas, en lecture seule.</p>
             {ouverte.plugsDisponiblesParColonne === undefined && <p data-dispo-non-lue="" style={{ fontSize: "0.75rem", color: "#e0c080", margin: "0 0 0.6rem" }}>⚠️ La disponibilité des mods sur votre exemplaire n'a pas été lue (inventaire chargé avant la mise à jour) : rechargez votre inventaire dans Build Analyzer pour pouvoir en simuler.</p>}
-            {instance && stats && (
+            {instance && stats && db && (
               <SimulationModsArmure db={db} piece={ouverte} colonnes={colonnes} choix={choixOuverte} stats={stats} nbSimulees={nbColonnesSimulees(simulations, instance, "armures")} onChanger={(changements) => appliquer((s) => appliquerChangements(s, instance, colonnes, changements))} onReinitialiser={() => appliquer((s) => reinitialiserArme(s, instance, "armures"))} />
             )}
             <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
