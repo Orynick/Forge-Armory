@@ -9,6 +9,7 @@ import type { ColonneArmure, PlugArmure, StatsSimulees } from "../lib/forge/armu
 import type { ChoixColonne } from "../lib/forge/simulation";
 import { infoAjustement } from "../lib/forge/ajustement";   // ⚠️ AJOUT (26/10/2026)
 import { ajouterCumulable, coutMod, deltaEnergie, hashEffectif, modeleSimulation, retirerCumulable, tientDansLEnergie, versionsStandard, type Changement } from "../lib/forge/energieMods";
+import BoutonAction from "./BoutonAction";   // ⚠️ AJOUT (31/10/2026, retour utilisateur : « le bouton stylisé Modifier n'est pas branché ») : le visuel de la charte `boutons-action.modifier`
 
 interface Props {
   db: Database;
@@ -133,7 +134,10 @@ export default function SimulationModsArmure({ db, piece, colonnes, choix, stats
       <div style={{ border: "1px solid #2a2e38", borderRadius: 10, padding: "0.6rem", background: "#12151c", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
           <strong style={style.titreBloc}>Mods simulés</strong>
-          <button type="button" data-basculer-modifier="" aria-expanded={ouvert} onClick={() => setOuvert((o) => !o)} style={{ fontSize: "0.75rem", padding: "0.25rem 0.8rem", borderRadius: 6, border: `1px solid ${BLEU}`, background: "#1a2436", color: TEXTE, cursor: "pointer" }}>{ouvert ? "Fermer" : "Modifier"}</button>
+          {/* ⚠️ CHANGÉ (31/10/2026, retour utilisateur) : le bouton « Modifier » utilise le VISUEL de la charte (`boutons-action.modifier`, `bouton-modifier.svg`) ; quand la simulation est ouverte il redevient le texte « Fermer » (le visuel ne porte que « Modifier »). `data-basculer-modifier` et `aria-expanded` sont conservés (les tests UI s'y accrochent). */}
+          {ouvert
+            ? <button type="button" data-basculer-modifier="" aria-expanded={ouvert} onClick={() => setOuvert((o) => !o)} style={{ fontSize: "0.75rem", padding: "0.25rem 0.8rem", borderRadius: 6, border: `1px solid ${BLEU}`, background: "#1a2436", color: TEXTE, cursor: "pointer" }}>Fermer</button>
+            : <BoutonAction id="boutons-action.modifier" libelle="Modifier" ariaExpanded={ouvert} onClick={() => setOuvert((o) => !o)} hauteur={40} donnees={{ "basculer-modifier": true }} />}
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "0.5rem" }}>

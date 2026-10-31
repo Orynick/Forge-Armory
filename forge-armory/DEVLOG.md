@@ -4,6 +4,22 @@
 
 ---
 
+## 31/10/2026 (soir) — CORRECTIFS POP-UP DÉTAILS sur `test` (branche `vibe/fix-popups-details-87155d`, retours utilisateur après merge du chantier)
+
+Trois retours sur la pop-up Détails, corrigés :
+
+1. **Bouton « Actualisation de l'inventaire » à la même taille que la barre Forge** : `BoutonAction` recevait sa hauteur par défaut (40 px) sans explicite — passé en `hauteur={40}` explicite dans `InventaireArmes.tsx` (= `HAUTEUR_BOUTONS_BARRE` = 2,5 rem = 40 px des 5 boutons stylisés Collection/Inventaire/Armes/Armures/Optimisation).
+2. **Bouton « Modifier » stylisé branché** : `SimulationModsArmure` utilisait encore un bouton texte. Il utilise désormais le visuel de la charte `boutons-action.modifier` (`bouton-modifier.svg`, 40 px, `aria-expanded`) en vue compacte ; une fois ouvert, il redevient le texte « Fermer » (le visuel ne porte que « Modifier ») — exactement ce que prévoit le test UI `fenetre-details.py`. `data-basculer-modifier` conservé pour les tests.
+3. **Ancien affichage qui persistait sous la simulation (« Mods d'armure », « Attributs de l'armure »)** : `estGereeParSimulation` ne couvrait que les rôles statistique/ajustement/cumulable + `enhancements.*` sur le plug équipé. Elle couvre désormais **tout emplacement de mods modifiable** (catégorie de plug `enhancements.…` OU nom de catégorie de socket contenant « mod », via `estEmplacementMod` exporté de `armure.ts`). Seuls les emplacements **fixes** (archétype, amélioration, ensemble, exotique) restent en lecture seule sous la simulation. Nouveau contrôle dans `energie-mods.test.ts` (47/47).
+
+**Tests UI** : `simulation-mods-armure.py` — la lecture du libellé du bouton retombe sur `aria-label` quand le texte est vide (visuel).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie **53/54 suites, 1103/1104 contrôles** (seul échec connu `icones.test.tsx`, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
 ## 31/10/2026 (matin) — MERGE DE `Import-modif-mods-armures` DANS `test` : le chantier ZIP du 30/10 passe sur la branche de test
 
 **Contexte** : la branche `test` n'était que `main` v0.5.6 + documentation — le chantier (barre Forge à 5 boutons stylisés + Optimisation, fenêtre Détails unique, optimiseur d'armures, 6 boutons d'action de la charte) n'existait que sur `Import-modif-mods-armures`. Merge demandé par l'utilisateur (« Import-modif-mods-armures → test est la logique des choses »).

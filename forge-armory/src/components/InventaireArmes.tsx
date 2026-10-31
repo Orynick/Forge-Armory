@@ -112,7 +112,7 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
       </p>
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
         {pieces && !enCours
-          ? <BoutonAction id="boutons-action.actualisation" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} donnees={{ "actualiser-inventaire": true }} />   /* ⚠️ 30/10/2026 : visuel de la charte */
+          ? <BoutonAction id="boutons-action.actualisation" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} hauteur={40} donnees={{ "actualiser-inventaire": true }} />   /* ⚠️ 30/10/2026 : visuel de la charte ; ⚠️ 31/10/2026 : hauteur 40 px explicite = même hauteur que les 5 boutons stylisés de la barre Forge (HAUTEUR_BOUTONS_BARRE = 2.5rem = 40 px) */
           : <button onClick={charger} disabled={enCours}>{enCours ? "Chargement…" : "Charger mon inventaire"}</button>}
         {nbArmesSimulees > 0 && <button onClick={() => appliquer(() => SIMULATIONS_VIDES())} data-effacer-simulations="" style={{ fontSize: "0.8rem" }}>✕ Effacer toutes les simulations ({nbArmesSimulees})</button>}
       </div>
