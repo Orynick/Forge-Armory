@@ -111,8 +111,8 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
         Vos armes (personnages et Coffre). Ouvrez une arme pour <strong>simuler</strong> un autre roll : une perk par colonne et un mod. <strong>Rien n'est modifié dans le jeu</strong> : la simulation reste dans l'appli, sur cet ordinateur.
       </p>
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
-        {pieces && !enCours
-          ? <BoutonAction id="boutons-action.actualisation" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} hauteur={40} donnees={{ "actualiser-inventaire": true }} />   /* ⚠️ 30/10/2026 : visuel de la charte ; ⚠️ 31/10/2026 : hauteur 40 px explicite = même hauteur que les 5 boutons stylisés de la barre Forge (HAUTEUR_BOUTONS_BARRE = 2.5rem = 40 px) */
+        {pieces
+          ? <BoutonAction id="boutons-action.actualisation" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} disabled={enCours} hauteur={40} donnees={{ "actualiser-inventaire": true }} />   /* ⚠️ 30/10/2026 : visuel de la charte ; ⚠️ 31/10/2026 : hauteur 40 px = barre Forge (HAUTEUR_BOUTONS_BARRE 2.5rem) ; le visuel RESTE pendant le rechargement (disabled) — seul le PREMIER chargement garde le bouton texte */
           : <button onClick={charger} disabled={enCours}>{enCours ? "Chargement…" : "Charger mon inventaire"}</button>}
         {nbArmesSimulees > 0 && <button onClick={() => appliquer(() => SIMULATIONS_VIDES())} data-effacer-simulations="" style={{ fontSize: "0.8rem" }}>✕ Effacer toutes les simulations ({nbArmesSimulees})</button>}
       </div>

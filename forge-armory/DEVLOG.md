@@ -4,6 +4,21 @@
 
 ---
 
+## 31/10/2026 (soir, suite 2) — TAILLE UNIFORME 40 px DES 7 BOUTONS D'ACTION + VISUEL « ACTUALISATION » PARTOUT (retour utilisateur)
+
+Retour utilisateur : « adapter la taille du bouton Actualisation » et « utiliser la même taille pour les autres boutons ajoutés » (retour bandeau Forge + fenêtre Détails, plus « Mettre dans Mon Build », lore, actualisation, forgemods).
+
+- **`BoutonAction.tsx`** : la hauteur est posée **aussi sur le `<button>`** (`height: hauteur` dans le style inline, pas seulement sur l'`img`) — le conteneur fait exactement 40 px. Défaut `hauteur = 40` confirmé (= `HAUTEUR_BOUTONS_BARRE` 2,5 rem de la barre Forge).
+- **`hauteur={40}` explicite** posé sur tous les `BoutonAction` : retour (`PageForge` bandeau + `FenetreDetailsPiece`), plus « Mettre dans Mon Build », lore (`BoutonLireLore`), forgemods (`FenetreDetailsPiece`), modifier/fermer (déjà fait).
+- **« Actualisation de l'inventaire » remplace l'ancien texte « ↻ Recharger mon inventaire » dans les ARMURES aussi** (`InventaireArmures.tsx`) : après le premier chargement, le `BoutonAction` `boutons-action.actualisation` (40 px, `data-actualiser-inventaire`) s'affiche — comme déjà dans `InventaireArmes.tsx`. Le bouton **texte « Charger mon inventaire » reste pour le premier chargement** (l'image dit « Actualisation », elle ne convient pas à « Charger »). Pendant un rechargement, le visuel reste affiché (état `disabled`, atténué) au lieu de repasser en texte.
+- Tests UI : `forge-armures.py` ligne 45 attend désormais le visuel + 40 px + aria-label « …recharger mon inventaire » et l'absence du texte « Recharger mon inventaire » ; `fenetre-details.py` contrôle la hauteur **sur le `<button>`** (== 40 exactement) et le visuel actualisation des armures de la Forge.
+
+**Vérifié** : `tsc -b` 0 erreur ; batterie 53/54 suites, 1103/1104 contrôles (seul `icones.test.tsx`, connu, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
 ## 31/10/2026 (soir, suite) — 7e BOUTON D'ACTION « FERMER » branché (archive fournie par l'utilisateur, commit `f4dd8e1`)
 
 L'utilisateur a ajouté `public/assets/boutons-action/bouton-fermer.svg` (viewBox 2590 × 1000, croix cyan dans un losange — même plaque et même hauteur que « Modifier », aucun décalage). Branchement :
