@@ -12,7 +12,9 @@
 
 **Conflit** : un seul, dans `DEVLOG.md` (tête du fichier) — résolu en gardant les DEUX entrées : l'entrée du 30/10 soir (point d'avancement sur `test`) ci-dessous, puis la note de propagation v0.5.6 sur `Import-modif-mods-armures`, puis la LIVRAISON v0.5.6 de `main`.
 
-**Vérifié** : `TODO.md` / `CHANGELOG.md` non touchés par le merge (version courante 0.5.6, item 23 LIVRÉ en cartes conservés) ; page Accomplissements = version cartes carrées de `main` (régression du 28/10 non réintroduite : `VueAccomplissements.tsx` du chantier a été vérifié, le merge l'a laissée telle quelle côté `test`) ; `npx tsc -b` 0 erreur ; batterie logique 48/48 suites, 981/981 contrôles ; `npm run build` ✓ ; CI verte sur `Import-modif-mods-armures` au commit `b858c5e` (6 erreurs TS du ZIP corrigées).
+**Vérifié** : page Accomplissements = version cartes carrées de `main` (le ZIP embarquait une vieille version en lignes — `VueAccomplissements.tsx` et `tests/ui/vue-accomplissements.py` restaurés à l'identique de `main` v0.5.6, comme dans `bc83d32`) ; fichier parasite `forge-armory/git` retiré ; `npx tsc -b` 0 erreur ; batterie 53/54 suites, 1102/1103 contrôles (seul échec connu `icones.test.tsx`, OK en CI) ; `npm run build` ✓ ; CI verte sur `Import-modif-mods-armures` (`b858c5e`).
+
+**⚠️ Incident lors du push de l'utilisateur** : son `git pull` sur `test` a mergé une vieille branche orpheline (`b98b1b0`→`3ef9e8d`, base `21a80c4` = v0.3.19, 12-19/10) dans `test` (merge `072fcc6`), ramenant `TODO.md`/`CHANGELOG.md` à la version 0.3.19. Corrigé ici : `TODO.md` et `CHANGELOG.md` restaurés à l'identique de `da20bbf` (v0.5.6). Backup de l'état intermédiaire : branche `backup-test-avant-merge-import`.
 
 **Reste à valider par l'utilisateur** : `npm run dev` sur `test` (barre Forge conforme à la capture « barre-forge-après », bouton Optimisation sous Statistiques de Mon Build, 6 boutons d'action visuels dans les fenêtres Détails).
 
