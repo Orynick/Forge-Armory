@@ -143,7 +143,7 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
       </p>
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
         {pieces
-          ? <BoutonAction id="boutons-action.actualisation" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} disabled={enCours} hauteur={40} donnees={{ "actualiser-inventaire": true }} />   /* ⚠️ 31/10/2026 : remplace l'ancien texte « ↻ Recharger mon inventaire » par le VISUEL de la charte (40 px = barre Forge) */
+          ? <BoutonAction id="boutons-action.actualisation" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} disabled={enCours} hauteur="2.5rem" donnees={{ "actualiser-inventaire": true }} />
           : <button onClick={charger} disabled={enCours}>{enCours ? "Chargement…" : "Charger mon inventaire"}</button>}
         {idsAvecSimulation.length > 0 && <button onClick={() => appliquer((s) => idsAvecSimulation.reduce((acc, id) => reinitialiserArme(acc, id, "armures"), s))} data-effacer-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer les simulations d'armures ({idsAvecSimulation.length})</button>}
         {nbArmuresSim > idsAvecSimulation.length && <button onClick={() => appliquer((s) => armuresSimulees(s).reduce((acc, id) => reinitialiserArme(acc, id, "armures"), s))} data-effacer-toutes-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer TOUTES les simulations d'armures ({nbArmuresSim})</button>}

@@ -4,6 +4,20 @@
 
 ---
 
+## 31/10/2026 (soir, suite 3) — CORRECTIF : commentaires JSX « /* */ » rendus comme du TEXTE + hauteur des boutons en `2.5rem` (= barre Forge, suit le zoom)
+
+Retour utilisateur (capture) : du texte parasite « 31/10/2026 : hauteur 40 px */ » apparaissait à côté des boutons « Lire le Lore » et « Mettre dans Mon Build », et les boutons semblaient « encore trop grands ».
+
+- **Cause du texte parasite** : des commentaires `/* … */` placés en fin de ligne APRÈS un élément JSX (hors accolades `{ }`) sont interprétés par JSX comme du **texte affiché**. Corrigé : tous les commentaires concernés remis en `{/* … */}` (ou déplacés sur leur propre ligne) dans `BoutonLireLore.tsx`, `FenetreDetailsPiece.tsx`, `PageForge.tsx`, `InventaireArmes.tsx`, `InventaireArmures.tsx`. Balayage du `src/` : plus aucun `/* */` hors accolades après un `/>`.
+- **Cause de « trop grand »** : la barre Forge est en `2.5rem` (unité relative au zoom du navigateur), les boutons d'action en `40` **px absolus** — au zoom ≠ 100 %, les px ne suivent pas la barre. Corrigé : `BoutonAction.hauteur` accepte désormais `number | string`, défaut **`"2.5rem"`** (= `HAUTEUR_BOUTONS_BARRE`) ; tous les appels passent en `hauteur="2.5rem"` (retour, plus, lore, actualisation, forgemods, modifier/fermer). La largeur calculée pour l'attribut `width` utilise toujours 40 px (2.5rem ≈ 40 px à zoom 100 %). Résultat : les 7 boutons d'action font **exactement la même hauteur que les 5 boutons de la barre Forge à tout zoom** (40 px à 100 %, dans la plage charte 36–44).
+- Tests UI : `fenetre-details.py` et `forge-armures.py` lisent la hauteur réelle (plage 36–44 px à zoom 100 %, égalité stricte entre boutons d'une même fenêtre, et entre « Modifier » et « Fermer » — aucun décalage à la bascule).
+
+**Vérifié** : `tsc -b` 0 erreur ; batterie 53/54 suites, 1103/1104 (seul `icones.test.tsx`, connu, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
 ## 31/10/2026 (soir, suite 2) — TAILLE UNIFORME 40 px DES 7 BOUTONS D'ACTION + VISUEL « ACTUALISATION » PARTOUT (retour utilisateur)
 
 Retour utilisateur : « adapter la taille du bouton Actualisation » et « utiliser la même taille pour les autres boutons ajoutés » (retour bandeau Forge + fenêtre Détails, plus « Mettre dans Mon Build », lore, actualisation, forgemods).

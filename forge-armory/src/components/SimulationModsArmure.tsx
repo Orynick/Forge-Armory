@@ -136,8 +136,8 @@ export default function SimulationModsArmure({ db, piece, colonnes, choix, stats
           <strong style={style.titreBloc}>Mods simulés</strong>
           {/* ⚠️ CHANGÉ (31/10/2026, retour utilisateur) : « Modifier »/« Fermer » sont les DEUX VISUELS de la charte (7e bouton « Fermer » ajouté par l'utilisateur : même plaque, même hauteur, aucun décalage). `data-basculer-modifier` et `aria-expanded` conservés (les tests UI s'y accrochent). */}
           {ouvert
-            ? <BoutonAction id="boutons-action.fermer" libelle="Fermer" ariaExpanded={ouvert} onClick={() => setOuvert((o) => !o)} hauteur={40} donnees={{ "basculer-modifier": true }} />
-            : <BoutonAction id="boutons-action.modifier" libelle="Modifier" ariaExpanded={ouvert} onClick={() => setOuvert((o) => !o)} hauteur={40} donnees={{ "basculer-modifier": true }} />}
+            ? <BoutonAction id="boutons-action.fermer" libelle="Fermer" ariaExpanded={ouvert} onClick={() => setOuvert((o) => !o)} hauteur="2.5rem" donnees={{ "basculer-modifier": true }} />
+            : <BoutonAction id="boutons-action.modifier" libelle="Modifier" ariaExpanded={ouvert} onClick={() => setOuvert((o) => !o)} hauteur="2.5rem" donnees={{ "basculer-modifier": true }} />}
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "0.5rem" }}>

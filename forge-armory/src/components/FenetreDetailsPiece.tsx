@@ -149,15 +149,16 @@ export default function FenetreDetailsPiece({ db, piece: ouverte, onFermer, onLi
         {(onRetour || ((onAjouterAuBuild || dansBuild) && instance) || onOuvrirForge) && (
           <div data-ligne-actions="" style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", margin: "0 0 0.6rem" }}>
             {onRetour && (libelleRetour === "Build Analyzer"
-              ? <BoutonAction id="boutons-action.retour" libelle="Retour à Build Analyzer" onClick={() => { fermer(); onRetour(); }} hauteur={40} donnees={{ "retour-fenetre": true }} />   /* ⚠️ 31/10/2026 : hauteur 40 px */
+              ? <BoutonAction id="boutons-action.retour" libelle="Retour à Build Analyzer" onClick={() => { fermer(); onRetour(); }} hauteur="2.5rem" donnees={{ "retour-fenetre": true }} />
               : <button data-retour-fenetre="" onClick={() => { fermer(); onRetour(); }} style={styleAction}>← Retour à {libelleRetour}</button>)}
             {(onAjouterAuBuild || dansBuild) && instance && (dansBuild
               ? <span data-mettre-dans-build="" data-deja="1" style={{ fontSize: "0.8rem", color: "#7fd88f" }}>✓ Déjà dans Mon Build</span>
-              : <BoutonAction id="boutons-action.plus" libelle="Mettre dans Mon Build" onClick={() => { onAjouterAuBuild?.(ouverte); setAjoutee(true); setMessageBuild(`✅ « ${ouverte.nom} » est dans Mon Build : le score tient compte de votre simulation, en temps réel. Rien n'est équipé en jeu.`); }} hauteur={40} donnees={{ "mettre-dans-build": true }} />)}   /* ⚠️ 31/10/2026 : hauteur 40 px */
+              : <BoutonAction id="boutons-action.plus" libelle="Mettre dans Mon Build" onClick={() => { onAjouterAuBuild?.(ouverte); setAjoutee(true); setMessageBuild(`✅ « ${ouverte.nom} » est dans Mon Build : le score tient compte de votre simulation, en temps réel. Rien n'est équipé en jeu.`); }} hauteur="2.5rem" donnees={{ "mettre-dans-build": true }} />)}
+            {/* ⚠️ 30/10/2026 : visuel de la charte pour l'ARMURE (`boutons-action.forgemods`) ; pour l'ARME, pas de visuel « arme » dans l'archive : le bouton texte reste. */}
             {onOuvrirForge && instance && (
               estArme
-                ? <button data-ouvrir-forge="" onClick={() => onOuvrirForge(ouverte)} style={{ fontSize: "0.75rem", padding: "0.15rem 0.5rem" }}>🔨 Forge : choisir les perks de cette arme</button>   /* pas de visuel « arme » dans l'archive : le bouton texte reste */
-                : <BoutonAction id="boutons-action.forgemods" libelle="Forge : choisir les mods de cette armure" onClick={() => onOuvrirForge(ouverte)} hauteur={40} donnees={{ "ouvrir-forge": true }} />   /* ⚠️ 30/10/2026 : visuel de la charte ; ⚠️ 31/10/2026 : hauteur 40 px */
+                ? <button data-ouvrir-forge="" onClick={() => onOuvrirForge(ouverte)} style={{ fontSize: "0.75rem", padding: "0.15rem 0.5rem" }}>🔨 Forge : choisir les perks de cette arme</button>
+                : <BoutonAction id="boutons-action.forgemods" libelle="Forge : choisir les mods de cette armure" onClick={() => onOuvrirForge(ouverte)} hauteur="2.5rem" donnees={{ "ouvrir-forge": true }} />
             )}
             {messageBuild && <span data-message-build="" role="status" style={{ fontSize: "0.75rem", color: "#7fd88f" }}>{messageBuild}</span>}
           </div>
