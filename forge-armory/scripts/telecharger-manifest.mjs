@@ -62,7 +62,7 @@ function lireCleApi() {
   }
   throw new Error(
     "VITE_BUNGIE_API_KEY est vide ou absente de .env.local.\n" +
-      "  → Renseignez votre clé API Bungie dans ce fichier (voir README)."
+      "  → Renseignez votre clé API Bungie dans ce fichier (voir NOTICE.md)."
   );
 }
 
@@ -107,10 +107,10 @@ async function main() {
     const zipCompresse = new Uint8Array(await reponseFichier.arrayBuffer());
     console.log(`[${langue.toUpperCase()}] Téléchargé : ${formaterTaille(zipCompresse.length)}. Décompression...`);
 
-    // FR : ⚠️ PIÈGE CONNU (déjà rencontré côté appli, voir CHANGELOG) -
+    // FR : ⚠️ PIÈGE CONNU (déjà rencontré côté appli, voir DEVLOG) -
     // l'URL sert un fichier ZIP, PAS directement du SQLite. Il faut le
     // décompresser avant d'obtenir la base utilisable.
-    // EN: ⚠️ KNOWN PITFALL (already hit in the app, see CHANGELOG) - the
+    // EN: ⚠️ KNOWN PITFALL (already hit in the app, see DEVLOG) - the
     // URL serves a ZIP file, NOT raw SQLite. It must be decompressed first.
     const contenuZip = unzipSync(zipCompresse);
     const nomsFichiers = Object.keys(contenuZip);

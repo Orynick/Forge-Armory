@@ -1,24 +1,43 @@
-// FR : Construit la liste des armes/armures POSSEDEES (personnages +
-// coffre) sous forme de GearPiece exploitables par l'editeur de build,
-// en croisant les objets bruts de l'API Bungie avec leurs definitions du
-// Manifest (nom, emplacement, rarete) et leurs stats reelles d'instance.
+// FR : Construit la liste des armes/armures POSSEDEES (personnages,
+// coffre ET courrier) sous forme de GearPiece exploitables par l'editeur
+// de build, en croisant les objets bruts de l'API Bungie avec leurs
+// definitions du Manifest (nom, emplacement, rarete) et leurs stats
+// reelles d'instance.
 //
 // ⚠️ AJOUT (02/08/2026) : origine (personnage/coffre), statut equipe, et
 // perks groupes par colonne de socket - necessaires pour l'affichage en
 // 4 colonnes (Chasseur/Titan/Arcaniste/Coffre) demande par l'utilisateur.
 //
-// EN: Builds the list of OWNED weapons/armor (characters + vault) as
-// GearPiece usable by the build editor, by cross-referencing raw Bungie
-// API items with their Manifest definitions (name, slot, rarity) and their
-// real per-instance stats.
+// ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) : le COURRIER
+// (postmaster, `location: 4` dans l'inventaire d'un personnage) est lu et
+// affiche, etiquete "courrier" - jamais melange a l'inventaire du
+// personnage. Un objet qui y attend ne peut ni etre equipe ni transfere :
+// il faut d'abord le recuperer en jeu (`PullFromPostmaster` n'est PAS
+// appele par l'appli). L'affichage le rend visible et le bouton
+// « Transférer vers » l'explique (grise).
+//
+// EN: Builds the list of OWNED weapons/armor (characters, vault AND
+// postmaster) as GearPiece usable by the build editor, by
+// cross-referencing raw Bungie API items with their Manifest definitions
+// (name, slot, rarity) and their real per-instance stats.
 //
 // ⚠️ ADDED (2026-08-02): origin (character/vault), equipped status, and
 // perks grouped by socket column - needed for the 4-column display
 // (Hunter/Titan/Warlock/Vault) requested by the user.
+//
+// ⚠️ ADDED (2026-10-24, post-audit tests, point 5.8): the POSTMASTER
+// (`location: 4` in a character's inventory) is read and displayed,
+// tagged "courrier" - never mixed into the character's own inventory. An
+// item waiting there can neither be equipped nor transferred: it must
+// first be picked up in game (`PullFromPostmaster` is NOT called by the
+// app). Displaying it makes it visible, and the "Transfer to" button
+// explains it (disabled).
 
+import { extrairePlugsDisponibles, extraireGearTier, extraireEnergie, extrairePlugsInsertables } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7) ; ⚠️ AJOUT (19/10/2026) : `extraireGearTier`
 import { Database } from "sql.js";
 import { obtenirDefinition } from "../manifest/download";
-import { normaliser, urlIcone } from "../manifest/search";
+import { urlIcone } from "../manifest/search";
+import { resoudreStatKey } from "../manifest/statsArmure";   // ⚠️ DÉPLACÉ (15/10/2026, v0.4.12)
 import { DestinyItemDefinition, DestinyStatDefinition } from "../../types/manifest";
 import { GearPiece, StatKey } from "../../types/build";
 import { BUCKET_HASH_VERS_SLOT, TIER_TYPE_HASH_EXOTIQUE, CLASS_TYPE_VERS_CLASSE } from "../../data/constantesManifest";
@@ -27,38 +46,20 @@ import { obtenirAccessTokenValide } from "./oauth";
 import { BUNGIE_API_ROOT, bungieConfig } from "./config";
 import { obtenirNomsDamageType, obtenirIconesDamageType } from "../manifest/doctrine";
 
-// FR : plutôt que de deviner les hash des 6 stats Armor 3.0 (risque de se
-// tromper sans pouvoir tester en direct), on résout le NOM de chaque stat
-// via le Manifest et on le compare à ces libellés connus - ça s'auto-
-// corrige tant que Bungie ne renomme pas complètement les stats.
-const LIBELLES_STAT: Record<StatKey, string[]> = {
-  sante: ["sante", "health"],
-  melee: ["corps a corps", "melee"],
-  grenade: ["grenade"],
-  super: ["super"],
-  classe: ["classe", "class", "competence de classe", "class ability"],
-  arme: ["arme", "armes", "weapon", "weapons"],
-};
-
-function resoudreStatKey(nomStat: string): StatKey | undefined {
-  const nomNormalise = normaliser(nomStat);
-  for (const [cle, libelles] of Object.entries(LIBELLES_STAT) as [StatKey, string[]][]) {
-    if (libelles.some((l) => nomNormalise.includes(l))) return cle;
-  }
-  return undefined;
-}
+// FR : la résolution d'une statistique par son NOM vit maintenant dans `lib/manifest/statsArmure.ts` (partagée avec la Forge des armures ; comportement inchangé).
 
 interface ItemBrut {
   itemHash: number;
   itemInstanceId?: string;
   /** FR : d'où vient cet objet brut, avant qu'on ne connaisse son nom/slot. / EN: where this raw item comes from, before we know its name/slot. */
-  origine: "coffre" | "titan" | "chasseur" | "arcaniste";
+  origine: "coffre" | "titan" | "chasseur" | "arcaniste" | "courrier";
   equipe: boolean;
 }
 
 async function recupererProfilPourInventaire(membership: DestinyMembership) {
   const accessToken = await obtenirAccessTokenValide();
-  const composants = [102, 200, 201, 205, 300, 302, 305].join(",");
+  // FR : ⚠️ CHANGÉ (13/10/2026, v0.4.7) - + 310 (plugs réutilisables : les perks que chaque exemplaire peut porter dans chaque prise), pour distinguer dans la Forge les perks DISPONIBLES sur l'exemplaire de ceux qui sont seulement possibles sur le modèle. Lecture seule. / EN: + component 310 (reusable plugs).
+  const composants = [102, 200, 201, 205, 300, 302, 305, 310].join(",");
   const reponse = await fetch(
     `${BUNGIE_API_ROOT}/Destiny2/${membership.membershipType}/Profile/${membership.membershipId}/?components=${composants}`,
     { headers: { "X-API-Key": bungieConfig.apiKey, Authorization: `Bearer ${accessToken}` } }
@@ -171,10 +172,21 @@ export async function listerObjetsPossedes(
   }
   const inventairesPersonnages = profil.characterInventories?.data ?? {};
   const equipementPersonnages = profil.characterEquipment?.data ?? {};
+  // FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - le courrier se
+  // lit DANS l'inventaire de chaque personnage (`location: 4`) : c'est la
+  // seule source Bungie pour ces objets (ils n'apparaissent ni au coffre ni
+  // dans l'equipement). Ils sont etiquetes "courrier", jamais melanges a
+  // l'inventaire du personnage : un objet qui y attend ne peut pas etre
+  // deplace ni equipe tant qu'il n'a pas ete recupere en jeu.
+  // EN: ADDED - the postmaster is read INSIDE each character's inventory
+  // (`location: 4`): that is Bungie's only source for those items (they
+  // appear neither in the vault nor in equipment). They are tagged
+  // "courrier", never mixed into the character's own inventory.
+  const LIEU_COURRIER = 4;
   for (const charId of Object.keys({ ...inventairesPersonnages, ...equipementPersonnages })) {
     const origine = classeParPersonnage[charId] ?? "titan";
     for (const item of inventairesPersonnages[charId]?.items ?? []) {
-      itemsBruts.push({ itemHash: item.itemHash, itemInstanceId: item.itemInstanceId, origine, equipe: false });
+      itemsBruts.push({ itemHash: item.itemHash, itemInstanceId: item.itemInstanceId, origine: item.location === LIEU_COURRIER ? "courrier" : origine, equipe: false });
     }
     for (const item of equipementPersonnages[charId]?.items ?? []) {
       itemsBruts.push({ itemHash: item.itemHash, itemInstanceId: item.itemInstanceId, origine, equipe: true });
@@ -185,6 +197,11 @@ export async function listerObjetsPossedes(
   // pour les stats d'armure - voir plus bas (sockets + investmentStats).
   const socketsParInstance: Record<string, { sockets: Array<{ plugHash?: number; isEnabled: boolean }> }> =
     profil.itemComponents?.sockets?.data ?? {};
+  // FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - composant 310 : perks disponibles par exemplaire et par prise (lu avec tolérance : voir `plugsDisponibles.ts`). / EN: component 310 data.
+  // FR : ⚠️ AJOUT (19/10/2026, branche test, analyse de la spec Bungie v2.21.9) - composant 300 (instances), pour le PALIER ("gear tier") de chaque exemplaire possédé : c'est lui qui décide quelle version d'un perk amélioré s'applique à CET exemplaire (TODO Forge, point ouvert n°2). Le composant 300 était déjà demandé (composants = [102, 200, 201, 205, 300, 302, 305, 310]) : aucune requête réseau de plus. / EN: component 300 (instances), for each owned instance's gear tier (decides which enhanced-perk version applies to THAT instance). Already requested: no extra network call.
+  const gearTierParInstance: Record<string, unknown> =
+    profil.itemComponents?.instances?.data ?? {};
+  const plugsReutilisablesParInstance: Record<string, unknown> = profil.itemComponents?.reusablePlugs?.data ?? {};
 
   const cacheNomsStat = new Map<number, StatKey | undefined>();
   // FR : ⚠️ AJOUT (02/08/2026) - diagnostic pour le bug "stats pas mises à
@@ -386,6 +403,12 @@ export async function listerObjetsPossedes(
       stats,
       perkHashes,
       perksParColonne,
+      // FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - perks DISPONIBLES sur cet exemplaire, par prise (armes seulement : les builds enregistrés ne grossissent pas pour l'armure). `undefined` = donnée non lue. / EN: perks available on this instance (weapons only).
+      ...(item.itemInstanceId ? { plugsDisponiblesParColonne: extrairePlugsDisponibles(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),   // ⚠️ CHANGÉ (15/10/2026, v0.4.12) : lus aussi pour les ARMURES (Forge des armures : mods disponibles sur l'exemplaire)
+      // FR : ⚠️ AJOUT (19/10/2026, branche test) - PALIER de l'exemplaire (composant 300) ; absent de la réponse = pas de champ (on n'affirme rien). / EN: instance gear tier (component 300); absent from the response = no field.
+      ...(item.itemInstanceId ? { gearTier: extraireGearTier(gearTierParInstance[item.itemInstanceId]) } : {}),
+      ...(item.itemInstanceId && extraireEnergie(gearTierParInstance[item.itemInstanceId]) ? { energie: extraireEnergie(gearTierParInstance[item.itemInstanceId]) } : {}),
+      ...(item.itemInstanceId && extrairePlugsInsertables(plugsReutilisablesParInstance[item.itemInstanceId]) ? { plugsInsertablesParColonne: extrairePlugsInsertables(plugsReutilisablesParInstance[item.itemInstanceId]) } : {}),   // ⚠️ AJOUT (26/10/2026) : plugs réellement insérables (« + » de l'ajustement d'une armure)   // ⚠️ AJOUT (24/10/2026) : énergie de l'exemplaire (diagnostic des coûts d'énergie des mods)
       isExotic: def.inventory?.tierTypeHash === TIER_TYPE_HASH_EXOTIQUE,
       classeRequise,
       elementArme,

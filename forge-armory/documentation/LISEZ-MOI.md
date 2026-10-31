@@ -13,21 +13,24 @@ at the project root (see below).
 | `audits/` | Rapports d'audit (internes ou externes) | `AUDIT-AAAA-MM-JJ[-sujet].md` |
 | `agent-ia/` | Conception de l'agent IA : architecture et notes de décision | libre |
 | `todo/` | Archives de la TODO avant un tri (copie intégrale, mot pour mot) | `ARCHIVE-TODO-AAAA-MM-JJ.md` |
-| `tests/` | Archives des tests validés, retirés de `A-TESTER.pdf` lors d'un tri, recopiés mot pour mot | `ARCHIVE-TESTS-AAAA-MM-JJ.md` |
 | `sources/` | Sources des documents livrés en PDF à la racine, et le script qui les produit (outil de Claude) | même nom que le PDF, en `.md` |
+| `identite-visuelle/` | Identité visuelle : **charte graphique** (`CHARTE-GRAPHIQUE.md`), **guide des scripts qui fabriquent les visuels** (`SCRIPTS-VISUELS.md`), retouches appliquées aux visuels livrés (`RETOUCHES-VISUELS.md`) | libre |
+| `suivi/` | Points d'avancement et suivi des dépendances (`MAJ-DEPENDANCES.md`) | `POINT-AVANCEMENT-AAAA-MM-JJ.md` |
+
+**Archive des tests validés** : le sous-dossier `tests/` a été **supprimé le 14/10/2026 à la demande de l'utilisateur** (111 sections validées y étaient archivées). Ne pas le recréer sans qu'il le demande : l'historique des validations reste dans `DEVLOG.md`, entrée par entrée.
 
 Un nouveau type de document (conception d'un autre chantier, procédure,
 etc.) reçoit son propre sous-dossier, sur le même principe.
 
 **Suite donnée à un audit** : on ne réécrit pas le rapport d'origine. On
 ajoute à la fin une courte section « Suite donnée », et le détail va dans
-`CHANGELOG.md` à la date du jour.
+`DEVLOG.md` à la date du jour.
 
 ## Ce qui reste à la racine, et pourquoi
 
 - `README.md`, `GUIDE-DEMARRAGE.md`, `GUIDE-DEMARRAGE-INVITE.md` : premiers
   fichiers qu'ouvre quelqu'un qui découvre le projet (invités compris).
-- `TODO.md`, `A-TESTER-<version>.pdf` (le numéro de version de l'appli figure dans le nom : `A-TESTER-0.3.1.pdf`), `CHANGELOG.md` : consultés ou mis à jour à
+- `TODO.md`, `A-TESTER-<version>.pdf` (le numéro de version de l'appli figure dans le nom : `A-TESTER-0.3.1.pdf`), `DEVLOG.md` : consultés ou mis à jour à
   chaque session de travail.
   `A-TESTER.pdf` se lit tel quel ; ses cases se cochent directement dans
   le lecteur PDF (puis Ctrl+S). Il est produit à partir de

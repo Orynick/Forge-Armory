@@ -25,9 +25,17 @@ import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 
 import TitreCategorie from "./TitreCategorie";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { obtenirElementFiltre, ELEMENTS_FILTRE, ElementFiltre } from "../lib/manifest/doctrine";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : filtre d'élément
+import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
 import { Database } from "sql.js";
-import { assurerManifestAJour, manifestsEnCacheAJour, telechargerManifestsEnFichiers } from "../lib/manifest/download";
-import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance, chercherTriomphesFlawless, TriompheTrouve } from "../lib/manifest/search";
+import { assurerManifestAJour, etatCachesManifests, simulerManifestPerime, telechargerManifestsEnFichiers } from "../lib/manifest/download";
+import { demarrerManifests, LangueManifest } from "../lib/manifest/demarrage";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : mise à jour automatique d'un Manifest PÉRIMÉ
+import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance } from "../lib/manifest/search";
+// FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la catégorie de SOURCE d'un objet (d2-additional-info, MIT) affichée à côté de la chaîne brute, et le filtre `source:`.
+import { sourceObjetParHash, jointureSource } from "../data/sourceObjet";
+import { saisonParNumero, saisonDeLObjet } from "../data/saisons";   // ⚠️ AJOUT (19/10/2026) : saison de sortie en clair (secours du nom + dates)
+import { obtenirSaisonObjet } from "../lib/manifest/saison";   // ⚠️ AJOUT (19/10/2026) : seasonHash/filigrane → numéro
+import { SOURCE_FILTER_SUGGESTIONS, matchesSourceFilter } from "../data/sourceFilter";
 import { construireIndexInversePerks, obtenirIndexInversePerksEnCache, ObjetParent } from "../lib/manifest/perkSource";
 import { obtenirSource, obtenirAntiChampion, obtenirTypeMunition, obtenirCategoriesObjet, raccourcirNom } from "../lib/manifest/doctrine";
 import IconeAntiChampion, { TypeChampion } from "./icones/IconeAntiChampion";
@@ -65,13 +73,17 @@ const DELAI_DEBOUNCE_MS = 350;
 interface Props {
   onManifestCharge?: (dbFr: Database) => void;
   onAjouterObjet?: (piece: GearPiece) => void;
+  /** FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - bouton « Aller à » : fait glisser la page sur « Mon Inventaire » et le filtre sur cet objet (demande de l'utilisateur). Facultatif : sans lui, le bouton n'est pas affiché. / EN: ⚠️ ADDED - "Go to" button. */
+  onAllerA?: (hash: number, nom: string) => void;
 }
 
-export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: Props) {
+export default function RechercheManifest({ onManifestCharge, onAjouterObjet, onAllerA }: Props) {
   const [dbFr, setDbFr] = useState<Database | null>(null);
   const [dbEn, setDbEn] = useState<Database | null>(null);
   const [etapeChargement, setEtapeChargement] = useState<string | null>(null);
   const [erreurChargement, setErreurChargement] = useState<string | null>(null);
+  // FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - message de la mise à jour AUTOMATIQUE d'un Manifest périmé (annonce, réussite ou échec). / EN: ⚠️ ADDED - message of the automatic refresh of an outdated Manifest.
+  const [messageMiseAJourAuto, setMessageMiseAJourAuto] = useState<string | null>(null);
 
   const [motCle, setMotCle] = useState("");
   const [mode, setMode] = useState<ModeRecherche>("plein_texte");
@@ -104,17 +116,30 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
     }
   }
   const [filtreChampion, setFiltreChampion] = useState<"tous" | TypeChampion>("tous");
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - filtre sur l'ÉLÉMENT DE DÉGÂTS (Cinétique, Solaire, Cryo-électrique, Abyssal, Stase, Filobscur), demande de l'utilisateur. Comme l'anti-champion : côté client, après la recherche. Il porte sur les armes (et les sous-classes) : un objet sans élément n'apparaît sous aucun élément. / EN: ⚠️ ADDED - damage element filter, client-side like the champion filter.
+  const [filtreElement, setFiltreElement] = useState<"tous" | ElementFiltre>("tous");
 
   // FR : ⚠️ AJOUT (04/08/2026) - filtrage côté client par anti-champion,
   // recalculé seulement quand les résultats ou le filtre changent (pas à
   // chaque rendu), le type de champion n'étant pas indexé.
+  // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - filtre de SOURCE par syntaxe dans le champ de recherche : « source:raid », « source:last-wish »… (13 catégories + activités, d2-additional-info, MIT). Le filtre est EXTRAIT du texte avant la recherche (les autres mots cherchent normalement), puis appliqué côté client sur les itemSourceHashes de chaque objet : un objet sans hash de source est simplement exclu, sans erreur. Combinable avec l'anti-champion et l'élément par ET logique. La négation (-source:raid) est exclue de la v1 pour rester simple. / EN: ⚠️ ADDED - `source:` search filter, combined with the existing filters by logical AND.
+  const [filtreSource, setFiltreSource] = useState<string | null>(null);
   const resultatsAffiches = useMemo(() => {
-    if (filtreChampion === "tous" || !dbFr) return resultats;
+    if (!dbFr || (filtreChampion === "tous" && filtreElement === "tous" && !filtreSource)) return resultats;
     return resultats.filter((r) => {
-      if (!r.slot || !["cinetique", "energie", "lourde"].includes(r.slot)) return false;
-      return obtenirAntiChampion(dbFr, r.hash) === filtreChampion;
+      if (filtreChampion !== "tous") {
+        if (!r.slot || !["cinetique", "energie", "lourde"].includes(r.slot)) return false;
+        if (obtenirAntiChampion(dbFr, r.hash) !== filtreChampion) return false;
+      }
+      if (filtreElement !== "tous" && obtenirElementFiltre(dbFr, r.hash) !== filtreElement) return false;
+      // FR : ⚠️ (19/10/2026) - le filtre source: porte sur N'IMPORTE QUEL objet du Manifest (les perks et fragments ont aussi des sources).
+      if (filtreSource) {
+        // FR : ⚠️ CHANGÉ (19/10/2026, 3e retour de test) - jointure DIM : le sourceHash du COLLECTIBLE + le hash de l'objet, plus les itemSourceHashes du Manifest (que Bungie ne peuple pratiquement jamais). / EN: DIM's join: collectible sourceHash + item hash.
+        if (!matchesSourceFilter(jointureSource(dbFr, r.hash), filtreSource)) return false;
+      }
+      return true;
     });
-  }, [resultats, filtreChampion, dbFr]);
+  }, [resultats, filtreChampion, filtreElement, filtreSource, dbFr]);
   const [rechercheEnCours, setRechercheEnCours] = useState(false);
   const [erreurRecherche, setErreurRecherche] = useState<string | null>(null);
   // FR : ⚠️ AJOUT (24/08/2026) - diagnostic (mode dev) pour localiser
@@ -124,11 +149,12 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
   const [diagnosticRecherche, setDiagnosticRecherche] = useState<DiagnosticCorrespondance[] | null>(null);
   // FR : ⚠️ AJOUT (24/08/2026) - diagnostic ponctuel pour la future vitrine
   // Solo Flawless (PAS intégrée à l'appli, juste une aide au recensement).
-  const [diagnosticFlawless, setDiagnosticFlawless] = useState<TriompheTrouve[] | null>(null);
 
   const minuteurDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  async function chargerManifests() {
+  // FR : ⚠️ CHANGÉ (13/10/2026, v0.4.3) - le chargement prend maintenant la liste des langues à charger (le FRANÇAIS est toujours chargé : c'est la langue de l'appli) et dit s'il a RÉUSSI ; `chargerManifests` (sans paramètre, utilisé par le bouton) garde son rôle : français puis anglais. Raison : la mise à jour automatique d'un Manifest périmé ne doit retélécharger que les langues réellement présentes en cache, jamais une langue que l'utilisateur n'a pas encore téléchargée.
+  // EN: ⚠️ CHANGED - loading takes the list of languages (French is always loaded) and reports success; the parameterless `chargerManifests` keeps its role for the button.
+  async function chargerLangues(langues: LangueManifest[]): Promise<boolean> {
     setErreurChargement(null);
     try {
       const resultatFr = await assurerManifestAJour((etape) => setEtapeChargement(etape), "fr");
@@ -149,21 +175,40 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
       setDbFr(baseFr);
       onManifestCharge?.(baseFr);
 
-      const resultatEn = await assurerManifestAJour((etape) => setEtapeChargement(etape), "en");
-      const baseEn = resultatEn.db;
-      setEtapeChargement("Indexation (anglais)...");
-      await new Promise((r) => setTimeout(r, 0));
-      await indexerManifest(baseEn, "en", resultatEn.version);
-      setDbEn(baseEn);
+      if (langues.includes("en")) {
+        const resultatEn = await assurerManifestAJour((etape) => setEtapeChargement(etape), "en");
+        const baseEn = resultatEn.db;
+        setEtapeChargement("Indexation (anglais)...");
+        await new Promise((r) => setTimeout(r, 0));
+        await indexerManifest(baseEn, "en", resultatEn.version);
+        setDbEn(baseEn);
+      }
 
       setEtapeChargement(null);
+      return true;
     } catch (e) {
       setErreurChargement((e as Error).message);
       setEtapeChargement(null);
+      return false;
     }
   }
 
+  async function chargerManifests() {
+    await chargerLangues(["fr", "en"]);
+    // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la passe de vérification de péremption couvre AUSSI les tables de sources : `node data/rebuild-source-filters.ts --check` compare le source-filters.json EMBARQUÉ à l'état actuel de d2-additional-info ; s'il est périmé, un AVERTISSEMENT s'affiche (comme l'alerte de péremption du Manifest), jamais un blocage — la régénération se fait côté développement. / EN: the staleness pass also checks the shipped source tables; a warning, never a blocker.
+    try {
+      const r = await fetch("https://api.github.com/repos/DestinyItemManager/d2-additional-info/commits?per_page=1").then((re) => re.ok ? re.json() : null);
+      if (Array.isArray(r) && r[0]?.sha) {
+        const dernierShaConnu = localStorage.getItem("d2ba.d2ai.dernierSha");
+        if (dernierShaConnu && dernierShaConnu !== r[0].sha) setMessageMiseAJourAuto((m) => `${m ? m + " " : ""}⚠️ Les données de SAISONS et SOURCES (d2-additional-info) ont peut-être changé en amont : relancez \`node data/rebuild-source-filters.ts\` côté développement pour mettre à jour \`source-filters.json\`.`);
+        localStorage.setItem("d2ba.d2ai.dernierSha", r[0].sha);
+      }
+    } catch { /* hors ligne : aucune vérification, aucune erreur */ }
+  }
+
   function executerRecherche(valeur: string, modeActuel: ModeRecherche, categorieActuelle: CategorieResultat | "toutes") {
+    // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - le filtre source: est EXTRAIT du texte : les autres mots cherchent normalement, le filtre s'applique ensuite côté client (voir resultatsAffiches). « source: » seul ne compte pas dans les 2 caractères minimum. / EN: the source: filter is extracted from the text; the remaining words search normally.
+    // FR : ⚠️ CHANGÉ (19/10/2026, second retour de test, demande de l'utilisateur) - le filtre de source vit maintenant dans un MENU DÉROULANT (comme la catégorie, les champions, les éléments) ; la syntaxe « source: » dans le champ de texte est RETIRÉE : plus d'extraction, plus d'alias, plus d'autocomplétion. Le menu filtre les RÉSULTATS de la recherche ; pour lister une source sans mot-clé, le menu suffit (la recherche garde son seuil de 2 caractères : taper un mot OU choisir une source d'abord puis effacer le mot — le filtre reste actif sur les résultats déjà trouvés). / EN: the source filter is now a dropdown menu; the source: text syntax is removed.
     if (!dbFr || valeur.trim().length < 2) {
       setResultats([]);
       setResultatsMasques([]);
@@ -251,12 +296,25 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
     minuteurDebounce.current = setTimeout(() => executerRecherche(valeur, mode, categorie), DELAI_DEBOUNCE_MS);
   }
 
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - un changement de mode ou de
+  // catégorie annulait JAMAIS le debounce en attente : un debounce lancé par
+  // la frappe (qui capture l'ANCIEN mode/la catégorie) pouvait s'exécuter
+  // APRÈS la recherche immédiate, écrasant ses résultats par une recherche
+  // sur les anciens critères. Le minuteur est annulé avant chaque recherche
+  // immédiate.
+  // EN: ⚠️ FIXED - changing mode or category never cancelled the pending
+  // debounce: a debounce started by typing (which captures the OLD mode and
+  // category) could fire AFTER the immediate search, overwriting its results
+  // with a search on the old criteria. The timer is cleared before each
+  // immediate search.
   function surChangementMode(nouveauMode: ModeRecherche) {
+    if (minuteurDebounce.current) clearTimeout(minuteurDebounce.current);
     setMode(nouveauMode);
     executerRecherche(motCle, nouveauMode, categorie); // changement immédiat, pas de debounce
   }
 
   function surChangementCategorie(nouvelleCategorie: CategorieResultat | "toutes") {
+    if (minuteurDebounce.current) clearTimeout(minuteurDebounce.current);
     setCategorie(nouvelleCategorie);
     executerRecherche(motCle, mode, nouvelleCategorie);
   }
@@ -267,11 +325,12 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
     };
   }, []);
 
+  // FR : ⚠️ CHANGÉ (13/10/2026, v0.4.3), demande de l'utilisateur : « si le Manifest est périmé, et UNIQUEMENT dans ce cas, téléchargement du nouveau ». La décision est dans `lib/manifest/demarrage.ts` (testée) : une langue EN CACHE mais d'une autre version est retéléchargée automatiquement ; une langue ABSENTE n'est jamais
+  // téléchargée seule (le tout premier téléchargement, ~200 Mo, reste un clic) ; hors ligne ou état inconnu : rien. Cette règle remplace celle de la 0.2.2 (« jamais sans un clic »), dont le reste est conservé :
+  // FR ET EN à jour : chargement automatique depuis le cache.
   // FR : ⚠️ AJOUT (26/09/2026, v0.2.2) - chargement AUTOMATIQUE au démarrage,
   // à une condition stricte : les Manifests FR ET EN sont déjà en cache et à
-  // jour. Sinon (premier lancement, nouvelle version publiée par Bungie,
-  // hors ligne), rien ne se passe et le bouton manuel reste affiché : le
-  // gros téléchargement (~200 Mo) n'est JAMAIS lancé sans un clic.
+  // jour (règle d'origine, complétée ci-dessus pour le cas périmé).
   // Pourquoi exiger les DEUX langues : `chargerManifests` enchaîne FR puis
   // EN ; si seul le FR était en cache, le lancer automatiquement
   // déclencherait le téléchargement de l'anglais sans demander.
@@ -288,12 +347,12 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
     verificationDemarrageFaite.current = true;
     (async () => {
       setEtapeChargement("Vérification de la version du Manifest...");
-      const aJour = await manifestsEnCacheAJour(["fr", "en"]);
-      if (aJour) {
-        await chargerManifests();
-      } else {
-        setEtapeChargement(null);
-      }
+      const decision = await demarrerManifests({
+        lireEtat: () => etatCachesManifests(["fr", "en"]),
+        charger: (langues) => chargerLangues(langues),
+        annoncer: setMessageMiseAJourAuto,
+      });
+      if (decision.action === "rien") setEtapeChargement(null);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -321,6 +380,23 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
               {telechargementEnCours ? "Téléchargement..." : "⬇ Manifests FR+EN (dev)"}
             </button>
           )}
+          {/* FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - OUTIL DE TEST, mode DÉVELOPPEMENT seulement (jamais dans le logiciel installé) : marque le cache comme périmé ; au prochain démarrage (Ctrl+F5) la mise à jour automatique se déclenche pour de bon, sans attendre une vraie nouvelle version de Bungie. / EN: ⚠️ ADDED - dev-only test tool. */}
+          {import.meta.env.DEV && (
+            <button
+              onClick={async () => {
+                const marquees = await simulerManifestPerime(["fr", "en"]);
+                setMessageMiseAJourAuto(
+                  marquees.length > 0
+                    ? `🧪 Cache marqué périmé (${marquees.map((l) => l.toUpperCase()).join(" et ")}) : recharge la page (Ctrl+F5) pour voir la mise à jour automatique.`
+                    : "🧪 Aucun Manifest en cache à marquer : charge d'abord le Manifest."
+                );
+              }}
+              title="Mode développement : fait croire à l'appli que son Manifest est périmé, pour essayer la mise à jour automatique au prochain démarrage"
+              style={{ fontSize: "0.7rem", fontWeight: 400 }}
+            >
+              🧪 Manifest périmé (test)
+            </button>
+          )}
           {dbFr ? (dbEn ? "✅ FR + EN chargés" : "✅ FR chargé") : "◯ non chargé"}
         </span>
       </h3>
@@ -335,14 +411,21 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
         </p>
       )}
 
+      {/* FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - annonce, réussite ou échec de la mise à jour AUTOMATIQUE d'un Manifest périmé. / EN: ⚠️ ADDED */}
+      {messageMiseAJourAuto && (
+        <p role="status" data-maj-auto-manifest="" style={{ fontSize: "0.8rem", color: "#b7b3a8", background: "#1c2029", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem 0.75rem" }}>
+          {messageMiseAJourAuto}
+        </p>
+      )}
+
       {!dbFr && (
         <>
           <p>
             Charge la base d'objets Bungie en français ET en anglais (armes, armures, aspects,
-            fragments, perks d'artefact...) — environ 200 Mo au total la première fois. Ensuite, tant
-            que Bungie ne publie pas de nouvelle version, il est rechargé automatiquement depuis
-            le cache à chaque démarrage. Permet de rechercher dans les deux langues ; l'appli
-            reste toujours affichée en français.
+            fragments, perks d'artefact...) — environ 200 Mo au total la première fois. Ensuite, il est
+            rechargé automatiquement depuis le cache à chaque démarrage ; si Bungie publie une nouvelle
+            version, elle est téléchargée automatiquement (environ 100 Mo par langue). Permet de rechercher
+            dans les deux langues ; l'appli reste toujours affichée en français.
           </p>
           <button onClick={chargerManifests} disabled={!!etapeChargement}>
             {etapeChargement && <span className="indicateur-chargement" />}
@@ -362,11 +445,25 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
           <div style={{ display: "flex", gap: "0.75rem", margin: "0.5rem 0", flexWrap: "wrap" }}>
             <input
               type="text"
-              placeholder="En français OU en anglais : dévoration / devour..."
+              placeholder="En français OU en anglais : dévoration / devour… ou source:raid, source:last-wish…"
               value={motCle}
               onChange={(e) => surChangementTexte(e.target.value)}
               style={{ flex: 1, minWidth: "220px", padding: "0.4rem 0.6rem" }}
             />
+            {/* FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - AUTOCOMPLÉTION de « source: » : quand le dernier mot tapé commence le préfixe, les 13 catégories puis les activités (libellées en français) sont proposées ; un clic complète le filtre dans le champ. Aucun menu permanent : la liste disparaît dès que le préfixe n'est plus en frappe. / EN: autocompletion for "source:". */}
+            {(/\bsource:([a-z0-9-]*)$/i.test(motCle.split(/\s+/).pop() ?? "")) && (() => {
+              const saisi = (motCle.split(/\s+/).pop() ?? "").replace(/^source:/i, "");
+              const propositions = SOURCE_FILTER_SUGGESTIONS.filter((p) => p.valeur.startsWith(saisi.toLowerCase())).slice(0, 18);
+              return propositions.length > 0 ? (
+                <div data-autocompletion-source="" style={{ position: "absolute", zIndex: 30, background: "#12151c", border: "1px solid #3a3f4b", borderRadius: 8, padding: "0.3rem", maxHeight: "240px", overflowY: "auto", minWidth: "220px" }}>
+                  {propositions.map((p) => (
+                    <button key={p.valeur} type="button" onClick={() => surChangementTexte(motCle.replace(/\bsource:[a-z0-9-]*$/i, "source:" + p.valeur) + " ")} data-suggestion-source={p.valeur} style={{ display: "block", width: "100%", textAlign: "left", padding: "0.25rem 0.5rem", fontSize: "0.8rem", background: "none", border: "none", color: "#e8e6df", cursor: "pointer" }}>
+                      <span style={{ color: p.genre === "categorie" ? "#9a8f6a" : "#7aa2f7" }}>{p.genre === "categorie" ? "catégorie" : "activité"}</span> · {p.libelle} <span style={{ color: "#7d7a70" }}>source:{p.valeur}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null;
+            })()}
             {/* FR : ⚠️ AJOUT (24/08/2026) - bouton de diagnostic (mode dev),
             pour localiser précisément où un mot-clé matche dans le JSON
             avant d'écrire un filtre anti-dialogue à l'aveugle. */}
@@ -381,17 +478,7 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
                 🔍 Diagnostic (dev)
               </button>
             )}
-            {/* FR : ⚠️ AJOUT (24/08/2026) - diagnostic PONCTUEL pour la future
-            vitrine Solo Flawless (pas intégrée). À retirer une fois la
-            liste des 11 hashes récupérée et codée en dur. */}
-            {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.rechercheTriomphesFlawless && dbFr && (
-              <button
-                onClick={() => setDiagnosticFlawless(chercherTriomphesFlawless(dbFr))}
-                style={{ fontSize: "0.75rem" }}
-              >
-                🏆 Triomphes Flawless (dev)
-              </button>
-            )}
+                        {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic « Triomphes Flawless » archivé supprimé (les 11 hashes sont codés en dur dans `triomphesSoloFlawless.ts`). / EN: ⚠️ REMOVED - archived Flawless-triumphs diagnostic deleted (hashes hardcoded). */}
             <label style={{ fontSize: "0.85rem" }}>
               <input type="radio" checked={mode === "nom"} onChange={() => surChangementMode("nom")} />{" "}
               Nom uniquement
@@ -426,6 +513,31 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
               <option value="surcharge">Anti-Surchargé</option>
               <option value="bloqueur">Anti-Bloqueur</option>
             </select>
+            {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - filtre sur l'élément de dégâts, demande de l'utilisateur. / EN: damage element filter. */}
+            <select
+              value={filtreElement}
+              onChange={(e) => setFiltreElement(e.target.value as "tous" | ElementFiltre)}
+              aria-label="Élément de dégâts"
+              style={{ fontSize: "0.85rem", background: "#0d0f14", color: "#e8e6df", border: "1px solid #3a3f4b", borderRadius: 6, padding: "0.3rem 0.4rem" }}
+            >
+              <option value="tous">Tous les éléments</option>
+              {ELEMENTS_FILTRE.map((el) => (
+                <option key={el} value={el}>{el === "cinetique" ? "Cinétique" : LIBELLES_ELEMENT_FR[el]}</option>
+              ))}
+            </select>
+            {/* FR : ⚠️ AJOUT (19/10/2026, DEMANDE EXPLICITE de l'utilisateur : « il faut rajouter un menu déroulant permettant de filtrer la source : prends exemple sur le filtre de catégorie, celui sur les champions, celui sur les éléments ») - le filtre de SOURCE devient un MENU DÉROULANT, même style que les trois autres. La syntaxe source: dans le champ de texte est RETIRÉE (elle prêtait à confusion : « source:raid seul : presque 13k résultats. En ajoutant le filtre Armes, plus aucun ») ; l'autocomplétion et l'alias de saisie libre sont retirés avec elle. Les catégories (13) puis les activités (raids et donjons), libellées en français. / EN: ⚠️ ADDED - a Source dropdown menu, same style as the other filters; the source: text syntax and its autocompletion are REMOVED. */}
+            <select
+              value={filtreSource ?? "toutes"}
+              onChange={(e) => setFiltreSource(e.target.value === "toutes" ? null : e.target.value)}
+              aria-label="Source de l'objet"
+              data-filtre-source=""
+              style={{ fontSize: "0.85rem", background: "#0d0f14", color: "#e8e6df", border: "1px solid #3a3f4b", borderRadius: 6, padding: "0.3rem 0.4rem" }}
+            >
+              <option value="toutes">Toutes les sources</option>
+              {SOURCE_FILTER_SUGGESTIONS.map((p) => (
+                <option key={p.valeur} value={p.valeur}>{p.prefixe}{p.libelle}</option>
+              ))}
+            </select>
           </div>
 
           {motCle.length > 0 && motCle.trim().length < 2 && (
@@ -435,28 +547,7 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
           {rechercheEnCours && <p style={{ fontSize: "0.85rem" }}>🔎 Recherche en cours...</p>}
           {erreurRecherche && <p style={{ color: "#e08080" }}>⚠️ Erreur de recherche : {erreurRecherche}</p>}
 
-          {/* FR : ⚠️ AJOUT (24/08/2026) - affichage du diagnostic, en texte
-          brut sélectionnable (pas une grille stylée) pour être copié tel
-          quel dans le chat, comme les autres diagnostics de l'appli. */}
-          {/* FR : ⚠️ AJOUT (24/08/2026) - résultat du diagnostic PONCTUEL
-          pour la future vitrine Solo Flawless. Composant temporaire. */}
-          {diagnosticFlawless && (
-            <div style={{ margin: "0.5rem 0", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-                <strong style={{ fontSize: "0.8rem" }}>
-                  🏆 {diagnosticFlawless.length} triomphe(s) trouvé(s) — à copier pour Claude
-                </strong>
-                <button onClick={() => setDiagnosticFlawless(null)} style={{ fontSize: "0.7rem" }}>
-                  fermer
-                </button>
-              </div>
-              <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.68rem", background: "#0d0f14", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem", maxHeight: "400px", overflow: "auto" }}>
-                {diagnosticFlawless.length === 0
-                  ? "Aucun triomphe trouvé — table DestinyRecordDefinition absente de ce Manifest ?"
-                  : diagnosticFlawless.map((t) => `hash ${t.hash} | "${t.nom}"\n  ${t.description}\n`).join("\n")}
-              </pre>
-            </div>
-          )}
+                    {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic « Triomphes Flawless » archivé supprimé (bouton + affichage + state). / EN: ⚠️ REMOVED - archived Flawless-triumphs diagnostic deleted (button + display + state). */}
 
           {diagnosticRecherche && (
             <div style={{ margin: "0.5rem 0", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>
@@ -520,16 +611,36 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
                     </strong>{" "}
                     {r.slot && dbFr && (() => {
                       const source = obtenirSource(dbFr, r.hash);
-                      return source ? (
-                        <span style={{ fontSize: "0.8rem", color: "#7d7a70" }}>— {source}</span>
-                      ) : (
-                        <span style={{ fontSize: "0.8rem", color: "#7d7a70" }}>— Source inconnue</span>
+                      // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la catégorie de source (Raid, Donjon, activité précise) rejoint la chaîne brute : « — Raid — Source: "Last Wish" Raid ». Elle vient de d2-additional-info (MIT) ; absente si l'objet n'y figure pas (jamais estimée). / EN: the d2-additional-info source category joins the raw string; never estimated.
+                      const categorieSource = (() => { try { return sourceObjetParHash(dbFr, r.hash); } catch { return undefined; } })();
+                      return (
+                        <span style={{ fontSize: "0.8rem", color: "#7d7a70" }}>
+                          {categorieSource && <>— <span data-source-categorie={categorieSource.cle} style={{ color: "#9a8f6a" }}>{categorieSource.libelle}</span>{" "}</>}
+                          {source ? <>— {source}</> : <>— Source inconnue</>}
+                        </span>
                       );
                     })()}{" "}
                     <span style={{ fontSize: "0.75rem", color: "#7d7a70" }}>
                       (correspondance : {r.champCorrespondant}
                       {r.trouveViaAnglais && " — trouvé via l'anglais"})
                     </span>
+                    {/* FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - SAISON DE SORTIE de l'objet, en clair : le numéro vient du seasonHash/filigrane (mécanisme existant de lib/manifest/saison.ts), le NOM de la table data/seasons.json (d2-additional-info, MIT) qui sert aussi de SECOURS quand la table des saisons du Manifest est absente. Absente si l'objet n'a ni seasonHash ni filigrane connu — jamais estimée. / EN: release season in clear text; never estimated. */}
+                    {dbFr && (() => {
+                      const info = obtenirSaisonObjet(dbFr, r.hash);
+                      // FR : ⚠️ CORRIGÉ (19/10/2026, RETOUR DE TEST n°1 : « pas d'indication sur la saison » sur la Mesure corrective) - SECOURS PAR LA TABLE FILIGRANE : quand l'objet n'a ni seasonHash ni saison déduite par le balayage interne (le cas du Manifest de l'utilisateur : « 0 filigrane relié »), le numéro vient de la table filigrane→numéro de d2-additional-info, lu sur le CHEMIN de l'icône du filigrane de l'objet. Jamais estimé : pas de filigrane connu → pas de ligne. / EN: fallback to the d2-additional-info watermark table when the internal deduction finds nothing.
+                      let numero = info?.numero;
+                      let nom = info?.nom;
+                      // FR : ⚠️ CORRIGÉ (19/10/2026, second retour de test) - la jointure par le CHEMIN du filigrane ne matched jamais le Manifest de l'utilisateur (chemins hexa) ; la table OBJET→numéro de d2-additional-info (57 439 entrées) résout directement par le hash. / EN: the item-hash table resolves directly; the watermark-path join never matched (hex paths).
+                      if (numero == null) {
+                        const n = saisonDeLObjet(r.hash);
+                        if (n != null) { numero = n; nom = nom ?? saisonParNumero(n)?.nom; }
+                      }
+                      if (numero == null && !nom) return null;
+                      const table = numero != null ? saisonParNumero(numero) : undefined;
+                      nom = nom ?? table?.nom;
+                      if (!nom && numero == null) return null;
+                      return <span data-saison-sortie={numero ?? ""} style={{ fontSize: "0.75rem", color: "#7d7a70" }}> · Saison de sortie : {nom ?? "?"}{numero != null ? ` (saison ${numero})` : ""}{table?.debut ? ` — ${table.debut}${table.fin ? ` → ${table.fin}` : " → en cours"}` : ""}</span>;
+                    })()}
                     {r.nomEn && r.nomEn !== r.nom && (
                       <span style={{ fontSize: "0.75rem", color: "#7d7a70" }}> · EN: {r.nomEn}</span>
                     )}
@@ -549,6 +660,16 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet }: 
                         }
                       >
                         + Ajouter au build
+                      </button>
+                    )}
+                    {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - « Aller à » : sur les armes et armures (celles qui ont aussi « + Ajouter au build »). / EN: ⚠️ ADDED - "Go to", on weapons and armor. */}
+                    {r.slot && onAllerA && (
+                      <button
+                        style={{ marginLeft: "0.4rem", fontSize: "0.75rem", padding: "0.15rem 0.5rem" }}
+                        title="Afficher cet objet dans Mon Inventaire (vos exemplaires)"
+                        onClick={() => onAllerA(r.hash, r.nom)}
+                      >
+                        Aller à
                       </button>
                     )}
                     {r.description && (

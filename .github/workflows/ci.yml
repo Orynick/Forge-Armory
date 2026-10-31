@@ -1,0 +1,46 @@
+# FR : CI de Forge Armory — à chaque push et chaque pull request :
+#   1. `npm ci` (installation reproductible, lockfile)
+#   2. `tsc -b` (compilateur strict, zéro erreur tolérée)
+#   3. `npm run build` (build strict complet : tsc -b && vite build)
+#   4. `npm run test:logique` (les 38 suites de tests/logique/, 761 contrôles)
+# Les tests d'interface Playwright (tests/ui/*.py) NE tournent PAS ici :
+# ils ont besoin d'un navigateur et d'un vrai environnement (voir DEVLOG,
+# entrées du 21/10/2026). Ils restent à rejouer manuellement.
+# EN: CI for Forge Armory — on every push and pull request: install, strict
+# typecheck, strict build, and the whole logic test battery. Playwright UI
+# tests are NOT run here (they need a browser); they stay manual.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  logique:
+    name: tsc + build + batterie logique
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: forge-armory
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: forge-armory/package-lock.json
+
+      - name: npm ci
+        run: npm ci
+
+      - name: tsc -b (strict)
+        run: npx tsc -b
+
+      - name: npm run build (strict)
+        run: npm run build
+
+      - name: npm run test:logique (38 suites)
+        run: npm run test:logique

@@ -1,4 +1,7 @@
-import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
+import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
+import IconeTitreFaconnee from "./IconeTitreFaconnee";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
+import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
+import { estFaconnee } from "../lib/forge/faconnee";
 // FR : Parcourt l'inventaire + coffre reels du joueur, affiche en 4
 // sections repliables (Chasseur / Titan / Arcaniste / Coffre) - chaque
 // section personnage separe Equipe / Inventaire, le coffre est classe par
@@ -21,8 +24,11 @@ import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 // display (a single class-filtered list) with a 4-column/collapsible-
 // section view, to "know what you're selecting before it's in Mon build".
 
+import { ordonnerColonnesPourAffichage, libelleColonne } from "../lib/manifest/colonnesArme";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : règles de tri et d'étiquette partagées avec la Forge
 import TitreRepliable from "./TitreRepliable";
-import { useState, useMemo, useEffect } from "react";
+import BoutonLireLore from "./BoutonLireLore";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : bouton « Lire le Lore » de la popup Détails (Build Analyzer)
+import { useState, useMemo, useEffect, useRef } from "react";
+import { defilerVers } from "../lib/defilerVers";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : « Aller à »
 import { surlignerVerbesConnus, IconeElementArme, IconeMunitionArme } from "./RenduTextePerk";
 import { Database } from "sql.js";
 import { DestinyMembership } from "../lib/bungie/api";
@@ -30,7 +36,7 @@ import { listerObjetsPossedes } from "../lib/bungie/inventaire";
 import { obtenirDefinition } from "../lib/manifest/download";
 import { normaliser } from "../lib/manifest/search";
 import { GearPiece, SlotArme, SlotArmure, StatKey } from "../types/build";
-import { LIBELLES_SLOT } from "../data/libellesUI";
+import { LIBELLES_SLOT, LIBELLES_STAT, ORDRE_STATS, ORDRE_EMPLACEMENTS } from "../data/libellesUI";
 
 // FR : ⚠️ AJOUT (04/08/2026) - ordre d'affichage FIXE des statistiques
 // d'armure, demandé par l'utilisateur (ligne 1 : Santé/Mêlée/Grenade,
@@ -41,19 +47,31 @@ import { LIBELLES_SLOT } from "../data/libellesUI";
 // requested by the user (line 1: Health/Melee/Grenade, line 2: Super/
 // Class/Weapon) - Object.entries() doesn't guarantee this exact order,
 // enforced explicitly everywhere stats are shown.
-const ORDRE_STATS: StatKey[] = ["sante", "melee", "grenade", "super", "classe", "arme"];
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `ORDRE_STATS` et `LIBELLES_STAT` locaux remplacés par les constantes centralisées de `libellesUI` (valeurs identiques).
+// EN: ⚠️ CHANGED - local `ORDRE_STATS` and `LIBELLES_STAT` replaced by the centralised constants from `libellesUI` (identical values).
 
-const ORDRE_SLOTS: (SlotArme | SlotArmure)[] = ["cinetique", "energie", "lourde", "casque", "gants", "torse", "jambes", "marque"];
-const LIBELLES_STAT: Record<StatKey, string> = { sante: "Santé", melee: "Mêlée", grenade: "Grenade", super: "Super", classe: "Classe", arme: "Arme" };
 
-import { obtenirCategorieSocketsParIndex, obtenirOptionsToutesColonnes, obtenirDescriptionComplete, obtenirSource, obtenirDiagnosticIconeCategorieObjet, obtenirAntiChampion, obtenirDiagnosticAntiChampion, obtenirIconesPerksArme, raccourcirNom, obtenirBonusSet, obtenirNomArmatureArme, obtenirAntiChampionArmure, obtenirDiagnosticStatsArmure, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
+import { obtenirCategorieSocketsParIndex, obtenirOptionsToutesColonnes, obtenirDescriptionComplete, obtenirSource, obtenirDiagnosticIconeCategorieObjet, obtenirAntiChampion, obtenirIconesPerksArme, raccourcirNom, obtenirBonusSet, obtenirNomArmatureArme, obtenirAntiChampionArmure, obtenirTypeMunition, obtenirCategoriesObjet } from "../lib/manifest/doctrine";
 import IconeAntiChampion, { LIBELLES_CHAMPION, TypeChampion } from "./icones/IconeAntiChampion";
 import IconeClasse from "./icones/IconeClasse";
 import IconeCoffre from "./icones/IconeCoffre";
 import IconeSlotArmure from "./icones/IconeSlotArmure";
 import MenuDerouantIcone from "./MenuDerouantIcone";
+import BoutonTransfert from "./BoutonTransfert";   // ⚠️ AJOUT (12/10/2026, v0.4.2) : « Transférer vers »
+import { deplacerObjet, Lieu } from "../lib/bungie/deplacer";
+import { SessionExpiree } from "../lib/bungie/oauth";
+import IconeElement from "./icones/IconeElement";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : filtre d'élément
+import { obtenirElementFiltre, obtenirIconeElementDoctrine, obtenirIconeCinetique, ELEMENTS_FILTRE, ElementFiltre } from "../lib/manifest/doctrine";
+import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
 import IconeTypeArme from "./icones/IconeTypeArme";
 import { obtenirSecoursTypeArme } from "../lib/manifest/typeArmeSecours";
+// ⚠️ AJOUT (branche draft-mod-armures) : édition des MODS d'armure dans la pop-up Détails (même magasin partagé que la Forge).
+import { colonnesArmure, statsSimulees, statPlusDePiece } from "../lib/forge/armure";
+import { reinitialiserArme, nbColonnesSimulees } from "../lib/forge/simulation";
+import { appliquerChangements } from "../lib/forge/energieMods";   // ⚠️ AJOUT (25/10/2026)
+import SimulationModsArmure from "./SimulationModsArmure";   // ⚠️ AJOUT (25/10/2026)
+import StatsArmure from "./StatsArmure";   // ⚠️ AJOUT (27/10/2026)
+import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 
 const LIBELLES_PERSONNAGE: Record<"chasseur" | "titan" | "arcaniste", string> = {
   chasseur: "Chasseur",
@@ -67,12 +85,29 @@ const LIBELLES_PERSONNAGE: Record<"chasseur" | "titan" | "arcaniste", string> = 
 // EN: ⚠️ REMOVED (2026-08-04) - replaced by the real official element
 // icon from the Manifest (elementArmeIcone), user request.
 
+/**
+ * FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - objet visé par le bouton « Aller à » de la recherche dans le Manifest : l'inventaire se filtre sur ses exemplaires (même `itemHash`, personnages et coffre), s'ouvre et s'affiche à l'écran. `demande` change à CHAQUE clic
+ * (même objet) pour relancer l'ouverture et le défilement. / EN: ⚠️ ADDED - target of the "Go to" button; `demande` changes on every click.
+ */
+export interface CibleInventaire {
+  hash: number;
+  nom: string;
+  demande: number;
+}
+
 interface Props {
   membership: DestinyMembership | null;
   db: Database | null;
   onAjouterObjet: (piece: GearPiece) => void;
   /** FR : remonte la liste des objets possédés au parent (utilisée par le panneau Loadouts pour repérer les pièces démantelées). Optionnel : le composant reste utilisable sans. / EN: lifts the owned items list to the parent (used by the Loadouts panel to spot dismantled pieces). Optional: the component stays usable without it. */
   onObjetsCharges?: (objets: GearPiece[] | null) => void;
+  /** FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - bouton « Forge » de la fenêtre Détails d'une ARME possédée : envoie l'arme à la vue Inventaire de la Forge (absent : pas de bouton). / EN: ⚠️ ADDED - "Forge" button of a weapon's Details window. */
+  onOuvrirForge?: (piece: GearPiece) => void;
+  /** FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - clic du bouton « Lire le Lore » de la popup Détails : aiguille vers le Legendarium (remonté à DashboardPage). / EN: ADDED - "Read the Lore" click from the Details popup: routes to the Legendarium (lifted to DashboardPage). */
+  onLireLore?: (itemHash: number, nomObjet: string) => void;
+  /** FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - voir `CibleInventaire`. `onEffacerCible` retire le filtre (bouton du bandeau, ou « Réinitialiser les filtres »). / EN: see CibleInventaire. */
+  cible?: CibleInventaire | null;
+  onEffacerCible?: () => void;
 }
 
 /** FR : construit le texte affiché au survol (perks + stats) - tooltip natif, simple et fiable. / EN: builds the hover text (perks + stats) - native tooltip, simple and reliable. */
@@ -89,8 +124,9 @@ export function texteSurvol(piece: GearPiece, db: Database): string {
   const lignes: string[] = [ligneNom, ligneSource];
   if (estArmure) {
     const statsOrdonnees = ORDRE_STATS.map((cle) => [cle, piece.stats[cle]] as [StatKey, number]);
-    const ligne1 = statsOrdonnees.slice(0, 3).map(([cle, val]) => `${LIBELLES_STAT[cle]}: ${val}`).join(" · ");
-    const ligne2 = statsOrdonnees.slice(3, 6).map(([cle, val]) => `${LIBELLES_STAT[cle]}: ${val}`).join(" · ");
+    const plusInfobulle = statPlusDePiece(db, piece);   // ⚠️ AJOUT (26/10/2026) : le symbole ⇅ de la statistique « + » de l'ajustement (armure légendaire)
+    const ligne1 = statsOrdonnees.slice(0, 3).map(([cle, val]) => `${plusInfobulle === cle ? "⇅ " : ""}${LIBELLES_STAT[cle]}: ${val}`).join(" · ");
+    const ligne2 = statsOrdonnees.slice(3, 6).map(([cle, val]) => `${plusInfobulle === cle ? "⇅ " : ""}${LIBELLES_STAT[cle]}: ${val}`).join(" · ");
     if (ligne1 || ligne2) lignes.push(`${ligne1}\n${ligne2}`);
 
     // FR : ⚠️ AJOUT (04/08/2026) - bonus de Set, sur structure confirmée
@@ -205,12 +241,23 @@ function LigneObjet({
   db,
   afficherStats = false,
   onAjouterObjet,
+  onTransferer,
+  transfertBloque = false,
+  onOuvrirForge,
+  onLireLore,
 }: {
   piece: GearPiece;
   db: Database;
   /** FR : true pour l'armure du coffre - montre les stats plutôt que les perks (les perks sont faciles à changer, moins pertinentes à afficher ici). / EN: true for vault armor - shows stats rather than perks (perks are easy to change, less relevant to show here). */
   afficherStats?: boolean;
   onAjouterObjet: (p: GearPiece) => void;
+  /** FR : ⚠️ AJOUT (12/10/2026, v0.4.2) - « Transférer vers » (absent : pas de bouton) ; `transfertBloque` : un transfert est en cours (un seul à la fois). / EN: ⚠️ ADDED - "Transfer to" (absent: no button); `transfertBloque`: a transfer is running. */
+  onTransferer?: (p: GearPiece, cible: Lieu) => Promise<void>;
+  transfertBloque?: boolean;
+  /** FR : ⚠️ AJOUT (v0.4.9) - bouton « Forge » de la fenêtre Détails (armes possédées seulement). / EN: Forge button of the Details window. */
+  onOuvrirForge?: (p: GearPiece) => void;
+  /** FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - bouton « Lire le Lore » de la popup Détails (haut de popup, justifié à droite, sous la croix) : aiguille vers le Legendarium. Absent : pas de bouton. / EN: ADDED - "Read the Lore" button of the Details popup (top, right-justified, under the cross): routes to the Legendarium. */
+  onLireLore?: (itemHash: number, nomObjet: string) => void;
 }) {
   // FR : ⚠️ AJOUT (03/08/2026) - panneau "Détails" dépliable, pour l'instant
   // limité aux armes (demande explicite de l'utilisateur) : montre le roll
@@ -222,6 +269,20 @@ function LigneObjet({
   // compare with other copies in the vault).
   const [detailsOuverts, setDetailsOuverts] = useState(false);
   const estArme = (["cinetique", "energie", "lourde"] as (SlotArme | SlotArmure)[]).includes(piece.slot);
+  // ⚠️ AJOUT (branche draft-mod-armures) - SIMULATION DES MODS d'une armure possédée, DANS la pop-up Détails (Mon Inventaire + Coffre) : mêmes colonnes, mêmes niveaux et même magasin partagé que la Forge des armures (`InventaireArmures`) — un clic ici met le score à jour en temps réel. RIEN n'est modifié en jeu.
+  const simulations = useSimulations();
+  const instance = piece.itemInstanceId;
+  const choixArmure = instance ? simulations.armures?.[instance] : undefined;
+  const colonnesMods = useMemo(
+    () => (!estArme && detailsOuverts && instance ? colonnesArmure(db, piece) : []),
+    [estArme, detailsOuverts, db, piece, instance]
+  );
+  const statsMods = useMemo(
+    () => (!estArme && detailsOuverts && instance ? statsSimulees(db, piece, choixArmure) : null),
+    [estArme, detailsOuverts, db, piece, instance, choixArmure]
+  );
+// FR : ⚠️ AJOUT (14/10/2026, v0.4.10) - ARME FAÇONNÉE : l'icône du jeu en bas à gauche de la vignette (Mon Inventaire et Coffre), comme dans la Forge. Calculé une fois par ligne (`useMemo`). / EN: crafted weapon icon on the thumbnail.
+  const faconnee = useMemo(() => estArme && estFaconnee(db, piece.perkHashes), [estArme, db, piece.perkHashes]);
 
   // FR : ⚠️ CHANGÉ (04/08/2026) - 5 colonnes au lieu de 4 (une colonne
   // manquait, signalé par l'utilisateur) et la particularité d'origine
@@ -229,14 +290,10 @@ function LigneObjet({
   const perksArme = afficherStats ? { colonnes: [], origine: undefined } : obtenirIconesPerksArme(db, piece.perkHashes, 5);
   const iconesPerks = perksArme.colonnes;
 
-  const statsOrdonneesLigne1 = afficherStats
-    ? ORDRE_STATS.slice(0, 3).map((cle) => `${LIBELLES_STAT[cle]} ${piece.stats[cle]}`).join(" · ")
-    : "";
-  const statsOrdonneesLigne2 = afficherStats
-    ? ORDRE_STATS.slice(3, 6).map((cle) => `${LIBELLES_STAT[cle]} ${piece.stats[cle]}`).join(" · ")
-    : "";
+  // FR : ⚠️ CHANGÉ (27/10/2026, « Je veux aussi le ⇅ sur les armures portées. Partout sauf la Collection. D'ailleurs, affiche ⇅ devant le nom de la stat ») - les deux lignes de trois statistiques sont affichées pour TOUTES les armures de la liste (Coffre, portées par un personnage, équipées) et non plus seulement celles du Coffre ; le composant partagé `StatsArmure` marque, EN VERT et DEVANT son nom, la statistique « + » de l'ajustement d'une armure légendaire. / EN: ⚠️ CHANGED - stat lines for ALL armor rows (vault, carried, equipped), with the green ⇅ before the "+" stat name.
+  const montrerStatsArmure = afficherStats || ["casque", "gants", "torse", "jambes", "marque"].includes(piece.slot);
 
-  const colonnesDetails = detailsOuverts ? obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashes) : [];
+  const colonnesDetails = detailsOuverts ? obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashes, { toutesSources: faconnee, equipesParColonne: piece.perksParColonne }) : [];
 
   return (
     <li style={{ marginBottom: "0.4rem" }}>
@@ -257,9 +314,7 @@ function LigneObjet({
         the text line). The anti-champion icon STAYS to the right of the
         name: it reads with the text, not with the image. */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", width: 35, flexShrink: 0 }}>
-          {piece.icone && (
-            <img src={piece.icone} alt="" width={31} height={31} style={{ borderRadius: 4 }} />
-          )}
+          <VignetteArme icone={piece.icone} taille={31} faconnee={faconnee} db={db} itemHash={piece.itemHash} />
           {!estArme && <IconeSlotArmure slot={piece.slot as SlotArmure} taille={20} />}
           {estArme && <IconeTypeArme typeArme={piece.typeArme} slot={piece.slot} munition={db ? obtenirTypeMunition(db, piece.itemHash) : undefined} categories={db ? obtenirCategoriesObjet(db, piece.itemHash) : undefined} {...(db ? obtenirSecoursTypeArme(db, piece.itemHash) : {})} taille={35} />}
         </div>
@@ -390,12 +445,7 @@ function LigneObjet({
               })()}
             </span>
           )}
-          {statsOrdonneesLigne1 && (
-            <span style={{ fontSize: "0.7rem", color: "#7d7a70", display: "block" }}>{statsOrdonneesLigne1}</span>
-          )}
-          {statsOrdonneesLigne2 && (
-            <span style={{ fontSize: "0.7rem", color: "#7d7a70", display: "block" }}>{statsOrdonneesLigne2}</span>
-          )}
+          {montrerStatsArmure && <StatsArmure db={db} piece={piece} />}
           {/* FR : ⚠️ CHANGÉ (04/08/2026) - "Détails" n'existe que pour les
           armes ; sur les armures son absence décalait "+ Ajouter" vers la
           gauche, cassant l'alignement des colonnes d'une ligne à l'autre.
@@ -425,6 +475,7 @@ function LigneObjet({
             <button style={{ fontSize: "0.7rem", padding: "0.1rem 0.4rem", flexShrink: 0 }} onClick={() => onAjouterObjet(piece)}>
               + Ajouter
             </button>
+            {onTransferer && <BoutonTransfert piece={piece} bloque={transfertBloque} onTransferer={onTransferer} />}   {/* ⚠️ AJOUT (12/10/2026, v0.4.2) */}
           </span>
         </div>
       </div>
@@ -463,7 +514,11 @@ function LigneObjet({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
               <div>
                 <strong style={{ fontSize: "1rem", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - icône des armes façonnées À GAUCHE DU NOM (demande de l'utilisateur). / EN: crafted icon at the left of the name. */}
+                  {faconnee && <IconeTitreFaconnee />}
                   <span>{piece.nom}</span>
+                  {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - ICÔNE DE SAISON directement à droite du nom (demande de l'utilisateur). / EN: season icon right of the name. */}
+                  <IconeSaison db={db} itemHash={piece.itemHash} />
                   <IconeTypeArme typeArme={piece.typeArme} slot={piece.slot} munition={db ? obtenirTypeMunition(db, piece.itemHash) : undefined} categories={db ? obtenirCategoriesObjet(db, piece.itemHash) : undefined} {...(db ? obtenirSecoursTypeArme(db, piece.itemHash) : {})} taille={35} />
                   <IconeElementArme db={db} itemHash={piece.itemHash} taille={16} />
                   {/* FR : ⚠️ AJOUT (30/09/2026, v0.2.9) - type de munitions, à droite de l'élément. / EN: ammo type, right of the element. */}
@@ -476,19 +531,14 @@ function LigneObjet({
                 <div style={{ fontSize: "0.8rem", color: "#7d7a70" }}>
                   {obtenirSource(db, piece.itemHash) ?? "Source inconnue"}
                 </div>
-                {/* FR : ⚠️ AJOUT (04/08/2026) - diagnostic anti-champion,
-                mode développement uniquement. À déplier sur une arme qui
-                NE détecte rien (Mille Voix) ET sur une qui fonctionne
-                (Apocalypse), puis me copier les deux : la comparaison
-                montrera où Bungie range réellement l'information. */}
-                {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.diagnosticAntiChampionArme && estArme && (
-                  <details style={{ fontSize: "0.7rem", color: "#7d7a70", marginTop: "0.4rem" }}>
-                    <summary style={{ cursor: "pointer" }}><span>🔍 Diagnostic anti-champion (dev, à copier à Claude)</span></summary>
-                    <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.68rem" }}>
-                      {obtenirDiagnosticAntiChampion(db, piece.itemHash)}
-                    </pre>
-                  </details>
+                {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - BOUTON « FORGE » (spécification du 12/10/2026, §1 : « dans la vue de détails, un bouton supplémentaire permet de rejoindre la Forge ») : envoie cette arme possédée à la vue Inventaire de la Forge, qui s'ouvre dessus ; un bouton « Retour » ramène ici, avec cette fenêtre telle qu'on l'a laissée. Armes possédées seulement. / EN: ⚠️ ADDED - Forge button in the Details window (owned weapons only). */}
+                {/* FR : ⚠️ CHANGÉ (16/10/2026, v0.4.12) - le bouton « Forge » existe aussi pour les ARMURES possédées (spécification du 12/10/2026, §1 : « le bouton Détails des armes et armures… un bouton supplémentaire permet de rejoindre la Forge ») : il ouvre la partie Armures de la Forge sur cette armure ; « Retour » ramène ici. / EN: ⚠️ CHANGED - the Forge button now also exists for owned armor pieces. */}
+                {onOuvrirForge && piece.itemInstanceId && (
+                  <button data-ouvrir-forge="" onClick={() => onOuvrirForge(piece)} style={{ fontSize: "0.75rem", marginTop: "0.4rem", padding: "0.15rem 0.5rem" }}>
+                    {estArme ? "🔨 Forge : choisir les perks de cette arme" : "🔨 Forge : choisir les mods de cette armure"}
+                  </button>
                 )}
+                                {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic anti-champion archivé supprimé. / EN: ⚠️ REMOVED - archived anti-champion diagnostic deleted. */}
               </div>
               <button
                 onClick={() => setDetailsOuverts(false)}
@@ -497,6 +547,8 @@ function LigneObjet({
                 ✕
               </button>
             </div>
+            {/* FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - « Lire le Lore » : EN HAUT DE POPUP, JUSTIFIÉ À DROITE, SOUS LA CROIX (spécification §6), affiché UNIQUEMENT si l'objet a un Lore. / EN: ADDED - "Read the Lore": top of popup, right-justified, under the close cross (spec §6), shown ONLY if the item has a lore. */}
+            {onLireLore && <BoutonLireLore db={db} itemHash={piece.itemHash} nomObjet={piece.nom ?? ""} onLireLore={onLireLore} />}
             {/* FR : ⚠️ AJOUT (04/08/2026) - bonus de Set complets dans la
             popup "Détails" des armures (avec leurs descriptions), demande
             de l'utilisateur. Placé EN HAUT : c'est l'information la plus
@@ -505,21 +557,7 @@ function LigneObjet({
             "Détails" popup (with their descriptions), user request.
             Placed AT THE TOP: it's the most distinctive information about
             an armor piece, ahead of the mods list. */}
-            {/* FR : ⚠️ AJOUT (04/08/2026) - diagnostic des stats d'armure
-            (mode dev), pour identifier les ~75 points fantômes : l'appli
-            annonce 575 là où le jeu affiche 500. Liste chaque plug avec sa
-            catégorie et les stats qu'il déclare, de quoi repérer ceux dont
-            l'apport n'existe pas réellement en jeu. */}
-            {!estArme && import.meta.env.DEV && DIAGNOSTICS_ACTIFS.diagnosticStatsArmure && (
-              <details style={{ fontSize: "0.7rem", color: "#7d7a70", marginBottom: "0.6rem" }}>
-                <summary style={{ cursor: "pointer" }}>
-                  <span>🔍 Diagnostic des stats de cette pièce (dev, à copier à Claude)</span>
-                </summary>
-                <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.65rem", background: "#0d0f14", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>
-                  {obtenirDiagnosticStatsArmure(db, piece.itemHash, piece.perkHashes)}
-                </pre>
-              </details>
-            )}
+                        {/* FR : ⚠️ RETIRÉ (23/10/2026, audit) - diagnostic des stats d'armure archivé supprimé. / EN: ⚠️ REMOVED - archived armor-stats diagnostic deleted. */}
             {!estArme && (() => {
               const set = obtenirBonusSet(db, piece.itemHash);
               if (!set) return (
@@ -568,16 +606,27 @@ function LigneObjet({
                 )}
               </div>
             )}
+{/* FR : ⚠️ CHANGÉ (25/10/2026, maquette validée par l'utilisateur) - la SIMULATION DES MODS d'une armure possédée est le composant `SimulationModsArmure` (statistiques réelles → simulées, JAUGE D'ÉNERGIE, résumé compact + « Modifier », blocs statistique / ajustement / cumulables) ; toute la logique est dans `lib/forge/energieMods.ts`. L'ancienne liste de pastilles par groupe d'emplacements est remplacée. EN: ⚠️ CHANGED - the armor-mod simulation is now the `SimulationModsArmure` component (validated mockup). */}
+            {!estArme && instance && colonnesMods.length > 0 && statsMods && (
+              <SimulationModsArmure
+                db={db}
+                piece={piece}
+                colonnes={colonnesMods}
+                choix={choixArmure}
+                stats={statsMods}
+                nbSimulees={nbColonnesSimulees(simulations, instance, "armures")}
+                onChanger={(changements) => mettreAJourSimulations((s) => appliquerChangements(s, instance, colonnesMods, changements))}
+                onReinitialiser={() => mettreAJourSimulations((s) => reinitialiserArme(s, instance, "armures"))}
+              />
+            )}
             {estArme && colonnesDetails.length === 0 && (
               <p style={{ fontSize: "0.75rem", color: "#7d7a70", margin: 0 }}>Aucune option trouvée pour cette arme.</p>
             )}
             {/* FR : mods génériques connus (ex: Crosse de contrepoids) relégués en bas, renommés - jamais masqués. */}
-            {[...colonnesDetails]
-              .sort((a, b) => (a.estModConnu ? 1 : 0) - (b.estModConnu ? 1 : 0))
-              .map((col) => (
+            {ordonnerColonnesPourAffichage(colonnesDetails).map((col) => (
               <div key={col.socketIndex} style={{ marginBottom: "0.6rem" }}>
                 <strong style={{ fontSize: "0.75rem", color: "#7d7a70" }}>
-                  {col.estModConnu ? "Mods utilisables" : `Colonne ${col.socketIndex + 1}`}
+                  {libelleColonne(col)}
                 </strong>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.25rem" }}>
                   {col.options.map((opt) => (
@@ -608,7 +657,7 @@ function LigneObjet({
 }
 
 function trierEtGrouper(pieces: GearPiece[]): Array<{ slot: SlotArme | SlotArmure; items: GearPiece[] }> {
-  return ORDRE_SLOTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) })).filter((g) => g.items.length > 0);
+  return ORDRE_EMPLACEMENTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) })).filter((g) => g.items.length > 0);
 }
 
 /**
@@ -622,11 +671,38 @@ function trierEtGrouper(pieces: GearPiece[]): Array<{ slot: SlotArme | SlotArmur
  * one has fewer items than another.
  */
 function trierEtGrouperAvecVides(pieces: GearPiece[]): Array<{ slot: SlotArme | SlotArmure; items: GearPiece[] }> {
-  return ORDRE_SLOTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) }));
+  return ORDRE_EMPLACEMENTS.map((slot) => ({ slot, items: pieces.filter((p) => p.slot === slot) }));
 }
 
-export default function SelecteurInventaire({ membership, db, onAjouterObjet, onObjetsCharges }: Props) {
+export default function SelecteurInventaire({ membership, db, onAjouterObjet, onObjetsCharges, cible, onEffacerCible, onOuvrirForge, onLireLore }: Props) {
   const [objets, setObjets] = useState<GearPiece[] | null>(null);
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - « Aller à » : à chaque demande, on ouvre le bloc s'il est replié puis on l'amène à l'écran. Petit délai pour que la page ait fini de se réorganiser (sections ouvertes) avant le défilement. / EN: open the block and scroll to it.
+  const refBloc = useRef<HTMLDetailsElement>(null);
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.2) - « TRANSFÉRER VERS » : un seul transfert à la fois (`transfertEnCours` = identifiant d'instance de l'objet), et un bandeau qui dit ce qui s'est passé (la ligne change de liste quand l'objet bouge : elle ne peut pas porter le message). Après l'opération, la liste affichée est mise à jour
+  // d'après le lieu RÉEL rendu par `deplacerObjet` (succès, ou échec à la seconde étape : l'objet est alors au Coffre) ; sans lieu rendu (échec à la première étape), rien ne change à l'écran. Un objet équipé n'est jamais déplacé (règle de l'utilisateur). / EN: ⚠️ ADDED - "Transfer to": one at a time, a result banner, list updated from the REAL final location.
+  const [transfertEnCours, setTransfertEnCours] = useState<string | null>(null);
+  const [messageTransfert, setMessageTransfert] = useState<{ ok: boolean; texte: string } | null>(null);
+  async function transferer(piece: GearPiece, cible: Lieu): Promise<void> {
+    if (!membership || !piece.itemInstanceId || transfertEnCours) return;
+    const id = piece.itemInstanceId;
+    setTransfertEnCours(id);
+    setMessageTransfert(null);
+    try {
+      const r = await deplacerObjet(membership, piece, cible);
+      if (r.lieuFinal) setObjets((prec) => (prec ? prec.map((o) => (o.itemInstanceId === id ? { ...o, origine: r.lieuFinal, equipe: false } : o)) : prec));
+      setMessageTransfert({ ok: r.ok, texte: r.ok ? `✅ « ${piece.nom} » — ${r.message}` : `⚠️ « ${piece.nom} » — ${r.message}` });
+    } catch (e) {
+      setMessageTransfert({ ok: false, texte: e instanceof SessionExpiree ? "⚠️ Votre session Bungie a expiré : reconnectez-vous, puis réessayez. Rien n'a été déplacé." : `⚠️ « ${piece.nom} » — erreur inattendue : ${(e as Error).message}` });
+    } finally {
+      setTransfertEnCours(null);
+    }
+  }
+  useEffect(() => {
+    if (!cible) return;
+    if (refBloc.current) refBloc.current.open = true;
+    const minuteur = setTimeout(() => defilerVers(refBloc.current), 60);
+    return () => clearTimeout(minuteur);
+  }, [cible?.demande]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // FR : remonte la liste au parent à chaque changement. Effet séparé
   // plutôt qu'un appel dans le handler de chargement : on couvre ainsi
@@ -663,6 +739,8 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   const [filtreTypeArme, setFiltreTypeArme] = useState("tous");
   const [filtreSlotArmure, setFiltreSlotArmure] = useState<"tous" | SlotArmure>("tous");
   const [filtreChampionCoffre, setFiltreChampionCoffre] = useState<"tous" | TypeChampion>("tous");
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - filtres sur l'ÉLÉMENT DE DÉGÂTS (Coffre et Mon Inventaire), demande de l'utilisateur : Cinétique, Solaire, Cryo-électrique, Abyssal, Stase, Filobscur. Ils portent sur les armes : une armure n'a pas d'élément et n'apparaît sous aucun. / EN: ⚠️ ADDED - damage element filters (Vault and Inventory), weapons only.
+  const [filtreElementCoffre, setFiltreElementCoffre] = useState<"tous" | ElementFiltre>("tous");
   // FR : ⚠️ AJOUT (04/08/2026) - filtre "doublons", demande de
   // l'utilisateur. Un doublon = plusieurs exemplaires du MÊME objet
   // (même itemHash) dans l'ensemble considéré. Utile pour faire le ménage
@@ -675,6 +753,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   const [filtreTypeArmeInv, setFiltreTypeArmeInv] = useState("tous");
   const [filtreSlotArmureInv, setFiltreSlotArmureInv] = useState<"tous" | SlotArmure>("tous");
   const [filtreChampionInv, setFiltreChampionInv] = useState<"tous" | TypeChampion>("tous");
+  const [filtreElementInv, setFiltreElementInv] = useState<"tous" | ElementFiltre>("tous");
 
   async function charger() {
     if (!membership || !db) return;
@@ -714,7 +793,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   // brut du Manifest, qui inclut parfois le nom de classe comme
   // "Brassard d'Arcaniste" - inutile ici, les menus repliables par
   // personnage jouent déjà ce rôle).
-  const ORDRE_SLOTS_ARMURE: SlotArmure[] = ["casque", "gants", "torse", "jambes", "marque"];
+  const ORDRE_EMPLACEMENTS_ARMURE: SlotArmure[] = ["casque", "gants", "torse", "jambes", "marque"];
   const LIBELLES_SLOT_FILTRE: Record<SlotArmure, string> = {
     casque: "Casques",
     gants: "Gants",
@@ -761,7 +840,17 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   // Inventory" (the 3 characters, equipped + inventory), explicit user
   // request ("search field similar to the Vault's but limited to the
   // inventory").
-  const inventaireBrut = (objets ?? []).filter((o) => o.origine !== "coffre");
+  // FR : ⚠️ CHANGÉ (24/10/2026, tests post-audit, point 5.8) - le courrier est
+  // EXCLU de « Mon Inventaire » (il a sa propre section) : un objet qui y
+  // attend n'est ni sur un personnage, ni transférable.
+  // EN: CHANGED - the postmaster is EXCLUDED from "My Inventory" (it has its
+  // own section): an item waiting there is neither on a character nor
+  // transferable.
+  const inventaireBrut = (objets ?? []).filter((o) => o.origine !== "coffre" && o.origine !== "courrier");
+  // FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - les objets en
+  // attente au courrier (postmaster), affichés dans leur propre section.
+  // EN: ADDED - items waiting in the postmaster, shown in their own section.
+  const courrierBrut = (objets ?? []).filter((o) => o.origine === "courrier").filter(correspondAuxFiltresInventaire);
   const texteRechercheParPieceInventaire = useMemo(() => {
     const carte = new Map<string, string>();
     if (!db) return carte;
@@ -802,7 +891,26 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objets]);
 
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - options du menu « élément de dégâts » (partagées par le Coffre et Mon Inventaire) : icône officielle de Bungie quand le Manifest est chargé, sinon le dessin de l'appli ; le Cinétique n'a pas de dessin de secours.
+  // EN: ⚠️ ADDED - options of the damage element menu, official icon when the Manifest is loaded.
+  function optionsElement() {
+    return [
+      { valeur: "tous", libelle: "Tous les éléments" },
+      ...ELEMENTS_FILTRE.map((el) => {
+        let icone;
+        if (el === "cinetique") {
+          const url = db ? obtenirIconeCinetique(db) : undefined;
+          icone = url ? <img src={url} alt="" width={16} height={16} style={{ borderRadius: 3, flexShrink: 0 }} /> : undefined;
+        } else {
+          icone = <IconeElement element={el} taille={16} urlOfficielle={db ? obtenirIconeElementDoctrine(db, el) : undefined} />;
+        }
+        return { valeur: el, libelle: el === "cinetique" ? "Cinétique" : LIBELLES_ELEMENT_FR[el], icone };
+      }),
+    ];
+  }
+
   function correspondAuxFiltres(piece: GearPiece): boolean {
+    if (cible && piece.itemHash !== cible.hash) return false;   // ⚠️ AJOUT (12/10/2026, v0.4.0) : « Aller à »
     if (doublonsSeulementCoffre && !hashesEnDoublonCoffre.has(piece.itemHash)) return false;
     if (filtreRarete !== "toutes" && piece.rarete !== filtreRarete) return false;
     if (filtreTypeArme !== "tous" && piece.typeArme !== filtreTypeArme) return false;
@@ -812,6 +920,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
       if (!db || !["cinetique", "energie", "lourde"].includes(piece.slot)) return false;
       if (obtenirAntiChampion(db, piece.itemHash) !== filtreChampionCoffre) return false;
     }
+    if (filtreElementCoffre !== "tous" && (!db || obtenirElementFiltre(db, piece.itemHash) !== filtreElementCoffre)) return false;   // ⚠️ AJOUT (12/10/2026, v0.4.0)
     if (rechercheCoffre.trim().length >= 2) {
       const cle = piece.itemInstanceId ?? `${piece.itemHash}`;
       // FR : ⚠️ CORRIGÉ (04/08/2026) - `toLowerCase()` gère la casse mais PAS
@@ -832,6 +941,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   // above, but for "My Inventory" (explicit user request: same filters
   // as the Vault, limited to the inventory).
   function correspondAuxFiltresInventaire(piece: GearPiece): boolean {
+    if (cible && piece.itemHash !== cible.hash) return false;   // ⚠️ AJOUT (12/10/2026, v0.4.0) : « Aller à »
     if (doublonsSeulementInv && !hashesEnDoublonInv.has(piece.itemHash)) return false;
     if (filtreRareteInv !== "toutes" && piece.rarete !== filtreRareteInv) return false;
     if (filtreTypeArmeInv !== "tous" && piece.typeArme !== filtreTypeArmeInv) return false;
@@ -840,6 +950,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
       if (!["cinetique", "energie", "lourde"].includes(piece.slot)) return false;
       if (!db || obtenirAntiChampion(db, piece.itemHash) !== filtreChampionInv) return false;
     }
+    if (filtreElementInv !== "tous" && (!db || obtenirElementFiltre(db, piece.itemHash) !== filtreElementInv)) return false;   // ⚠️ AJOUT (12/10/2026, v0.4.0)
     if (rechercheInventaire.trim().length >= 2) {
       const cle = piece.itemInstanceId ?? `${piece.itemHash}`;
       const texte = normaliser(texteRechercheParPieceInventaire.get(cle) ?? piece.nom ?? "");
@@ -852,7 +963,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   const typesArmeDisponiblesInv = Array.from(new Set(inventaireBrut.map((o) => o.typeArme).filter(Boolean))).sort() as string[];
 
   return (
-    <details open className="pilier-carte bloc-repliable">
+    <details ref={refBloc} open className="pilier-carte bloc-repliable">
       {/* FR : ⚠️ CHANGÉ (27/09/2026, v0.2.3) - bloc repliable, comme le Coffre
       (demande de l'utilisateur). Ouvert par défaut : rien ne change au
       lancement, on replie ce qu'on veut. Style dans index.css (.bloc-repliable).
@@ -863,7 +974,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
         {/* FR : ⚠️ CHANGÉ (07/10/2026, v0.3.15) - titre illustré ; la précision « personnages + coffre » n'est pas dans l'image (la notice de l'archive le dit) : elle est gardée en sous-texte discret à côté. / EN: ⚠️ CHANGED - illustrated title; the "characters + vault" detail is kept as a muted sub-text. */}
         <span style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
           <TitreRepliable categorie="inventaire" />
-          <span data-sous-titre-inventaire="" style={{ fontSize: "0.72rem", fontWeight: 400, color: "#7d7a70" }}>personnages + coffre</span>
+          <span data-sous-titre-inventaire="" style={{ fontSize: "0.72rem", fontWeight: 400, color: "#7d7a70" }}>personnages + coffre + courrier</span>
         </span>
         <span>{objets ? `✅ ${objets.length} objets` : "◯ non chargé"}</span>
         </span>
@@ -896,6 +1007,30 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
       )}
 
       {erreur && <p style={{ color: "#e08080" }}>⚠️ {erreur}</p>}
+
+      {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.2) - résultat du dernier transfert (réussite ou échec), avec un bouton pour le fermer. / EN: ⚠️ ADDED - last transfer result banner. */}
+      {messageTransfert && (
+        <p role="status" data-bandeau-transfert="" style={{ fontSize: "0.8rem", margin: "0 0 0.6rem", padding: "0.4rem 0.6rem", border: `1px solid ${messageTransfert.ok ? "#4a9e5c" : "#c08040"}`, borderRadius: 6, color: "#e8e6df" }}>
+          {messageTransfert.texte}{" "}
+          <button onClick={() => setMessageTransfert(null)} style={{ fontSize: "0.72rem", marginLeft: "0.3rem" }}>✕ Fermer</button>
+        </p>
+      )}
+
+      {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - bandeau « Aller à » : dit sur quoi l'inventaire est filtré, combien d'exemplaires (personnages + coffre) existent, et permet de retirer le filtre. Sans inventaire chargé, on explique quoi faire. / EN: "Go to" banner. */}
+      {cible && (
+        <p role="status" data-bandeau-aller-a="" style={{ fontSize: "0.8rem", margin: "0 0 0.6rem", padding: "0.4rem 0.6rem", border: "1px solid #d4af37", borderRadius: 6, color: "#e8e6df" }}>
+          🎯 Filtré sur <strong>{cible.nom}</strong> —{" "}
+          {!objets
+            ? "chargez d'abord votre inventaire pour voir vos exemplaires."
+            : (() => {
+                const n = objets.filter((o) => o.itemHash === cible.hash).length;
+                return n === 0 ? "vous n'en possédez aucun exemplaire (personnages et coffre)." : `${n} exemplaire${n > 1 ? "s" : ""} (personnages et coffre).`;
+              })()}{" "}
+          <button onClick={() => onEffacerCible?.()} style={{ fontSize: "0.72rem", marginLeft: "0.3rem" }}>
+            ✕ Retirer ce filtre
+          </button>
+        </p>
+      )}
 
       {statsNonResolues.length > 0 && (
         <p style={{ fontSize: "0.7rem", color: "#5a5f6b" }}>
@@ -958,7 +1093,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
               largeur="170px"
               options={[
                 { valeur: "tous", libelle: "Tous types d'armure" },
-                ...ORDRE_SLOTS_ARMURE.map((s) => ({
+                ...ORDRE_EMPLACEMENTS_ARMURE.map((s) => ({
                   valeur: s,
                   libelle: LIBELLES_SLOT_FILTRE[s],
                   icone: <IconeSlotArmure slot={s} taille={16} />,
@@ -978,6 +1113,8 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                 { valeur: "bloqueur", libelle: "Anti-Bloqueur", icone: <IconeAntiChampion type="bloqueur" taille={16} /> },
               ]}
             />
+            {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - filtre sur l'élément de dégâts, demande de l'utilisateur. */}
+            <MenuDerouantIcone valeur={filtreElementInv} onChanger={(v) => setFiltreElementInv(v as "tous" | ElementFiltre)} largeur="170px" options={optionsElement()} />
           </div>
           <span style={{ display: "inline-flex", gap: "0.4rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
             <button
@@ -987,6 +1124,8 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                 setFiltreTypeArmeInv("tous");
                 setFiltreSlotArmureInv("tous");
                 setFiltreChampionInv("tous");
+                setFiltreElementInv("tous");
+                onEffacerCible?.();   // ⚠️ v0.4.0 : retire aussi le filtre « Aller à »
                 setDoublonsSeulementInv(false);
               }}
               style={{ fontSize: "0.75rem" }}
@@ -1021,7 +1160,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
             {(["chasseur", "titan", "arcaniste"] as const).map((classe) => {
               const { equipe, inventaire } = parPersonnage(classe);
               return (
-                <details key={classe} style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>
+                <details key={classe} open={cible && (equipe.some((g) => g.items.length > 0) || inventaire.some((g) => g.items.length > 0)) ? true : undefined} style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>   {/* ⚠️ v0.4.0 : « Aller à » ouvre les personnages qui possèdent l'objet */}
                   <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                       <IconeClasse classe={classe} taille={18} />
@@ -1042,7 +1181,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           ) : (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                               {g.items.map((p) => (
-                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} />
+                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
                               ))}
                             </ul>
                           )}
@@ -1061,7 +1200,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           ) : (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                               {g.items.map((p) => (
-                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} />
+                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
                               ))}
                             </ul>
                           )}
@@ -1074,7 +1213,39 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
             })}
           </div>
 
-          <details style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>
+          {/* FR : ⚠️ AJOUT (24/10/2026, tests post-audit, point 5.8) - section
+          « Courrier » (postmaster) : les objets en attente de récupération en
+          jeu. Ils sont listés pour être VISIBLES (l'inventaire du personnage ne
+          les montrait pas avant), mais ni le bouton « Transférer vers » ni le
+          bouton « + Ajouter » ne les accepte : un objet au courrier ne se
+          déplace pas d'ici (il faut d'abord le récupérer en jeu). Le bouton de
+          transfert est grisé avec l'explication (voir BoutonTransfert). */}
+          {courrierBrut.length > 0 && (
+            <details open style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem", marginBottom: "0.75rem" }}>
+              <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                  📨 Courrier ({courrierBrut.length} objet{courrierBrut.length > 1 ? "s" : ""})
+                </span>
+              </summary>
+              <p style={{ fontSize: "0.72rem", color: "#7d7a70", margin: "0.3rem 0 0.5rem" }}>
+                En attente de récupération en jeu : un objet au courrier ne peut pas être équipé ni transféré d'ici.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "0.4rem" }}>
+                {trierEtGrouper(courrierBrut).map((g) => (
+                  <li key={g.slot}>
+                    <div style={{ fontSize: "0.7rem", color: "#7d7a70" }}>{LIBELLES_SLOT[g.slot]}</div>
+                    <ul style={{ listStyle: "none", padding: 0, margin: "0.2rem 0 0" }}>
+                      {g.items.map((p) => (
+                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
+          <details open={cible && coffre.some((g) => g.items.length > 0) ? true : undefined} style={{ border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem" }}>   {/* ⚠️ v0.4.0 : « Aller à » ouvre le coffre s'il contient l'objet */}
             <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}>
               <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                 <IconeCoffre taille={16} />
@@ -1123,7 +1294,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                 largeur="170px"
                 options={[
                   { valeur: "tous", libelle: "Tous types d'armure" },
-                  ...ORDRE_SLOTS_ARMURE.map((s) => ({
+                  ...ORDRE_EMPLACEMENTS_ARMURE.map((s) => ({
                     valeur: s,
                     libelle: LIBELLES_SLOT_FILTRE[s],
                     icone: <IconeSlotArmure slot={s} taille={16} />,
@@ -1143,6 +1314,8 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                   { valeur: "bloqueur", libelle: "Anti-Bloqueur", icone: <IconeAntiChampion type="bloqueur" taille={16} /> },
                 ]}
               />
+              {/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - filtre sur l'élément de dégâts, demande de l'utilisateur. */}
+              <MenuDerouantIcone valeur={filtreElementCoffre} onChanger={(v) => setFiltreElementCoffre(v as "tous" | ElementFiltre)} largeur="170px" options={optionsElement()} />
             </div>
 
             {/* FR : ⚠️ AJOUT (04/08/2026) - bouton de réinitialisation de
@@ -1160,6 +1333,8 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                   setFiltreTypeArme("tous");
                   setFiltreSlotArmure("tous");
                   setFiltreChampionCoffre("tous");
+                  setFiltreElementCoffre("tous");
+                  onEffacerCible?.();   // ⚠️ v0.4.0 : retire aussi le filtre « Aller à »
                   setDoublonsSeulementCoffre(false);
                 }}
                 style={{ fontSize: "0.75rem" }}
@@ -1212,7 +1387,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                       }}
                     >
                       {g.items.map((p) => (
-                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} />
+                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
                       ))}
                     </ul>
                   </details>
@@ -1256,7 +1431,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           }}
                         >
                           {g.items.map((p) => (
-                            <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} afficherStats onAjouterObjet={onAjouterObjet} />
+                            <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} afficherStats onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
                           ))}
                         </ul>
                       </div>

@@ -16,7 +16,7 @@
 import { Database } from "sql.js";
 import { obtenirDefinition } from "./download";
 import { normaliser, urlIcone } from "./search";
-import { championDeReference } from "./antiChampionExotiques";
+import { championDeReference, championSynergieMIDA } from "./antiChampionExotiques";   // ⚠️ v0.4.8 : + règle de l'armature « Synergie MIDA »
 import type { TypeMunition } from "../../components/icones/IconeMunition";
 import { DestinyItemDefinition, DestinySocketCategoryDefinition, DestinyPlugSetDefinition } from "../../types/manifest";
 import { SubclassConfig, StatKey, DamageElement } from "../../types/build";
@@ -73,6 +73,8 @@ export interface OptionSocket {
   icone?: string;
   /** FR : true si c'est réellement ce qui est équipé en jeu en ce moment (pas juste sélectionné dans l'outil). / EN: true if this is what's actually equipped in-game right now (not just selected in the tool). */
   equipeEnJeu?: boolean;
+  /** FR : type d'objet brut du Manifest, pour deviner la catégorie d'une prise inconnue. / EN: raw item type from the Manifest, to guess an unknown socket's category. */
+  _itemTypeDisplayName?: string;
 }
 
 export interface GroupeSocket {
@@ -256,7 +258,7 @@ export function obtenirOptionsSousClasse(
           icone: urlIcone(defOption.displayProperties.icon),
           equipeEnJeu: hashesEquipesEnJeu.includes(hashOption),
           _itemTypeDisplayName: defOption.itemTypeDisplayName,
-        } as OptionSocket & { _itemTypeDisplayName?: string });
+        });
       }
       if (optionsDuSocket.length === 0) continue;
 
@@ -307,7 +309,7 @@ export function obtenirOptionsSousClasse(
             nomAffichage = LIBELLES_CATEGORIE_SOCKET_AFFICHAGE[categoriePosition];
           }
         } else {
-          const texteIndice = `${optionsDuSocket[0].nom} ${(optionsDuSocket[0] as any)._itemTypeDisplayName ?? ""}`;
+          const texteIndice = `${optionsDuSocket[0].nom} ${optionsDuSocket[0]._itemTypeDisplayName ?? ""}`;
           const categorieDevinee = devinerCategorieSocket(texteIndice);
           if (categorieDevinee !== "autre") {
             categorieSocket = categorieDevinee;
@@ -348,7 +350,7 @@ export function obtenirOptionsSousClasse(
  * Demande explicite de l'utilisateur (26/08) : les mêlées/grenades/
  * compétences de classe sont le texte le MOINS bien classé par
  * `sourcePayoff.ts` aujourd'hui (voir le principe des "identités de
- * capacité" dans `CHANGELOG.md`), et ce sont elles qui définissent
+ * capacité" dans `DEVLOG.md`), et ce sont elles qui définissent
  * concrètement ce qu'une capacité APPLIQUE - contrairement aux
  * aspects/fragments qui expriment de vrais synergies conditionnelles.
  *
@@ -385,6 +387,38 @@ export function obtenirDiagnosticTextesDoctrine(groupes: GroupeSocket[]): string
   }
 
   return blocs.join("\n\n");
+}
+
+/**
+ * FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - DIAGNOSTIC DES ICÔNES de doctrine (bug « fond bleu de la Stase sur les icônes de saut et de compétence de classe du Filobscur »). Pour la sous-classe choisie : (1) ses prises (sockets) avec leurs listes d'options (plug set réutilisable ou aléatoire, objet fixe, nombre
+ * d'options directes) : deux sous-classes qui partagent le même plug set pour le saut ou la compétence de classe partageront les mêmes objets et donc les mêmes icônes ; (2) pour chaque option de saut, compétence de classe, mêlée, grenade et super : nom, hash, catégorie de plug, type d'objet, chemin brut
+ * de l'icône, filigrane et nombre de séquences d'icône. À lancer pour la Stase ET le Filobscur puis comparer. Texte à copier à Claude. EN: ⚠️ ADDED - icon diagnostic for a subclass (sockets, plug sets and per-option icon data), to compare Stasis and Strand.
+ */
+export function obtenirDiagnosticIconesDoctrine(db: Database, subclassItemHash: number | undefined, element: string | null | undefined, groupes: GroupeSocket[]): string {
+  type Prise = { socketTypeHash?: number; singleInitialItemHash?: number; reusablePlugSetHash?: number; randomizedPlugSetHash?: number; reusablePlugItems?: unknown[] };
+  const defSub = subclassItemHash
+    ? obtenirDefinition<{ displayProperties?: { name?: string }; sockets?: { socketEntries?: Prise[] } }>(db, "DestinyInventoryItemDefinition", subclassItemHash)
+    : undefined;
+  const sortie: string[] = [
+    "DIAGNOSTIC DES ICÔNES DE DOCTRINE (à copier à Claude)",
+    `Sous-classe : ${defSub?.displayProperties?.name ?? "(inconnue)"} — hash ${subclassItemHash ?? "?"} — élément choisi dans l'outil : ${element ?? "?"}`,
+    "",
+    "--- Prises (sockets) de la sous-classe : index | type | plug set réutilisable | plug set aléatoire | objet fixe | options directes",
+  ];
+  (defSub?.sockets?.socketEntries ?? []).forEach((e, i) =>
+    sortie.push(`[${i}] type=${e.socketTypeHash ?? 0} | reusablePlugSet=${e.reusablePlugSetHash ?? 0} | randomizedPlugSet=${e.randomizedPlugSetHash ?? 0} | fixe=${e.singleInitialItemHash ?? 0} | directes=${e.reusablePlugItems?.length ?? 0}`)
+  );
+  const LIBELLES: [CategorieSocket, string][] = [["saut", "SAUT"], ["classe", "COMPÉTENCE DE CLASSE"], ["melee", "MÊLÉE"], ["grenade", "GRENADE"], ["super", "SUPER"]];
+  for (const [cat, libelle] of LIBELLES) {
+    const groupe = groupes.find((g) => g.categorie === cat);
+    if (!groupe || groupe.options.length === 0) continue;
+    sortie.push("", `## ${libelle} (${groupe.options.length} option${groupe.options.length > 1 ? "s" : ""})`);
+    for (const o of groupe.options) {
+      const d = obtenirDefinition<{ plug?: { plugCategoryIdentifier?: string }; itemTypeDisplayName?: string; iconWatermark?: string; displayProperties?: { icon?: string; iconSequences?: unknown[] } }>(db, "DestinyInventoryItemDefinition", o.hash);
+      sortie.push(`- ${o.nom} | hash ${o.hash} | plug=${d?.plug?.plugCategoryIdentifier ?? "?"} | type="${d?.itemTypeDisplayName ?? ""}" | icône=${d?.displayProperties?.icon ?? "?"} | filigrane=${d?.iconWatermark ?? "-"} | séquences=${d?.displayProperties?.iconSequences?.length ?? 0}`);
+    }
+  }
+  return sortie.join("\n");
 }
 
 export interface SousClassePossedee {
@@ -710,8 +744,10 @@ export async function listerSousClassesPossedees(
     profil.itemComponents?.sockets?.data ?? {};
 
   for (const charId of personnagesDeLaClasse) {
-    const itemsInventaire = (profil.characterInventories?.data?.[charId]?.items ?? []).map((it: any) => ({ ...it, equipe: false }));
-    const itemsEquipes = (profil.characterEquipment?.data?.[charId]?.items ?? []).map((it: any) => ({ ...it, equipe: true }));
+    // FR : ⚠️ CHANGÉ (23/10/2026, audit) - `it: any` remplacé par le type minimal lu (itemHash + itemInstanceId).
+    // EN: ⚠️ CHANGED - `it: any` replaced by the minimal read type (itemHash + itemInstanceId).
+    const itemsInventaire = (profil.characterInventories?.data?.[charId]?.items ?? []).map((it: { itemHash: number; itemInstanceId?: string }) => ({ ...it, equipe: false }));
+    const itemsEquipes = (profil.characterEquipment?.data?.[charId]?.items ?? []).map((it: { itemHash: number; itemInstanceId?: string }) => ({ ...it, equipe: true }));
     const items = [...itemsInventaire, ...itemsEquipes];
 
     for (const item of items) {
@@ -1021,6 +1057,11 @@ export interface ColonneOptionsArme {
   options: OptionSocket[];
   /** FR : true si identifié comme un mod d'arme générique connu (via son nom précis, pas une catégorie large) - à afficher à part, en bas, plutôt que masqué. / EN: true if identified as a known generic weapon mod (via its precise name, not a broad category) - to display separately, at the bottom, rather than hidden. */
   estModConnu?: boolean;
+  /**
+   * FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - présent UNIQUEMENT quand l'appelant a demandé les colonnes habituellement masquées (`inclureMasquees`, interrupteur « Afficher les perks inutiles » de la Forge) : « cosmetique » (souvenir, suivi, compte-frags, palier, effet visuel festif) ou « ornement ».
+   * Par défaut ces colonnes ne sont jamais renvoyées et ce champ n'existe pas : la popup Détails est inchangée. / EN: ⚠️ ADDED - set only when hidden columns were requested.
+   */
+  masquee?: "cosmetique" | "ornement";
 }
 
 // FR : ⚠️ AJOUT (03/08/2026, v4) - suite à la régression du filtrage par
@@ -1193,7 +1234,14 @@ const MOTS_OPTION_COSMETIQUE = ["palier", "compte-frags", "compte frags", "souve
 export function obtenirOptionsToutesColonnes(
   db: Database,
   itemHash: number,
-  hashesEquipes: number[] = []
+  hashesEquipes: number[] = [],
+  // FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - `inclureMasquees` : renvoie AUSSI les colonnes cosmétiques / d'ornement normalement masquées, marquées `masquee` (interrupteur « Afficher les perks inutiles » de la Forge). Par défaut (absent) le comportement est strictement celui d'avant : vérifié par un instantané (`tests/logique/instantanes/colonnes-arme.json`).
+  // EN: ⚠️ ADDED - `inclureMasquees` also returns the normally hidden cosmetic/ornament columns, flagged `masquee`. Default behaviour unchanged (snapshot-tested).
+  // FR : ⚠️ AJOUT (14/10/2026, v0.4.11), défaut signalé sur la Mesure corrective (arme FAÇONNÉE) : la fenêtre n'affichait qu'UN perk par colonne (souvent le mauvais, grisé), le perk réellement équipé n'apparaissait pas et les perks possibles non plus. DEUX garanties, optionnelles (sans elles, comportement INCHANGÉ pour toutes les armes) :
+  //   `equipesParColonne` : les perks ÉQUIPÉS de l'exemplaire (prise → perk, comme `GearPiece.perksParColonne`) sont TOUJOURS présents dans leur colonne, cochés, même s'ils manquent à la liste du Manifest (ils y sont ajoutés en fin de colonne) ; une prise qui n'a pas de colonne n'en crée pas ;
+  //   `toutesSources` : la colonne reçoit TOUS les perks possibles de la prise (liste directe, jeu de plugs partagé, jeu de plugs aléatoire, perk initial ; sans doublon, la liste directe d'abord) au lieu de la seule première source non vide. Pour les armes façonnées, dont la liste directe n'a qu'un perk alors qu'un vrai pool existe derrière.
+  // EN: ⚠️ ADDED - two optional guarantees: equipped perks always present and ticked in their column; and `toutesSources` merging every perk source of a socket (for crafted weapons). Default behaviour unchanged.
+  reglages: { inclureMasquees?: boolean; toutesSources?: boolean; equipesParColonne?: Array<{ socketIndex: number; hash: number }> } = {}
 ): ColonneOptionsArme[] {
   const def = obtenirDefinition<DestinyItemDefinition>(db, "DestinyInventoryItemDefinition", itemHash);
   if (!def?.sockets?.socketEntries) return [];
@@ -1249,6 +1297,17 @@ export function obtenirOptionsToutesColonnes(
     if (hashesOptions.length === 0 && entree.singleInitialItemHash) {
       hashesOptions = [entree.singleInitialItemHash];
     }
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - `toutesSources` : fusionne TOUTES les sources de perks de cette prise (voir le commentaire du paramètre). / EN: merges every perk source of this socket.
+    if (reglages.toutesSources) {
+      const fusion: number[] = [];
+      const ajouter = (hs: number[]) => { for (const h of hs) if (!fusion.includes(h)) fusion.push(h); };
+      const pool = (hashJeu: number) => (obtenirDefinition<DestinyPlugSetDefinition>(db, "DestinyPlugSetDefinition", hashJeu)?.reusablePlugItems ?? []).map((p) => p.plugItemHash);
+      ajouter((entree.reusablePlugItems ?? []).map((p) => p.plugItemHash));
+      if (entree.reusablePlugSetHash) ajouter(pool(entree.reusablePlugSetHash));
+      if (entree.randomizedPlugSetHash) ajouter(pool(entree.randomizedPlugSetHash));
+      if (entree.singleInitialItemHash) ajouter([entree.singleInitialItemHash]);
+      if (fusion.length > 0) hashesOptions = fusion;
+    }
     if (hashesOptions.length === 0) return;
 
     const options: OptionSocket[] = [];
@@ -1267,6 +1326,15 @@ export function obtenirOptionsToutesColonnes(
         icone: urlIcone(defOption.displayProperties.icon),
         equipeEnJeu: hashesEquipes.includes(hashOption),
       });
+    }
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - `equipesParColonne` : le perk ÉQUIPÉ de CETTE prise est toujours dans sa colonne, coché, même absent de la liste du Manifest (ajouté en fin de colonne). / EN: the equipped perk of THIS socket is always in its column, ticked.
+    for (const eq of reglages.equipesParColonne ?? []) {
+      if (eq.socketIndex !== socketIndex || options.some((o) => o.hash === eq.hash)) continue;
+      const defEq = obtenirDefinition<DestinyItemDefinition>(db, "DestinyInventoryItemDefinition", eq.hash);
+      if (!defEq?.displayProperties?.name) continue;
+      const resoluEq = obtenirDescriptionComplete(db, eq.hash);
+      if (resoluEq.estOrnement) continue;
+      options.push({ hash: eq.hash, nom: defEq.displayProperties.name, description: resoluEq.description, icone: urlIcone(defEq.displayProperties.icon), equipeEnJeu: true });
     }
     // FR : masque la colonne si TOUTES ses options correspondent à un mot-clé
     // de progression/cosmétique (palier de catalyseur, compte-frags...).
@@ -1328,7 +1396,11 @@ export function obtenirOptionsToutesColonnes(
       const d = normaliser(opt.description);
       return d.includes("ornement d'arme") || d.includes("weapon ornament");
     });
-    if (options.length === 0 || toutesCosmetiques || estOrnement) return;
+    if (options.length === 0) return;
+    if (toutesCosmetiques || estOrnement) {
+      if (reglages.inclureMasquees) colonnes.push({ socketIndex, options, estModConnu: false, masquee: estOrnement ? "ornement" : "cosmetique" });   // ⚠️ v0.4.3 : seulement à la demande
+      return;
+    }
 
     // FR : identifie (sans masquer) les mods génériques connus.
     const estModConnu = options.some((opt) => MOTS_MOD_CONNU.some((m) => normaliser(opt.nom).includes(m)));
@@ -1594,6 +1666,9 @@ export function deduireAntiChampion(db: Database, itemHash: number): "surcharge"
     // addition to accents. Needed for "tir d'ensemble": if the Manifest
     // uses a different apostrophe than the one typed in code, the
     // comparison would silently fail.
+    // FR : ⚠️ AJOUT (14/10/2026, v0.4.8) - armature « Synergie MIDA » : c'est le NOM de l'arme qui décide (Outil polyvalent MIDA : surcharge ; Outil macro MIDA : implacable). Voir `championSynergieMIDA`. / EN: ⚠️ ADDED - MIDA Synergy frame: the weapon name decides.
+    const mida = championSynergieMIDA(def.displayProperties?.name, nomArmature);
+    if (mida) return mida;
     const a = normaliser(nomArmature).replace(/['']/g, "");
     for (const { motCle, champion } of ARMATURE_VERS_CHAMPION) {
       if (a.includes(motCle)) return champion;
@@ -1606,7 +1681,7 @@ export function deduireAntiChampion(db: Database, itemHash: number): "surcharge"
 /**
  * FR : correspondance armature (archétype) -> type de champion contré,
  * d'après la règle Anti-Champion 2.0 de la mise à jour 9.7.0.
- * Les mots-clés sont volontairement COURTS : on a appris (cf. CHANGELOG,
+ * Les mots-clés sont volontairement COURTS : on a appris (cf. DEVLOG,
  * épisode "Fusil à rayon" vs "rayons") que les textes Bungie varient en
  * genre/nombre et en formulation. Les cas les plus spécifiques doivent
  * être placés AVANT les plus génériques, .find() s'arrêtant au premier.
@@ -2864,13 +2939,29 @@ export function obtenirElementArme(db: Database, itemHash: number): DamageElemen
   return resultat;
 }
 
+/**
+ * FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - ÉLÉMENT DE DÉGÂTS d'un objet pour le FILTRE des recherches (Manifest et Inventaire ; demande de l'utilisateur) : les six types de dégâts d'une arme, y compris le CINÉTIQUE.
+ * S'appuie sur `obtenirElementArme` (même table éprouvée, aucun décalage possible) ; le cinétique, qui n'est pas dans `DamageElement` (voir plus bas), n'est reconnu que pour une ARME (`itemType` 3, `defaultDamageType` 1) : un objet sans élément
+ * (armure, quête, ornement...) renvoie `null` et n'apparaît donc sous aucun élément. Le type de dégâts spécial « Raid » (enum 5) n'est pas l'un des six : `null` aussi.
+ * EN: ⚠️ ADDED - damage element of an item for the search FILTER, Kinetic included (weapons only); items without an element return null.
+ */
+export type ElementFiltre = "cinetique" | "solaire" | "arc" | "abyssal" | "stase" | "filobscur";
+/** FR : ordre d'affichage du filtre. / EN: filter display order. */
+export const ELEMENTS_FILTRE: readonly ElementFiltre[] = ["cinetique", "solaire", "arc", "abyssal", "stase", "filobscur"];
+export function obtenirElementFiltre(db: Database, itemHash: number): ElementFiltre | null {
+  const element = obtenirElementArme(db, itemHash);
+  if (element && element !== "prismatique") return element;
+  const def = obtenirDefinition<{ defaultDamageType?: number; itemType?: number }>(db, "DestinyInventoryItemDefinition", itemHash);
+  return def?.itemType === 3 && def.defaultDamageType === 1 ? "cinetique" : null;
+}
+
 // FR : ⚠️ AJOUT (24/08/2026) - icône officielle du CINÉTIQUE (enum 1).
 // Fonction séparée volontairement : le cinétique n'est PAS dans
 // `DamageElement` (ce n'est pas une doctrine, une arme n'inflige jamais de
 // dégâts « cinétiques » au sens élémentaire), il est isolé dans le drapeau
 // `soutientCinetique` des artefacts. Le réintroduire dans ENUM_VERS_ELEMENT
 // pour récupérer son icône aurait cassé cette séparation, qui avait été
-// posée délibérément (voir CHANGELOG du 04/08).
+// posée délibérément (voir DEVLOG du 04/08).
 // EN: ⚠️ ADDED - official KINETIC icon (enum 1). Deliberately a separate
 // function: Kinetic is NOT in `DamageElement` (it's not a subclass), it
 // lives in the artifacts' `soutientCinetique` flag. Adding it to
@@ -2887,6 +2978,37 @@ export function obtenirIconeElementDoctrine(db: Database, element: DamageElement
     if (ENUM_VERS_ELEMENT[enumValue] === element) return url;
   }
   return undefined;
+}
+
+/**
+ * FR : ⚠️ AJOUT (12/10/2026, v0.4.1) - règle PURE : faut-il recolorer cette icône ? Oui si la doctrine est le Filobscur, que l'option est un saut ou une compétence de classe, ET que son fichier d'icône est l'un de ceux de la Stase (`urlsStase`).
+ * Voir `data/teinteIconesDoctrine.ts` pour le pourquoi. EN: ⚠️ ADDED - pure rule: should this icon be recoloured?
+ */
+export function iconeDoctrineEstTeintee(element: string | null | undefined, categorie: string | undefined, urlIcone: string | undefined, urlsStase: ReadonlySet<string>): boolean {
+  return element === "filobscur" && (categorie === "saut" || categorie === "classe") && !!urlIcone && urlsStase.has(urlIcone);
+}
+
+const CACHE_URLS_ICONES_STASE = new WeakMap<Database, Set<string>>();
+/**
+ * FR : ⚠️ AJOUT (12/10/2026, v0.4.1) - adresses des icônes de TOUTES les options des sous-classes STASE (les trois classes : hash connus de `ELEMENT_PAR_HASH_CONNU`), lues dans le Manifest et mises en cache. Sert à repérer les icônes du Filobscur qui ne sont en fait que celles de la Stase.
+ * EN: ⚠️ ADDED - icon addresses of every option of the three Stasis subclasses, cached per Manifest.
+ */
+export function obtenirUrlsIconesStase(db: Database): Set<string> {
+  let ensemble = CACHE_URLS_ICONES_STASE.get(db);
+  if (ensemble) return ensemble;
+  ensemble = new Set<string>();
+  for (const [hash, element] of Object.entries(ELEMENT_PAR_HASH_CONNU)) {
+    if (element !== "stase") continue;
+    for (const groupe of obtenirOptionsSousClasse(db, Number(hash))) for (const o of groupe.options) if (o.icone) ensemble.add(o.icone);
+  }
+  CACHE_URLS_ICONES_STASE.set(db, ensemble);
+  return ensemble;
+}
+
+/** FR : ⚠️ AJOUT (12/10/2026, v0.4.1) - comme `iconeDoctrineEstTeintee`, en lisant le Manifest : l'ensemble des icônes de la Stase n'est calculé QUE pour un saut ou une compétence de classe en Filobscur (jamais pour rien d'autre). / EN: reads the Manifest lazily. */
+export function iconeDoctrineATeinter(db: Database, element: string | null | undefined, categorie: string | undefined, urlIcone: string | undefined): boolean {
+  if (element !== "filobscur" || (categorie !== "saut" && categorie !== "classe") || !urlIcone) return false;
+  return iconeDoctrineEstTeintee(element, categorie, urlIcone, obtenirUrlsIconesStase(db));
 }
 
 // FR : ⚠️ AJOUT (04/08/2026) - icône d'un perk de doctrine (Super, Aspect,

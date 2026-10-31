@@ -1,8 +1,8 @@
 // FR : icônes de type d'arme, fournies par l'utilisateur (source
-// svgrepo.com). Identifiées via des MOTS-CLÉS dans le texte réel de
+// justrealmilk/destiny-icons, licence CC0). Identifiées via des MOTS-CLÉS dans le texte réel de
 // Bungie (piece.typeArme / r.typeArme), pas une correspondance exacte -
 // plus robuste face aux variations de formulation.
-// EN: weapon type icons, provided by the user (source svgrepo.com).
+// EN: weapon type icons, provided by the user (source justrealmilk/destiny-icons, licence CC0).
 // Identified via KEYWORDS in Bungie's real text (piece.typeArme /
 // r.typeArme), not an exact match - more robust against wording
 // variations.
@@ -26,27 +26,10 @@ interface Props {
 // FR : ⚠️ AJOUT (01/10/2026) - type seulement (aucune dépendance à l'exécution) : le type de munitions
 // qui départage les deux lance-grenades. / EN: type only: the ammo type telling the two grenade launchers apart.
 import type { TypeMunition } from "./IconeMunition";
+import { normaliserRecherche } from "../../lib/manifest/search";
 
-function normaliser(t: string): string {
-  return (
-    t
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      // FR : ⚠️ AJOUT (02/10/2026) - tolérance aux détails typographiques du texte du Manifest :
-      // césures conditionnelles et caractères de largeur nulle (cachés, mais qui coupent un mot en
-      // deux pour la recherche), espaces insécables, apostrophes typographiques (’ ‘ ` ´), espaces
-      // multiples. Aucun mot-clé actuel n'en contient : sans effet sur les types déjà reconnus.
-      // EN: ⚠️ ADDED - tolerance to typographic details in Manifest text: soft hyphens and zero-width
-      // characters, non-breaking spaces, typographic apostrophes, multiple spaces. No current keyword
-      // contains any: no effect on types already recognised.
-      .replace(/[\u00ad\u200b-\u200d\u2060\ufeff]/g, "")
-      .replace(/[\u00a0\u202f]/g, " ")
-      .replace(/[’‘`´]/g, "'")
-      .replace(/\s+/g, " ")
-      .trim()
-  );
-}
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `normaliser` local supprimé : remplacé par la version enrichie de `search.ts` (même base NFD + minuscules, PLUS tolérance aux espaces insécables, apostrophes typographiques, césures/zero-width). Aucun effet sur les types déjà reconnus (aucun mot-clé ne contient ces caractères).
+// EN: ⚠️ CHANGED - local `normaliser` removed: replaced by the enriched version from `search.ts` (same NFD + lowercase base, PLUS tolerance to nbsp, typographic apostrophes, soft hyphens/zero-width). No effect on already-recognised types (no keyword contains those characters).
 
 // FR : ⚠️ AJOUT (04/08/2026) - certaines icônes ont un viewBox très
 // allongé (Glaive, Lance-roquettes, Fusil à fusion linéaire - des formes
@@ -253,7 +236,7 @@ function formeDepuisTexte(
   munition?: TypeMunition
 ): { viewBox: string; d: string } | undefined {
   if (!typeArme || !typeArme.trim()) return undefined;
-  const normalise = normaliser(typeArme);
+  const normalise = normaliserRecherche(typeArme);
 
   // FR : cas spécial - même texte "Lance-grenades" pour 2 armes distinctes,
   // seul l'emplacement (energie=spécial / lourde=classique) les distingue.

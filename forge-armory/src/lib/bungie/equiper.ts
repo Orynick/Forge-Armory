@@ -116,7 +116,9 @@ export type PositionObjet =
   | { etat: "localisee"; characterId?: string; location?: number; equipe: boolean; bucketHash?: number };
 
 const LIEU_COFFRE = 2;
-const LIEU_COURRIER = 4;
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `LIEU_COURRIER` exportée (dedup : `deplacer.ts` avait sa propre copie). / EN: ⚠️ CHANGED - `LIEU_COURRIER` exported (dedup: `deplacer.ts` had its own copy).
+/** FR : emplacement « courrier » (récupération) : un objet qui y est ne se déplace/équipe pas d'ici. / EN: postmaster location code. */
+export const LIEU_COURRIER = 4;
 
 export interface ElementInventaire {
   itemInstanceId?: string | number;
@@ -131,6 +133,11 @@ export interface ProfilEquipement {
   coffre: ElementInventaire[];
   inventaires: Record<string, ElementInventaire[]>;
   equipement: Record<string, ElementInventaire[]>;
+  /**
+   * FR : ⚠️ AJOUT (12/10/2026, v0.4.2) - classe de chaque personnage (clé = identifiant du personnage), lue avec le composant 200 du profil : nécessaire au transfert d'objets (« Transférer vers » : on désigne un personnage par sa classe, l'API par son identifiant). Facultatif : absent si Bungie ne renvoie pas les personnages.
+   * EN: ⚠️ ADDED - class of each character (key = character id), read with profile component 200, needed to transfer items between characters.
+   */
+  classes?: Record<string, "titan" | "chasseur" | "arcaniste">;
 }
 
 /**
@@ -150,11 +157,12 @@ export async function lireProfilEquipement(
       profileInventory?: { data?: { items?: ElementInventaire[] } };
       characterInventories?: { data?: Record<string, { items?: ElementInventaire[] }> };
       characterEquipment?: { data?: Record<string, { items?: ElementInventaire[] }> };
+      characters?: { data?: Record<string, { classType?: number }> };   // ⚠️ AJOUT (12/10/2026, v0.4.2) : composant 200
     };
   };
   try {
     const reponse = await fetch(
-      `${BUNGIE_API_ROOT}/Destiny2/${membership.membershipType}/Profile/${membership.membershipId}/?components=102,201,205`,
+      `${BUNGIE_API_ROOT}/Destiny2/${membership.membershipType}/Profile/${membership.membershipId}/?components=102,200,201,205`,   // ⚠️ CHANGÉ (12/10/2026, v0.4.2) : + 200 (personnages et leur classe), en lecture seule
       { headers: { "X-API-Key": bungieConfig.apiKey, Authorization: `Bearer ${accessToken}` } }
     );
     reponseBungie = await reponse.json();
@@ -179,6 +187,12 @@ export async function lireProfilEquipement(
       coffre: r.profileInventory.data.items ?? [],
       inventaires: parPerso(r.characterInventories.data),
       equipement: parPerso(r.characterEquipment.data),
+      classes: Object.fromEntries(
+        Object.entries(r.characters?.data ?? {}).flatMap(([id, c]) => {
+          const cle = (["titan", "chasseur", "arcaniste"] as const)[c.classType ?? -1];
+          return cle ? [[id, cle]] : [];
+        })
+      ),
     },
   };
 }

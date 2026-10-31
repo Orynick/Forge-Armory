@@ -20,23 +20,23 @@ import { ORDRE_PILIERS } from "../../data/piliers";
 import { BuildDraft, BuildScoreResult, PillarScore } from "../../types/build";
 import { ExigenceStat, scoreStats, sommerStatsArmure, ContexteBuild } from "./stats";
 import { scoreBonusSetsReels } from "./armorSets";
-import { detecterVerbes, extraireTextesEffetsBuild, scoreVerbesDetectes, obtenirChampionsCouverts, detecterChainesVerbes, detecterRessourcesGenerees, enrichirAvecChaines } from "./verbes";
+import { detecterVerbes, extraireTextesEffetsBuild, extraireNomsPerksSimules, scoreVerbesDetectes, obtenirChampionsCouverts, detecterChainesVerbes, detecterRessourcesGenerees, enrichirAvecChaines } from "./verbes";
 import { obtenirBonusStatsDoctrine, obtenirElementArme } from "../manifest/doctrine";
 import { LIBELLES_CHAMPION } from "../../components/icones/IconeAntiChampion";
 
 // FR : ⚠️ CHANGÉ (24/08/2026) - le poids fixe (20% partout) est remplacé par
 // une table de poids PAR PILIER ET PAR CONTEXTE, miroir exact du tableau
-// documenté dans README.md ("Poids des piliers selon le contexte"). C'était
+// documenté dans NOTES-CONCEPTION.md ("Poids des piliers selon le contexte"). C'était
 // la dernière pièce manquante du scoring tel qu'il a été conçu avec
-// l'utilisateur : les poids étaient écrits et justifiés dans le README
+// l'utilisateur : les poids étaient écrits et justifiés dans NOTES-CONCEPTION.md
 // depuis plusieurs sessions, mais jamais appliqués au calcul réel.
 //
-// ⚠️ Toute modification de cette table doit être répercutée dans le README,
+// ⚠️ Toute modification de cette table doit être répercutée dans NOTES-CONCEPTION.md,
 // et inversement - les deux doivent rester le miroir l'un de l'autre.
 //
 // EN: ⚠️ CHANGED - the fixed weight (20% everywhere) is replaced by a table
 // of weights PER PILLAR AND PER CONTEXT, an exact mirror of the table
-// documented in README.md. This was the last missing piece of the scoring
+// documented in NOTES-CONCEPTION.md. This was the last missing piece of the scoring
 // as designed with the user.
 export const POIDS_PILIERS: Record<ContexteBuild, Record<CleP, number>> = {
   neutre:  { element_doctrine: 0.10, verbes_element: 0.30, perks_artefact: 0.15, loot_coherence: 0.20, stats_2_0: 0.25 },
@@ -274,7 +274,7 @@ function scoreVerbesElement(build: BuildDraft, db?: Database, contexte: Contexte
   // now settled - see the full reasoning on `enrichirAvecChaines`.
   const maillons = detecterChainesVerbes(verbesDetectes, textes);
   const verbesEnrichis = enrichirAvecChaines(verbesDetectes, maillons);
-  const { score: scoreBoucles, details } = scoreVerbesDetectes(verbesEnrichis);
+  const { score: scoreBoucles, details } = scoreVerbesDetectes(verbesEnrichis, extraireNomsPerksSimules(build, db));   // ⚠️ 27/10/2026 : l'origine d'un verbe qui est un perk SIMULÉ porte le badge « simulé »
 
   // FR : ⚠️ CHANGÉ (06/09/2026) - regroupées par SOURCE, plus par cible.
   // Motif : demande de l'utilisateur après test réel, où "Charge d'armure"
@@ -540,7 +540,12 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
   const details: string[] = [];
   let score = 100;
 
-  const exotiquesArmure = build.armure.filter((p) => p.isExotic).length;
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - les emplacements VIDES (`itemHash: 0`,
+  // placeholders) ne comptent PAS comme exotiques : sinon l'état « vide » du
+  // premier lancement créditait « 1 armure exotique équipée » fictive.
+  // EN: ⚠️ FIXED - empty slots (`itemHash: 0`, placeholders) do NOT count as
+  // exotics: otherwise the initial "empty" state credited a fictitious one.
+  const exotiquesArmure = build.armure.filter((p) => p.isExotic && p.itemHash !== 0).length;
   if (exotiquesArmure > 1) {
     score -= 100; // configuration illégale in-game
     details.push("Plus d'une pièce d'armure exotique équipée : configuration invalide");
@@ -556,7 +561,10 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
   // que l'armure ci-dessus.
   // EN: ⚠️ ADDED (2026-08-03) - the "only one exotic weapon at a time"
   // rule was never checked (only armor was). Same logic as armor above.
-  const exotiquesArmes = build.armes.filter((p) => p.isExotic).length;
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - idem pour les armes : un placeholder
+  // (`itemHash: 0`) n'est jamais un exotique.
+  // EN: ⚠️ FIXED - same for weapons: a placeholder (`itemHash: 0`) is never an exotic.
+  const exotiquesArmes = build.armes.filter((p) => p.isExotic && p.itemHash !== 0).length;
   if (exotiquesArmes > 1) {
     score -= 100; // configuration illégale in-game
     details.push("Plus d'une arme exotique équipée : configuration invalide");
@@ -564,9 +572,17 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
     details.push("1 arme exotique équipée");
   }
 
-  if (build.armes.length < 3) {
-    score -= (3 - build.armes.length) * 15;
-    details.push(`${build.armes.length}/3 emplacements d'armes remplis`);
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - on compte les emplacements RÉELLEMENT
+  // remplis (`itemHash !== 0`, comme `calculerCompletion`) : avec les
+  // placeholders `itemHash: 0` du build vide, `build.armes.length` valait
+  // toujours 3 et la pénalité ne s'appliquait jamais.
+  // EN: ⚠️ FIXED - count ACTUALLY filled slots (`itemHash !== 0`, like
+  // `calculerCompletion`): with the empty build's `itemHash: 0` placeholders,
+  // `build.armes.length` was always 3 and the penalty never applied.
+  const armesEquipees = build.armes.filter((a) => a.itemHash !== 0).length;
+  if (armesEquipees < 3) {
+    score -= (3 - armesEquipees) * 15;
+    details.push(`${armesEquipees}/3 emplacements d'armes remplis`);
   }
 
   // FR : ⚠️ CORRIGÉ (04/08/2026) - le pilier notait les sets d'après
@@ -584,7 +600,7 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
   details.push(...detailsSets);
 
   // FR : ⚠️ AJOUT (24/08/2026) - COUVERTURE ANTI-CHAMPION, conception déjà
-  // arrêtée avec l'utilisateur et documentée dans le README ("Couverture
+  // arrêtée avec l'utilisateur et documentée dans NOTES-CONCEPTION.md ("Couverture
   // anti-champion : barème progressif").
   //
   // Barème 0/40/80/100 selon le nombre de types couverts : progression
@@ -592,7 +608,7 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
   // rarement les 3 Champions à la fois.
   //
   // ⚠️ TROIS sources, désormais. La 3e (capacités de DOCTRINE) avait
-  // d'abord été EXCLUE (voir historique CHANGELOG du 05/08, plus tôt dans
+  // d'abord été EXCLUE (voir historique DEVLOG du 05/08, plus tôt dans
   // la journée) : la seule source alors disponible
   // (13_ARTIFACTS_2_0_ET_ANTI_CHAMPION.md) datait d'avant la 9.7.0 et se
   // contredisait sur un point. Ce blocage est levé : la 3e source vient
@@ -607,7 +623,7 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
   // pénaliserait injustement un build qui n'en a simplement pas besoin.
   //
   // EN: ⚠️ ADDED - ANTI-CHAMPION COVERAGE, already designed with the user
-  // and documented in the README. 0/40/80/100 scale by number of types
+  // and documented in NOTES-CONCEPTION.md. 0/40/80/100 scale by number of types
   // covered. THREE sources now: doctrine abilities were initially
   // deliberately EXCLUDED because the only source available then
   // (13_ARTIFACTS_2_0_ET_ANTI_CHAMPION.md) predated 9.7.0 and
@@ -714,7 +730,7 @@ function scoreStats2(stats: ReturnType<typeof sommerStatsArmure>, exigences: Exi
   // STAT (POIDS_STATS - Arme à 1.7 en DPS, Santé à 1.8 en PvP, etc.)
   // retombait donc toujours sur "neutre", même une fois le POIDS GLOBAL du
   // pilier correctement contextualisé. Les deux niveaux de pondération
-  // documentés dans le README doivent varier ensemble.
+  // documentés dans NOTES-CONCEPTION.md doivent varier ensemble.
   // EN: ⚠️ FIXED - context wasn't passed to `scoreStats`, though it accepts
   // it: PER-STAT weighting always fell back to "neutre" even once the
   // pillar's GLOBAL weight was correctly contextualised.

@@ -43,16 +43,14 @@ import { SlotArme, SlotArmure } from "../../types/build";
 /** FR : largeur de la page en pixels CSS ; le PNG fait le double. / EN: page width in CSS px; the PNG is twice that. */
 export const LARGEUR_EXPORT = 900;
 
-const ORIGINE_ICONES = "https://www.bungie.net/";
+import { htmlIconeClasse, htmlIconeElement, htmlLogoContexte, htmlLogoSection } from "./iconesExport";
+import { FILTRE_STASE_VERS_FILOBSCUR } from "../../data/teinteIconesDoctrine";   // ⚠️ AJOUT (12/10/2026, v0.4.1)
 
-function echapper(texte: string): string {
-  return texte
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `ORIGINE_ICONES` et `echapper` centralisés
+// dans `lib/htmlExport.ts` (dedup avec `iconesExport.ts`, qui avait sa propre
+// copie de `echapper` et de l'origine). / EN: ⚠️ CHANGED - `ORIGINE_ICONES` and
+// `echapper` centralised in `lib/htmlExport.ts` (dedup with `iconesExport.ts`).
+import { ORIGINE_ICONES, echapper } from "../htmlExport";
 
 /**
  * FR : case d'icône. Toujours dessinée (fond neutre), même sans image :
@@ -60,8 +58,9 @@ function echapper(texte: string): string {
  * mise en page. Seules les adresses de www.bungie.net sont retenues.
  * EN: icon box, always drawn (neutral background) even without an image.
  */
-function icone(src: string | undefined, taille: number, classe = "icone"): string {
-  const image = src && src.startsWith(ORIGINE_ICONES) ? `<img src="${echapper(src)}" alt="">` : "";
+function icone(src: string | undefined, taille: number, classe = "icone", filtre?: string): string {
+  // FR : ⚠️ CHANGÉ (12/10/2026, v0.4.1) - `filtre` (facultatif) : filtre de couleur de l'image (recoloration des icônes de saut et de compétence de classe du Filobscur). Sans lui, le HTML est identique à avant. / EN: ⚠️ CHANGED - optional colour filter.
+  const image = src && src.startsWith(ORIGINE_ICONES) ? `<img src="${echapper(src)}" alt=""${filtre ? ` style="filter:${filtre}"` : ""}>` : "";
   return `<span class="${classe}" style="width:${taille}px;height:${taille}px">${image}</span>`;
 }
 
@@ -174,7 +173,14 @@ function blocEntete(f: FicheBuild): string {
   // FR : ⚠️ CHANGÉ (06/10/2026, v0.3.3) - « par pseudo#1234 » en dernier segment du sous-titre, SEULEMENT si l'auteur est connu : une fiche sans auteur produit exactement le même HTML qu'avant (images et PDF inchangés). Le texte est échappé comme le reste.
   // EN: ⚠️ CHANGED - "par handle" as the last subtitle segment, only when known; a sheet without author yields the same HTML as before.
   // FR : le pseudo a sa PROPRE étiquette `.auteur` : le sous-titre est en MAJUSCULES, ce qui déformerait un pseudo (« Orynick#1234 » deviendrait « ORYNICK#1234 ») ; `.auteur` rétablit la casse et autorise le retour à la ligne d'un pseudo très long.
-  const segments = [f.classe, f.element, f.contexteCle !== "neutre" ? f.contexte : undefined].filter((x): x is string => Boolean(x)).map(echapper);
+  // FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - chaque segment du sous-titre reçoit son ICÔNE (demande de l'utilisateur : « icône de classe de personnage, icône d'élément de doctrine, icône de contexte ») : classe, élément (icône officielle de Bungie, sinon dessin), contexte.
+  // Une fiche ancienne sans clé de classe ou d'élément garde le texte seul. Le contexte « Neutre », jusqu'ici absent du sous-titre, y figure maintenant avec son icône : sans elle l'icône de contexte n'apparaîtrait jamais sur un build neutre.
+  // EN: ⚠️ CHANGED - each subtitle segment now carries its icon; the Neutral context is now shown (with its icon).
+  const segments = [
+    f.classe ? `${f.classeCle ? htmlIconeClasse(f.classeCle) : ""}${echapper(f.classe)}` : undefined,
+    f.element ? `${f.elementCle ? htmlIconeElement(f.elementCle, f.elementIcone) : ""}${echapper(f.element)}` : undefined,
+    `${htmlLogoContexte(f.contexteCle)}${echapper(f.contexte)}`,
+  ].filter((x): x is string => Boolean(x));
   if (f.auteur) segments.push(`<span class="auteur">par ${echapper(f.auteur)}</span>`);
   const sousTitre = segments.join(`<span class="sep">·</span>`);
   return `
@@ -187,8 +193,9 @@ function blocEntete(f: FicheBuild): string {
 </header>`;
 }
 
-function titreSection(titre: string, droite = ""): string {
-  return `<div class="titre-section"><h2>${titre}</h2>${droite ? `<div class="droite">${droite}</div>` : ""}</div>`;
+function titreSection(titre: string, droite = "", logo = ""): string {
+  // FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - `logo` : le logo de la section (HTML en ligne), vide par défaut : sans logo le HTML est strictement celui d'avant. / EN: ⚠️ CHANGED - optional section logo; without it the HTML is unchanged.
+  return `<div class="titre-section"><h2>${logo}${titre}</h2>${droite ? `<div class="droite">${droite}</div>` : ""}</div>`;
 }
 
 function blocDoctrine(f: FicheBuild): string {
@@ -196,14 +203,14 @@ function blocDoctrine(f: FicheBuild): string {
     .map(
       (d) => `
     <div class="doctrine-ligne">
-      ${icone(d.valeur?.icone, 24)}
+      ${icone(d.valeur?.icone, 24, "icone", d.valeur?.teinteFilobscur ? FILTRE_STASE_VERS_FILOBSCUR : undefined)}
       <div><div class="etiquette">${echapper(d.libelle)}</div><div class="valeur">${d.valeur ? echapper(d.valeur.nom) : "—"}</div></div>
     </div>`
     )
     .join("");
   return `
 <section class="section">
-  ${titreSection("DOCTRINE")}
+  ${titreSection("DOCTRINE", "", htmlLogoSection("doctrine"))}
   <div class="carte doctrine">
     <div class="doctrine-grille">${lignes}</div>
     <div class="doctrine-listes">
@@ -264,7 +271,7 @@ function blocArmes(f: FicheBuild): string {
   const nombre = f.armes.length;
   return `
 <section class="section">
-  ${titreSection("ARMES", `${nombre} arme${nombre > 1 ? "s" : ""}`)}
+  ${titreSection("ARMES", `${nombre} arme${nombre > 1 ? "s" : ""}`, htmlLogoSection("armes"))}
   <div class="armes">${cartes}</div>
 </section>`;
 }
@@ -324,7 +331,7 @@ function blocArmure(f: FicheBuild): string {
     .join(`<span class="sep">·</span>`);
   return `
 <section class="section">
-  ${titreSection("ARMURE", `<span class="stats">${stats}</span>`)}
+  ${titreSection("ARMURE", `<span class="stats">${stats}</span>`, htmlLogoSection("armure"))}
   <div class="armure-grille">
     ${cartePieceArmure("casque", piece("casque"), 30)}
     ${cartePieceArmure("gants", piece("gants"), 30)}
@@ -393,7 +400,7 @@ function blocArtefact(f: FicheBuild): string {
     : `${icone(undefined, 40)}<div class="artefact-texte"><div class="artefact-nom vide">Aucun artefact sélectionné</div></div>`;
   return `
 <section class="section">
-  ${titreSection("ARTEFACT")}
+  ${titreSection("ARTEFACT", "", htmlLogoSection("artefact"))}
   <div class="carte artefact">${contenu}</div>
 </section>`;
 }
@@ -440,6 +447,13 @@ body{position:relative;width:${LARGEUR_EXPORT}px;padding:28px 28px 20px;backgrou
 .section{margin-top:20px}
 .titre-section{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid #303746}
 .titre-section h2{font-size:19px;font-weight:700;letter-spacing:.4px}
+/* FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - logos de section et icônes du sous-titre (classe, élément, contexte). EN: section logos and subtitle icons. */
+/* FR : ⚠️ CHANGÉ (12/10/2026, v0.4.1) - 34 px au lieu de 30 : la notice de l'archive v3 recommande au moins 32 px (à 24 px les détails fins se brouillent). EN: 34 px (the archive notice recommends at least 32 px). */
+.logo-section{display:inline-flex;width:34px;height:34px;margin-right:10px;vertical-align:-10px}
+.logo-section svg,.logo-contexte svg{width:100%;height:100%;display:block}
+.logo-contexte{display:inline-flex;width:24px;height:24px;margin-right:7px;vertical-align:-6px}
+.ic-classe{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;vertical-align:-5px;margin-right:7px;flex-shrink:0}
+.ic-element{vertical-align:-5px;margin-right:7px;border-radius:3px}
 .titre-section .droite{font-size:13px;color:#9298a5;text-align:right}
 .stats{font-size:14px;color:#d3d6dc}
 .stats b{color:#f4f4f2;font-weight:700}

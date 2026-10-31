@@ -115,40 +115,65 @@ export interface ResultatManifest {
 const instancesOuvertes = new Map<string, { version: string; db: Database }>();
 const chargementsEnCours = new Map<string, Promise<ResultatManifest>>();
 
+// FR : ⚠️ RETIRÉ (23/10/2026, audit) - `manifestsEnCacheAJour` : AUCUN appelant en production (seul un test l'appelait, en l'appelant lui-même « ancienne fonction »). La logique vivante est dans `etatCachesManifests` (appelée par le démarrage). / EN: ⚠️ REMOVED - dead code, no production caller.
+
 /**
- * FR : ⚠️ AJOUT (26/09/2026, v0.2.2) - vérification LÉGÈRE, pour le
- * chargement automatique au démarrage (demande de l'utilisateur :
- * « vérif automatique de la version, et si c'est à jour, chargement
- * automatique »). Renvoie `true` seulement si, pour CHAQUE langue
- * demandée, le cache local existe ET correspond à la version actuelle
- * annoncée par Bungie.
- *
- * Ne télécharge JAMAIS le Manifest : un seul petit appel à Bungie (la
- * version, quelques Ko), puis une lecture de CLÉ dans IndexedDB (`getKey`)
- * — on vérifie la présence des ~100 Mo sans les lire. Toute erreur (hors
- * ligne, Bungie indisponible...) renvoie `false` : l'appli retombe alors
- * sur le bouton manuel, comme avant.
- *
- * EN: ⚠️ ADDED - LIGHTWEIGHT check for auto-loading at startup. True only if,
- * for EVERY requested language, the local cache exists AND matches Bungie's
- * current version. NEVER downloads: one tiny version call, then a KEY lookup
- * (`getKey`), which checks the ~100MB entry exists without reading it. Any
- * error returns false and the app falls back to the manual button.
+ * FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - état de CHAQUE langue en cache, pour décider au démarrage (demande de l'utilisateur : « si le Manifest est périmé, et uniquement dans ce cas, téléchargement du nouveau »).
+ *   - `a-jour`  : le fichier est en cache ET sa version est celle que Bungie annonce aujourd'hui ;
+ *   - `perime`  : le fichier est en cache mais d'une AUTRE version (ou sa version est inconnue) : c'est le seul cas qui déclenche un téléchargement automatique ;
+ *   - `absent`  : aucun fichier en cache (premier lancement pour cette langue) : RIEN n'est « périmé », le téléchargement reste déclenché par un clic.
+ * Renvoie `null` si l'état ne peut pas être établi (hors ligne, Bungie indisponible, IndexedDB inaccessible) : l'appelant ne fait alors rien. Ne télécharge JAMAIS : un petit appel pour la version et une lecture de CLÉ. `dependances` n'est remplacé que par les tests.
+ * EN: ⚠️ ADDED - state of EACH cached language: up to date, outdated (cached but another version: the ONLY case that triggers an automatic download) or absent (nothing is outdated). `null` when it cannot be established. Never downloads.
  */
-export async function manifestsEnCacheAJour(langues: string[] = ["fr", "en"]): Promise<boolean> {
+export type EtatCacheManifest = "a-jour" | "perime" | "absent";
+export interface DependancesCacheManifest {
+  recupererMeta: () => Promise<{ version: string }>;
+  ouvrirDB: () => Promise<{
+    get: (magasin: string, cle: string) => Promise<unknown>;
+    getKey: (magasin: string, cle: string) => Promise<unknown>;
+    put: (magasin: string, valeur: unknown, cle: string) => Promise<unknown>;
+  }>;
+}
+const DEPENDANCES_CACHE_REELLES: DependancesCacheManifest = {
+  recupererMeta,
+  ouvrirDB: ouvrirDB as unknown as DependancesCacheManifest["ouvrirDB"],
+};
+
+export async function etatCachesManifests(
+  langues: string[] = ["fr", "en"],
+  dependances: DependancesCacheManifest = DEPENDANCES_CACHE_REELLES
+): Promise<Record<string, EtatCacheManifest> | null> {
   try {
-    const meta = await recupererMeta();
-    const db = await ouvrirDB();
+    const meta = await dependances.recupererMeta();
+    const db = await dependances.ouvrirDB();
+    const etat: Record<string, EtatCacheManifest> = {};
     for (const langue of langues) {
       const versionCache = await db.get("meta", `manifestVersion_${langue}_${VERSION_FORMAT_CACHE}`);
-      if (versionCache !== meta.version) return false;
       const cle = await db.getKey("manifest", `sqlite_${langue}_${VERSION_FORMAT_CACHE}`);
-      if (cle === undefined) return false;
+      etat[langue] = cle === undefined ? "absent" : versionCache === meta.version ? "a-jour" : "perime";
     }
-    return true;
+    return etat;
   } catch {
-    return false;
+    return null;
   }
+}
+
+/**
+ * FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - OUTIL DE TEST (mode développement seulement, bouton « 🧪 Manifest périmé (test) ») : marque comme périmée la version du cache des langues DÉJÀ en cache, sans toucher au fichier. Au prochain démarrage (Ctrl+F5), l'appli croit son Manifest périmé et le télécharge pour de bon : cela permet d'essayer la mise à jour
+ * automatique de bout en bout sans attendre que Bungie publie une nouvelle version. Inoffensif : le téléchargement suivant remet la vraie version. Renvoie les langues marquées. EN: ⚠️ ADDED - dev-only test helper: marks the cached versions as outdated.
+ */
+export async function simulerManifestPerime(
+  langues: string[] = ["fr", "en"],
+  dependances: DependancesCacheManifest = DEPENDANCES_CACHE_REELLES
+): Promise<string[]> {
+  const db = await dependances.ouvrirDB();
+  const marquees: string[] = [];
+  for (const langue of langues) {
+    if ((await db.getKey("manifest", `sqlite_${langue}_${VERSION_FORMAT_CACHE}`)) === undefined) continue;
+    await db.put("meta", "version-simulee-pour-test", `manifestVersion_${langue}_${VERSION_FORMAT_CACHE}`);
+    marquees.push(langue);
+  }
+  return marquees;
 }
 
 export function assurerManifestAJour(

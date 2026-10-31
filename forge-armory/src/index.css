@@ -9,8 +9,10 @@ body {
   color: #e8e6df;
 }
 
+/* FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - largeur maximale 960 → 1032 px : QUATRE boutons de 56 px de haut (236 px de large chacun) + trois espaces de 12 px demandent 980 px, alors que 960 px n'en offraient que 912 : ils passaient sur DEUX lignes à toutes les largeurs, même à 1920 px. Demande de l'utilisateur : les 4 boutons sur la même ligne.
+   EN: ⚠️ CHANGED - max width 960 → 1032 px so that FOUR 56 px selector buttons fit on one line. */
 .app-shell {
-  max-width: 960px;
+  max-width: 1032px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
 }
@@ -230,11 +232,15 @@ summary > span {
    ============================================================================================================================ */
 .selecteur-vues {
   display: flex;
-  flex-wrap: wrap;
+  /* FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - jamais de retour à la ligne (4 boutons, une seule ligne) ; en dessous de 810 px de fenêtre (le logiciel installé n'y descend pas : largeur minimale 820 px) le retour à la ligne est rétabli plus bas, plutôt qu'un défilement horizontal. ⚠️ 22/10/2026 (TODO §25) : les pages « Carrière » et « Accomplissements » du compte ne sont PAS des onglets de ce sélecteur (elles s'ouvrent par les boutons du bloc Connexion) : il garde ses QUATRE boutons, la règle d'origine s'applique. EN: never wrap; wrapping restored below 810 px (the account pages are not selector tabs). */
+  flex-wrap: nowrap;
   gap: 0.5rem 0.75rem;
   margin-bottom: 0.75rem;
 }
-/* Les trois boutons ont la MÊME hauteur ; la largeur suit (rapport 4316 / 1024 du cadre commun des SVG). */
+@media (max-width: 810px) {
+  .selecteur-vues { flex-wrap: wrap; }
+}
+/* Les quatre boutons ont la MÊME hauteur ; la largeur suit (rapport 4316 / 1024 du cadre commun des SVG). */
 .bouton-vue,
 .bouton-vue:hover,
 .bouton-vue:active {
@@ -278,6 +284,27 @@ summary > span {
   height: calc(var(--hauteur-logo-titre) * var(--echelle-bouton, 1));
 }
 
+/* ⚠️ AJOUT (21/10/2026, demande de l'utilisateur) - boutons « Carrière » et « Accomplissements » du bloc Connexion à la MÊME TAILLE : les deux fichiers ont le cadre 4897 x 1024 (le bouton Carrière a été élargi à la largeur d'Accomplissements : retouche 5 de scripts/retoucher-visuels.mjs). `.bouton-vue` impose 4316 / 1024 : sans ce modificateur, le fichier d'Accomplissements était RÉDUIT de 12 % pour tenir dans le cadre (son anneau était plus petit que celui de Carrière). / EN: both buttons use the 4897 x 1024 frame so they have the same size. */
+.bouton-vue--large,
+.bouton-vue--large:hover,
+.bouton-vue--large:active {
+  aspect-ratio: 4897 / 1024;
+}
+
+/* ⚠️ AJOUT (21/10/2026, demande de l'utilisateur, capture d'écran annotée) - bloc Connexion, une fois CONNECTÉ : les boutons « Carrière » (au-dessus) et « Accomplissements » forment une colonne CENTRÉE dans la place libre entre le titre et le statut « connecté », à la hauteur du titre et du compte (deux lignes de la grille). Le titre et le statut restent sur la même ligne, le compte sous le titre. Hors connexion, la classe n'est pas posée : mise en page inchangée (et les boutons n'existent pas). Sur une fenêtre étroite, retour à la mise en page empilée (la colonne passe sous le compte). / EN: once connected, the two buttons sit in a column centred in the free space between the title and the status. */
+.pilier-carte--connexion { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; column-gap: 0.75rem; row-gap: 0.5rem; align-items: start; }
+.pilier-carte--connexion > h3 { display: contents; }
+.pilier-carte--connexion > h3 > .titre-categorie { grid-column: 1; grid-row: 1; }
+.pilier-carte--connexion > h3 > span { grid-column: 3; grid-row: 1; align-self: center; justify-self: end; }
+.pilier-carte--connexion > .connexion-compte { grid-column: 1; grid-row: 2; }
+.pilier-carte--connexion > .connexion-vues-compte { grid-column: 2; grid-row: 1 / span 2; justify-self: center; align-self: start; }
+.pilier-carte--connexion > :not(h3):not(.connexion-compte):not(.connexion-vues-compte) { grid-column: 1 / -1; }
+@media (max-width: 1100px) {
+  .pilier-carte--connexion { display: block; }
+  .pilier-carte--connexion > h3 { display: flex; }
+  .pilier-carte--connexion > .connexion-vues-compte { margin-top: 0.5rem; justify-self: auto; align-self: auto; }   /* le navigateur applique `justify-self` même hors grille : on le neutralise, sinon la colonne se centrait au lieu de rester à gauche */
+}
+
 /* ============================================================================================================================
    ⚠️ AJOUT (07/10/2026, v0.3.13) - TITRES DE CATÉGORIES illustrés (visuels fournis, components/TitreCategorie.tsx) : les six ont le même cadre
    (7505 × 1024), donc UNE seule hauteur ; la largeur suit. Pas d'état sélectionné : ce ne sont pas des boutons.
@@ -310,4 +337,6 @@ summary:has(.titre-repliable) .bloc-repliable-ligne { width: 100%; }
 
 /* ⚠️ AJOUT (07/10/2026, v0.3.17) - UNE SEULE hauteur pour tous les « logo + titre » (boutons du sélecteur de vues, titres de blocs, boutons de profil à l'échelle 1) : 3,5 rem (56 px) sur écran large,
    jamais sous 2,6 rem (41,6 px) sur écran étroit. Un seul réglage : changer cette variable change tout. */
-:root { --hauteur-logo-titre: clamp(2.6rem, 7vw, 3.5rem); }
+/* FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - la hauteur commune des logos DÉPEND maintenant de la largeur disponible pour que les quatre boutons du sélecteur tiennent toujours sur une ligne : (largeur de la page − marges − trois espaces) / 4 × 1024 / 4316, bornée entre 2,6 rem et 3,5 rem. La page fait au plus 1032 px ; la marge de 1,1 rem tient compte d'une barre de défilement classique (100vw l'inclut). Résultat mesuré : 56 px dès ~1040 px de fenêtre, puis 53 px (1000), 51 (960), 47 (900), 43 (820). Les titres des blocs et les boutons de profil suivent la MÊME variable, donc la même taille. ⚠️ 22/10/2026 (TODO §25) : inchangé — le sélecteur garde ses QUATRE onglets (les pages « Carrière » et « Accomplissements » du compte ne sont pas des onglets).
+   EN: ⚠️ CHANGED - the shared logo height now depends on the available width so the four selector buttons always fit on one line. */
+:root { --hauteur-logo-titre: clamp(2.6rem, calc((min(1032px, 100vw - 1.1rem) - 3rem - 2.25rem) / 4 * 1024 / 4316), 3.5rem); }

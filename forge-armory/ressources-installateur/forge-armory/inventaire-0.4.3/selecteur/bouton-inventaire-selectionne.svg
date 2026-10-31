@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4316 1024" role="img" aria-labelledby="fa-selecteur-bouton-inventaire-selectionne-title fa-selecteur-bouton-inventaire-selectionne-desc">
+  <title id="fa-selecteur-bouton-inventaire-selectionne-title">Forge Armory — bouton Inventaire (sélectionné)</title>
+  <desc id="fa-selecteur-bouton-inventaire-selectionne-desc">Coffre d'argent à serrure cyan dans un cercle, cristaux cyan en haut et en bas ; plaque avec le titre INVENTAIRE, soulignage et étoile.</desc>
+  <defs>
+    <linearGradient id="fa-selecteur-bouton-inventaire-selectionne-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-inventaire-selectionne-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#f0fdff"/>
+      <stop offset="1" stop-color="#c9f6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-inventaire-selectionne-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-inventaire-selectionne-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-selecteur-bouton-inventaire-selectionne-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-selecteur-bouton-inventaire-selectionne-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    
+    <linearGradient id="fa-selecteur-bouton-inventaire-selectionne-plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131923"/><stop offset="1" stop-color="#080b11"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-inventaire-selectionne-fadeH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.12" stop-color="#e8ebef" stop-opacity="0.85"/>
+      <stop offset="0.88" stop-color="#e8ebef" stop-opacity="0.85"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fa-selecteur-bouton-inventaire-selectionne-fadeV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.25" stop-color="#e8ebef" stop-opacity="0.7"/>
+      <stop offset="0.75" stop-color="#e8ebef" stop-opacity="0.7"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="fa-selecteur-bouton-inventaire-selectionne-glowStar" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  <filter id="fa-selecteur-bouton-inventaire-selectionne-haloLogo" filterUnits="userSpaceOnUse" x="0" y="0" width="4316" height="1024" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b0"/><feFlood flood-color="#3fdcff" flood-opacity="0.9"/><feComposite in2="b0" operator="in" result="h0"/><feGaussianBlur in="SourceAlpha" stdDeviation="12" result="b1"/><feFlood flood-color="#3fdcff" flood-opacity="0.85"/><feComposite in2="b1" operator="in" result="h1"/><feGaussianBlur in="SourceAlpha" stdDeviation="17" result="b2"/><feFlood flood-color="#3fdcff" flood-opacity="0.7"/><feComposite in2="b2" operator="in" result="h2"/><feMerge><feMergeNode in="h2"/><feMergeNode in="h1"/><feMergeNode in="h0"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="fa-selecteur-bouton-inventaire-selectionne-haloTexte" filterUnits="userSpaceOnUse" x="0" y="0" width="4316" height="1024" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b0"/><feFlood flood-color="#3fdcff" flood-opacity="1.0"/><feComposite in2="b0" operator="in" result="h0"/><feGaussianBlur in="SourceAlpha" stdDeviation="10" result="b1"/><feFlood flood-color="#3fdcff" flood-opacity="0.95"/><feComposite in2="b1" operator="in" result="h1"/><feGaussianBlur in="SourceAlpha" stdDeviation="20" result="b2"/><feFlood flood-color="#3fdcff" flood-opacity="0.85"/><feComposite in2="b2" operator="in" result="h2"/><feMerge><feMergeNode in="h2"/><feMergeNode in="h1"/><feMergeNode in="h0"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <mask id="fa-selecteur-bouton-inventaire-selectionne-mChest" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect x="-2000" y="-2000" width="5000" height="5000" fill="#fff"/><path d="M 352 300 L 352 700 M 672 300 L 672 700" stroke="#000" stroke-width="14" fill="none"/><path d="M 482 440 L 542 440 L 542 494 L 512 520 L 482 494 Z" fill="#000" stroke="#000" stroke-width="22" stroke-linejoin="miter"/></mask>
+    <mask id="fa-selecteur-bouton-inventaire-selectionne-mLock" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect x="-2000" y="-2000" width="5000" height="5000" fill="#fff"/><circle cx="512" cy="468" r="10" fill="#000"/><path d="M 507 470 L 517 470 L 521 494 L 503 494 Z" fill="#000"/></mask>
+  </defs>
+<g filter="url(#fa-selecteur-bouton-inventaire-selectionne-haloLogo)">
+  <g shape-rendering="geometricPrecision">
+    <rect x="1010" y="220" width="3134" height="4" fill="url(#fa-selecteur-bouton-inventaire-selectionne-fadeH)"/><rect x="1010" y="800" width="3134" height="4" fill="url(#fa-selecteur-bouton-inventaire-selectionne-fadeH)"/>
+    <path d="M 874.2 250.0 L 4163.7 250.0 L 4245.7 332.0 L 4245.7 692.0 L 4163.7 774.0 L 874.2 774.0 L 865.5 774.0 A 440 440 0 0 0 865.5 250.0 Z" fill="url(#fa-selecteur-bouton-inventaire-selectionne-plateFill)"/>
+    <path d="M 884.6 265.0 L 4148.7 265.0 L 4230.7 347.0 L 4230.7 677.0 L 4148.7 759.0 L 884.6 759.0" fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="2.5" stroke-linejoin="miter"/>
+    <path d="M 874.2 250.0 L 4163.7 250.0 L 4245.7 332.0 L 4245.7 692.0 L 4163.7 774.0 L 874.2 774.0" fill="none" stroke="url(#fa-selecteur-bouton-inventaire-selectionne-silver)" stroke-width="11" stroke-linejoin="miter" stroke-linecap="butt"/>
+    <rect x="1133.5" y="433.4" width="3" height="157.2" fill="url(#fa-selecteur-bouton-inventaire-selectionne-fadeV)"/>
+  </g>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-selecteur-bouton-inventaire-selectionne-silver)" stroke-width="22"/>
+    <g transform="translate(0 9)"><path d="M 272 462 L 272 410 C 272 340 380 316 512 316 C 644 316 752 340 752 410 L 752 462 Z" fill="url(#fa-selecteur-bouton-inventaire-selectionne-silver)" mask="url(#fa-selecteur-bouton-inventaire-selectionne-mChest)"/><path d="M 288 480 L 736 480 L 752 496 L 752 674 L 736 690 L 288 690 L 272 674 L 272 496 Z" fill="url(#fa-selecteur-bouton-inventaire-selectionne-silver)" mask="url(#fa-selecteur-bouton-inventaire-selectionne-mChest)"/><g filter="url(#fa-selecteur-bouton-inventaire-selectionne-glowSoft)"><path d="M 482 440 L 542 440 L 542 494 L 512 520 L 482 494 Z" fill="url(#fa-selecteur-bouton-inventaire-selectionne-cyanL)" mask="url(#fa-selecteur-bouton-inventaire-selectionne-mLock)"/></g></g>
+    <g filter="url(#fa-selecteur-bouton-inventaire-selectionne-glow)">
+      <path d="M 512 110 L 512 282 L 491 189.12 Z" fill="url(#fa-selecteur-bouton-inventaire-selectionne-cyanL)"/>
+      <path d="M 512 110 L 533 189.12 L 512 282 Z" fill="url(#fa-selecteur-bouton-inventaire-selectionne-cyanR)"/>
+      <path d="M 512 122 L 514.2 189.12 L 512 270 L 509.8 189.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 175.12 L 515 186.12 L 526 189.12 L 515 192.12 L 512 203.12 L 509 192.12 L 498 189.12 L 509 186.12 Z" fill="#ffffff"/>
+    </g>
+    
+    <g filter="url(#fa-selecteur-bouton-inventaire-selectionne-glow)">
+      <path d="M 512 744 L 512 916 L 491 823.12 Z" fill="url(#fa-selecteur-bouton-inventaire-selectionne-cyanL)"/>
+      <path d="M 512 744 L 533 823.12 L 512 916 Z" fill="url(#fa-selecteur-bouton-inventaire-selectionne-cyanR)"/>
+      <path d="M 512 756 L 514.2 823.12 L 512 904 L 509.8 823.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 809.12 L 515 820.12 L 526 823.12 L 515 826.12 L 512 837.12 L 509 826.12 L 498 823.12 L 509 820.12 Z" fill="#ffffff"/>
+    </g>
+  </g></g>
+  <g filter="url(#fa-selecteur-bouton-inventaire-selectionne-haloTexte)"><g><path d="M1674.7553 357.9136L1699.4466 359.8889C1699.9404 384.5802 1699.9404 409.2716 1699.9404 434.2099V447.2963C1699.9404 471.9877 1699.9404 496.9259 1699.4466 521.1235L1674.7553 523.3457V531H1751.0516V523.3457L1726.1133 521.1235C1725.6195 496.4321 1725.6195 471.9877 1725.6195 447.0494V434.2099C1725.6195 409.2716 1725.6195 384.5802 1726.1133 359.8889L1751.0516 357.9136V350.2593H1674.7553ZM1960.2499 532.4815H1972.8425V360.6296L1997.0401 357.9136V350.2593H1932.8425V357.9136L1963.4598 360.6296V429.5185L1963.9536 494.9506L1865.9289 350.2593H1819.0154V357.9136L1842.2252 359.642L1842.966 360.6296V520.3827L1819.2623 523.3457V531H1883.4598V523.3457L1853.3364 520.3827V456.4321L1852.1018 373.963ZM2166.7316 357.9136L2193.8921 360.6296L2147.9662 503.3457L2100.0649 360.1358L2127.7193 357.9136V350.2593H2052.6575V357.9136L2072.9044 359.642L2133.3983 532.4815H2147.2254L2205.2501 360.3827L2227.2254 357.6667V350.2593H2166.7316ZM2409.7563 395.6914H2421.1143L2419.6328 350.2593H2286.7933V357.9136L2311.4847 359.8889C2311.9785 384.5802 2311.9785 409.2716 2311.9785 434.2099V447.2963C2311.9785 471.9877 2311.9785 496.9259 2311.4847 521.1235L2286.7933 523.3457V531H2424.3242L2425.5588 484.8272H2414.4477L2406.5464 522.358H2337.9044C2337.6575 497.4198 2337.6575 472.2346 2337.6575 443.3457H2379.3859L2382.5958 468.5309H2391.9785V409.2716H2382.5958L2379.3859 434.9506H2337.6575C2337.6575 408.284 2337.6575 383.3457 2337.9044 359.1481H2402.102ZM2632.7789 532.4815H2645.3715V360.6296L2669.5691 357.9136V350.2593H2605.3715V357.9136L2635.9888 360.6296V429.5185L2636.4827 494.9506L2538.458 350.2593H2491.5444V357.9136L2514.7543 359.642L2515.495 360.6296V520.3827L2491.7913 523.3457V531H2555.9888V523.3457L2525.8654 520.3827V456.4321L2524.6308 373.963ZM2729.3845 398.4074H2740.7425L2748.8907 359.1481H2793.582C2794.0759 384.0864 2794.0759 409.0247 2794.0759 434.2099V447.2963C2794.0759 471.9877 2794.0759 496.679 2793.582 520.8765L2765.9277 523.3457V531H2847.6561V523.3457L2819.7549 520.8765C2819.508 496.4321 2819.508 471.7407 2819.508 447.0494V434.2099C2819.508 409.0247 2819.508 383.8395 2819.7549 359.1481H2864.4462L2872.5944 398.4074H2883.9524L2881.9771 350.2593H2731.3598ZM3013.3923 347.54L3089.0023 527.05L3098.4623 527.05L3098.4623 531L3063.6423 531L3063.6423 527.05L3068.5523 527.05L3005.4423 378.14L2944.4623 527.05L2950.5523 527.05L2950.5523 531L2926.6023 531L2926.6023 527.05L2935.2223 527.05ZM3157.4102 357.9136L3182.1016 359.8889C3182.5954 384.5802 3182.5954 409.2716 3182.5954 434.2099V447.2963C3182.5954 471.9877 3182.5954 496.9259 3182.1016 521.1235L3157.4102 523.3457V531H3233.7065V523.3457L3208.7683 521.1235C3208.2744 496.4321 3208.2744 471.9877 3208.2744 447.0494V434.2099C3208.2744 409.2716 3208.2744 384.5802 3208.7683 359.8889L3233.7065 357.9136V350.2593H3157.4102ZM3303.8939 357.9136L3328.5853 359.8889C3329.0791 384.5802 3329.0791 409.2716 3329.0791 434.2099V447.2963C3329.0791 471.9877 3329.0791 496.9259 3328.5853 521.1235L3303.8939 523.3457V531H3380.1902V523.3457L3355.005 521.1235C3354.2643 496.9259 3354.2643 472.4815 3354.2643 446.3086H3371.7952C3393.2766 446.3086 3399.6964 454.2099 3404.8816 474.7037L3416.2396 515.1975C3418.9557 528.5309 3426.8569 533.716 3444.3877 533.716C3454.0174 533.716 3460.684 532.4815 3467.1038 531V523.3457L3443.647 521.8642L3430.8075 476.9259C3425.8692 456.679 3418.4618 446.3086 3396.9803 442.6049C3429.8198 437.1728 3444.8816 418.6543 3444.8816 396.679C3444.8816 367.0494 3422.1655 350.2593 3381.9186 350.2593H3303.8939ZM3355.005 358.9012H3377.2273C3406.3631 358.9012 3420.4371 372.9753 3420.4371 396.9259C3420.4371 419.8889 3405.3754 438.1605 3377.7211 438.1605H3354.2643C3354.2643 408.284 3354.2643 383.3457 3355.005 358.9012ZM3651.1164 395.6914H3662.4744L3660.9929 350.2593H3528.1534V357.9136L3552.8448 359.8889C3553.3386 384.5802 3553.3386 409.2716 3553.3386 434.2099V447.2963C3553.3386 471.9877 3553.3386 496.9259 3552.8448 521.1235L3528.1534 523.3457V531H3665.6843L3666.9189 484.8272H3655.8077L3647.9065 522.358H3579.2645C3579.0176 497.4198 3579.0176 472.2346 3579.0176 443.3457H3620.746L3623.9559 468.5309H3633.3386V409.2716H3623.9559L3620.746 434.9506H3579.0176C3579.0176 408.284 3579.0176 383.3457 3579.2645 359.1481H3643.4621Z" fill="url(#fa-selecteur-bouton-inventaire-selectionne-silverText)"/>
+    <path d="M 1662.2 630.0 L 1709.7 626.0 L 2615.8 626.0 L 2615.8 634.0 L 1709.7 634.0 Z M 3677.5 630.0 L 3630.0 626.0 L 2723.8 626.0 L 2723.8 634.0 L 3630.0 634.0 Z" fill="url(#fa-selecteur-bouton-inventaire-selectionne-silver)" opacity="0.9"/>
+    <g filter="url(#fa-selecteur-bouton-inventaire-selectionne-glowStar)"><path d="M 2669.8 586.8 L 2679.7 620.1 L 2704.4 630.0 L 2679.7 639.9 L 2669.8 673.2 L 2659.9 639.9 L 2635.3 630.0 L 2659.9 620.1 Z" fill="url(#fa-selecteur-bouton-inventaire-selectionne-cyanL)"/><path d="M 2669.8 610.6 L 2674.8 630.0 L 2669.8 649.4 L 2664.9 630.0 Z" fill="#ffffff"/></g></g></g>
+</svg>

@@ -8,16 +8,19 @@
 
 import type { CSSProperties } from "react";
 
-export type VueApp = "analyseur" | "loadouts" | "bibliotheque";
+export type VueApp = "analyseur" | "loadouts" | "forge" | "bibliotheque" | "carriere" | "accomplissements";   // ⚠️ v0.4.0 : + « forge »
 
 // FR : ⚠️ CHANGÉ (07/10/2026, v0.3.16) - les fichiers viennent du catalogue de l'archive « forge-armory-app-assets » (`urlVisuel`, identifiants `selecteur.<vue>.repos|selectionne`) au lieu de chemins écrits ici. / EN: ⚠️ CHANGED - files now come from the supplied catalogue.
 import { urlVisuel } from "../lib/visuelsForge";
 
-/** FR : l'ordre est celui demandé : Build Analyzer, Load-outs, Bibliothèque. / EN: the requested order. */
+/** FR : l'ordre est celui demandé : Build Analyzer, Load-outs, Forge, Legendarium (Forge ajoutée en v0.4.0 ; « Bibliothèque » renommée « Legendarium » en v0.4.4). / EN: the requested order. */
+/** FR : ⚠️ 22/10/2026 (TODO §25, retour utilisateur « les boutons apparaissent en double ») : les PAGES « Carrière » et « Accomplissements » du compte (ouvertes par les boutons du même nom du bloc Connexion ; `VueApp` = « carriere » / « accomplissements ») ne SONT PAS des onglets de ce sélecteur : elles ne figurent PAS dans `VUES`, pour ne pas doublonner les boutons du bloc Connexion. Le sélecteur garde ses QUATRE onglets de navigation. / EN: the account pages are NOT selector tabs (no duplicates with the Connection block's buttons). */
 const VUES: { valeur: VueApp; libelle: string; fichier: string }[] = [
   { valeur: "analyseur", libelle: "Build Analyzer", fichier: "build-analyzer" },
   { valeur: "loadouts", libelle: "Load-outs", fichier: "loadouts" },
-  { valeur: "bibliotheque", libelle: "Bibliothèque", fichier: "bibliotheque" },
+  { valeur: "forge", libelle: "Forge", fichier: "forge" },   // ⚠️ AJOUT (12/10/2026, v0.4.0) : nouvel onglet, entre Load-outs et Bibliothèque (demande de l'utilisateur)
+  // FR : ⚠️ CHANGÉ (13/10/2026, v0.4.4), demande de l'utilisateur : le bouton « Bibliothèque » devient « LEGENDARIUM » (visuels de l'archive v5 : `selecteur.legendarium.*`). L'IDENTIFIANT INTERNE reste « bibliotheque » (la vue choisie est mémorisée et les tests la nomment ainsi) : seuls le libellé affiché, lu par les lecteurs d'écran, et les images changent. / EN: ⚠️ CHANGED - the "Library" button is now "Legendarium"; the internal id stays "bibliotheque" (the chosen view is remembered).
+  { valeur: "bibliotheque", libelle: "Legendarium", fichier: "legendarium" },
 ];
 
 /**
@@ -43,6 +46,31 @@ export function BoutonVue({ vue, libelle, actif = false, hauteur, roleOnglet = f
     >
       <img className="bouton-vue__repos" src={urlVisuel(`selecteur.${fichier}.repos`)} alt="" draggable={false} />
       <img className="bouton-vue__actif" src={urlVisuel(`selecteur.${fichier}.selectionne`)} alt="" draggable={false} />
+    </button>
+  );
+}
+
+/**
+ * FR : ⚠️ AJOUT (13/10/2026, v0.4.4) - BOUTON STYLISÉ d'un SOUS-MENU de la Forge (« Collection », « Inventaire »), demande de l'utilisateur : « une fois les tests réalisés, on utilisera le bouton stylisé pour sélectionner la Collection (archive v4) ; pour l'Inventaire, un bouton au format du sélecteur » (option 2 du 13/10/2026). Mêmes images à deux états superposés, mêmes règles CSS (`bouton-vue` : survol, anneau de focus clavier,
+ * lueur contenue dans le cadre) et même cadre 4316 × 1024 que les boutons du sélecteur principal ; seule la hauteur diffère (`hauteur`, 2,75 rem par défaut : au-dessus du minimum de 40 px de la charte). C'est un ONGLET (`role="tab"`) : son nom est dans `aria-label` puisque le titre est dans l'image.
+ * EN: ⚠️ ADDED - stylised button of a Forge sub-menu (Collection, Inventory): same two stacked states and CSS as the main selector, smaller height.
+ */
+export function BoutonSousMenu({ identifiant, libelle, actif, hauteur = "2.75rem", onClick }: { identifiant: "collection" | "inventaire"; libelle: string; actif: boolean; hauteur?: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={actif}
+      aria-label={libelle}
+      title={libelle}
+      className="bouton-vue"
+      data-actif={actif}
+      data-sous-menu={identifiant}
+      onClick={onClick}
+      style={{ "--hauteur-bouton": hauteur } as CSSProperties}
+    >
+      <img className="bouton-vue__repos" src={urlVisuel(`selecteur.${identifiant}.repos`)} alt="" draggable={false} />
+      <img className="bouton-vue__actif" src={urlVisuel(`selecteur.${identifiant}.selectionne`)} alt="" draggable={false} />
     </button>
   );
 }

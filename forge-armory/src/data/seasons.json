@@ -1,0 +1,254 @@
+[
+ {
+  "numero": 1,
+  "nom": "Season 1",
+  "nomCourt": null,
+  "type": "saison",
+  "debut": "2017-09-06",
+  "fin": "2017-12-04",
+  "extension": "Red War"
+ },
+ {
+  "numero": 2,
+  "nom": "Season 2",
+  "nomCourt": null,
+  "type": "saison",
+  "debut": "2017-12-05",
+  "fin": "2018-05-07",
+  "extension": "Curse of Osiris"
+ },
+ {
+  "numero": 3,
+  "nom": "Season of Resurgence",
+  "nomCourt": "Resurgence",
+  "type": "saison",
+  "debut": "2018-05-08",
+  "fin": "2018-09-03",
+  "extension": "Warmind"
+ },
+ {
+  "numero": 4,
+  "nom": "Season of the Outlaw",
+  "nomCourt": "the Outlaw",
+  "type": "saison",
+  "debut": "2018-09-04",
+  "fin": "2018-11-26",
+  "extension": "Forsaken"
+ },
+ {
+  "numero": 5,
+  "nom": "Season of the Forge",
+  "nomCourt": "the Forge",
+  "type": "saison",
+  "debut": "2018-11-27",
+  "fin": "2019-03-04",
+  "extension": "Black Armory"
+ },
+ {
+  "numero": 6,
+  "nom": "Season of the Drifter",
+  "nomCourt": "the Drifter",
+  "type": "saison",
+  "debut": "2019-03-05",
+  "fin": "2019-06-03",
+  "extension": "Joker's Wild"
+ },
+ {
+  "numero": 7,
+  "nom": "Season of Opulence",
+  "nomCourt": "Opulence",
+  "type": "saison",
+  "debut": "2019-06-04",
+  "fin": "2019-09-30",
+  "extension": "Penumbra"
+ },
+ {
+  "numero": 8,
+  "nom": "Season of the Undying",
+  "nomCourt": "the Undying",
+  "type": "saison",
+  "debut": "2019-10-01",
+  "fin": "2019-12-09",
+  "extension": "Shadowkeep"
+ },
+ {
+  "numero": 9,
+  "nom": "Season of Dawn",
+  "nomCourt": "Dawn",
+  "type": "saison",
+  "debut": "2019-12-10",
+  "fin": "2020-03-09",
+  "extension": null
+ },
+ {
+  "numero": 10,
+  "nom": "Season of the Worthy",
+  "nomCourt": "the Worthy",
+  "type": "saison",
+  "debut": "2020-03-10",
+  "fin": "2020-06-08",
+  "extension": null
+ },
+ {
+  "numero": 11,
+  "nom": "Season of Arrivals",
+  "nomCourt": "Arrivals",
+  "type": "saison",
+  "debut": "2020-06-09",
+  "fin": "2020-11-09",
+  "extension": null
+ },
+ {
+  "numero": 12,
+  "nom": "Season of the Hunt",
+  "nomCourt": "the Hunt",
+  "type": "saison",
+  "debut": "2020-11-10",
+  "fin": "2021-02-08",
+  "extension": "Beyond Light"
+ },
+ {
+  "numero": 13,
+  "nom": "Season of the Chosen",
+  "nomCourt": "the Chosen",
+  "type": "saison",
+  "debut": "2021-02-09",
+  "fin": "2021-05-10",
+  "extension": null
+ },
+ {
+  "numero": 14,
+  "nom": "Season of the Splicer",
+  "nomCourt": "the Splicer",
+  "type": "saison",
+  "debut": "2021-05-11",
+  "fin": "2021-08-23",
+  "extension": null
+ },
+ {
+  "numero": 15,
+  "nom": "Season of the Lost",
+  "nomCourt": "the Lost",
+  "type": "saison",
+  "debut": "2021-08-24",
+  "fin": "2022-02-21",
+  "extension": null
+ },
+ {
+  "numero": 16,
+  "nom": "Season of the Risen",
+  "nomCourt": "the Risen",
+  "type": "saison",
+  "debut": "2022-02-22",
+  "fin": "2022-05-23",
+  "extension": "Witch Queen"
+ },
+ {
+  "numero": 17,
+  "nom": "Season of the Haunted",
+  "nomCourt": "the Haunted",
+  "type": "saison",
+  "debut": "2022-05-24",
+  "fin": "2022-08-22",
+  "extension": null
+ },
+ {
+  "numero": 18,
+  "nom": "Season of Plunder",
+  "nomCourt": "Plunder",
+  "type": "saison",
+  "debut": "2022-08-23",
+  "fin": "2022-12-05",
+  "extension": null
+ },
+ {
+  "numero": 19,
+  "nom": "Season of the Seraph",
+  "nomCourt": "the Seraph",
+  "type": "saison",
+  "debut": "2022-12-06",
+  "fin": "2023-02-27",
+  "extension": null
+ },
+ {
+  "numero": 20,
+  "nom": "Season of Defiance",
+  "nomCourt": "Defiance",
+  "type": "saison",
+  "debut": "2023-02-28",
+  "fin": "2023-05-22",
+  "extension": "Lightfall"
+ },
+ {
+  "numero": 21,
+  "nom": "Season of the Deep",
+  "nomCourt": "the Deep",
+  "type": "saison",
+  "debut": "2023-05-23",
+  "fin": "2023-08-21",
+  "extension": null
+ },
+ {
+  "numero": 22,
+  "nom": "Season of the Witch",
+  "nomCourt": "the Witch",
+  "type": "saison",
+  "debut": "2023-08-22",
+  "fin": "2023-11-27",
+  "extension": null
+ },
+ {
+  "numero": 23,
+  "nom": "Season of the Wish",
+  "nomCourt": "the Wish",
+  "type": "saison",
+  "debut": "2023-11-28",
+  "fin": "2024-06-03",
+  "extension": null
+ },
+ {
+  "numero": 24,
+  "nom": "Episode  Echoes",
+  "nomCourt": " Echoes",
+  "type": "episode",
+  "debut": "2024-06-04",
+  "fin": "2024-10-07",
+  "extension": "The Final Shape"
+ },
+ {
+  "numero": 25,
+  "nom": "Episode  Revenant",
+  "nomCourt": " Revenant",
+  "type": "episode",
+  "debut": "2024-10-08",
+  "fin": "2025-02-03",
+  "extension": "Revenant"
+ },
+ {
+  "numero": 26,
+  "nom": "Episode  Heresy",
+  "nomCourt": " Heresy",
+  "type": "episode",
+  "debut": "2025-02-04",
+  "fin": "2025-07-14",
+  "extension": "Heresy"
+ },
+ {
+  "numero": 27,
+  "nom": "Season of Reclamation",
+  "nomCourt": "Reclamation",
+  "type": "saison",
+  "debut": "2025-07-15",
+  "fin": "2025-12-01",
+  "extension": "Edge of Fate"
+ },
+ {
+  "numero": 28,
+  "nom": "Season of Lawless",
+  "nomCourt": "Lawless",
+  "type": "saison",
+  "debut": "2025-12-02",
+  "fin": null,
+  "extension": "Renegades"
+ }
+]

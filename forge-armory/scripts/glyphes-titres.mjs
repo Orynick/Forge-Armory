@@ -102,9 +102,12 @@ export function centrer(texte, centre) {
 
 /** Le tracé du soulignage (deux segments de part et d'autre du cristal, `opacity="0.9"`). */
 export function trouverSoulignage(svg) {
-  const m = /<path\b[^>]*\bopacity="0\.9"[^>]*>/.exec(svg);
-  if (!m) throw new Error("soulignage introuvable");
-  return { balise: m[0], d: /\bd="([^"]+)"/.exec(m[0])[1], index: m.index };
+  // ⚠️ CORRIGÉ (12/10/2026) : dans les BOUTONS (cristaux), les reflets des cristaux sont aussi des tracés à opacity 0.9 ; le soulignage est celui dont le tracé compte exactement 20 nombres (deux segments de 5 points).
+  for (const m of svg.matchAll(/<path\b[^>]*\bopacity="0\.9"[^>]*>/g)) {
+    const d = /\bd="([^"]+)"/.exec(m[0])?.[1];
+    if (d && (d.match(/-?\d*\.?\d+/g) ?? []).length === 20) return { balise: m[0], d, index: m.index };
+  }
+  throw new Error("soulignage introuvable");
 }
 
 /**
@@ -120,9 +123,10 @@ export function mesurerBords(svg, texte) {
 export function souligner(modele, xg, xd) {
   const n = modele.match(/-?\d*\.?\d+/g).map(Number);
   if (n.length !== 20) throw new Error(`soulignage : 20 nombres attendus, ${n.length} trouvés`);
-  const pointe = n[2] - n[0]; const f = (v) => v.toFixed(1);
+  // ⚠️ CORRIGÉ (12/10/2026) : l'ouverture pour l'étoile est recalculée AUTOUR DU CENTRE du nouveau soulignage (avant, elle gardait la position du modèle : correct tant que le centre ne bougeait pas, faux pour un titre de largeur différente)
+  const pointe = n[2] - n[0], demiOuverture = (n[14] - n[4]) / 2, c = (xg + xd) / 2; const f = (v) => v.toFixed(1);
   const seg = (a) => `M ${f(a[0])} ${f(a[1])} L ${f(a[2])} ${f(a[3])} L ${f(a[4])} ${f(a[5])} L ${f(a[6])} ${f(a[7])} L ${f(a[8])} ${f(a[9])} Z`;
-  return seg([xg, n[1], xg + pointe, n[3], n[4], n[5], n[6], n[7], xg + pointe, n[9]]) + " " + seg([xd, n[11], xd - pointe, n[13], n[14], n[15], n[16], n[17], xd - pointe, n[19]]);
+  return seg([xg, n[1], xg + pointe, n[3], c - demiOuverture, n[5], c - demiOuverture, n[7], xg + pointe, n[9]]) + " " + seg([xd, n[11], xd - pointe, n[13], c + demiOuverture, n[15], c + demiOuverture, n[17], xd - pointe, n[19]]);
 }
 
 /** Remplace l'attribut `d` d'une balise `<path>` repérée par son index dans le SVG. */

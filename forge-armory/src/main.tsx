@@ -10,9 +10,22 @@ import ReactDOM from "react-dom/client";
 // browser.
 import { BrowserRouter, HashRouter } from "react-router-dom";
 import App from "./App";
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `estBureau()` (typée) remplace le cast `as any` sur `window.appBureau`. / EN: ⚠️ CHANGED - typed `estBureau()` replaces the `as any` cast.
+import { estBureau } from "./lib/bungie/oauth";
+// FR : ⛔ AJOUT (21/10/2026, branche draft-sec) - peuplé AVANT le premier
+// rendu : les jetons (lus de façon synchrone par `etatSession` au montage du
+// tableau de bord) doivent être en cache mémoire dès le départ. La promesse
+// n'est pas attendue : en attendant, la lecture retombe sur localStorage.
+// EN: populated BEFORE the first render: the tokens (read synchronously by
+// `etatSession` when the dashboard mounts) must be in the in-memory cache from
+// the start. The promise is not awaited: meanwhile, reads fall back to
+// localStorage.
+import { initialiserStockageSecurise } from "./lib/stockageSecurise";
 import "./index.css";
 
-const Routeur = (window as any).appBureau?.estBureau ? HashRouter : BrowserRouter;
+void initialiserStockageSecurise();
+
+const Routeur = estBureau() ? HashRouter : BrowserRouter;
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

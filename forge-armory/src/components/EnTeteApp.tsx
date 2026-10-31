@@ -7,10 +7,13 @@
 // l'image d'origine par ressources-installateur/forge-armory/generer-icones.py) :
 // public/logo-forge-armory-embleme.png et -texte.png.
 //
-// ⚠️ Seul l'EN-TÊTE change de nom : `productName`, titre de la fenêtre, exports et clés
-// de stockage restent « D2 Build Analyzer » (TODO, section 12, renommage).
+// ⚠️ Seul l'EN-TÊTE change de nom : `productName` et titre de la fenêtre sont
+// « Forge Armory », mais les clés de stockage (localStorage/IndexedDB) restent
+// historiquement « d2-build-analyzer.* » / « d2ba.* » : les renommer perdrait
+// les données des utilisateurs (voir electron/dossierDonnees.cjs pour le dossier
+// de données, géré de la même manière).
 // Versions précédentes : ancien en-tête (Cryptarque + Spectre) dans
-// ressources-installateur/ancien-logo/ancien-en-tete.txt ; essai du 01/10 (logo
+// ressources-installateur/forge-armory/archives-precedentes/ancien-logo/ancien-en-tete.txt ; essai du 01/10 (logo
 // à côté de « D2 Build Analyzer », placement par mesure) remplacé.
 // EN: ⚠️ CHANGED - header with the Forge Armory visual identity, size "B": emblem on the
 // left, text block shifted RIGHT, the emblem's CIRCLE spanning from the title's top to

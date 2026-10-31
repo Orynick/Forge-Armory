@@ -1,7 +1,7 @@
 // Généré — catalogue des visuels Forge Armory (voir manifest.json). Les chemins sont relatifs à ce fichier.
 export type ForgeEtat = 'repos' | 'selectionne' | 'replie' | 'deplie' | null;
 export type ForgeFamille = 'selecteur' | 'profils' | 'blocs-repliables' | 'titres' | 'icones' | 'symboles' | 'marque';
-export interface ForgeAsset { id: string; famille: ForgeFamille; label: string; etat: ForgeEtat; fichier: string; largeur: number; hauteur: number; ratio: number; hauteurMinPx: number; couleur?: string; }
+export interface ForgeAsset { id: string; famille: ForgeFamille; label: string; etat: ForgeEtat; fichier: string; largeur: number; hauteur: number; ratio: number; hauteurMinPx: number; format: 'svg' | 'png'; couleur?: string; }
 export const FORGE_ASSETS: readonly ForgeAsset[] = [
  {
   "id": "selecteur.build-analyzer.repos",
@@ -12,7 +12,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 4316,
   "hauteur": 1024,
   "ratio": 4.2148,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "selecteur.build-analyzer.selectionne",
@@ -23,29 +24,32 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 4316,
   "hauteur": 1024,
   "ratio": 4.2148,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
-  "id": "selecteur.bibliotheque.repos",
+  "id": "selecteur.legendarium.repos",
   "famille": "selecteur",
-  "label": "Bibliothèque",
+  "label": "Legendarium",
   "etat": "repos",
-  "fichier": "assets/selecteur/bouton-bibliotheque.svg",
+  "fichier": "assets/selecteur/bouton-legendarium.svg",
   "largeur": 4316,
   "hauteur": 1024,
   "ratio": 4.2148,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
-  "id": "selecteur.bibliotheque.selectionne",
+  "id": "selecteur.legendarium.selectionne",
   "famille": "selecteur",
-  "label": "Bibliothèque",
+  "label": "Legendarium",
   "etat": "selectionne",
-  "fichier": "assets/selecteur/bouton-bibliotheque-selectionne.svg",
+  "fichier": "assets/selecteur/bouton-legendarium-selectionne.svg",
   "largeur": 4316,
   "hauteur": 1024,
   "ratio": 4.2148,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "selecteur.loadouts.repos",
@@ -56,7 +60,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 4316,
   "hauteur": 1024,
   "ratio": 4.2148,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "selecteur.loadouts.selectionne",
@@ -67,7 +72,188 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 4316,
   "hauteur": 1024,
   "ratio": 4.2148,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.collection.repos",
+  "famille": "selecteur",
+  "label": "Collection",
+  "etat": "repos",
+  "fichier": "assets/selecteur/bouton-collection.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.collection.selectionne",
+  "famille": "selecteur",
+  "label": "Collection",
+  "etat": "selectionne",
+  "fichier": "assets/selecteur/bouton-collection-selectionne.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.armes.repos",
+  "famille": "selecteur",
+  "label": "Armes",
+  "etat": "repos",
+  "fichier": "assets/selecteur/bouton-armes.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.armes.selectionne",
+  "famille": "selecteur",
+  "label": "Armes",
+  "etat": "selectionne",
+  "fichier": "assets/selecteur/bouton-armes-selectionne.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.armures.repos",
+  "famille": "selecteur",
+  "label": "Armures",
+  "etat": "repos",
+  "fichier": "assets/selecteur/bouton-armures.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.armures.selectionne",
+  "famille": "selecteur",
+  "label": "Armures",
+  "etat": "selectionne",
+  "fichier": "assets/selecteur/bouton-armures-selectionne.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.carriere.repos",
+  "famille": "selecteur",
+  "label": "Carrière",
+  "etat": "repos",
+  "fichier": "assets/selecteur/bouton-carriere.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.carriere.selectionne",
+  "famille": "selecteur",
+  "label": "Carrière",
+  "etat": "selectionne",
+  "fichier": "assets/selecteur/bouton-carriere-selectionne.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.accomplissements.repos",
+  "famille": "selecteur",
+  "label": "Accomplissements",
+  "etat": "repos",
+  "fichier": "assets/selecteur/bouton-accomplissements.svg",
+  "largeur": 4897,
+  "hauteur": 1024,
+  "ratio": 4.7822,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.accomplissements.selectionne",
+  "famille": "selecteur",
+  "label": "Accomplissements",
+  "etat": "selectionne",
+  "fichier": "assets/selecteur/bouton-accomplissements-selectionne.svg",
+  "largeur": 4897,
+  "hauteur": 1024,
+  "ratio": 4.7822,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.optimisation.repos",
+  "famille": "selecteur",
+  "label": "Optimisation",
+  "etat": "repos",
+  "fichier": "assets/selecteur/bouton-optimisation.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "selecteur.optimisation.selectionne",
+  "famille": "selecteur",
+  "label": "Optimisation",
+  "etat": "selectionne",
+  "fichier": "assets/selecteur/bouton-optimisation-selectionne.svg",
+  "largeur": 4316,
+  "hauteur": 1024,
+  "ratio": 4.2148,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "icones.carriere",
+  "famille": "icones",
+  "label": "Carrière",
+  "etat": null,
+  "fichier": "assets/icones/icone-carriere.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.accomplissements",
+  "famille": "icones",
+  "label": "Accomplissements",
+  "etat": null,
+  "fichier": "assets/icones/icone-accomplissements.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.collection",
+  "famille": "icones",
+  "label": "Collection",
+  "etat": null,
+  "fichier": "assets/icones/icone-collection.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "profils.neutre.repos",
@@ -79,6 +265,7 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteur": 1024,
   "ratio": 3.6924,
   "hauteurMinPx": 40,
+  "format": "svg",
   "couleur": "#d9dde2"
  },
  {
@@ -91,6 +278,7 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteur": 1024,
   "ratio": 3.6924,
   "hauteurMinPx": 40,
+  "format": "svg",
   "couleur": "#d9dde2"
  },
  {
@@ -103,6 +291,7 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteur": 1024,
   "ratio": 3.6924,
   "hauteurMinPx": 40,
+  "format": "svg",
   "couleur": "#8fd64f"
  },
  {
@@ -115,6 +304,7 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteur": 1024,
   "ratio": 3.6924,
   "hauteurMinPx": 40,
+  "format": "svg",
   "couleur": "#8fd64f"
  },
  {
@@ -127,6 +317,7 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteur": 1024,
   "ratio": 3.6924,
   "hauteurMinPx": 40,
+  "format": "svg",
   "couleur": "#e8b53a"
  },
  {
@@ -139,6 +330,7 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteur": 1024,
   "ratio": 3.6924,
   "hauteurMinPx": 40,
+  "format": "svg",
   "couleur": "#e8b53a"
  },
  {
@@ -151,6 +343,7 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteur": 1024,
   "ratio": 3.6924,
   "hauteurMinPx": 40,
+  "format": "svg",
   "couleur": "#e43030"
  },
  {
@@ -163,6 +356,7 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteur": 1024,
   "ratio": 3.6924,
   "hauteurMinPx": 40,
+  "format": "svg",
   "couleur": "#e43030"
  },
  {
@@ -174,7 +368,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.connexion.deplie",
@@ -185,7 +380,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.manifest.replie",
@@ -196,7 +392,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.manifest.deplie",
@@ -207,7 +404,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.mon-build.replie",
@@ -218,7 +416,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.mon-build.deplie",
@@ -229,7 +428,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.artefact.replie",
@@ -240,7 +440,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.artefact.deplie",
@@ -251,7 +452,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.sauvegarde.replie",
@@ -262,7 +464,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.sauvegarde.deplie",
@@ -273,7 +476,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.doctrine.replie",
@@ -284,7 +488,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.doctrine.deplie",
@@ -295,7 +500,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.inventaire.replie",
@@ -306,7 +512,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "blocs-repliables.inventaire.deplie",
@@ -317,7 +524,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7805,
   "hauteur": 1024,
   "ratio": 7.6221,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "titres.contexte-0.repos",
@@ -328,7 +536,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7505,
   "hauteur": 1024,
   "ratio": 7.3291,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "titres.contexte-ligne.repos",
@@ -339,7 +548,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7505,
   "hauteur": 1024,
   "ratio": 7.3291,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "titres.1-element-doctrine.repos",
@@ -350,7 +560,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7505,
   "hauteur": 1024,
   "ratio": 7.3291,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "titres.2-artefact.repos",
@@ -361,7 +572,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7505,
   "hauteur": 1024,
   "ratio": 7.3291,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "titres.3-armes-armures.repos",
@@ -372,7 +584,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7505,
   "hauteur": 1024,
   "ratio": 7.3291,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "titres.4-effets-build.repos",
@@ -383,7 +596,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7505,
   "hauteur": 1024,
   "ratio": 7.3291,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "titres.5-statistiques.repos",
@@ -394,7 +608,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7505,
   "hauteur": 1024,
   "ratio": 7.3291,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
   "id": "titres.score-global.repos",
@@ -405,18 +620,20 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 7505,
   "hauteur": 1024,
   "ratio": 7.3291,
-  "hauteurMinPx": 40
+  "hauteurMinPx": 40,
+  "format": "svg"
  },
  {
-  "id": "icones.bibliotheque",
+  "id": "icones.legendarium",
   "famille": "icones",
-  "label": "Bibliothèque",
+  "label": "Legendarium",
   "etat": null,
-  "fichier": "assets/icones/icone-bibliotheque.svg",
+  "fichier": "assets/icones/icone-legendarium.svg",
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.build-analyzer",
@@ -427,7 +644,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.loadouts",
@@ -438,7 +656,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.dps",
@@ -449,7 +668,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.neutre",
@@ -460,7 +680,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.pvp",
@@ -471,7 +692,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.roaming",
@@ -482,18 +704,44 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.armes-armures",
   "famille": "icones",
-  "label": "armes-armures",
+  "label": "Armes et Armures",
   "etat": null,
   "fichier": "assets/icones/icone-armes-armures.svg",
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.armes",
+  "famille": "icones",
+  "label": "Armes",
+  "etat": null,
+  "fichier": "assets/icones/icone-armes.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.armures",
+  "famille": "icones",
+  "label": "Armures",
+  "etat": null,
+  "fichier": "assets/icones/icone-armures.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.artefact",
@@ -504,7 +752,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.connexion",
@@ -515,7 +764,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.contexte",
@@ -526,7 +776,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.doctrine",
@@ -537,7 +788,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.effets-build",
@@ -548,7 +800,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.inventaire",
@@ -559,7 +812,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.manifest",
@@ -570,7 +824,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.mon-build",
@@ -581,7 +836,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.sauvegarde",
@@ -592,7 +848,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.score-global",
@@ -603,7 +860,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "icones.statistiques",
@@ -614,7 +872,32 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.optimisation",
+  "famille": "icones",
+  "label": "Optimisation",
+  "etat": null,
+  "fichier": "assets/icones/icone-optimisation.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.optimisation.selectionne",
+  "famille": "icones",
+  "label": "Optimisation (sélectionné)",
+  "etat": "selectionne",
+  "fichier": "assets/icones/icone-optimisation-selectionne.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "symboles.dps",
@@ -625,7 +908,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 301.2,
   "hauteur": 331.5,
   "ratio": 0.9086,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "symboles.neutre",
@@ -636,7 +920,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 197,
   "hauteur": 182.2,
   "ratio": 1.0812,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "symboles.pvp",
@@ -647,7 +932,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 317,
   "hauteur": 333.5,
   "ratio": 0.9505,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "symboles.roaming",
@@ -658,7 +944,8 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 266.8,
   "hauteur": 212.2,
   "ratio": 1.2573,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
  },
  {
   "id": "marque.emblem",
@@ -669,7 +956,32 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,
-  "hauteurMinPx": 24
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "marque.logo-forge-armory",
+  "famille": "marque",
+  "label": "Logo Forge Armory (titre avec cristaux dans les deux O)",
+  "etat": null,
+  "fichier": "assets/marque/logo-forge-armory.png",
+  "largeur": 1092,
+  "hauteur": 1092,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "png"
+ },
+ {
+  "id": "marque.forge-armory-declinaisons",
+  "famille": "marque",
+  "label": "Planche des déclinaisons du logo",
+  "etat": null,
+  "fichier": "assets/marque/forge-armory-declinaisons.png",
+  "largeur": 1344,
+  "hauteur": 896,
+  "ratio": 1.5,
+  "hauteurMinPx": 24,
+  "format": "png"
  }
 ] as const;
 export const forgeAsset = (id: string): ForgeAsset | undefined => FORGE_ASSETS.find((a) => a.id === id);

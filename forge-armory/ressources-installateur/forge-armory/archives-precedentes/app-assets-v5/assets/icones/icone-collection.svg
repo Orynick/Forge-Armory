@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="fa-icones-icone-collection-title">
+  <title id="fa-icones-icone-collection-title">Forge Armory — Collection (icône)</title>
+  <defs>
+    <linearGradient id="fa-icones-icone-collection-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-collection-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-collection-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-collection-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-collection-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-icones-icone-collection-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    
+    <linearGradient id="fa-icones-icone-collection-plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131923"/><stop offset="1" stop-color="#080b11"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-collection-fadeH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.12" stop-color="#e8ebef" stop-opacity="0.85"/>
+      <stop offset="0.88" stop-color="#e8ebef" stop-opacity="0.85"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-collection-fadeV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.25" stop-color="#e8ebef" stop-opacity="0.7"/>
+      <stop offset="0.75" stop-color="#e8ebef" stop-opacity="0.7"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-collection-glowStar" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-icones-icone-collection-silver)" stroke-width="22"/>
+    <g transform="translate(512 512) scale(0.8) translate(-515.0 -586)"><path d="M 273.7 365.7 L 425.7 487.7 L 428.7 478.0 L 460.7 489.0 L 312.7 352.3 Z M 128.3 356.7 L 135.0 393.3 L 271.0 468.0 L 270.7 440.3 Z M 93.3 398.0 L 102.0 435.3 L 203.0 502.0 L 202.7 703.3 L 422.0 840.3 L 430.0 838.0 L 435.3 807.3 L 268.7 699.7 L 270.0 491.7 Z M 299.0 431.0 L 297.0 682.7 L 434.3 773.3 L 434.3 524.0 Z M 756.3 365.7 L 604.3 487.7 L 601.3 478.0 L 569.3 489.0 L 717.3 352.3 Z M 901.7 356.7 L 895.0 393.3 L 759.0 468.0 L 759.3 440.3 Z M 936.7 398.0 L 928.0 435.3 L 827.0 502.0 L 827.3 703.3 L 608.0 840.3 L 600.0 838.0 L 594.7 807.3 L 761.3 699.7 L 760.0 491.7 Z M 731.0 431.0 L 733.0 682.7 L 595.7 773.3 L 595.7 524.0 Z" fill="url(#fa-icones-icone-collection-silver)" fill-rule="evenodd"/></g><g filter="url(#fa-icones-icone-collection-glowSoft)"><g transform="translate(512 512) scale(0.8) translate(-515.0 -586)"><path d="M 493 576 L 515 552 L 537 576 L 537 742 L 515 764 L 493 742 Z" fill="url(#fa-icones-icone-collection-cyanL)"/></g></g>
+    
+    <g filter="url(#fa-icones-icone-collection-glow)">
+      <path d="M 512 110 L 512 282 L 491 189.12 Z" fill="url(#fa-icones-icone-collection-cyanL)"/>
+      <path d="M 512 110 L 533 189.12 L 512 282 Z" fill="url(#fa-icones-icone-collection-cyanR)"/>
+      <path d="M 512 122 L 514.2 189.12 L 512 270 L 509.8 189.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 175.12 L 515 186.12 L 526 189.12 L 515 192.12 L 512 203.12 L 509 192.12 L 498 189.12 L 509 186.12 Z" fill="#ffffff"/>
+    </g>
+    <g filter="url(#fa-icones-icone-collection-glow)">
+      <path d="M 512 744 L 512 916 L 491 823.12 Z" fill="url(#fa-icones-icone-collection-cyanL)"/>
+      <path d="M 512 744 L 533 823.12 L 512 916 Z" fill="url(#fa-icones-icone-collection-cyanR)"/>
+      <path d="M 512 756 L 514.2 823.12 L 512 904 L 509.8 823.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 809.12 L 515 820.12 L 526 823.12 L 515 826.12 L 512 837.12 L 509 826.12 L 498 823.12 L 509 820.12 Z" fill="#ffffff"/>
+    </g>
+  </g>
+</svg>

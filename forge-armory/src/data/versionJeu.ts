@@ -23,7 +23,7 @@
 // EN: ⚠️ ADDED - the Destiny 2 VERSION the app is aligned with and the HOTFIX LEVEL, shown at the top right of the title.
 // SINGLE SOURCE. Hotfixes are cumulative: the integrated LEVEL is the last of an unbroken run of integrated hotfixes.
 
-export interface Correctif {
+interface Correctif {
   numero: string;
   /** FR : date de publication AAAA-MM-JJ, si elle est connue. / EN: release date YYYY-MM-DD, if known. */
   date?: string;
@@ -51,7 +51,7 @@ export function formaterDatePatch(iso: string): string {
   return date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 }
 
-export interface NiveauCorrectifs {
+interface NiveauCorrectifs {
   /** FR : dernier correctif d'une série ininterrompue d'intégrés depuis le début ; absent si aucun. / EN: last of the unbroken integrated run; absent if none. */
   dernierIntegre?: Correctif;
   /** FR : dernier correctif publié connu, intégré ou non ; absent s'il n'y en a aucun. / EN: last known published hotfix. */
@@ -63,7 +63,7 @@ export interface NiveauCorrectifs {
 }
 
 /** FR : calcule le niveau des correctifs à partir de la liste. / EN: computes the hotfix level from the list. */
-export function niveauCorrectifs(correctifs: readonly Correctif[] = VERSION_JEU.correctifs): NiveauCorrectifs {
+function niveauCorrectifs(correctifs: readonly Correctif[] = VERSION_JEU.correctifs): NiveauCorrectifs {
   let rang = 0;
   while (rang < correctifs.length && correctifs[rang].integre) rang += 1;
   const nonIntegres = correctifs.slice(rang);

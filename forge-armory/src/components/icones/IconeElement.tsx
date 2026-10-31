@@ -22,7 +22,7 @@
 
 import { DamageElement } from "../../types/build";
 
-const COULEURS: Record<Exclude<DamageElement, null>, string> = {
+export const COULEURS: Record<Exclude<DamageElement, null>, string> = {
   solaire: "#f0782d",
   arc: "#7de3f4",
   abyssal: "#8b5cf6",
@@ -35,7 +35,7 @@ const COULEURS: Record<Exclude<DamageElement, null>, string> = {
 // pour rester lisible même en niveaux de gris ou pour les daltoniens).
 // EN: a distinct shape per element (not just a coloured dot), to stay
 // legible in greyscale or for colourblind users.
-const FORMES: Record<Exclude<DamageElement, null>, string> = {
+export const FORMES: Record<Exclude<DamageElement, null>, string> = {
   // Solaire : flamme
   solaire: "M8 1c1 3-2 4-2 6.5C6 9.9 7.1 11 8 11s2-1.1 2-3.5c0-1-.5-2-1-2.5.8.3 2.5 1.7 2.5 4.5A3.5 3.5 0 0 1 8 13a3.5 3.5 0 0 1-3.5-3.5C4.5 6.5 6.5 4 8 1z",
   // Arc : éclair
@@ -80,6 +80,19 @@ interface Props {
 // PLACEHOLDER since 04/08. The user provided the real Prismatic symbol;
 // the diamond is no longer used, kept only as context.
 
+// FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - tracés du symbole Prismatique en DONNÉES, partagés entre `SymbolePrismatique` (ci-dessous) et l'export infographique (`lib/loadouts/iconesExport.ts`) : une seule copie des 6 tracés. Contenu identique à l'ancien JSX, simplement déplacé.
+// EN: ⚠️ ADDED - the Prismatic symbol paths as data, shared with the export page (one copy).
+export const PRISMATIQUE_VIEWBOX = "0 0 861.42857 771.42857";
+export const PRISMATIQUE_TRANSFORM = "translate(315.56965,219.36964)";
+export const PRISMATIQUE_TRACES: { fill: string; d: string }[] = [
+  { fill: "#483737", d: "M -179.62852,551.78714 46.744506,523.16764" },
+  { fill: "#b66c9a", d: "m -179.89891,552.05389 276.869541,-771.42353 -49.873,742.79786 c 0,0 -108.752079,5.68533 -226.996541,28.62567 z" },
+  { fill: "#b66c9a", d: "M -290.92887,398.42142 38.022186,-172.83904 c 0,0 -177.627416,20.93356 -285.989376,192.780303 -108.36195,171.846747 -57.46467,333.910837 -42.96168,378.480157 z" },
+  { fill: "#b66c9a", d: "M 406.45405,552.05389 129.58451,-219.36964 179.4575,523.42822 c 0,0 108.7521,5.68533 226.99655,28.62567 z" },
+  { fill: "#b66c9a", d: "M 520.6308,398.42142 191.67974,-172.83904 c 0,0 177.62743,20.93356 285.98936,192.780303 108.36197,171.846747 57.46471,333.910837 42.9617,378.480157 z" },
+  { fill: "#483737", d: "M -179.54392,551.78714 46.969979,523.16764" },
+];
+
 /**
  * FR : symbole Prismatique officiel, fourni par l'utilisateur
  * ("Prismatic Custom Colour.svg", 08/09/2026) — reproduit tel quel
@@ -109,19 +122,16 @@ function SymbolePrismatique({ taille }: { taille: number }) {
     <svg
       width={taille}
       height={taille}
-      viewBox="0 0 861.42857 771.42857"
+      viewBox={PRISMATIQUE_VIEWBOX}
       role="img"
       aria-label="prismatique"
       style={{ flexShrink: 0 }}
     >
       <title>prismatique</title>
-      <g transform="translate(315.56965,219.36964)">
-        <path fill="#483737" d="M -179.62852,551.78714 46.744506,523.16764" />
-        <path fill="#b66c9a" d="m -179.89891,552.05389 276.869541,-771.42353 -49.873,742.79786 c 0,0 -108.752079,5.68533 -226.996541,28.62567 z" />
-        <path fill="#b66c9a" d="M -290.92887,398.42142 38.022186,-172.83904 c 0,0 -177.627416,20.93356 -285.989376,192.780303 -108.36195,171.846747 -57.46467,333.910837 -42.96168,378.480157 z" />
-        <path fill="#b66c9a" d="M 406.45405,552.05389 129.58451,-219.36964 179.4575,523.42822 c 0,0 108.7521,5.68533 226.99655,28.62567 z" />
-        <path fill="#b66c9a" d="M 520.6308,398.42142 191.67974,-172.83904 c 0,0 177.62743,20.93356 285.98936,192.780303 108.36197,171.846747 57.46471,333.910837 42.9617,378.480157 z" />
-        <path fill="#483737" d="M -179.54392,551.78714 46.969979,523.16764" />
+      <g transform={PRISMATIQUE_TRANSFORM}>
+        {PRISMATIQUE_TRACES.map((t, i) => (
+          <path key={i} fill={t.fill} d={t.d} />
+        ))}
       </g>
     </svg>
   );

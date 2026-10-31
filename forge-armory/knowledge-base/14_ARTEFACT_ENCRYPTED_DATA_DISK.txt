@@ -12,7 +12,7 @@
 #   - "mot" entre guillemets -> verbe ou terme de jeu (affiché en cyan dans
 #     l'appli), matière première du futur graphe de chaînes de verbes
 #
-# Intégré dans src/data/artefacts.ts (id: "encrypted-data-disk") - voir CHANGELOG.md.
+# Intégré dans src/data/artefacts.ts (id: "encrypted-data-disk") - voir DEVLOG.md.
 # Ce fichier sert de RÉFÉRENCE et de SAUVEGARDE de la source, pas de source
 # vive : toute correction doit être faite ici ET reportée dans artefacts.ts.
 

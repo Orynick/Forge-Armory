@@ -274,7 +274,7 @@ mais jamais éprouvés en jeu, contrairement au 35/12/18 des boucles) :
 d'un aspect est vide (0 car.), le texte réel vit sur un perk lié. Le
 correctif était donc correct dès le départ, il lui manquait sa
 vérification. Diagnostic archivé (flag repassé à `false`), code conservé
-pour un futur besoin. Détail complet dans `CHANGELOG.md`.
+pour un futur besoin. Détail complet dans `DEVLOG.md`.
 
 ---
 
@@ -330,7 +330,7 @@ ASPECTS ont très souvent cette description vide — le vrai texte vit sur
 un perk lié. Le sélecteur de doctrine (affichage) le gérait déjà
 correctement depuis début août ; le scoring, non. D'où : "Aucun verbe
 d'élément détecté" pour un aspect pourtant bien surligné en cyan à
-l'écran. **Corrigé** — voir `CHANGELOG.md` pour le diagnostic complet.
+l'écran. **Corrigé** — voir `DEVLOG.md` pour le diagnostic complet.
 
 **Explique probablement 5 des 6 problèmes remontés ce jour-là**, tous des
 aspects/fragments testés seuls : Esquive furtive, Sentinelle ionique,
@@ -360,7 +360,7 @@ regarder les lignes de détail du **Pilier 2 (Verbes d'Élément)** dans
 stasique, Facette de détermination muette, et la chaîne Prismatique
 (Transcendance + grenade) qui ne démarrait jamais. **Tous corrigés et
 vérifiés sur un test d'intégration utilisant les vraies fonctions du
-projet** (voir `CHANGELOG.md`) :
+projet** (voir `DEVLOG.md`) :
 - ✅ Mêlée stasique — **confirmé réglé par l'utilisateur**.
 - ✅ Facette de détermination — coquille de terminologie corrigée
   ("orbe de pouvoir" → "orbe de puissance"), à retester.
@@ -466,7 +466,7 @@ projet** (voir `CHANGELOG.md`) :
 - [x] Vérifier que la couverture anti-champion (Pilier 4) n'a pas changé
       sur un build de référence — elle ne doit PAS bénéficier du ricochet
       de chaîne (volontairement laissée sur `aSource` pur, voir
-      `CHANGELOG.md`). **Confirmé RAS (26/08).**
+      `DEVLOG.md`). **Confirmé RAS (26/08).**
 
 ### 6. Correctifs de la passe d'audit du scoring (26/08)
 
@@ -493,7 +493,7 @@ comparaison avant/après si tu as noté des scores précédemment.
 ### 7. Correctifs de l'audit des 387 compétences de doctrine (26/08)
 
 Tous trouvés en rejouant les 18 fichiers transmis à travers le vrai
-moteur de détection — voir `CHANGELOG.md` pour le détail complet du
+moteur de détection — voir `DEVLOG.md` pour le détail complet du
 diagnostic. Quelques vérifications ciblées, faciles à reproduire :
 
 - [x] **Esquive furtive** (Chasseur Abyssal) — équiper cet aspect et
@@ -1803,3 +1803,275 @@ Résultat : validé (construction sans erreur, version du jeu 9.7.0.5 affichée,
 - [x] **Encore sans réponse**, des listes précédentes : **où utiliser les 19 icônes** de ton archive (par exemple les tiroirs « Loadouts » et « Solo sans mourir » repliés) ? Veux-tu des **titres illustrés** pour ces tiroirs et pour les vues Bibliothèque et Load-outs ? Et une mention discrète « Pilier 1 » / « Pilier 3 » à côté des titres des blocs ?
 
 Résultat : **les 8 tests sont cochés**. Réponses de l'utilisateur en discutant (08/10/2026) : « Classe et Doctrine » = bien le bloc sous « Mon Inventaire » (confirmé) ; épaisseur du soulignage : à juger après avoir vu les titres agrandis ; billes du bloc, icônes : en attente ; **titre illustré : oui pour « Solo sans mourir »** seulement. **Puis, en renvoyant le PDF, de nouvelles demandes** : le bloc « Doctrine et Élément » devient « Classe et Doctrine » **en gardant le logo** (le logo à fournir est donc abandonné) ; dans le Scoring, le pilier 1 devient « Doctrine élémentaire », « 2. Artefact » devient « 3. Artefact » et « 3. Armes et Armures » devient « 2. Armes et Armures », **mêmes logos, seuls le chiffre et la position changent**, pour suivre l'ordre des blocs au-dessus du Scoring.
+
+---
+
+Tests VALIDÉS par l'utilisateur : PDF « A-TESTER » de la version **0.4.0** coché et renvoyé le 12/10/2026 (**18 cases cochées sur 22**, vérifiées par la relecture automatique du PDF). Retirés de la liste, recopiés mot pour mot du texte de la liste TELLE QU'ELLE ÉTAIT, cases cochées ; les 4 cases non cochées (trois de l'export infographique, une des images du logiciel installé) restent dans la liste.
+
+---
+
+## 🆕 Installation de la version 0.4.0 (12/10/2026)
+
+- [x] `npm.cmd run build` se termine **sans erreur**, puis `npm.cmd run electron:build` fabrique `Forge-Armory-Setup-0.4.0.exe` (dossier `installateur`) ; installé par-dessus, le pied de page indique « Forge Armory v0.4.0 » et **tes builds sont toujours là**. Si `build` affiche des erreurs, copie-les-moi telles quelles : c'est lui qui contrôle le typage, que je n'ai pas pu vérifier de mon côté.
+
+Résultat : validé. **Ce premier test valide aussi le typage strict** (`tsc -b`, lancé par `npm run build`), que je n'avais pas pu contrôler dans mon environnement.
+
+---
+
+## 🆕 Onglet Forge et quatre boutons sur une ligne
+
+- [x] Au lancement, les **quatre boutons** sont sur **une seule ligne**, dans l'ordre Build Analyzer, Load-outs, **Forge**, Bibliothèque. Rétrécis la fenêtre jusqu'au minimum : ils restent sur la même ligne en rapetissant ensemble, et les titres des blocs (Connexion, Mon Inventaire…) gardent exactement la **même hauteur** que les boutons.
+- [x] Un clic sur **Forge** : le bouton s'allume (lueur cyan, comme les autres) et la page « Forge — en construction » s'affiche, avec l'icône de la Forge et ce qui est prévu ; un clic sur un autre onglet la masque.
+
+Résultat : validé (quatre boutons sur une ligne, page « Forge — en construction »).
+
+---
+
+## 🆕 Filtre d'élément de dégâts
+
+- [x] Dans **« Recherche dans le Manifest »**, le menu « Tous les éléments » propose ces six éléments. Cherche un mot qui donne des armes (par exemple « fusil »), choisis « Cryo-électrique » : seules les armes cryo-électriques restent ; essaie aussi « Cinétique ».
+- [x] Dans **Mon Inventaire** (inventaire chargé), le menu d'élément filtre les armes de tes personnages ; les armures disparaissent ; les icônes d'élément sont celles du jeu. Le **Coffre** a son **propre** menu, indépendant. « ✕ Réinitialiser les filtres » remet tout.
+- [x] Sur des armes que tu connais, une arme **Stase** apparaît bien sous « Stase » et une arme **Filobscur** sous « Filobscur », pas l'inverse (un décalage de ce genre a déjà existé).
+
+Résultat : validé. Précision de l'utilisateur : « Cryo-électrique » est bien le nom français de l'Arc (à ne pas confondre avec l'arme), « Stase » celui de la Stase.
+
+---
+
+## 🆕 Bouton « Aller à »
+
+- [x] Sur **une arme ou armure que tu possèdes** (inventaire chargé), clique « **Aller à** » : la page glisse jusqu'à « Mon Inventaire », qui s'ouvre et ne montre que cet objet (tous tes exemplaires, personnages et Coffre). Un bandeau doré indique « Filtré sur … — N exemplaire(s) » et les sections (Chasseur, Titan, Arcaniste, Coffre) qui ont l'objet s'ouvrent.
+- [x] Le bandeau a un bouton « **✕ Retirer ce filtre** » : tout l'inventaire revient. « ✕ Réinitialiser les filtres » le retire aussi.
+- [x] « Aller à » sur un objet que **tu ne possèdes pas** : le bandeau le dit (« aucun exemplaire »). Si ton inventaire **n'est pas encore chargé** : le bandeau t'invite à le charger. (Une autre version de la même arme, réédition ou adepte, n'est pas incluse : elle a un autre identifiant.)
+
+Résultat : validé.
+
+---
+
+## 🆕 Documentation et dépôt GitHub
+
+- [x] Le **README** tient en un écran et renvoie vers la notice ; **NOTICE.md** contient le pas-à-pas Bungie, la fabrication du logiciel et « Comprendre le score » (tableau des poids avec les noms de l'écran) ; rien d'important n'a disparu.
+- [x] Après avoir ajouté au `.gitignore` les lignes de `documentation/GITIGNORE-A-AJOUTER.txt`, `git status` ne propose plus d'ajouter `A-TESTER…`, `GUIDE-DEMARRAGE…` ni `NOTES-CONCEPTION.md`. (Si ces fichiers étaient déjà sur GitHub, ce fichier explique comment les retirer.)
+
+Résultat : validé (`.gitignore` complété par l'utilisateur).
+
+---
+
+## 🆕 Bug du Filobscur : diagnostic des icônes (`npm.cmd run dev`)
+
+- [x] Dans le bloc Doctrine, choisis une sous-classe **Stase**, clique « 🔍 Copier le diagnostic des icônes de cette doctrine » et copie le texte ; fais de même avec une sous-classe **Filobscur** ; envoie-moi **les deux textes**.
+
+Résultat : l'utilisateur a envoyé les deux diagnostics (Chasseur, Stase et Filobscur, 12/10/2026). **Cause établie** : les prises, listes d'options et objets sont distincts (`hunter.strand.*` contre `hunter.stasis.*`), mais pour le saut et la compétence de classe, les cinq objets du Filobscur pointent vers EXACTEMENT les mêmes fichiers d'icône que ceux de la Stase (donnée de Bungie) ; mêlée, grenades et super ont des fichiers distincts. Corrigé en 0.4.1 par recoloration.
+
+---
+
+## 🆕 Scoring : nouvel ordre et nouveaux numéros des piliers 
+
+- [x] Après avoir évalué un build, les cinq cartes de résultat apparaissent dans cet ordre : **1. Doctrine élémentaire** (hexagone et étoile), **2. Armes et Armures** (bouclier et épée), **3. Artefact** (losange et œil), **4. Effets du Build** (étincelles), **5. Statistiques** (barres). Chaque carte garde **son** logo ; le chiffre dessiné dans le titre correspond à sa place (le « 2 » est bien sur Armes et Armures, le « 3 » sur l'Artefact).
+- [x] Le **score de chaque pilier et le score global sont les mêmes** qu'avec la 0.3.17 pour un même build (compare avec un build que tu connais, dans le même contexte).
+- [x] Le **tableau des pondérations** du bloc « 0. Contexte du Build » liste les piliers **dans le même nouvel ordre**, et chaque pilier garde **son** poids : en contexte Neutre, par exemple, Doctrine élémentaire 10 %, Armes et Armures 20 %, Artefact 15 %, Effets du Build 30 %, Statistiques 25 %. Le formulaire de pondération personnalisée suit aussi cet ordre.
+- [x] **Regarde les trois titres que j'ai recomposés** (« 1. DOCTRINE ÉLÉMENTAIRE », « 2. ARMES ET ARMURES », « 3. ARTEFACT »). Leur texte est dessiné en tracés : je l'ai refait avec **les lettres de tes propres dessins** (le « 3 » de l'ancienne carte « Armes et Armures », le « 2 » de l'ancienne carte « Artefact », « DOCTRINE » et « ÉLÉMENT » de ton titre « Doctrine et Élément » avec son « O » à losange, « AIRE » de « Mon Inventaire »). Vérifie l'**espacement des lettres**, le **centrage** et le **soulignage**, à côté des deux autres cartes. **Dis-moi** si le résultat te convient, ou si tu préfères me fournir tes propres versions.
+- [x] Le bloc **« Classe et Doctrine »** garde son logo, comme demandé : le dessin dit toujours « DOCTRINE ET ÉLÉMENT » (c'est normal), son nom pour les lecteurs d'écran est « Classe et Doctrine ».
+
+---
+
+### Icône de « Classe et Doctrine » : billes agrandies
+
+- [x] Compare l'icône du bloc **« Classe et Doctrine »** (hexagone, étoile, six billes bleues) à celle de la première carte du Scoring, **« 1. Doctrine élémentaire »** : même taille de billes, même hexagone, même étoile. Replie le bloc « Classe et Doctrine » : la même icône, aux billes agrandies, reste affichée. **Dis-moi** si la taille des billes te convient.
+
+---
+
+Tests VALIDÉS par l'utilisateur : PDF « A-TESTER » de la version **0.4.1** coché et renvoyé le 12/10/2026 (**10 cases cochées sur 10**, vérifiées par la relecture automatique du PDF). Retirés de la liste, recopiés mot pour mot du texte de la liste TELLE QU'ELLE ÉTAIT, cases cochées. **Plus aucun test en attente.** Cinq sections entièrement validées.
+
+---
+
+## 🆕 Installation de la version 0.4.1 (12/10/2026)
+
+- [x] `npm.cmd run build` se termine **sans erreur**, puis `npm.cmd run electron:build` fabrique `Forge-Armory-Setup-0.4.1.exe` (dossier `installateur`) ; installé par-dessus, le pied de page indique « Forge Armory v0.4.1 » et **tes builds sont toujours là**.
+
+Résultat : validé.
+
+---
+
+## 🆕 Filobscur : icônes de saut et de compétence de classe recolorées
+
+- [x] Dans le bloc Doctrine, avec une sous-classe **Filobscur du Chasseur**, les icônes de **Saut** et de **Compétence de classe** ont maintenant un fond **vert** (comme dans le jeu). **Dis-moi si la teinte te convient** : plus verte, plus bleutée, plus claire ?
+- [x] Même vérification avec le **Filobscur du Titan** et celui de l'**Arcaniste**. Si leurs icônes étaient déjà vertes avant, elles ne doivent pas avoir changé (la correction ne touche que les icônes identiques à celles de la Stase) ; si elles sont encore bleues, envoie-moi le diagnostic de cette classe.
+- [x] **Rien d'autre n'a changé** : la mêlée, les grenades et la super du Filobscur gardent leur couleur ; la **Stase**, le Solaire, le Cryo-électrique et l'Abyssal restent exactement comme avant.
+- [x] (logiciel installé) Ouvre la **fiche** d'un build Filobscur (« 👁 Voir ») puis exporte-la en image : dans la doctrine, la compétence de classe et le saut sont verts aussi, et les autres lignes inchangées.
+
+Résultat : validé, les quatre cases cochées (Chasseur, Titan et Arcaniste, rien d'autre de changé, fiche et export du logiciel installé) **sans demande de réglage de la teinte** : la rotation de −70° est conservée. La recoloration reste une approximation faite par l'appli (les objets du Filobscur réutilisent les fichiers d'icône de la Stase dans les données de Bungie).
+
+---
+
+## 🆕 Archive de visuels v3 : logo « Armes et Armures » redessiné
+
+- [x] La carte **« 2. Armes et Armures »** du Scoring affiche le nouveau logo (épée plantée dans le bouclier), avec son chiffre 2 et son soulignage ; les quatre autres cartes sont inchangées.
+
+Résultat : validé.
+
+---
+
+## 🆕 Export infographique : logos et icônes
+
+- [x] (logiciel installé) Exporte une fiche (image ou PDF) : l'en-tête montre l'**icône de classe** (disque de couleur), l'**icône d'élément** (celle du jeu) et l'**icône de contexte**. Sur un build **Prismatique**, le symbole à deux tons ; sur un build **Neutre**, le mot « Neutre » apparaît maintenant avec son icône (décision de l'utilisateur : le contexte choisi est toujours affiché, Neutre compris).
+- [x] Les **quatre titres de section** ont leur logo, bien alignés : **DOCTRINE** (hexagone), **ARMES** (l'épée seule), **ARMURE** (le bouclier seul) et **ARTEFACT** (losange). Les logos Armes et Armure viennent de ta nouvelle archive de visuels (v3).
+- [x] L'image exportée n'a aucune icône cassée ni carré vide à la place d'un logo.
+
+Résultat : validé (logiciel installé) : icônes de classe, d'élément et de contexte (Neutre compris), quatre titres de section avec leur logo, aucune icône cassée.
+
+---
+
+## ⏳ Reste de la 0.3.19
+
+- [x] (logiciel installé) **Toutes les images s'affichent**, y compris les trois cartes renommées : aucune image cassée, aucun ancien numéro (« 2. Artefact », « 3. Armes et Armures », « 1. Élément et Doctrine ») nulle part.
+
+Résultat : validé. C'était le dernier test en attente de la 0.3.19.
+
+---
+
+Tests VALIDÉS par l'utilisateur : liste « A-TESTER » de la version **0.4.2**, validée le 12/10/2026 par ce message de l'utilisateur : « Toute la check-list Test 0.4.2 est validée 🥳 ». ⚠️ **Le PDF n'a pas été renvoyé** : les cases n'ont donc pas été relues automatiquement, la validation est celle déclarée dans la conversation (les 9 cases sont ici recopiées cochées). Texte de la liste TEL QU'IL ÉTAIT. **Plus aucun test en attente.** Deux sections entièrement validées.
+
+---
+
+## 🆕 Installation de la version 0.4.2 (12/10/2026)
+
+- [x] `npm.cmd run build` se termine **sans erreur**, puis `npm.cmd run electron:build` fabrique `Forge-Armory-Setup-0.4.2.exe` (dossier `installateur`) ; installé par-dessus, le pied de page indique « Forge Armory v0.4.2 » et **tes builds sont toujours là**.
+
+Résultat : validé.
+
+---
+
+## 🆕 Bouton « Transférer vers » (essais EN JEU)
+
+- [x] **Coffre → personnage** : sur une arme sans importance du Coffre, clique « Transférer vers », choisis un personnage, vérifie que la **confirmation** nomme l'objet, le départ et l'arrivée, puis confirme. Un bandeau vert annonce la réussite, la ligne passe sous ce personnage, et **en jeu** l'arme est bien dans l'inventaire de ce personnage.
+- [x] **Personnage → Coffre** : même chose dans l'autre sens ; **en jeu** l'arme est bien au Coffre.
+- [x] **Personnage → autre personnage** : la confirmation précise « en passant par le Coffre : deux opérations » ; après confirmation, l'arme est chez le second personnage **en jeu**, et le bandeau le dit.
+- [x] **Annuler** : choisis une destination puis « Annuler » : rien ne bouge, ni dans l'appli, ni en jeu.
+- [x] **Objet équipé** : le bouton « Transférer vers » d'un objet **équipé** est grisé ; au survol, l'infobulle explique qu'il faut en équiper un autre en jeu d'abord. (Facultatif : équipe l'objet en jeu après avoir chargé l'inventaire, puis tente le transfert dans l'appli : l'appli doit refuser avec « équipé », car elle relit la position réelle avant d'agir.)
+- [x] **Armure** : pour une armure, seuls sont proposés le **Coffre** et **le personnage de sa classe** (jamais un autre personnage). Teste avec une armure du Coffre : une seule destination de personnage.
+- [x] **Cohérence** : après quelques transferts, clique « Recharger mon inventaire » : l'affichage rechargé est identique à ce que l'appli montrait avant, et à ce qu'il y a en jeu.
+- [x] (facultatif) **Destination pleine** : envoie une arme vers un personnage dont l'emplacement d'armes est plein : le bandeau orange explique « Plus de place à destination » (ou, sinon, affiche le texte de Bungie tel quel : **copie-le-moi**) et l'objet reste où il était.
+
+Résultat : validé, **y compris les essais en jeu** (coffre ↔ personnage, personnage → personnage par le Coffre, annulation, objet équipé, armure, cohérence après rechargement, et le cas facultatif de la destination pleine).
+
+---
+
+Tests VALIDÉS par l'utilisateur : PDF « A-TESTER » de la version **0.4.3** coché et renvoyé le 13/10/2026 (**14 cases cochées sur 14**, vérifiées par la relecture automatique du PDF). Retirés de la liste, recopiés mot pour mot du texte de la liste TELLE QU'ELLE ÉTAIT, cases cochées. **Plus aucun test en attente.** Trois sections entièrement validées.
+
+---
+
+## 🆕 Installation de la version 0.4.3 (13/10/2026)
+
+- [x] `npm.cmd run build` se termine **sans erreur**, puis `npm.cmd run electron:build` fabrique `Forge-Armory-Setup-0.4.3.exe` (dossier `installateur`) ; installé par-dessus, le pied de page indique « Forge Armory v0.4.3 » et **tes builds sont toujours là**.
+
+Résultat : validé.
+
+---
+
+## 🆕 Forge : Collection des armes (essais avec TES données)
+
+- [x] **Lecture des armes** : la vue « Collection » affiche la liste (une courte attente « Lecture des armes du Manifest… » est normale la première fois). **Note les trois nombres du menu « Source »** (Collections du jeu, Hors Collections, Tout) et **le temps d'attente** approximatif, et envoie-les-moi.
+- [x] **Cartes** : sur des armes que tu connais (une exotique, une légendaire), le nom, l'icône, le type, l'emplacement, l'élément et l'archétype sont corrects ; bordure dorée pour un exotique, violette pour un légendaire.
+- [x] **Grisé comme dans le jeu** : le bandeau vert annonce que tes collections ont été lues ; une arme que tu as obtenue au moins une fois (même démantelée) est en couleurs ; une arme que tu n'as **jamais** eue est grisée avec « Jamais obtenue ». Vérifie avec trois armes de chaque sorte. (Si un bandeau **orange** apparaît avec une raison, **copie-la-moi** : aucune arme n'est alors grisée.)
+- [x] **Filtres et recherche** : type d'arme, emplacement, rareté, élément (une arme Stase sous « Stase », une Filobscur sous « Filobscur », pas l'inverse), archétype, « Obtenues / Jamais obtenues », et la recherche par nom (essaie un nom **sans accent**). « ✕ Réinitialiser les filtres » remet tout.
+- [x] **Source « Hors Collections »** : regarde ce que contient cette liste (définitions techniques, anciennes ou variantes) ; dis-moi si tu y vois une arme qui **devrait** être dans les Collections, ou s'il **manque** dans « Collections du jeu » une arme que tu connais.
+- [x] **Fenêtre des perks, même logique que « Détails »** : clique une arme à rolls aléatoires que tu connais : les colonnes montrent toutes les options possibles. Ouvre ensuite « Détails » de la **même arme** dans Mon Inventaire (ou Mon Build) : les colonnes sont les mêmes, dans le même ordre, avec « Mods utilisables » **en bas** dans les deux.
+- [x] **« Afficher les perks inutiles »** : désactivé par défaut, aucune colonne Souvenir, Compte-frags, palier ou ornement ; coché, elles réapparaissent marquées « inutile » ; décoché, elles disparaissent. Dis-moi si une colonne **utile** est cachée, ou si une colonne **inutile** s'affiche par défaut.
+- [x] **Détails inchangés** : la popup « Détails » d'une arme dans l'Inventaire, dans le Coffre et dans Mon Build montre les mêmes colonnes qu'avant la 0.4.3.
+- [x] (npm.cmd run dev) **Diagnostic des perks améliorés** : ouvre quatre armes dont au moins une avec des **perks améliorés** (flèche jaune) ; dans la fenêtre, clique « 🔍 Diagnostic des perks de cette arme », copie le texte, et **envoie-moi les quatre** (c'est ce qui prépare l'affichage des perks améliorés de la 0.4.4).
+- [x] **Onglets** : l'onglet « Inventaire » annonce la prochaine version ; en revenant à « Collection », tes filtres et ta recherche sont **conservés**.
+
+Résultat : validé, les dix cases cochées (lecture des armes, cartes, grisé d'après les collections, filtres et recherche, source « Hors Collections », fenêtre des perks, interrupteur des perks inutiles, popup Détails inchangée, diagnostic des perks améliorés, onglets). **Retours de l'utilisateur** : (1) sur les cartes d'armes, afficher dans cet ordre l'icône de type d'arme, l'icône d'élément de dégâts, l'icône de type de munitions et l'icône antichampion, et garder l'armature ; (2) retirer la mention « Jamais obtenue », redondante avec l'effet grisé ; (3) diagnostics envoyés : deux Confiance (deux révisions), Défense dorée (sans perks améliorés) et Grande Faucheuse (temps perdu). **Non reçus** : les trois nombres du menu « Source » et le temps d'attente de la liste (demandés par le test, facultatifs).
+
+---
+
+## 🆕 Manifest périmé : mise à jour automatique
+
+- [x] (npm.cmd run dev) **Simulation d'un Manifest périmé** : Manifest chargé, clique « 🧪 Manifest périmé (test) » : un message dit de recharger la page. Fais **Ctrl+F5** : un message **🔄** annonce la mise à jour automatique (en nommant les langues), le téléchargement démarre **sans que tu cliques**, puis un message **✅** annonce que le Manifest est mis à jour et la recherche fonctionne. **Note le temps** que cela prend et envoie-le-moi.
+- [x] **Démarrage normal** : avec un Manifest à jour, relance l'appli (Ctrl+F5) : il se charge tout seul depuis le cache, **sans message de mise à jour ni téléchargement**.
+- [x] (facultatif) **Hors ligne** : coupe ta connexion Internet puis relance l'appli : aucun téléchargement n'est tenté, pas d'erreur bruyante, et le bouton « Charger le Manifest » reste disponible.
+
+Résultat : validé, les trois cases cochées (simulation, démarrage normal, hors ligne). **Temps mesuré par l'utilisateur : 15 secondes entre Ctrl+F5 et la fin de la mise à jour automatique** (deux langues, simulation du mode développement).
+
+---
+
+Tests VALIDÉS par l'utilisateur : PDF « A-TESTER » de la version **0.4.4** coché et renvoyé le 13/10/2026 (**10 cases cochées sur 10**, vérifiées par la relecture automatique du PDF). Retirés de la liste, recopiés mot pour mot du texte de la liste TELLE QU'ELLE ÉTAIT, cases cochées. **Plus aucun test en attente.** Cinq sections entièrement validées.
+
+---
+
+## 🆕 Installation de la version 0.4.4 (13/10/2026)
+
+- [x] `npm.cmd run build` se termine **sans erreur**, puis `npm.cmd run electron:build` fabrique `Forge-Armory-Setup-0.4.4.exe` (dossier `installateur`) ; installé par-dessus, le pied de page indique « Forge Armory v0.4.4 » et **tes builds sont toujours là**.
+
+Résultat : validé. Le build de l'utilisateur sans erreur valide aussi le typage strict de la 0.4.4.
+
+---
+
+## 🆕 Forge : cartes d'armes à icônes
+
+- [x] **Quatre icônes** : sur chaque carte d'arme, tu vois dans cet ordre l'icône de **type d'arme**, l'icône d'**élément de dégâts**, l'icône de **munitions** et l'icône **antichampion** (absente si l'arme n'en a pas). Vérifie sur une exotique, une légendaire, une arme lourde et une Stase ou Filobscur : ce sont **les mêmes icônes que dans l'en-tête de « Détails »** de la même arme, et l'**armature** reste écrite sous les icônes. Les mots « type · emplacement · élément » ne sont plus affichés. (Facultatif : envoie-moi les trois nombres du menu « Source » et le temps d'attente de la liste.)
+- [x] **Grisé sans mention** : une arme que tu n'as jamais obtenue est **grisée**, sans le texte « Jamais obtenue » ; une arme obtenue reste en couleurs.
+
+Résultat : validé (quatre icônes dans l'ordre, armature conservée, grisé sans mention). Les trois nombres du menu « Source » et le temps d'attente, facultatifs, ne sont pas parvenus.
+
+---
+
+## 🆕 Forge : boutons stylisés « Collection » et « Inventaire »
+
+- [x] **Apparence** : les deux boutons ont la même hauteur, le bouton choisi est allumé (lueur cyan) et l'autre au repos ; un clic bascule de l'un à l'autre sans que rien ne bouge ; au survol, le bouton au repos s'éclaircit. **Dis-moi si le dessin du bouton « Inventaire » te convient** (coffre, lettres, taille).
+- [x] **Clavier** : avec la touche **Tab**, un contour cyan entoure le bouton ; **Entrée** (ou Espace) le sélectionne.
+
+Résultat : validé (apparence, clavier). **Aucune remarque écrite** sur le dessin du bouton « Inventaire » (fabriqué, option 2) : case cochée sans demande de retouche.
+
+---
+
+## 🆕 Forge : perks améliorés (vue Collection)
+
+- [x] **Confiance, révision à paliers** (hash 810474118, celle avec les perks améliorés) : clique la carte ; dans les canons, chargeurs, attributs, la particularité d'origine et les mods, chaque perk porte un ▲ et **aucun perk amélioré n'apparaît séparément**. La légende annonce 54 perks. **Dis-moi si une paire te paraît fausse** (un perk amélioré qui devrait être sous un autre perk, ou l'inverse).
+- [x] **Confiance, autre révision** (hash 4077196130) **et Défense dorée** : aucune légende, aucun ▲, une option par colonne, comme avant. **Dis-moi si, dans le jeu, ces deux armes ont bien un roll fixe** (une seule option par colonne) ou si la Collection du jeu y montre plusieurs perks.
+- [x] **« Chargeur abandonné »** (révision à paliers, colonne 3) : son ▲ est suivi d'une mention « probable » dans l'infobulle, car le Manifest ne nomme pas sa version « améliorée » : seule sa **position** la désigne. **Dis-moi si ce perk existe bien en version améliorée dans le jeu.**
+
+Résultat : validé, les trois cases cochées. **Aucun retour écrit** aux trois questions posées (une paire de perks fausse ? ; Confiance révision B et Défense dorée : roll fixe dans le jeu ? ; « Chargeur abandonné » existe-t-il en version améliorée ?) : elles restent OUVERTES dans la TODO.
+
+---
+
+## 🆕 Bouton « Legendarium » (ancienne « Bibliothèque »)
+
+- [x] **Nom et dessin** : le quatrième bouton du sélecteur (après Forge) affiche **Legendarium** ; il s'allume quand on le sélectionne ; la page qu'il ouvre s'intitule « Legendarium » (le mot « Bibliothèque » n'apparaît plus nulle part à l'écran). **Dis-moi si le dessin te convient.**
+- [x] (facultatif, logiciel installé) **Onglet mémorisé** : si tu avais laissé l'appli sur l'ancien onglet « Bibliothèque » avant la mise à jour, elle s'ouvre bien sur « Legendarium », sans erreur.
+
+Résultat : validé, y compris le test facultatif de l'onglet mémorisé. Aucune remarque écrite sur le dessin du bouton.
+
+---
+
+Tests VALIDÉS par l'utilisateur : liste « A-TESTER » de la version **0.4.6**, validée le 13/10/2026 par ce message de l'utilisateur : « Ok, toute la check-list est validée. » ⚠️ **Le PDF n'a pas été renvoyé** : les cases n'ont donc pas été relues automatiquement, la validation est celle déclarée dans la conversation (les 9 cases sont ici recopiées cochées). Texte de la liste TEL QU'IL ÉTAIT. **Plus aucun test en attente.** Trois sections entièrement validées.
+
+---
+
+## 🆕 Installation de la version 0.4.6 (13/10/2026)
+
+- [x] `npm.cmd run build` se termine **sans erreur**, puis `npm.cmd run electron:build` fabrique `Forge-Armory-Setup-0.4.6.exe` (dossier `installateur`) ; installé par-dessus, le pied de page indique « Forge Armory v0.4.6 » et **tes builds sont toujours là**.
+
+Résultat : validé.
+
+---
+
+## ⏳ Reste de la 0.4.5 : page Forge sans titre
+
+- [x] **Titre retiré** : en ouvrant l'onglet **Forge**, la page n'affiche plus le titre « Forge » ni son petit logo ; le texte gris à droite (« armes : consultation et simulation locale · armures : à venir ») reste, et les deux boutons **Collection** et **Inventaire** sont juste en dessous.
+
+Résultat : validé (page Forge sans titre, test repris de la 0.4.5).
+
+---
+
+## 🆕 Forge : Inventaire de tes armes (simulation locale)
+
+- [x] **Chargement** : « Charger mon inventaire » liste tes **armes** (pas les armures) avec l'endroit où elles sont (Titan, Chasseur, Arcaniste, Coffre ; « équipée » le cas échéant) et leurs quatre icônes. Le nombre d'armes te paraît juste (compare à Mon Inventaire). Les filtres (recherche, endroit) fonctionnent. **Note le temps de chargement** et envoie-le-moi.
+- [x] **Roll réel** : ouvre une arme que tu connais bien : les perks marquées **✓** sont **exactement** ton roll en jeu, colonne par colonne, et ce sont les mêmes que dans « Détails » de la même arme (Mon Inventaire).
+- [x] **Arme améliorée** : ouvre une de tes armes à perks améliorés (par exemple une Confiance à paliers) : le ✓ est bien sur le perk que tu as réellement, qu'il soit en version de base ou améliorée (le perk garde son ▲). **Dis-moi si un ✓ est au mauvais endroit.**
+- [x] **Simuler** : clique une autre perk dans une colonne : elle devient **dorée** (« simulé ») et il n'y en a **qu'une par colonne** ; ton roll réel reste visible avec son ✓. Fais de même avec un **mod** (un seul à la fois). Sur une arme améliorée, la mention « (▲ comptée) » apparaît. Cliquer le roll réel, ou la perk simulée une seconde fois, **revient** au roll réel de la colonne ; « ↺ Revenir au roll réel » efface tout. **Dis-moi si l'affichage (✓, doré, « simulé ») est clair.**
+- [x] **Conservation** : ferme la fenêtre, passe sur « Collection » puis reviens à « Inventaire » : la simulation est toujours là (badge « Simulation » sur la carte). **Ferme complètement l'appli, relance-la**, recharge ton inventaire : la simulation est toujours là. « ✕ Effacer toutes les simulations » les efface.
+- [x] **Rien ne bouge en jeu** : après avoir simulé plusieurs perks, regarde l'arme en jeu : elle n'a pas changé.
+- [x] (facultatif) **Deux exemplaires** de la même arme : leurs simulations sont indépendantes.
+
+Résultat : validé. **Retour de l'utilisateur** : « j'ai tous les rolls possibles et le roll réel comme prévu » ; il manque l'indication des perks **disponibles sur l'exemplaire** mais non sélectionnés en jeu. Il demande **quatre niveaux** : (1) roll réel, avec la petite coche ✔ ; (2) perk disponible sur l'arme mais non sélectionnée en jeu : **contour gris clair** ; (3) perk possible sur le modèle de l'arme : **nom grisé** ; (4) perk choisie pour la simulation. « Le reste me semble très très bien ! »

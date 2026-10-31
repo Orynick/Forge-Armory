@@ -1,6 +1,7 @@
 // FR : Appels API Bungie — comptes liés, profil, inventaire, coffre.
 // EN: Bungie API calls — linked accounts, profile, inventory, vault.
 
+import { NOMS_CLASSE_PAR_INDEX } from "../loadouts/classePersonnage";
 import { BUNGIE_API_ROOT, bungieConfig } from "./config";
 import { obtenirAccessTokenValide } from "./oauth";
 
@@ -46,22 +47,6 @@ export interface DestinyMembership {
 }
 
 /**
- * FR : Etape obligatoire avant tout appel Profile : le membership_id
- * renvoye par l'OAuth (App/OAuth/Token) est l'identifiant du COMPTE
- * BUNGIE.NET, pas l'identifiant Destiny (Steam/Xbox/PSN/Epic). Il faut
- * d'abord lister les comptes Destiny lies via cet endpoint (bug trouve et
- * corrige le 01/08/2026 : le code appelait Profile avec le mauvais ID).
- * EN: Mandatory step before any Profile call: the membership_id returned
- * by OAuth (App/OAuth/Token) is the BUNGIE.NET ACCOUNT id, not the Destiny
- * id (Steam/Xbox/PSN/Epic). You must first list the linked Destiny accounts
- * via this endpoint (bug found and fixed on 2026-08-01: the code was
- * calling Profile with the wrong id).
- */
-export async function recupererMembershipsActuels(): Promise<DestinyMembership[]> {
-  return (await recupererComptesBungie()).memberships;
-}
-
-/**
  * FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - nom Bungie affiché dans le bloc
  * Connexion, au format `pseudo#1234` (demande de l'utilisateur). Le même
  * appel que `recupererMembershipsActuels` le fournit déjà : on le lit au
@@ -75,7 +60,7 @@ export async function recupererMembershipsActuels(): Promise<DestinyMembership[]
  * side, zero-padded to 4 digits as in game. Account-level fields first,
  * then the first Destiny membership carrying them; `null` if neither does.
  */
-export function formaterNomBungie(nom: string | null | undefined, code: number | string | null | undefined): string | null {
+function formaterNomBungie(nom: string | null | undefined, code: number | string | null | undefined): string | null {
   if (!nom || code === null || code === undefined || code === "") return null;
   return `${nom}#${String(code).padStart(4, "0")}`;
 }
@@ -120,19 +105,6 @@ export async function recupererProfilComplet(membership: DestinyMembership) {
   );
 }
 
-/** Le coffre est simplement un "character" special dans profileInventory (component 102) */
-export async function recupererCoffre(membership: DestinyMembership) {
-  const profil = await recupererProfilComplet(membership);
-  // @ts-expect-error - typage precis a affiner avec bungie-api-ts si besoin
-  return profil.profileInventory?.data?.items ?? [];
-}
-
-export async function recupererInventairePersonnages(membership: DestinyMembership) {
-  const profil = await recupererProfilComplet(membership);
-  // @ts-expect-error - idem
-  return profil.characterInventories?.data ?? {};
-}
-
 export interface Personnage {
   characterId: string;
   classe: string;
@@ -146,23 +118,35 @@ export interface ResumeProfil {
   nbObjetsCoffre: number;
 }
 
-const NOMS_CLASSE = ["Titan", "Chasseur", "Arcaniste"];
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - le profil Bungie était typé `any` ;
+// on déclare la FORME MINIMALE lue ici (composants 100 et 200), le reste reste `unknown`.
+// EN: ⚠️ CHANGED - the Bungie profile was typed `any`; we declare the MINIMAL
+// shape read here (components 100 and 200), the rest stays `unknown`.
+interface ProfilBungieLu {
+  characters?: { data?: Record<string, { classType: number; light: number }> };
+  profileInventory?: { data?: { items?: unknown[] } };
+}
 
-function derivePersonnages(profil: any): Personnage[] {
-  const entrees = Object.entries(profil.characters?.data ?? {}) as [string, { classType: number; light: number }][];
+function profilLu(profil: unknown): ProfilBungieLu {
+  return (profil ?? {}) as ProfilBungieLu;
+}
+
+function derivePersonnages(profil: unknown): Personnage[] {
+  const entrees = Object.entries(profilLu(profil).characters?.data ?? {});
   return entrees.map(([characterId, c]) => ({
     characterId,
-    classe: NOMS_CLASSE[c.classType] ?? "?",
+    // FR : ⚠️ CHANGÉ (23/10/2026, audit) - `NOMS_CLASSE` local remplacé par la constante centralisée `NOMS_CLASSE_PAR_INDEX` (dedup). / EN: ⚠️ CHANGED - local `NOMS_CLASSE` replaced by the centralised `NOMS_CLASSE_PAR_INDEX` (dedup).
+    classe: NOMS_CLASSE_PAR_INDEX[c.classType] ?? "?",
     lumiere: c.light,
   }));
 }
 
-function deriveResume(profil: any, membership: DestinyMembership, personnages: Personnage[]): ResumeProfil {
+function deriveResume(profil: unknown, membership: DestinyMembership, personnages: Personnage[]): ResumeProfil {
   return {
     compte: membership.displayName,
     nbPersonnages: personnages.length,
     classesEtLumiere: personnages.map((p) => `${p.classe} (lumière ${p.lumiere})`),
-    nbObjetsCoffre: (profil.profileInventory?.data?.items ?? []).length,
+    nbObjetsCoffre: profilLu(profil).profileInventory?.data?.items?.length ?? 0,
   };
 }
 
@@ -175,12 +159,19 @@ function deriveResume(profil: any, membership: DestinyMembership, personnages: P
  * recupererPersonnages() EACH called recupererProfilComplet(), needlessly
  * doubling the network call on every "Test connection". We now make a
  * SINGLE call and derive both results from it.
+ * FR : ⚠️ CHANGÉ (22/10/2026, retour utilisateur en test : « non disponible » pour le temps de jeu sur
+ * la page Carrière) : on retourne AUSSI le profil BRUT (`data.Response`, qui contient le composant 200
+ * — `characters.data[*].minutesPlayedTotal`). La page Carrière lit le temps de jeu par classe dans ce
+ * profil ; le profil des triomphes (`components=900` seul) ne le contient PAS. Aucun appel réseau en
+ * plus : c'est le MÊME profil, déjà téléchargé.
+ * EN: CHANGED - also returns the RAW profile (component 200, per-character playtime); the Career
+ * page reads playtime from it. No extra network call.
  */
 export async function recupererResumeEtPersonnages(
   membership: DestinyMembership
-): Promise<{ resume: ResumeProfil; personnages: Personnage[] }> {
+): Promise<{ resume: ResumeProfil; personnages: Personnage[]; profil: unknown }> {
   const profil = await recupererProfilComplet(membership);
   const personnages = derivePersonnages(profil);
   const resume = deriveResume(profil, membership, personnages);
-  return { resume, personnages };
+  return { resume, personnages, profil };
 }

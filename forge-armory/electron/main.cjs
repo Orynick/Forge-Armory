@@ -6,9 +6,10 @@
 // package.json declares "type": "module", but Electron loads this file
 // with `require`.
 
-const { app, BrowserWindow, ipcMain, shell, protocol, net, session, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, protocol, net, session, dialog, safeStorage } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs/promises");
+const fsSync = require("node:fs");
 const { pathToFileURL } = require("node:url");
 // FR : ⚠️ AJOUT (02/10/2026) - garantie « une seule page » de l'export PDF (voir pdfFiche.cjs).
 // EN: ⚠️ ADDED - "single page" guarantee for the PDF export.
@@ -78,12 +79,66 @@ const enDev = !app.isPackaged;
 // and requires NO change to the existing Bungie application.
 const PREFIXE_RETOUR = "https://127.0.0.1:5173/auth/callback";
 
+// FR : ⚠️ AJOUT (v0.5.3, correctif « fenêtre blanche à la connexion ») - la
+// fenêtre de connexion a sa PROPRE session (partition en mémoire), HORS du
+// filtre « liste blanche » de la session principale. `onBeforeRequest` filtre
+// AUSSI les navigations de page (mainFrame), pas seulement les requêtes de
+// ressources : avec la session principale, le clic sur la plateforme (Steam,
+// PlayStation, Xbox, Google, Epic…) naviguait vers le fournisseur d'identité,
+// hors de la liste blanche : la navigation était annulée, et la fenêtre
+// restait blanche. La fenêtre reste isolée (sandbox, aucun preload, URL
+// initiale validée) ; la session en mémoire ne laisse aucun cookie Bungie
+// persister sur disque non plus.
+// EN: ⚠️ ADDED (v0.5.3, "blank window at login" fix) - the login window gets
+// its OWN session (in-memory partition), OUTSIDE the main session's
+// whitelist filter. `onBeforeRequest` filters page navigations (mainFrame)
+// too, not only resource requests: with the main session, clicking the
+// platform (Steam, PlayStation, Xbox, Google, Epic…) navigated to the
+// identity provider, outside the whitelist: the navigation was cancelled and
+// the window stayed blank. The window stays isolated (sandbox, no preload,
+// validated initial URL); the in-memory session also leaves no Bungie cookie
+// persisted on disk.
+const PARTITION_CONNEXION = "connexion-bungie"; // FR : sans « persist: » -> en mémoire
+let sessionConnexionPreparee = false;
+
+// FR : prépare la session de la fenêtre de connexion. AUCUNE liste blanche
+// d'hôtes ici : les fournisseurs d'identité (Steam, PlayStation, Xbox,
+// Google, Epic…) et leurs CDN sont imprévisibles, et en bloquer un
+// re-créerait le bug « fenêtre blanche ». Seul garde-fou : le web uniquement
+// (http/https) — aucun protocole dangereux (file:, chrome:, etc.) — et le
+// refus de TOUTE permission matérielle.
+// EN: prepares the login window's session. NO host whitelist here: identity
+// providers (Steam, PlayStation, Xbox, Google, Epic…) and their CDNs are
+// unpredictable, and blocking one would re-create the "blank window" bug.
+// Only guardrails: web only (http/https) — no dangerous scheme (file:,
+// chrome:, etc.) — and deny-all hardware permissions.
+function preparerSessionConnexion() {
+  const ses = session.fromPartition(PARTITION_CONNEXION);
+  if (sessionConnexionPreparee) return ses;
+  ses.webRequest.onBeforeRequest({ urls: ["*://*/*"] }, (details, rappel) => {
+    try {
+      const url = new URL(details.url);
+      if (url.protocol === "https:" || url.protocol === "http:") return rappel({});
+    } catch {
+      /* URL illisible : on bloque */
+    }
+    rappel({ cancel: true });
+  });
+  ses.setPermissionRequestHandler((_contenu, _permission, rappel) => rappel(false));
+  ses.setPermissionCheckHandler(() => false);
+  sessionConnexionPreparee = true;
+  return ses;
+}
+
 let fenetrePrincipale = null;
 
 function creerFenetrePrincipale() {
   fenetrePrincipale = new BrowserWindow({
     width: 1280,
     height: 860,
+    // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - largeur minimale : en dessous, les quatre boutons du sélecteur ne tiendraient plus sur une ligne (hauteur plancher de 41,6 px).
+    minWidth: 820,
+    minHeight: 560,
     backgroundColor: "#0d0f14",
     autoHideMenuBar: true,
     // FR : ⚠️ CHANGÉ (05/10/2026) - « Forge Armory » est le nom, « Destiny 2 Build Analyzer » le sous-titre. Le titre de la page (index.html) prend le relais au chargement.
@@ -190,8 +245,24 @@ ipcMain.handle("bungie:connexion", async (_evenement, urlAutorisation) => {
       // aucun preload n'y est chargé, donc aucun pont n'y est exposé.
       // EN: ⚠️ HARDENED (external audit) - this window shows a REMOTE page:
       // `sandbox: true` isolates it further, and no preload is loaded there.
-      webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: true,
+        // FR : ⚠️ AJOUT (v0.5.3) - session DÉDIÉE (voir PARTITION_CONNEXION) :
+        // sans cela, la fenêtre partage la session principale et son filtre
+        // « liste blanche », qui annule les navigations vers les fournisseurs
+        // d'identité -> fenêtre blanche au clic sur la plateforme.
+        // EN: ⚠️ ADDED (v0.5.3) - DEDICATED session (see PARTITION_CONNEXION):
+        // without it the window shares the main session and its whitelist
+        // filter, which cancels navigations to identity providers -> blank
+        // window when clicking the platform.
+        partition: PARTITION_CONNEXION,
+      },
     });
+    // FR : la session dédiée est préparée AVANT tout chargement de page.
+    // EN: the dedicated session is prepared BEFORE any page is loaded.
+    preparerSessionConnexion();
 
     let termine = false;
 
@@ -495,6 +566,194 @@ function installerProtocoleApp() {
 const ORIGINE_DECLAREE = "https://127.0.0.1:5173";
 const ORIGINE_APP = `${SCHEMA_APP}://local`;
 
+// FR : ⛔ AJOUT (21/10/2026, branche draft-sec) - STOCKAGE CHIFFRÉ DES JETONS.
+//
+// Jusqu'ici, les jetons OAuth Bungie et le jeton DIM étaient écrits en clair
+// dans `localStorage` (donc en clair dans le leveldb de %APPDATA%) : tout
+// processus ou logiciel malveillant capable de lire ce dossier obtenait une
+// session Bungie valide. Electron expose `safeStorage`, qui chiffre une chaîne
+// avec les clés de l'OS (DPAPI sous Windows, Trousseau sous macOS, kwallet /
+// libsecret sous Linux) : la valeur au repos n'est lisible que pour
+// l'utilisateur courant.
+//
+// Trois canaux IPC, réservés à la fenêtre principale :
+//   - `securite:lire`    : renvoie la valeur déchiffrée, ou null ;
+//   - `securite:ecrire`  : chiffre la valeur reçue et l'écrit sur disque ;
+//   - `securite:effacer` : supprime la valeur.
+// Le processus principal ne voit un jeton en clair que le temps d'un appel
+// IPC (inévitable pour chiffrer), mais rien n'est jamais écrit en clair.
+//
+// Garde-fou : si safeStorage est indisponible (Linux sans kwallet/libsecret,
+// ou version d'Electron trop ancienne), `safeStorage.isEncryptionAvailable()`
+// renvoie false et le renderer retombe sur localStorage, en le signalant en
+// console.
+// EN: ENCRYPTED TOKEN STORAGE. Until now, the Bungie OAuth tokens and the DIM
+// token were written in cleartext in localStorage (hence in cleartext in the
+// %APPDATA% leveldb): any process or malware able to read that folder got a
+// valid Bungie session. Electron's `safeStorage` encrypts a string with the
+// OS keys (DPAPI on Windows, Keychain on macOS, kwallet/libsecret on Linux):
+// the value at rest is only readable by the current user.
+// Two IPC channels, restricted to the main window: `securite:lire` returns the
+// encrypted (base64) value or null; `securite:ecrire` encrypts and writes;
+// `securite:effacer` deletes. The renderer does the base64 decoding: the main
+// process never sees a cleartext token, it only encrypts/decrypts bytes.
+// Fallback: if safeStorage is unavailable (Linux without kwallet/libsecret,
+// or an old Electron), `isEncryptionAvailable()` returns false and the
+// renderer falls back to localStorage, warning in the console.
+// FR : les valeurs chiffrées vivent dans un petit fichier JSON du dossier
+// userData (une entrée par clé, chacune chiffrée individuellement par
+// safeStorage) : safeStorage ne fournit que du chiffrement, pas de stockage.
+// Écriture SYNCHRONE au fil de l'eau : si l'appli plante juste après un
+// login, le jeton est déjà à l'abri (pas de risque de perdre la session en
+// cas de coupure).
+// EN: encrypted values live in a small JSON file in userData (one entry per
+// key, each encrypted individually by safeStorage): safeStorage provides
+// encryption only, not storage. SYNCHRONOUS write-through: if the app crashes
+// right after a login, the token is already safe (no risk of losing the
+// session on a crash).
+const CHEMIN_STOCKAGE_SECURISE = path.join(app.getPath("userData"), "stockage-securise.json");
+
+function lireCoffre() {
+  try {
+    return JSON.parse(fsSync.readFileSync(CHEMIN_STOCKAGE_SECURISE, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function ecrireCoffre(coffre) {
+  try {
+    fsSync.writeFileSync(CHEMIN_STOCKAGE_SECURISE, JSON.stringify(coffre));
+  } catch (erreur) {
+    console.warn("[Forge Armory] stockage sécurisé illisible en écriture :", erreur && erreur.message);
+  }
+}
+
+function valeurSecuriseeDisponible() {
+  return typeof safeStorage.isEncryptionAvailable === "function" && safeStorage.isEncryptionAvailable();
+}
+
+// FR : le renderer envoie/reçoit des chaînes en clair ; c'est le processus
+// principal qui chiffre (safeStorage) avant d'écrire sur disque, et qui
+// déchiffre après lecture. Ainsi aucun jeton en clair ne transite par un
+// canal IPC ni ne persiste en clair.
+// EN: the renderer sends/receives plain strings; the main process encrypts
+// (safeStorage) before writing to disk and decrypts after reading. No
+// cleartext token ever crosses an IPC channel or persists in cleartext.
+ipcMain.handle("securite:disponible", (evenement) => {
+  if (!fenetrePrincipale || evenement.sender !== fenetrePrincipale.webContents) return false;
+  return valeurSecuriseeDisponible();
+});
+
+ipcMain.handle("securite:lire", (evenement, cle) => {
+  if (!fenetrePrincipale || evenement.sender !== fenetrePrincipale.webContents) return null;
+  if (typeof cle !== "string" || cle.length === 0 || cle.length > 200) return null;
+  if (!valeurSecuriseeDisponible()) return null;
+  const coffre = lireCoffre();
+  const brut = coffre[cle];
+  if (typeof brut !== "string") return null;
+  try {
+    return safeStorage.decryptString(Buffer.from(brut, "base64"));
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle("securite:ecrire", (evenement, cle, valeur) => {
+  if (!fenetrePrincipale || evenement.sender !== fenetrePrincipale.webContents) return false;
+  if (typeof cle !== "string" || cle.length === 0 || cle.length > 200) return false;
+  if (typeof valeur !== "string" || valeur.length === 0 || valeur.length > 1_000_000) return false;
+  if (!valeurSecuriseeDisponible()) return false;
+  const coffre = lireCoffre();
+  coffre[cle] = safeStorage.encryptString(valeur).toString("base64");
+  ecrireCoffre(coffre);
+  return true;
+});
+
+ipcMain.handle("securite:effacer", (evenement, cle) => {
+  if (!fenetrePrincipale || evenement.sender !== fenetrePrincipale.webContents) return false;
+  if (typeof cle !== "string" || cle.length === 0 || cle.length > 200) return false;
+  const coffre = lireCoffre();
+  if (!(cle in coffre)) return true;
+  delete coffre[cle];
+  ecrireCoffre(coffre);
+  return true;
+});
+
+// FR : ⛔ AJOUT (21/10/2026, branche draft-sec) - RÉSEAU : LISTE BLANCHE.
+//
+// Défense en profondeur : même si un jour un contenu injecté dans la page
+// parvenait à s'exécuter (XSS), il ne pourrait rien exfiltrer. La session par
+// défaut n'autorise que :
+//   - l'origine interne de l'app (`app://local`) ;
+//   - https://www.bungie.net (API + icônes) ;
+//   - https://api.destinyitemmanager.com (export DIM) ;
+//   - https://api.github.com (vérification de version de d2-additional-info) ;
+//   - en développement UNIQUEMENT : le serveur Vite (https://127.0.0.1:5173)
+//     et le HMR websocket (wss://127.0.0.1:5173).
+// Toute autre requête est annulée.
+// ⚠️ v0.5.3 (correctif « fenêtre blanche à la connexion ») : ce filtre
+// (`onBeforeRequest`) porte AUSSI sur les navigations de page
+// (resourceType « mainFrame »), pas seulement sur les requêtes de
+// ressources/fetch — un commentaire erroné disait le contraire. Sur la
+// session principale, le clic sur la plateforme (Steam, PlayStation, Xbox,
+// Google, Epic…) naviguait vers le fournisseur d'identité, hors de la liste
+// blanche : la navigation était annulée et la fenêtre restait blanche.
+// C'est pourquoi la fenêtre de connexion Bungie a sa PROPRE session
+// (PARTITION_CONNEXION), hors de ce filtre.
+// EN: NETWORK WHITELIST. Defense in depth: even if injected content ever ran in
+// the page (XSS), it could exfiltrate nothing. The default session only
+// allows: the app's internal origin (app://local), https://www.bungie.net (API
+// + icons), https://api.destinyitemmanager.com (DIM export),
+// https://api.github.com (d2-additional-info version check), and in DEV ONLY
+// the Vite server (https://127.0.0.1:5173) and its HMR websocket
+// (wss://127.0.0.1:5173). Every other request is cancelled.
+// ⚠️ v0.5.3 (fix "blank window at login"): this filter
+// (`onBeforeRequest`) ALSO applies to page navigations
+// (resourceType "mainFrame"), not only to resource/fetch requests — an
+// erroneous comment said otherwise. On the main session, clicking the
+// platform (Steam, PlayStation, Xbox, Google, Epic…) navigated to the
+// identity provider, outside the whitelist: the navigation was cancelled and
+// the window stayed blank. That is why the Bungie login window gets its OWN
+// session (PARTITION_CONNEXION), outside this filter.
+const HOTES_AUTORISES = [
+  "https://www.bungie.net",
+  "https://api.destinyitemmanager.com",
+  "https://api.github.com",
+];
+
+function restreindreReseauSessionPrincipale() {
+  const ses = session.defaultSession;
+  // FR : l'appli n'utilise AUCUNE permission matérielle (pas de caméra, micro,
+  // géolocalisation, notification, MIDI, etc.) : on refuse tout, par défaut.
+  // EN: the app uses NO hardware permission (no camera, mic, geolocation,
+  // notification, MIDI...): deny everything, by default.
+  ses.setPermissionRequestHandler((_contenu, _permission, rappel) => rappel(false));
+  ses.setPermissionCheckHandler(() => false);
+  ses.webRequest.onBeforeRequest({ urls: ["*://*/*"] }, (details, rappel) => {
+    const url = new URL(details.url);
+    if (url.protocol === `${SCHEMA_APP}:`) return rappel({});
+    if (url.protocol !== "https:" && url.protocol !== "http:") return rappel({ cancel: true });
+    if (HOTES_AUTORISES.some((h) => url.origin === h)) return rappel({});
+    if (enDev && url.origin === URL_DEV) return rappel({});
+    // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - le bloc « websocket HMR de Vite »
+    // (ws:/wss: en dev) était SUPPRIMÉ ici : il était INJOIGNABLE (la ligne
+    // précédente annule déjà tout protocole autre que http/https, ws: et wss:
+    // compris) et contenait de toute façon une faute de précédence
+    // (`enDev && a || b`). Le HMR de Vite passe par le port HTTP de
+    // `URL_DEV` (déjà autorisé ci-dessus) ; le canal websocket, lui, est
+    // bloqué par le refus général des non-http(s) - comportement voulu.
+    // EN: ⚠️ FIXED - the "Vite HMR websocket (ws:/wss:, dev only)" block was
+    // REMOVED here: it was UNREACHABLE (the line above already cancels every
+    // non-http(s) protocol, ws: and wss: included) and also had an operator
+    // precedence bug (`enDev && a || b`). Vite's HMR goes through the HTTP
+    // port of `URL_DEV` (already allowed above); the websocket channel is
+    // blocked by the general non-http(s) refusal - intended behavior.
+    console.warn(`[Forge Armory] requête bloquée (hors liste blanche) : ${details.url}`);
+    rappel({ cancel: true });
+  });
+}
+
 function alignerOriginePourBungie() {
   const filtre = { urls: ["https://www.bungie.net/*"] };
   const navigations = new Set(["mainFrame", "subFrame"]);
@@ -523,6 +782,14 @@ app.whenReady().then(() => {
   if (!enDev) {
     installerProtocoleApp();
     alignerOriginePourBungie();
+    // FR : ⛔ AJOUT (21/10/2026, draft-sec) - défense en profondeur réseau :
+    // liste blanche des hôtes + refus de TOUTE permission matérielle, dans le
+    // logiciel installé. En développement le filtre n'est PAS appliqué (le
+    // serveur Vite, le HMR et les outils de debug doivent rester libres).
+    // EN: network defense in depth: host whitelist + deny-all hardware
+    // permissions, in the installed app. In development the filter is NOT
+    // applied (the Vite server, HMR and debug tooling must stay free).
+    restreindreReseauSessionPrincipale();
   }
   creerFenetrePrincipale();
   app.on("activate", () => {

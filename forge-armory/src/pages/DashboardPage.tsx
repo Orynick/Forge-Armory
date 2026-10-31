@@ -10,11 +10,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Database } from "sql.js";
 import { evaluerBuild } from "../lib/scoring/pillars";
-import { demoBuild, demoExigences } from "../data/demoBuild";
+// FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - lien Forge → score : les simulations de la Forge (magasin partagé) sont appliquées au build pour le SCORE et l'affichage de Mon Build ; le build réel (enregistrement, partage, équipement en jeu) n'est jamais modifié. / EN: Forge → score link: simulations applied to the build for scoring and display only.
+import { useSimulations } from "../lib/forge/storeSimulations";
+import { appliquerSimulations, pieceReelle, nbArmesSimulees, nbArmuresSimulees, nbArmuresRejetees } from "../lib/forge/appliquerSimulation";
+import { comparerScores } from "../lib/forge/scoreSimule";   // ⚠️ AJOUT (27/10/2026)
+import ComparaisonScore from "../components/ComparaisonScore";   // ⚠️ AJOUT (27/10/2026)
+import type { CibleForge } from "../components/InventaireArmes";
+// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `demoBuild` seul est importé : `demoExigences`
+// (Mêlée T10, « Exotique de démonstration ») n'est plus passée à `evaluerBuild`
+// (bug S1 : elle plafonnait le Pilier 5 de TOUS les builds et affichait une
+// ligne « ⚠️ Exotique de démonstration » fictive).
+// EN: ⚠️ CHANGED - only `demoBuild` is imported: `demoExigences` is no longer
+// passed to `evaluerBuild` (bug S1).
+import { demoBuild } from "../data/demoBuild";
 import { BuildDraft, GearPiece, SubclassConfig, poserPieceDansBuild } from "../types/build";
 import PilierCarte from "../components/PilierCarte";
 import BlocContexte from "../components/BlocContexte";
 import PanneauTriomphes from "../components/PanneauTriomphes";
+import VueCarriere from "../components/VueCarriere";   // ⚠️ CHANGÉ (22/10/2026, TODO §25) : page « Carrière » du compte (remplace l'ancienne modale du compte)
+import VueAccomplissements from "../components/VueAccomplissements";   // ⚠️ AJOUT (22/10/2026, TODO §25) : page « Accomplissements » du compte
 import { recupererProfilTriomphes } from "../lib/bungie/triomphes";
 import { EVENEMENT_SESSION_EXPIREE, redirigerVersAutorisation, deconnecter, etatSession, SessionExpiree, expirerSessionPourTest, estBureau, connecterViaBureau } from "../lib/bungie/oauth";
 import {
@@ -26,7 +40,7 @@ import {
 } from "../lib/bungie/api";
 import { exporterVersDim } from "../lib/dim/export";
 import RechercheManifest from "../components/RechercheManifest";
-import SelecteurInventaire from "../components/SelecteurInventaire";
+import SelecteurInventaire, { CibleInventaire } from "../components/SelecteurInventaire";
 import ResumeBuild from "../components/ResumeBuild";
 import GrilleDoctrine from "../components/GrilleDoctrine";
 // FR : ⚠️ AJOUT (31/08/2026) - diagnostic du Pilier 2 (voir verbes.ts).
@@ -42,10 +56,13 @@ import ControleAntiChampionExotiques from "../components/ControleAntiChampionExo
 import ControleIconesPerksArtefact from "../components/ControleIconesPerksArtefact";
 import { useModeDiagnostic } from "../lib/modeDiagnostic";
 import SelecteurVues, { VueApp } from "../components/SelecteurVues";
+import PageForge from "../components/PageForge";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : onglet Forge
 import { defilerVers } from "../lib/defilerVers";
 import TitreCategorie from "../components/TitreCategorie";
+import BoutonsVuesCompte from "../components/BoutonsVuesCompte";   // ⚠️ CHANGÉ (21/10/2026) : les deux boutons du bloc Connexion (remplace l'import direct de la fonction des visuels)
 import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic";
 import Bibliotheque from "../components/Bibliotheque";
+import type { ProvenanceObjet } from "../lib/legendarium/types";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : provenance transitoire (fiche Détails → page de Lore)
 import { EtatPonderations, lirePonderations, poidsActifsEnFractions } from "../lib/scoring/ponderations";
 
 export default function DashboardPage() {
@@ -58,11 +75,20 @@ export default function DashboardPage() {
   // the displayed score. This is a first step; real item selection from
   // inventory/search still needs to be built.
   const [monBuild, setMonBuild] = useState<BuildDraft>(demoBuild);
+  // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - ouverture du pop-up « Crédits » du pied de page. / EN: credits pop-up state.
+  const [creditsOuverts, setCreditsOuverts] = useState(false);
   // FR : ⚠️ AJOUT (24/08/2026) - profil des triomphes pour la vitrine « Solo
   // sans mourir ». Appel SÉPARÉ de l'inventaire (composant 900 seul) : ces
   // données ne changent qu'après avoir terminé un donjon, inutile de les
   // recharger à chaque changement d'équipement.
   const [profilTriomphes, setProfilTriomphes] = useState<unknown | null>(null);
+  // FR : ⚠️ AJOUT (22/10/2026, retour utilisateur en test : « non disponible » pour le temps de jeu sur
+  // la page Carrière) : le PROFIL COMPLET brut (composant 200 : `characters.data[*].minutesPlayedTotal`),
+  // tel que retourné par `recupererResumeEtPersonnages` (MÊME appel réseau que le résumé : rien en plus).
+  // C'est LUI qui alimente la page Carrière en temps de jeu ; le `profilTriomphes` (composant 900 seul)
+  // ne contient pas le temps de jeu, d'où les « non disponible » constatés.
+  // EN: ADDED - the raw full profile (component 200, per-character playtime), for the Career page.
+  const [profilComplet, setProfilComplet] = useState<unknown | null>(null);
   const [db, setDb] = useState<Database | null>(null);
   // FR : ⚠️ AJOUT (06/10/2026) - mode diagnostic (réglable depuis le pied de page, actif aussi dans l'appli installée) : voir lib/modeDiagnostic.ts.
   const modeDiagnostic = useModeDiagnostic();
@@ -73,10 +99,34 @@ export default function DashboardPage() {
   // EN: ⚠️ ADDED - active custom weighting, passed to the score calculation.
   const [ponderations, setPonderations] = useState<EtatPonderations>(lirePonderations);
 
+  // FR : ⚠️ CHANGÉ (14/10/2026, v0.4.9) - le score est calculé sur le build AVEC la simulation de la Forge (`buildEffectif`) : il se met à jour en temps réel à chaque changement de simulation (critère 7 de la spécification). Même objet que `monBuild` quand rien n'est simulé : aucun calcul de plus.
+  // ⚠️ CHANGÉ (branche draft-mod-armures) : la simulation couvre désormais les ARMES **et** les ARMURES (mods) ; `db` est transmis pour le recalcul des statistiques des armures simulées (pilier stats_2_0).
+  const simulations = useSimulations();
+  const buildEffectif = useMemo(() => appliquerSimulations(monBuild, simulations, db), [monBuild, simulations, db]);
+  const nbSimulees = nbArmesSimulees(buildEffectif);
+  const nbArmuresSim = nbArmuresSimulees(buildEffectif);
+  const idsDansBuild = useMemo(() => new Set(monBuild.armes.map((a) => a.itemInstanceId).filter((i): i is string => !!i)), [monBuild]);
+  // FR : ⚠️ CORRIGÉ (23/10/2026, audit, bug S1) - aucune exigence d'exotique
+  // n'est passée tant que les VRAIES exigences ne sont pas branchées (la
+  // détection « Caresse du Ver → Grenade T10 » n'existe pas encore) : avant,
+  // `demoExigences` (Mêlée T10, « Exotique de démonstration ») était passée
+  // pour TOUS les builds, plafonnant le Pilier 5 à 60 dès que Mêlée < 91 et
+  // affichant une ligne fictive. Passer `[]` = comportement par défaut du
+  // moteur (aucune exigence, aucun plafonnement).
+  // EN: ⚠️ FIXED (bug S1) - no exotic requirement is passed until the REAL
+  // ones are wired in: `[]` = the engine's default (no requirement, no cap).
   const resultat = useMemo(
-    () => evaluerBuild(monBuild, demoExigences, db ?? undefined, poidsActifsEnFractions(ponderations)),
-    [monBuild, db, ponderations]
+    () => evaluerBuild(buildEffectif, [], db ?? undefined, poidsActifsEnFractions(ponderations)),
+    [buildEffectif, db, ponderations]
   );
+  // FR : ⚠️ AJOUT (27/10/2026, « travaille sur le lien entre stats simulées et score ») - le score RÉEL du même build, calculé SEULEMENT quand une simulation est active (jamais de calcul en plus sinon), pour afficher « réel → simulé » ; les armures dont la simulation dépasse l'énergie sont comptées à part : le score les IGNORE. / EN: ⚠️ ADDED - the REAL score of the same build, computed only while a simulation is active, to show "real → simulated".
+  const simulationActive = nbSimulees + nbArmuresSim > 0;
+  const resultatReel = useMemo(
+    () => (simulationActive ? evaluerBuild(monBuild, [], db ?? undefined, poidsActifsEnFractions(ponderations)) : null),
+    [simulationActive, monBuild, db, ponderations]
+  );
+  const comparaisonScore = useMemo(() => (resultatReel ? comparerScores(resultatReel, resultat) : null), [resultatReel, resultat]);
+  const nbArmuresRejetes = nbArmuresRejetees(buildEffectif);
 
   // FR : ⚠️ AJOUT (04/08/2026) - corrige un "saut" visuel signalé par
   // l'utilisateur : changer de classe réinitialise la grille Doctrine
@@ -167,6 +217,30 @@ export default function DashboardPage() {
   // default on every launch (not remembered, user's choice).
   // FR : ⚠️ CHANGÉ (06/10/2026, v0.3.5) - troisième vue « Load-outs » (entre Build Analyzer et Bibliothèque, demande du 05/10/2026). / EN: ⚠️ CHANGED - third view "Load-outs".
   const [vue, setVue] = useState<VueApp>("analyseur");
+  // FR : ⚠️ AJOUT (12/10/2026, v0.4.0) - objet visé par « Aller à » (recherche dans le Manifest → Mon Inventaire). / EN: ⚠️ ADDED - target of the "Go to" button.
+  const [cibleInventaire, setCibleInventaire] = useState<CibleInventaire | null>(null);
+  // FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - arme envoyée à la Forge par un bouton « Forge » des fenêtres Détails (Mon Inventaire, Coffre, Mon Build) ; la Forge part du roll RÉEL (`pieceReelle`), pas du roll simulé. Le Build Analyzer reste monté (caché) : le retour retrouve tout tel quel. / EN: a weapon sent to the Forge by a "Forge" button; the Forge starts from the REAL roll.
+  const [cibleForge, setCibleForge] = useState<CibleForge | null>(null);
+  function ouvrirForge(piece: GearPiece) {
+    setCibleForge({ piece: pieceReelle(piece), origine: "analyseur", demande: Date.now() });
+    setVue("forge");
+    window.scrollTo({ top: 0 });
+  }
+  function retourDepuisForge() {
+    setVue(cibleForge?.origine ?? "analyseur");
+    setCibleForge(null);
+  }
+  // FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - LIEN PROFOND fiche Détails → Legendarium (spécification §6, piste (a) retenue : bascule de vue interne avec état en mémoire, PAS de route React Router, aucune persistance). `cibleLegendarium` mémorise la page cible (forme `item:<hashObjet>`, résolue par `trouverPage` côté Bibliotheque) et la provenance (bouton de retour vers l'objet). Les vues d'origine restent MONTÉES (cachées) : le retour retrouve tout tel quel.
+  const [cibleLegendarium, setCibleLegendarium] = useState<{ pageId: string; provenance: ProvenanceObjet } | null>(null);
+  function ouvrirLoreDepuisObjet(itemHash: number, nomObjet: string) {
+    setCibleLegendarium({ pageId: `item:${itemHash}`, provenance: { itemHash, nomObjet, origine: vue === "forge" ? "forge" : vue === "loadouts" ? "loadouts" : "analyseur" } });
+    setVue("bibliotheque");
+    window.scrollTo({ top: 0 });
+  }
+  function retourDepuisLegendarium() {
+    setVue(cibleLegendarium?.provenance.origine ?? "analyseur");
+    setCibleLegendarium(null);
+  }
   // FR : ⚠️ AJOUT (07/10/2026, v0.3.7) - après « Charger » dans l'onglet « Load-outs », la page revient au Build Analyzer ET amène le bloc « Mon Build » à l'écran : sans cela, l'utilisateur se retrouvait en haut d'une longue
   // page, loin du build chargé, et croyait à un bug. Le compteur déclenche l'effet ci-dessous à chaque chargement (même si c'est le même build deux fois de suite).
   // EN: ⚠️ ADDED - after "Charger" in the Load-outs tab, the page returns to the Build Analyzer AND brings the "Mon Build" block into view.
@@ -269,6 +343,7 @@ export default function DashboardPage() {
     setEnCours(true);
     setErreurTest(null);
     setResume(null);
+    setProfilComplet(null);
     try {
       const { memberships: comptes, nomBungie: nom } = await recupererComptesBungie();
       setMemberships(comptes);
@@ -281,9 +356,10 @@ export default function DashboardPage() {
       // vous jouez sur plusieurs plateformes non reliées par Cross Save.
       // EN: we take the first linked account for simplicity; refine if you
       // play on several platforms not linked via Cross Save.
-      const { resume: resumeProfil, personnages: listePersonnages } = await recupererResumeEtPersonnages(comptes[0]);
+      const { resume: resumeProfil, personnages: listePersonnages, profil } = await recupererResumeEtPersonnages(comptes[0]);
       setResume(resumeProfil);
       setPersonnages(listePersonnages);
+      setProfilComplet(profil);
 
       // FR : ⚠️ AJOUT (24/08/2026) - triomphes pour la vitrine « Solo sans
       // mourir ». Erreur volontairement ISOLÉE dans son propre try : c'est
@@ -323,6 +399,7 @@ export default function DashboardPage() {
     setResume(null);
     setNomBungie(null);
     setProfilTriomphes(null);
+    setProfilComplet(null);
   }
 
   async function gererExportDim() {
@@ -338,7 +415,7 @@ export default function DashboardPage() {
     <div>
       {/* FR : ⚠️ CHANGÉ (01/10/2026, v0.3.0) - en-tête Forge Armory à l'essai
       (titre + sous-titre, logo aligné par mesure) : voir EnTeteApp.tsx. Ancien
-      en-tête archivé dans ressources-installateur/ancien-logo/ancien-en-tete.txt.
+      en-tête archivé dans ressources-installateur/forge-armory/archives-precedentes/ancien-logo/ancien-en-tete.txt.
       EN: ⚠️ CHANGED - Forge Armory trial header, see EnTeteApp.tsx. */}
       {/* FR : ⚠️ CHANGÉ (05/10/2026) - le titre et, tout à droite, la version de Destiny 2 prise en compte avec la date du
       patch (data/versionJeu.ts). Sur une fenêtre étroite, l'affichage passe sous le titre en restant calé à droite.
@@ -367,7 +444,8 @@ export default function DashboardPage() {
       (characters, light levels, vault count) is removed. Characters are
       still LOADED (used by Mon Build and Loadouts), just not shown here. */}
       {/* FR : ⚠️ CHANGÉ (07/10/2026, v0.3.17) - le bloc « Connexion à Bungie » n'est PAS repliable (retour de l'utilisateur sur la 0.3.16) : retour à un bloc fixe (<div> + <h3>) avec la version SANS losange + / − du titre. L'essai de la 0.3.16 (bloc repliable) est abandonné. / EN: ⚠️ CHANGED - this block is NOT collapsible (user feedback): back to a fixed block with the no-diamond title. */}
-      <div className="pilier-carte">
+      {/* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur, capture annotée) - une fois CONNECTÉ, la carte passe en grille (classe `pilier-carte--connexion`, voir index.css) pour que les boutons « Carrière » et « Accomplissements » se placent entre le titre et le statut ; hors connexion, mise en page inchangée. / EN: ⚠️ CHANGED - once connected the card becomes a grid so the two buttons sit between the title and the status. */}
+      <div className={`pilier-carte${connecte ? " pilier-carte--connexion" : ""}`}>
         <h3><TitreCategorie categorie="connexion" /><span>{connecte ? "✅ connecté" : "◯ non connecté"}</span></h3>
         {!connecte && (
           <p style={{ margin: "0 0 0.5rem" }}>Cliquez pour vous connecter — vous serez redirigé vers bungie.net.</p>
@@ -388,7 +466,7 @@ export default function DashboardPage() {
             reprendre — vos builds enregistrés ne sont pas affectés.
           </p>
         )}
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+        <div className="connexion-compte" style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
           {/* FR : nom Bungie si Bungie l'a fourni, sinon nom de plateforme
           du premier compte Destiny (même valeur qu'avant ce changement).
           EN: Bungie name when provided, else the platform name (as before). */}
@@ -468,6 +546,8 @@ export default function DashboardPage() {
         </div>
 
         {erreurTest && <p style={{ color: "#e08080", margin: "0.5rem 0 0" }}>⚠️ {erreurTest}</p>}
+        {/* FR : ⚠️ CHANGÉ (22/10/2026, TODO §25) - « Carrière » (au-dessus) et « Accomplissements » ouvrent chacun une PAGE DÉDIÉE du compte (plus de pop-up ni de tiroir). Le bloc Connexion et le sélecteur de vues (4 onglets) restent affichés : le bug §25 (la pop-up ne s'ouvrait pas hors Build Analyzer) est résolu par construction. ⚠️ Les pages ne sont PAS des onglets du sélecteur (retour utilisateur : « les boutons apparaissent en double ») : elles n'y figurent pas, seul le bloc Connexion porte ces deux boutons. ⚠️ 21/10 (suite 8) : le déplacement hors du bloc Connexion (testé en suite 7) reste ANNULÉ — régression signalée par l'utilisateur. / EN: the two buttons now open dedicated pages; the Connection block and the selector stay visible; the pages are NOT selector tabs (no duplicates). */}
+        {connecte && <BoutonsVuesCompte onCarriere={() => setVue("carriere")} onAccomplissements={() => setVue("accomplissements")} />}
 
         {memberships.length > 1 && (
           <p style={{ fontSize: "0.8rem", color: "#b7b3a8", margin: "0.5rem 0 0" }}>
@@ -485,7 +565,8 @@ export default function DashboardPage() {
       {/* FR : ⚠️ CHANGÉ (06/10/2026, v0.3.5) - NOUVEAUX BOUTONS (fournis par l'utilisateur) et troisième vue « Load-outs » : voir components/SelecteurVues.tsx. / EN: ⚠️ CHANGED - NEW BUTTONS and a third view. */}
       <SelecteurVues vue={vue} onChanger={setVue} />
 
-      {vue === "bibliotheque" && <Bibliotheque db={db} />}
+      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} onLireLore={ouvrirLoreDepuisObjet} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
+      {vue === "bibliotheque" && <Bibliotheque db={db} pageCible={cibleLegendarium?.pageId} provenance={cibleLegendarium?.provenance} onRetourObjet={cibleLegendarium ? retourDepuisLegendarium : undefined} />}   {/* ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : lien profond fiche Détails → page de Lore + retour vers l'objet */}
 
       {/* FR : ⚠️ AJOUT (06/10/2026, v0.3.5) - vue « Load-outs » : le MÊME panneau que le tiroir, en pleine page (mode « page »). Le tiroir, lui, est masqué avec la vue Build Analyzer (qui reste montée) : les deux se tiennent
       à jour par l'événement du stockage. « Charger » ramène au Build Analyzer pour montrer le build chargé.
@@ -505,6 +586,18 @@ export default function DashboardPage() {
         />
       )}
 
+      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Carrière » : PAGE dédiée aux statistiques du compte (remplace la modale de la v0.4.14), ouverte par le bouton « Carrière » du bloc Connexion. Le bloc Connexion et le sélecteur de vues (4 onglets, sans ces pages) restent affichés : le bug §25 (pop-up qui ne s'ouvrait pas hors Build Analyzer) est résolu par construction. Lecture seule, chargée à l'ouverture de la page (aucun appel réseau au chargement de l'appli). / EN: the Career page. */}
+      {/* FR : ⚠️ CHANGÉ (22/10/2026, retour utilisateur en test) : la page Carrière reçoit le PROFIL COMPLET
+      (`profilComplet`, composant 200 → temps de jeu par classe) et NON plus `profilTriomphes` (composant 900
+      seul : sans temps de jeu → « non disponible »). / EN: the Career page gets the full profile (playtime). */}
+      {/* FR : ⚠️ CHANGÉ (22/10/2026, demande de l'utilisateur : « Enlève la partie affichant les niveaux de persos
+      ainsi que les 10 dernières activités ») : la prop `personnages` est retirée (la section « Personnages » est
+      supprimée avec la section « 10 dernières activités » — la page ne lit plus que le profil et les stats). */}
+      {vue === "carriere" && <VueCarriere membership={memberships[0] ?? null} profil={profilComplet} />}
+
+      {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte, ouverte par le bouton « Accomplissements » du bloc Connexion. ⚠️ CHANGÉ (22/10/2026, retour utilisateur) : la page n'affiche PAS la vitrine « Solo sans mourir » (elle reste dans le tiroir latéral du Build Analyzer). ⚠️ CHANGÉ (23/10/2026, TODO n°23) : la page reçoit le PROFIL DES TRIOMPHES (`profilTriomphes`, composant 900 → records du compte) et le MANIFEST (`db`) pour les noms/descriptions FR des triomphes et des sceaux. / EN: the Accomplishments page (no Solo Flawless showcase here). CHANGED - the page gets the TRIUMPHS PROFILE (`profilTriomphes`, component 900) and the Manifest (`db`) for the FR names/descriptions. */}
+      {vue === "accomplissements" && <VueAccomplissements profil={profilTriomphes} db={db} />}
+
       {/* FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - la vue Build Analyzer est
       MASQUÉE (display: none) et non retirée quand la Bibliothèque est
       affichée. Sinon, chaque aller-retour effacerait l'inventaire chargé,
@@ -517,13 +610,17 @@ export default function DashboardPage() {
       inventory, the Doctrine grid, the current search... and the Manifest,
       loaded by the search block below and needed by the Library. */}
       <div style={{ display: vue === "analyseur" ? "block" : "none" }}>
-      <RechercheManifest onManifestCharge={setDb} onAjouterObjet={ajouterObjetAuBuild} />
+      <RechercheManifest onManifestCharge={setDb} onAjouterObjet={ajouterObjetAuBuild} onAllerA={(hash, nom) => setCibleInventaire({ hash, nom, demande: Date.now() })} />
 
       <SelecteurInventaire
         membership={memberships[0] ?? null}
         db={db}
         onAjouterObjet={ajouterObjetAuBuild}
         onObjetsCharges={setObjetsPossedes}
+        cible={cibleInventaire}
+        onEffacerCible={() => setCibleInventaire(null)}
+        onOuvrirForge={ouvrirForge}   // ⚠️ AJOUT (14/10/2026, v0.4.9) : bouton « Forge » de la fenêtre Détails (Mon Inventaire et Coffre)
+        onLireLore={ouvrirLoreDepuisObjet}   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : bouton « Lire le Lore » de la popup Détails du Build Analyzer
       />
 
       {/* FR : ⚠️ AJOUT (01/10/2026) - contrôle de l'anti-champion des armes exotiques (dev). / EN: exotic anti-champion check (dev). */}
@@ -532,7 +629,7 @@ export default function DashboardPage() {
       {modeDiagnostic && DIAGNOSTICS_ACTIFS.controleIconesPerksArtefact && db && <ControleIconesPerksArtefact db={db} />}
       {import.meta.env.DEV && DIAGNOSTICS_ACTIFS.diagnosticPilier2 && db && (
         <div style={{ marginBottom: "0.75rem" }}>
-          <button onClick={() => setDiagPilier2(obtenirDiagnosticPilier2(monBuild, db))} style={{ fontSize: "0.75rem" }}>
+          <button onClick={() => setDiagPilier2(obtenirDiagnosticPilier2(buildEffectif, db))} style={{ fontSize: "0.75rem" }}>
             🔍 Diagnostic Pilier 2 (ce que le score lit vraiment)
           </button>
         </div>
@@ -578,7 +675,8 @@ export default function DashboardPage() {
       {/* FR : ⚠️ AJOUT (07/10/2026, v0.3.7) - ancre du défilement après « Charger » (enveloppe sans style : aucun changement d'affichage). / EN: ⚠️ ADDED - scroll anchor (unstyled wrapper). */}
       <div ref={refMonBuild} id="bloc-mon-build" style={{ scrollMarginTop: "0.5rem" }}>
         <ResumeBuild
-          build={monBuild}
+          build={buildEffectif}
+          onOuvrirForge={ouvrirForge}
           membership={memberships[0] ?? null}
           personnages={personnages}
           db={db}
@@ -617,6 +715,7 @@ export default function DashboardPage() {
       EN: ⚠️ ADDED - "Solo Flawless" showcase, LEFT sliding panel mirroring
       the loadouts on the right. Also `fixed`, so its JSX position doesn't
       affect where it appears. */}
+      {/* FR : ⚠️ CHANGÉ (22/10/2026, TODO §25) - le tiroir « Solo sans mourir » RETROUVE son état interne (plus de navigation croisée Carrière ↔ Accomplissements : les deux vues du compte sont des ONGLETS). / EN: the drawer is self-contained again. */}
       <PanneauTriomphes profil={profilTriomphes} db={db} />
 
       <PanneauLoadouts
@@ -647,6 +746,25 @@ export default function DashboardPage() {
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: "1rem", flexWrap: "wrap" }}>
         <div className="score-global">{resultat.scoreGlobal}/100</div>
+        {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - dit clairement que le score tient compte de perks SIMULÉS dans la Forge, et que l'enregistrement et le partage restent sur les perks RÉELS. / EN: says that the score uses simulated perks. */}
+        {nbSimulees > 0 && (
+          <div data-score-simule="" title="Les perks choisis dans la Forge (vue Inventaire) remplacent ceux de vos armes pour le calcul du score. L'enregistrement, le partage et l'équipement en jeu gardent vos perks réels." style={{ fontSize: "0.85rem", color: "#e8c547", cursor: "help" }}>
+            🔨 Score calculé avec des perks simulés ({nbSimulees} arme{nbSimulees > 1 ? "s" : ""})
+          </div>
+        )}
+        {/* ⚠️ AJOUT (branche draft-mod-armures) - même bandeau quand des MODS d'armure sont simulés : le score (pilier stats + Pilier 2) en tient compte. */}
+        {nbArmuresSim > 0 && (
+          <div data-score-simule-armures="" title="Les mods choisis dans la Forge (ou la pop-up Détails) remplacent ceux de vos armures pour le calcul du score (statistiques recalculées + effets des mods). L'enregistrement, le partage et l'équipement en jeu gardent vos mods réels." style={{ fontSize: "0.85rem", color: "#e8c547", cursor: "help" }}>
+            🔨 Score calculé avec des mods d'armure simulés ({nbArmuresSim} armure{nbArmuresSim > 1 ? "s" : ""})
+          </div>
+        )}
+        {/* FR : ⚠️ AJOUT (27/10/2026) - « Score réel → simulé » + le détail (piliers, statistiques) : la simulation SE VOIT dans le score. / EN: ⚠️ ADDED - "real → simulated score" + detail. */}
+        {comparaisonScore && <ComparaisonScore comparaison={comparaisonScore} />}
+        {nbArmuresRejetes > 0 && (
+          <div data-simulation-rejetee="" title="Le total des mods simulés dépasse l'énergie de la pièce : ce n'est pas réalisable en jeu, le score l'ignore. Retirez un mod dans la Forge ou la pop-up Détails." style={{ fontSize: "0.85rem", color: "#e0a080", cursor: "help" }}>
+            ⚠️ {nbArmuresRejetes} armure{nbArmuresRejetes > 1 ? "s" : ""} : simulation ignorée par le score (dépasse l'énergie)
+          </div>
+        )}
         <div
           title={
             resultat.completion.manquants.length > 0
@@ -715,8 +833,29 @@ export default function DashboardPage() {
       EN: ⚠️ ADDED - author credit, explicit request for the first
       shareable/invite build. Kept discreet, at the very bottom. */}
       <p style={{ marginTop: "3rem", fontSize: "0.75rem", color: "#7d7a70", textAlign: "center" }}>
-        Forge Armory v{__VERSION_APP__} — Destiny 2 Build Analyzer — créé par Orynick/Orygamer
+        Forge Armory v{__VERSION_APP__} — Destiny 2 Build Analyzer — créé par Orynick/Orygamer{" "}
+        {/* FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - section CRÉDITS en pied de page, ouverte en pop-up : obligation de la licence MIT de d2-additional-info, dont les tables de saisons et de sources sont embarquées (data/seasons.json, data/source-filters.json). Décision de l'utilisateur : « pied de page avec ouverture de pop-up ». / EN: ⚠️ ADDED - footer "Crédits" link opening a pop-up (MIT obligation). */}
+        <button type="button" data-ouvrir-credits="" onClick={() => setCreditsOuverts(true)} style={{ fontSize: "0.75rem", background: "none", border: "none", color: "#9a8f6a", cursor: "pointer", padding: 0, textDecoration: "underline" }}>Crédits</button>
       </p>
+      {creditsOuverts && (
+        <div onClick={() => setCreditsOuverts(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60 }}>
+          <div role="dialog" aria-modal="true" aria-label="Crédits" data-credits="" onClick={(e) => e.stopPropagation()} style={{ background: "#12151c", border: "1px solid #3a3f4b", borderRadius: 10, padding: "1rem 1.2rem", width: "min(34rem, 92vw)", maxHeight: "80vh", overflowY: "auto", color: "#e8e6df" }}>
+            <h2 style={{ fontSize: "1rem", marginTop: 0 }}>Crédits</h2>
+            <p style={{ fontSize: "0.8rem", color: "#b7b3a8" }}>
+              Forge Armory est un projet de fan, non affilié à Bungie. Destiny 2 est une marque de Bungie, Inc. Les noms de saisons, descriptions de sources et autres données du jeu appartiennent à Bungie.
+            </p>
+            <p style={{ fontSize: "0.8rem", color: "#b7b3a8" }}>
+              <strong>Données de saisons et de sources</strong> :{" "}
+              <a href="https://github.com/DestinyItemManager/d2-additional-info" target="_blank" rel="noreferrer" style={{ color: "#7aa2f7" }}>d2-additional-info</a>{" "}
+              — Destiny Item Manager, <a href="https://github.com/DestinyItemManager/d2-additional-info/blob/master/LICENSE" target="_blank" rel="noreferrer" style={{ color: "#7aa2f7" }}>licence MIT</a>.
+              Les tables de correspondance (saisons, sources de loot) en sont dérivées et régénérées par <code>data/rebuild-source-filters.ts</code>.
+            </p>
+            <p style={{ textAlign: "right", margin: 0 }}>
+              <button type="button" onClick={() => setCreditsOuverts(false)} style={{ fontSize: "0.8rem" }}>Fermer</button>
+            </p>
+          </div>
+        </div>
+      )}
       {/* FR : ⚠️ AJOUT (06/10/2026) - réglage du MODE DIAGNOSTIC (aussi dans l'appli installée), discret, en pied de page : voir components/InterrupteurModeDiagnostic.tsx. EN: ⚠️ ADDED - diagnostic mode switch. */}
       <InterrupteurModeDiagnostic />
     </div>
