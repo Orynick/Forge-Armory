@@ -4,7 +4,7 @@ import { urlVisuel } from "../lib/visuelsForge";
 import { forgeAsset } from "../data/forge/forgeAssets";
 import { FORGE_ASSETS_COMPLEMENT } from "../data/forge/forgeAssetsComplement";
 
-export type IdBoutonAction = "boutons-action.retour" | "boutons-action.plus" | "boutons-action.lore" | "boutons-action.actualisation" | "boutons-action.forgemods" | "boutons-action.modifier";
+export type IdBoutonAction = "boutons-action.retour" | "boutons-action.plus" | "boutons-action.lore" | "boutons-action.actualisation" | "boutons-action.forgemods" | "boutons-action.modifier" | "boutons-action.fermer";   // ⚠️ 31/10/2026 : + « fermer »
 
 interface Props {
   id: IdBoutonAction;

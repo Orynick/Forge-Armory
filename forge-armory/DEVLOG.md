@@ -4,6 +4,22 @@
 
 ---
 
+## 31/10/2026 (soir, suite) — 7e BOUTON D'ACTION « FERMER » branché (archive fournie par l'utilisateur, commit `f4dd8e1`)
+
+L'utilisateur a ajouté `public/assets/boutons-action/bouton-fermer.svg` (viewBox 2590 × 1000, croix cyan dans un losange — même plaque et même hauteur que « Modifier », aucun décalage). Branchement :
+
+- Déclaré dans `forgeAssetsComplement.ts` : `boutons-action.fermer` (ratio 2,59).
+- `IdBoutonAction` étendu dans `BoutonAction.tsx`.
+- `SimulationModsArmure` : la bascule « Modifier » ↔ « Fermer » utilise désormais les **deux visuels** (40 px chacun) au lieu du texte « Fermer ».
+- **Règle de la charte §9 appliquée** : tous les `id` internes du SVG préfixés `fa-boutons-action-bouton-fermer-` (le fichier livré avait des id nus `t`, `silver`, … qui auraient fait échouer `visuels.test.ts` — collision avec les autres boutons affichés ensemble).
+- Tests : `reproductibilite-visuels.test.ts` compte 13 fichiers boutons-action ; `fenetre-details.py` attend désormais `bouton-fermer.svg` + aria-label « Fermer » + 40 px à l'état ouvert.
+
+**Vérifié** : `tsc -b` 0 erreur ; `visuels.test.ts` **20/20** (préfixes fa- OK) ; `reproductibilite-visuels` 7/7 ; batterie 53/54 suites, 1103/1104 (seul `icones.test.tsx`, connu, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
 ## 31/10/2026 (soir) — CORRECTIFS POP-UP DÉTAILS sur `test` (branche `vibe/fix-popups-details-87155d`, retours utilisateur après merge du chantier)
 
 Trois retours sur la pop-up Détails, corrigés :
