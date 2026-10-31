@@ -30,8 +30,9 @@ export function appliquerSimulationPiece(piece: GearPiece, simulation: Simulatio
 export function pieceReelle(piece: GearPiece): GearPiece {
   // FR : ⚠️ AJOUT (27/10/2026) - une ARMURE simulée (ou dont la simulation est rejetée) revient à ses mods et à ses statistiques RÉELS, repères retirés : « Envoyer à la Forge » depuis Mon Build ne doit jamais envoyer l'armure SIMULÉE. / EN: ⚠️ ADDED - a simulated (or rejected) armor piece goes back to its real mods and stats.
   if (piece.modsSimules || piece.simulationRejetee) {
-    const { modsSimules, simulationRejetee, energieDepassee, nbModsSimules, statsReelles, perkHashesReels, perksParColonneReels, ...reste } = piece;
-    void modsSimules; void simulationRejetee; void energieDepassee; void nbModsSimules;
+    // ⚠️ AJOUT (30/10/2026) : `statsJeu`/`statsReconstruites` sont aussi des repères de la copie simulée : la pièce réelle garde ses `stats` du jeu (quand elles ont remplacé la reconstruction), jamais les stats recalculées de la simulation.
+    const { modsSimules, simulationRejetee, energieDepassee, nbModsSimules, statsReelles, perkHashesReels, perksParColonneReels, statsJeu, statsReconstruites, ...reste } = piece;
+    void modsSimules; void simulationRejetee; void energieDepassee; void nbModsSimules; void statsJeu; void statsReconstruites;
     return { ...reste, ...(statsReelles ? { stats: statsReelles } : {}), perkHashes: perkHashesReels ?? piece.perkHashes, ...(perksParColonneReels ? { perksParColonne: perksParColonneReels } : {}) };
   }
   if (!piece.perksSimules) return piece;

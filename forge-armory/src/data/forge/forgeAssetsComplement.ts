@@ -6,9 +6,14 @@
 // Même forme d'entrée que le catalogue ; cadre 7505 × 1024, comme la famille « titres ». Si l'auteur livre un jour ces deux titres dans son catalogue, ce fichier disparaît.
 // EN: ⚠️ ADDED - supplement to the generated catalogue: the two STATIC (no +/- diamond) titles for Connexion and Manifest, which are not collapsible blocks.
 
-import type { ForgeAsset } from "./forgeAssets";
+import type { ForgeAsset, ForgeFamille } from "./forgeAssets";
 
-export const FORGE_ASSETS_COMPLEMENT: readonly ForgeAsset[] = [
+/**
+ * FR : ⚠️ AJOUT (30/10/2026) - le complément accepte la famille « boutons-action » (boutons d'ACTION des menus et des fenêtres : « Retour à Build Analyzer », « Mettre dans Mon Build », « Lire le Lore », « Actualisation de l'inventaire ») que le catalogue généré ne connaît pas encore. / EN: ⚠️ ADDED - the supplement accepts the "boutons-action" family unknown to the generated catalogue.
+ */
+export type ForgeAssetComplement = Omit<ForgeAsset, "famille"> & { famille: ForgeFamille | "boutons-action" };
+
+export const FORGE_ASSETS_COMPLEMENT: readonly ForgeAssetComplement[] = [
   { id: "titres.connexion.repos", famille: "titres", label: "Connexion à Bungie", etat: "repos", fichier: "assets/titres/titre-connexion.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40, format: "svg" },
   { id: "titres.manifest.repos", famille: "titres", label: "Recherche dans le Manifest", etat: "repos", fichier: "assets/titres/titre-manifest.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40, format: "svg" },
   { id: "titres.1-doctrine-elementaire.repos", famille: "titres", label: "1. Doctrine élémentaire", etat: "repos", fichier: "assets/titres/titre-1-doctrine-elementaire.svg", largeur: 7505, hauteur: 1024, ratio: 7505 / 1024, hauteurMinPx: 40, format: "svg" },
@@ -25,6 +30,20 @@ export const FORGE_ASSETS_COMPLEMENT: readonly ForgeAsset[] = [
   { id: "selecteur.carriere-large.selectionne", famille: "selecteur", label: "Carrière", etat: "selectionne", fichier: "assets/selecteur/bouton-carriere-large-selectionne.svg", largeur: 4897, hauteur: 1024, ratio: 4.7822, hauteurMinPx: 40, format: "svg" },
   { id: "icones.forge", famille: "icones", label: "Forge", etat: null, fichier: "assets/icones/icone-forge.svg", largeur: 1024, hauteur: 1024, ratio: 1, hauteurMinPx: 24, format: "svg" },
   // FR : ⚠️ CHANGÉ (20/10/2026, v0.4.14) - le catalogue GÉNÉRÉ de l'archive v7 (`ressources-installateur/forge-armory/app-assets/forgeAssets.ts`, 77 actifs) couvre maintenant Carrière, Accomplissements, Armes et Armures : re pris TEL QUEL (règle du projet : jamais modifié à la main), le complément n'a donc plus à déclarer ces entrées. / EN: ⚠️ CHANGED - the v7 generated catalogue now covers Career/Accomplishments/Weapons/Armors; the supplement no longer declares them.
+  // FR : ⚠️ AJOUT (30/10/2026, archive « boutons-action-final » fournie par l'utilisateur) - les QUATRE BOUTONS D'ACTION (plaque Forge, fond transparent, texte en tracés : aucune police) et leurs QUATRE LOGOS ronds seuls. Hauteur d'affichage conseillée : 36 à 44 px, la largeur suit le texte (ratios 3,368 à 7,953). Le texte étant en tracés (non traduisible), chaque bouton affiché porte un `aria-label` : le composant `BoutonAction` s'en charge. Identifiants internes préfixés `fa-<dossier>-<fichier>-` (règle d'intégration de la charte §9). / EN: ⚠️ ADDED - the four ACTION BUTTONS and their four round logos.
+  { id: "boutons-action.retour", famille: "boutons-action", label: "Retour à Build Analyzer", etat: null, fichier: "assets/boutons-action/bouton-retour.svg", largeur: 5659, hauteur: 1000, ratio: 5.659, hauteurMinPx: 36, format: "svg" },
+  { id: "boutons-action.plus", famille: "boutons-action", label: "Mettre dans Mon Build", etat: null, fichier: "assets/boutons-action/bouton-plus.svg", largeur: 5482, hauteur: 1000, ratio: 5.482, hauteurMinPx: 36, format: "svg" },
+  { id: "boutons-action.lore", famille: "boutons-action", label: "Lire le Lore", etat: null, fichier: "assets/boutons-action/bouton-lore.svg", largeur: 3368, hauteur: 1000, ratio: 3.368, hauteurMinPx: 36, format: "svg" },
+  { id: "boutons-action.actualisation", famille: "boutons-action", label: "Actualisation de l'inventaire", etat: null, fichier: "assets/boutons-action/bouton-actualisation.svg", largeur: 7953, hauteur: 1000, ratio: 7.953, hauteurMinPx: 36, format: "svg" },
+  // FR : ⚠️ AJOUT (30/10/2026, 2e archive « boutons-action-final » : 6 boutons) - « Forge : choisir les mods de cette armure » (bouclier + emplacement de mod hexagonal cyan) et « Modifier » (engrenage à cœur cyan) ; mêmes règles que les quatre précédents. / EN: ⚠️ ADDED - the two new action buttons of the second archive.
+  { id: "boutons-action.forgemods", famille: "boutons-action", label: "Forge : choisir les mods de cette armure", etat: null, fichier: "assets/boutons-action/bouton-forgemods.svg", largeur: 8703, hauteur: 1000, ratio: 8.703, hauteurMinPx: 36, format: "svg" },
+  { id: "boutons-action.modifier", famille: "boutons-action", label: "Modifier", etat: null, fichier: "assets/boutons-action/bouton-modifier.svg", largeur: 2843, hauteur: 1000, ratio: 2.843, hauteurMinPx: 36, format: "svg" },
+  { id: "icones.forgemods", famille: "icones", label: "Forge : choisir les mods de cette armure", etat: null, fichier: "assets/icones/icone-forgemods.svg", largeur: 1000, hauteur: 1000, ratio: 1, hauteurMinPx: 24, format: "svg" },
+  { id: "icones.modifier", famille: "icones", label: "Modifier", etat: null, fichier: "assets/icones/icone-modifier.svg", largeur: 1000, hauteur: 1000, ratio: 1, hauteurMinPx: 24, format: "svg" },
+  { id: "icones.retour", famille: "icones", label: "Retour", etat: null, fichier: "assets/icones/icone-retour.svg", largeur: 1000, hauteur: 1000, ratio: 1, hauteurMinPx: 24, format: "svg" },
+  { id: "icones.plus", famille: "icones", label: "Mettre dans Mon Build", etat: null, fichier: "assets/icones/icone-plus.svg", largeur: 1000, hauteur: 1000, ratio: 1, hauteurMinPx: 24, format: "svg" },
+  { id: "icones.lore", famille: "icones", label: "Lire le Lore", etat: null, fichier: "assets/icones/icone-lore.svg", largeur: 1000, hauteur: 1000, ratio: 1, hauteurMinPx: 24, format: "svg" },
+  { id: "icones.actualisation", famille: "icones", label: "Actualisation de l'inventaire", etat: null, fichier: "assets/icones/icone-actualisation.svg", largeur: 1000, hauteur: 1000, ratio: 1, hauteurMinPx: 24, format: "svg" },
 ];
 
 /**
