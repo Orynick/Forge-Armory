@@ -106,6 +106,37 @@ raisonnable » ; 96 kbps = « excellente ») → ~0,5 Mo/min, soit **45 min ≈ 
 - Aucun accès réseau externe pour l'audio (fichiers embarqués uniquement). La liste blanche réseau existante est inchangée.
 - Electron : le schéma `app://local` sert les fichiers de `dist/` (où Vite copie `public/`) — la lecture fonctionne en dev (Vite) comme dans le logiciel installé.
 
+## 6b. Piste « plateforme externe » (Spotify & co.) — analysée et écartée POUR CET ESSAI (23/10/2026)
+
+Question de l'utilisateur : passer par une plateforme type **Spotify for Creators** et
+intégrer son lecteur embarqué (iframe `open.spotify.com/embed/...`) ?
+
+**Constat (vérifié 23/10/2026)** :
+- L'embed Spotify ne fonctionne que pour des **épisodes PUBLIÉS** (« You can only
+  share links to published episodes » — support Spotify). Un contenu **privé /
+  personnel** (le cas d'usage ici : sa propre voix sur ses pages de Lore) n'est pas
+  embeddable. Spotify propose bien des « personal podcasts » (Studio, épisodes
+  privés dans SA bibliothèque), mais **non partageables ni embarquables**.
+- L'embed est une **iframe externe** : il faudrait ouvrir la CSP de production
+  (`frame-src https://open.spotify.com` + `script-src` pour l'API iFrame) —
+  l'appli a une CSP volontairement stricte (défense en profondeur, branche
+  draft-sec) ; y ajouter un lecteur tiers casse ce principe pour un essai perso.
+- L'appli est aussi un **logiciel installé hors-ligne (Electron, schéma `app://`)**:
+  un lecteur externe suppose le réseau — la lecture locale, elle, marche sans.
+- Des bugs CSP récurrents de l'embed Spotify sont signalés (lecteur bloqué selon
+  les sessions) : dépendance à un tiers instable.
+
+**Décision** : l'essai reste **100 % local** (MP3 embarqués, lecteur `<audio>`
+own). C'est aussi ce qui colle au cadre « lecture passive » (aucun réseau, aucune
+persistance).
+
+**Piste retenue pour une itération ULTÉRIEURE** (si l'utilisateur veut un podcast
+PARTAGEABLE, pas perso) : un **hébergeur avec flux RSS privé** (Buzzsprout,
+Transistor, Podbean, Castos — lien RSS secret) ; le lecteur lirait alors le RSS
+(distant) et jouerait les épisodes via leur URL. À ce moment-là : ouvrir
+`connect-src`/`media-src` vers l'hôte du RSS, et sortir du « hors-ligne ».
+Hors périmètre de l'essai.
+
 ## 7. Hors périmètre de l'essai (verrouillé)
 
 - Enregistrement DANS l'appli (micro) : exclu (l'utilisateur s'enregistre hors appli, voir §5b).
