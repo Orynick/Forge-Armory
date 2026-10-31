@@ -33,7 +33,7 @@
 // app). Displaying it makes it visible, and the "Transfer to" button
 // explains it (disabled).
 
-import { extrairePlugsDisponibles, extraireGearTier, extraireEnergie, extrairePlugsInsertables } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7) ; ⚠️ AJOUT (19/10/2026) : `extraireGearTier`
+import { extrairePlugsDisponibles, extraireGearTier, extraireEnergie, extrairePlugsInsertables, extraireStatsJeu } from "./plugsDisponibles";   // ⚠️ AJOUT (13/10/2026, v0.4.7) ; ⚠️ AJOUT (19/10/2026) : `extraireGearTier` ; ⚠️ AJOUT (28/10/2026) : `extraireStatsJeu` (composant 304)
 import { Database } from "sql.js";
 import { obtenirDefinition } from "../manifest/download";
 import { urlIcone } from "../manifest/search";
@@ -59,7 +59,8 @@ interface ItemBrut {
 async function recupererProfilPourInventaire(membership: DestinyMembership) {
   const accessToken = await obtenirAccessTokenValide();
   // FR : ⚠️ CHANGÉ (13/10/2026, v0.4.7) - + 310 (plugs réutilisables : les perks que chaque exemplaire peut porter dans chaque prise), pour distinguer dans la Forge les perks DISPONIBLES sur l'exemplaire de ceux qui sont seulement possibles sur le modèle. Lecture seule. / EN: + component 310 (reusable plugs).
-  const composants = [102, 200, 201, 205, 300, 302, 305, 310].join(",");
+  // FR : ⚠️ AJOUT (28/10/2026, branche draft-mod-armures) - + 304 (`ItemStats` : les VRAIES statistiques du jeu par exemplaire) : demandé EN PRODUCTION aussi (la version installable doit afficher les vraies stats). Le composant 302 reste demandé (inoffensif) mais n'est plus utilisé pour les stats d'armure. / EN: + component 304 (real per-instance stats), requested in production too.
+  const composants = [102, 200, 201, 205, 300, 302, 304, 305, 310].join(",");
   const reponse = await fetch(
     `${BUNGIE_API_ROOT}/Destiny2/${membership.membershipType}/Profile/${membership.membershipId}/?components=${composants}`,
     { headers: { "X-API-Key": bungieConfig.apiKey, Authorization: `Bearer ${accessToken}` } }
@@ -202,6 +203,8 @@ export async function listerObjetsPossedes(
   const gearTierParInstance: Record<string, unknown> =
     profil.itemComponents?.instances?.data ?? {};
   const plugsReutilisablesParInstance: Record<string, unknown> = profil.itemComponents?.reusablePlugs?.data ?? {};
+  // FR : ⚠️ AJOUT (28/10/2026) - composant 304 (`ItemStats`) : les vraies statistiques du jeu, par exemplaire (`{ stats: { "<statHash>": { statHash, value } } }`). Lu avec tolérance : absent = aucune donnée. / EN: component 304 (ItemStats): the real in-game stats per instance.
+  const statsJeuParInstance: Record<string, { stats?: Record<string, { statHash: number; value: number }> }> = profil.itemComponents?.stats?.data ?? {};
 
   const cacheNomsStat = new Map<number, StatKey | undefined>();
   // FR : ⚠️ AJOUT (02/08/2026) - diagnostic pour le bug "stats pas mises à
@@ -373,6 +376,19 @@ export async function listerObjetsPossedes(
         else armureSansDonneesStatsBrutes++;
       }
     }
+    // FR : ⚠️ AJOUT (28/10/2026, branche draft-mod-armures) - les VRAIES statistiques du jeu (composant 304), pour les ARMURES seulement (jamais sur une arme : ses « stats » n'ont rien à voir). Lecture via `extraireStatsJeu` (tolérante, valeur 0 comprise, stat hors des six ignorée via la résolution de nom). Aucune clé si le composant est absent pour cet exemplaire (jamais d'objet vide ni de zéros inventés).
+    // EN: ADDED - the REAL in-game stats (component 304), ARMOR only (never weapons). Read via `extraireStatsJeu` (tolerant, zero kept). No key when the component is absent.
+    let statsJeu: Partial<Record<StatKey, number>> | undefined;
+    if (estArmure && item.itemInstanceId) {
+      const lu = extraireStatsJeu(statsJeuParInstance[item.itemInstanceId], (h) => resoudreStatKeyAvecCache(h));
+      if (lu) statsJeu = lu as Partial<Record<StatKey, number>>;
+    }
+    // FR : ⚠️ AJOUT (28/10/2026) - quand les SIX statistiques du jeu sont là, ELLES font foi : elles deviennent les `stats` de la pièce, et la reconstruction d'après le Manifest est gardée à part dans `statsReconstruites` (côté « appli » du diagnostic). Sinon (`statsJeu` incomplet ou absent) : `stats` reste la reconstruction, aucun mélange des deux, et `statsJeu` garde ce que le jeu a donné pour le diagnostic. Interrupteur unique (demande de l'utilisateur : la version installable affiche aussi les vraies stats).
+    // EN: ADDED - when all SIX game stats are present, they are authoritative: they become the piece's `stats`, and the Manifest reconstruction is kept aside in `statsReconstruites`. Otherwise `stats` stays the reconstruction (no mixing), and `statsJeu` still holds what the game gave. Single switch (user request: the installed build shows real stats too).
+    const STATS_ARMURE: StatKey[] = ["sante", "melee", "grenade", "super", "classe", "arme"];
+    const STATS_DU_JEU_FONT_FOI = true;
+    const statsJeuFontFoi = STATS_DU_JEU_FONT_FOI && !!statsJeu && STATS_ARMURE.every((k) => typeof statsJeu![k] === "number");
+    const statsReconstruites = statsJeuFontFoi ? stats : undefined;
     const classeRequise = estArmure && def.classType !== undefined ? CLASS_TYPE_VERS_CLASSE[def.classType] : undefined;
     const elementArme =
       !estArmure && def.defaultDamageType !== undefined ? obtenirNomsDamageType(db).get(def.defaultDamageType) : undefined;
@@ -400,7 +416,9 @@ export async function listerObjetsPossedes(
       nom: def.displayProperties?.name ?? "(objet sans nom)",
       icone: urlIcone(def.displayProperties?.icon),
       slot,
-      stats,
+      stats: statsJeuFontFoi ? (statsJeu as Partial<Record<StatKey, number>>) : stats,
+      ...(statsJeu ? { statsJeu } : {}),
+      ...(statsReconstruites ? { statsReconstruites } : {}),
       perkHashes,
       perksParColonne,
       // FR : ⚠️ AJOUT (13/10/2026, v0.4.7) - perks DISPONIBLES sur cet exemplaire, par prise (armes seulement : les builds enregistrés ne grossissent pas pour l'armure). `undefined` = donnée non lue. / EN: perks available on this instance (weapons only).

@@ -62,3 +62,24 @@ export function extrairePlugsInsertables(brut: unknown): PlugsDisponibles | unde
   }
   return indicateurVu ? sortie : undefined;
 }
+
+/**
+ * FR : ⚠️ AJOUT (28/10/2026, branche draft-mod-armures) - les VRAIES statistiques du jeu d'un exemplaire, lues dans le composant 304 (`ItemStats`) du profil : `profil.itemComponents.stats.data[itemInstanceId] = { stats: { "<cle>": { statHash, value } } }`. La valeur 0 est CONSERVÉE ; une statistique non reconnue par `resoudre` est ignorée ; une valeur non numérique finie est ignorée. Donnée absente ou mal formée → `undefined` (jamais une exception ni des zéros inventés) ; si AUCUNE statistique n'est reconnue → `undefined`. Fonction PURE, testable sans réseau.
+ * EN: ⚠️ ADDED - the REAL in-game stats of an instance, read from profile component 304 (ItemStats); zero values kept; tolerant, pure function.
+ */
+export function extraireStatsJeu(brut: unknown, resoudre: (statHash: number) => string | undefined): Record<string, number> | undefined {
+  if (typeof brut !== "object" || brut === null) return undefined;
+  const stats = (brut as { stats?: unknown }).stats;
+  if (typeof stats !== "object" || stats === null) return undefined;
+  const sortie: Record<string, number> = {};
+  for (const [cleBrute, entree] of Object.entries(stats as Record<string, unknown>)) {
+    const e = entree as { statHash?: unknown; value?: unknown } | null;
+    if (typeof e?.value !== "number" || !Number.isFinite(e.value)) continue;
+    // ⚠️ la CLÉ numérique du dictionnaire sert de statHash quand l'entrée n'en a pas (forme observée : `"2": { value: 8 }`)
+    const statHash = typeof e?.statHash === "number" && Number.isInteger(e.statHash) ? e.statHash : (Number(cleBrute) || undefined);
+    if (statHash === undefined) continue;
+    const cle = resoudre(statHash);
+    if (cle) sortie[cle] = e.value;   // la valeur 0 comprise
+  }
+  return Object.keys(sortie).length > 0 ? sortie : undefined;
+}

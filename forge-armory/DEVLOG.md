@@ -4,6 +4,22 @@
 
 ---
 
+## 31/10/2026 (matin) — MERGE DE `Import-modif-mods-armures` DANS `test` : le chantier ZIP du 30/10 passe sur la branche de test
+
+**Contexte** : la branche `test` n'était que `main` v0.5.6 + documentation — le chantier (barre Forge à 5 boutons stylisés + Optimisation, fenêtre Détails unique, optimiseur d'armures, 6 boutons d'action de la charte) n'existait que sur `Import-modif-mods-armures`. Merge demandé par l'utilisateur (« Import-modif-mods-armures → test est la logique des choses »).
+
+**Contenu mergé** : 62 fichiers (code `src/`, visuels `public/assets/boutons-action/` + 6 `icones/`, tests, `index.css`, `forgeAssetsComplement.ts`, DEVLOG). **Retiré du merge** : le fichier parasite vide `forge-armory/git` (artefact du ZIP, commit `de6a6a4`, jamais présent sur `main`).
+
+**Conflit** : un seul, dans `DEVLOG.md` (tête du fichier) — résolu en gardant les DEUX entrées : l'entrée du 30/10 soir (point d'avancement sur `test`) ci-dessous, puis la note de propagation v0.5.6 sur `Import-modif-mods-armures`, puis la LIVRAISON v0.5.6 de `main`.
+
+**Vérifié** : `TODO.md` / `CHANGELOG.md` non touchés par le merge (version courante 0.5.6, item 23 LIVRÉ en cartes conservés) ; page Accomplissements = version cartes carrées de `main` (régression du 28/10 non réintroduite : `VueAccomplissements.tsx` du chantier a été vérifié, le merge l'a laissée telle quelle côté `test`) ; `npx tsc -b` 0 erreur ; batterie logique 48/48 suites, 981/981 contrôles ; `npm run build` ✓ ; CI verte sur `Import-modif-mods-armures` au commit `b858c5e` (6 erreurs TS du ZIP corrigées).
+
+**Reste à valider par l'utilisateur** : `npm run dev` sur `test` (barre Forge conforme à la capture « barre-forge-après », bouton Optimisation sous Statistiques de Mon Build, 6 boutons d'action visuels dans les fenêtres Détails).
+
+**Version inchangée (0.5.6).**
+
+---
+
 ## 30/10/2026 (soir) — POINT D'AVANCEMENT sur la branche `test` (documentation seule)
 
 **Livré** : `documentation/suivi/POINT-AVANCEMENT-2026-10-30.md` — instantané du projet au 30/10/2026 (version courante **0.5.6**, recoupement `draft-optimiseur` vs `Import-modif-mods-armures` / `Import-optimiseur`, état des 13 branches, CI 100 % verte, TODO restant, prochaines étapes). La ligne `suivi/` a été ajoutée à l'index `documentation/LISEZ-MOI.md` (nommage `POINT-AVANCEMENT-AAAA-MM-JJ.md`).
@@ -28,19 +44,16 @@
 
 ## 28/10/2026 — LIVRAISON v0.5.6 : merge PR #19 (draft-mod-armures — modification des mods d'armure complète)
 
-**Livraison** : la PR #19 (branche `draft-mod-armures`) est mergée dans `main` (merge commit, le merge GitHub était en conflit après l'avance de `main` — résolu en local, conflit DEVLOG : entrées de `main` conservées). Le chantier « modification des mods d'armure » est **bouclé** : simulation des mods d'armure dans les pop-ups Détails (Mon Inventaire, Coffre, Mon Build) **et** dans la Forge, avec **budget d'énergie** (jauge + garde-fou : une simulation qui dépasse l'énergie est ignorée par le score), **lien score/Mon Build en temps réel** (comparaison « réel → simulé », delta des stats, badge « 🔨 simulé » sur l'origine d'un verbe), **ajustement** (règle du « + » propre à chaque armure, symbole ⇅), et interface allégée (composant partagé `SimulationModsArmure`, `StatsArmure`). **Rien n'est écrit chez Bungie** (Phase 1).
+---
 
-**Contenu détaillé** : entrées du 24/10 (étape 2, fondations + validation utilisateur 8/8), 25/10 (budget d'énergie), 26/10 (règle de l'ajustement, correctif 3 fenêtres), 27/10 (⇅, lien score visible, badge verbe simulé, deux défauts Mon Build corrigés), 28/10 (régression évitée : page Accomplissements restaurée à l'identique de la v0.5.5).
+## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `Import-modif-mods-armures`
 
-**Vérifié** : `npx tsc -b` 0 erreur ; batterie **48/48 suites, 981/981 contrôles** ; `npm run build` ✓ ; CI GitHub Actions verte (PR #19). **Validé par l'utilisateur** : 8/8 le 24/10 (données réelles, `npm run dev`) + évolutions 25-27/10 validées au fil de l'eau.
-
-**Pourquoi v0.5.6** : fonctionnalité complète et visible pour l'utilisateur (édition des mods d'armure hors Forge, budget d'énergie, comparaison de score) — au-delà d'un correctif (0.5.x incrémental, pas de 0.6 car pas de rupture ni de chantier majeur nouveau, la suite « Phase 2 » reste à décider).
-
-**Tag** : `v0.5.6`. **Branche supprimée** après livraison : `draft-mod-armures`. **Propagation** : `main` (v0.5.6) répercutée sur les branches de chantier actives (voir entrée de propagation ci-dessous).
+**Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6` — modification des mods d'armure : pop-up Détails + Forge, budget d'énergie, lien score) a été répercutée sur la branche `Import-modif-mods-armures` pour limiter les conflits futurs. Merge propre (aucun conflit). La branche `draft-mod-armures` est supprimée après livraison.
 
 **Version 0.5.6.**
 
 ---
+
 
 ## 24/10/2026 (soir, après la livraison v0.5.5) — branche `draft-mod-armures` (PR #19) : Forge des armures, étape 2 — modification des mods DANS la pop-up Détails + lien avec le score et Mon Build
 
