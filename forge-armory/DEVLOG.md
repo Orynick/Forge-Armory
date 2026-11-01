@@ -4,6 +4,21 @@
 
 ---
 
+## 01/11/2026 — MÉTHODE : retours de revue sur la constitution (branche `vibe/methode-spec-kit-70789e` → `ccr-18c636a2-6p3cz9`)
+
+**Décision de l'utilisateur** (01/11/2026), après l'analyse de la branche `vibe/methode-spec-kit-70789e` (constitution + templates inspirés de spec-kit) : documentation uniquement, aucun fichier de code touché.
+- **Article IX corrigé** : vérifié que les tests Playwright ne tournent bien pas en CI (`.github/workflows/ci.yml` n'exécute que `tsc -b`, `npm run build`, `npm run test:logique`). L'article précise maintenant la commande de lancement, le rôle de l'assistant (écrit et rejoue quand l'environnement le permet, sinon le déclare) et celui de l'utilisateur (rejeu qui fait foi).
+- **Article III : échec connu toléré** : `icones.test.tsx` (53/54, 1103/1104) documenté comme seule exception ; suivi en **TODO 25** (cause à chercher ; commentaires de `ci.yml` périmés « 38 suites / 761 contrôles » notés au même endroit).
+- **Nommage** (README §4) : le préfixe `draft-<slug>` ne vaut que pour les chantiers pilotés par l'utilisateur ; `vibe/...` et `ccr-...` n'y sont pas soumis.
+- **Chantiers triviaux et corrections mineures** → directement sur `main` (README §5, exception à l'Article VI, rappels aux Articles V et VII), avec une **checklist courte** (`templates/CHECKLIST-correctif-mineur.md`). L'assistant propose la qualification « trivial », l'utilisateur confirme ; en cas de doute, workflow complet.
+- **Article X** : la référence périmée « TODO §12 » (devenu « Équiper ») remplacée par un lien vers `electron/dossierDonnees.cjs` et l'entrée DEVLOG du 05/10/2026 (suite 12).
+- **Template d'index des specs** : `templates/INDEX-specs.md` (cible : `documentation/specs/INDEX.md`, non créé).
+- **Nouvel Article XI** : la constitution ne change que sur décision explicite de l'utilisateur ; l'assistant propose, n'applique pas ; modification, entrée DEVLOG et annexe dans le même commit.
+
+**Vérifié** : liens relatifs des nouveaux fichiers contrôlés ; aucun fichier hors `documentation/methode/`, `TODO.md` et `DEVLOG.md` modifié (hors merge de la branche `vibe/methode-spec-kit-70789e`). Pas de `tsc`/`build` à relancer (documentation seule).
+
+---
+
 ## 31/10/2026 (soir, suite 3) — CORRECTIF : commentaires JSX « /* */ » rendus comme du TEXTE + hauteur des boutons en `2.5rem` (= barre Forge, suit le zoom)
 
 Retour utilisateur (capture) : du texte parasite « 31/10/2026 : hauteur 40 px */ » apparaissait à côté des boutons « Lire le Lore » et « Mettre dans Mon Build », et les boutons semblaient « encore trop grands ».

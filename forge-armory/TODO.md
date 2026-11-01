@@ -606,6 +606,13 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 À prévoir ensuite : libellé du lien, test du lien dans l'appli installée (ouverture du navigateur ou de la messagerie), et une phrase dans le guide de démarrage pour les invités.
 
 
+### 25. Test `icones.test.tsx` en échec en local — batterie 53/54 (noté le 01/11/2026)
+
+La batterie locale affiche **53/54 suites, 1103/1104 contrôles** : seule la suite `tests/logique/icones.test.tsx` échoue (contrôle `element:officielle`), alors qu'elle **passe en CI**. L'échec est déjà signalé comme « connu » dans le DEVLOG (entrées du 31/10) et noté « pré-existant » depuis la branche `draft-deps` (DEVLOG, voir « element:officielle »). Il est désormais toléré **explicitement** par la Constitution (Article III, décision du 01/11/2026), à titre transitoire.
+- **À faire** : comprendre pourquoi le résultat local diffère de la CI (environnement, ordre des fichiers, instantané `tests/logique/instantanes/` ?), corriger le test ou son instantané, puis retirer l'exception de l'Article III et revenir à « N/N ».
+- **À mettre à jour en même temps** : les commentaires de `.github/workflows/ci.yml` annoncent encore « 38 suites, 761 contrôles » (le nom de l'étape dit « 38 suites ») alors que la batterie compte 54 suites, 1104 contrôles.
+- Aucune décision de l'utilisateur n'est attendue avant de commencer l'enquête.
+
 ---
 
 **Items retirés le 23/10/2026 (livraison PR #17)** — documentés dans `DEVLOG.md` :
