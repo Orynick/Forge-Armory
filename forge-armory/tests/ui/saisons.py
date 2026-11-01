@@ -108,7 +108,7 @@ with sync_playwright() as p:
     rang(mb, "Fusil à paliers").get_by_role("button", name="Détails").click(); mb.wait_for_timeout(300)
     dm = mb.evaluate(ICONE)
     ok("DÉTAILS (Mon Build) : l'icône de saison est directement à droite du nom de l'arme, même celle aux perks simulés (Fusil à paliers), sur la même ligne, avant les autres icônes", dm and dm["droiteDuNom"] and 0 <= dm["ecart"] <= 12 and dm["memeLigne"] and dm["avantSuivant"] and dm["titre"] == "Saison de la Sorcière (saison 22)", dm)
-    mb.get_by_role("button", name="✕").first.click(); mb.wait_for_timeout(150)
+    mb.get_by_role("button", name="Fermer").first.click(); mb.wait_for_timeout(150)
     rang(mb, "Fusil d'essai").get_by_role("button", name="Détails").click(); mb.wait_for_timeout(300)
     ok("DÉTAILS (Mon Build) d'une arme sans filigrane : pas d'icône de saison", mb.evaluate(ICONE) is None)
     mb.close()

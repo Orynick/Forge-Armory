@@ -22,7 +22,11 @@ with sync_playwright() as p:
     def attr(q, sel, a):   # lecture tolérante : `None` si l'élément n'existe pas (jamais d'attente de 30 s)
         l = q.locator(sel); return l.first.get_attribute(a) if l.count() else None
     def texte(q, sel):
-        l = q.locator(sel); return l.first.inner_text() if l.count() else ""
+        l = q.locator(sel)
+        if not l.count(): return ""
+        # ⚠️ 31/10/2026 : le bouton « Modifier » est un VISUEL (image, texte vide) : son libellé est dans `aria-label`
+        t = l.first.inner_text()
+        return t if t.strip() else (l.first.get_attribute("aria-label") or "")
     def desactive(q, sel):
         l = q.locator(sel); return l.first.is_disabled() if l.count() else None
     def clic(q, sel):   # un clic impossible est un ÉCHEC net du test, pas une attente de 30 s suivie d'un plantage

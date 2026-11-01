@@ -238,7 +238,7 @@ export function statPlusDePiece(db: Database, piece: GearPiece): StatKey | null 
 /** FR : un emplacement d'un modèle d'armure et tous ses plugs possibles. / EN: a socket of an armor model and all its possible plugs. */
 export interface ColonneModele { socketIndex: number; categorie: string; options: PlugArmure[]; cosmetique: boolean; mod: boolean; fixe: boolean }
 /** FR : emplacement de mods : identifiant de catégorie de plug « enhancements.… » ou nom de catégorie de socket contenant « mod ». / EN: a mods socket. */
-const estEmplacementMod = (categoriePlug: string, nomCategorie: string) => /^enhancements\./i.test(categoriePlug) || /\bmods?\b/.test(normaliser(nomCategorie));
+export const estEmplacementMod = (categoriePlug: string, nomCategorie: string) => /^enhancements\./i.test(categoriePlug) || /\bmods?\b/.test(normaliser(nomCategorie));   // ⚠️ CHANGÉ (31/10/2026) : exporté — utilisé par `estGereeParSimulation` (energieMods.ts) pour exclure TOUS les emplacements de mods de l'ancien affichage des Détails
 function nomsCategoriesSocket(db: Database, def: DefObjetArmure | undefined): Map<number, string> {
   const noms = new Map<number, string>();
   for (const cat of def?.sockets?.socketCategories ?? []) {
