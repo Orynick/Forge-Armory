@@ -23,21 +23,21 @@ with sync_playwright() as p:
     ligne("Fusil à paliers").get_by_role("button", name="Détails").click(); pg.wait_for_timeout(300)
     dlg = pg.locator("div").filter(has=pg.get_by_role("button", name="🔨 Forge : choisir les perks de cette arme")).last
     texte = pg.inner_text("body")
-    ok("DÉTAILS de l'arme simulée : le ✓ de « équipé en jeu » est sur le roll RÉEL (Canon X, Chargeur X, Trait P) et PAS sur les perks simulés (Canon Y, Trait Q) : la fenêtre ne ment jamais sur ce qui est réellement équipé", "✓ Canon X" in texte and "✓ Trait P" in texte and "✓ Canon Y" not in texte and "✓ Trait Q" not in texte, [t for t in ("✓ Canon X", "✓ Trait P", "✓ Canon Y", "✓ Trait Q") if t in texte])
+    ok("DÉTAILS de l'arme simulée : le ✓ de « équipé en jeu » est sur le roll RÉEL (Canon X, Chargeur X, Trait P) et PAS sur les perks simulés (Canon Y, Trait Q) : la fenêtre ne ment jamais sur ce qui est réellement équipé", "✓\nCanon X" in texte and "✓\nTrait P" in texte and "✓\nCanon Y" not in texte and "✓\nTrait Q" not in texte, [t for t in ("✓\nCanon X", "✓\nTrait P", "✓\nCanon Y", "✓\nTrait Q") if t in texte])   # ⚠️ 30/10/2026 : fenêtre unique : le ✓ et le nom sont sur deux lignes
     # ---------- bouton Forge ----------
     bouton = pg.get_by_role("button", name="🔨 Forge : choisir les perks de cette arme")
     ok("BOUTON FORGE : la fenêtre Détails d'une arme possédée propose « 🔨 Forge : choisir les perks de cette arme »", bouton.count() == 1)
     bouton.click(); pg.wait_for_timeout(150)
     envois = pg.evaluate("window.__forge.map(p => ({ id: p.itemInstanceId, simules: !!p.perksSimules }))")
     ok("un clic envoie CETTE arme (exemplaire w1) à la Forge, une seule fois", len(envois) == 1 and envois[0]["id"] == "w1", envois)
-    pg.get_by_role("button", name="✕").first.click(); pg.wait_for_timeout(150)
+    pg.get_by_role("button", name="Fermer").first.click(); pg.wait_for_timeout(150)
     ligne("Casque d'essai").get_by_role("button", name="Détails").click(); pg.wait_for_timeout(300)
-    bouton_a = pg.get_by_role("button", name="🔨 Forge : choisir les mods de cette armure")
+    bouton_a = pg.get_by_role("button", name="Forge : choisir les mods de cette armure")
     ok("BOUTON FORGE DES ARMURES (v0.4.12) : la fenêtre Détails d'une ARMURE possédée (« Casque d'essai », exemplaire c1) propose « 🔨 Forge : choisir les mods de cette armure » ; le libellé des ARMES n'y est PAS", bouton_a.count() == 1 and pg.get_by_role("button", name="🔨 Forge : choisir les perks de cette arme").count() == 0)
     bouton_a.click(); pg.wait_for_timeout(150)
     envois = pg.evaluate("window.__forge.map(p => ({ id: p.itemInstanceId, simules: !!p.perksSimules, slot: p.slot }))")
     ok("un clic envoie CETTE armure (exemplaire c1, emplacement casque) à la Forge, après l'arme (w1), une seule fois chacune", len(envois) == 2 and envois[1]["id"] == "c1" and envois[1]["slot"] == "casque" and not envois[1]["simules"], envois)
-    pg.get_by_role("button", name="✕").first.click(); pg.wait_for_timeout(150)
+    pg.get_by_role("button", name="Fermer").first.click(); pg.wait_for_timeout(150)
     ok("une arme NON POSSÉDÉE n'a ni « Détails » ni bouton Forge (elle n'a pas de roll à choisir)", ligne("Lance-roquettes d'essai").get_by_role("button", name="Détails").count() == 0)
     # ---------- avertissements d'équipement ----------
     ligne("Fusil à paliers").get_by_role("button", name="Équiper", exact=True).click(); pg.wait_for_timeout(200)
@@ -55,7 +55,7 @@ with sync_playwright() as p:
     ps.route("**/www.bungie.net/**", lambda r: r.fulfill(status=200, content_type="image/png", body=PNG))
     ps.goto("file://" + racine + "/tests/ui/_sortie/resumebuild.html?sansid=1"); ps.wait_for_function("window.__pret===true"); ps.wait_for_timeout(300)
     ligne_sans = ps.locator("li").filter(has_text="Casque d'essai").first
-    ok("une ARMURE sans identifiant d'exemplaire (elle ne vient pas de l'inventaire réel) n'a NI « Détails » NI bouton Forge : sa ligne existe, mais sans fenêtre à ouvrir", ligne_sans.count() == 1 and ligne_sans.get_by_role("button", name="Détails").count() == 0 and ps.get_by_role("button", name="🔨 Forge : choisir les mods de cette armure").count() == 0 and ps.get_by_role("button", name="🔨 Forge : choisir les perks de cette arme").count() == 0)
+    ok("une ARMURE sans identifiant d'exemplaire (elle ne vient pas de l'inventaire réel) n'a NI « Détails » NI bouton Forge : sa ligne existe, mais sans fenêtre à ouvrir", ligne_sans.count() == 1 and ligne_sans.get_by_role("button", name="Détails").count() == 0 and ps.get_by_role("button", name="Forge : choisir les mods de cette armure").count() == 0 and ps.get_by_role("button", name="🔨 Forge : choisir les perks de cette arme").count() == 0)
     ps.close()
     ok("aucune erreur JavaScript pendant tout le scénario", len(erreurs) == 0, erreurs[:3])
     b.close()

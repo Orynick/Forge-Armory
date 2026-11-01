@@ -99,12 +99,13 @@ function Hote() {
   const inventaire = params.has("inventaire");
   const [ids, setIds] = useState<Set<string>>(new Set());
   const [cible, setCible] = useState<{ piece: never; origine: "analyseur"; demande: number } | null>(params.has("cible") ? { piece: (((window as unknown as { __piecesForge?: { itemInstanceId?: string }[] }).__piecesForge ?? []).find((x) => x.itemInstanceId === params.get("cible")) ?? w1) as never, origine: "analyseur", demande: 1 } : null);
-  const w = window as unknown as { __ajoutsBuild: string[]; __retours: number };
+  const [demande, setDemande] = useState(params.has("demandeOptimiseur"));   // ⚠️ AJOUT (29/10/2026) : simule la demande de la page principale (bouton « Optimiseur » de Mon Build)
+  const w = window as unknown as { __ajoutsBuild: string[]; __retours: number; __demandeTraitee?: number };
   w.__ajoutsBuild = w.__ajoutsBuild ?? []; w.__retours = w.__retours ?? 0;
   return (
     <div className="app-shell">
       <PageForge db={params.has("sansManifest") ? null : db} membership={membership}
-        {...(inventaire ? { cible, onRetour: () => { w.__retours++; setCible(null); }, onAjouterAuBuild: (p: { itemInstanceId?: string }) => { w.__ajoutsBuild.push(p.itemInstanceId ?? "?"); setIds((x) => new Set([...x, p.itemInstanceId ?? "?"])); }, idsDansBuild: ids } : {})} />
+        {...(inventaire ? { cible, onRetour: () => { w.__retours++; setCible(null); }, onAjouterAuBuild: (p: { itemInstanceId?: string }) => { w.__ajoutsBuild.push(p.itemInstanceId ?? "?"); setIds((x) => new Set([...x, p.itemInstanceId ?? "?"])); }, idsDansBuild: ids, demandeOptimiseur: demande, onDemandeOptimiseurTraitee: () => { w.__demandeTraitee = (w.__demandeTraitee ?? 0) + 1; setDemande(false); } } : {})} />
       {inventaire && <Espion />}
     </div>
   );

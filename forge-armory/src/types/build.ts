@@ -124,6 +124,16 @@ export interface GearPiece {
   energieDepassee?: number;
   statsReelles?: Partial<StatBlock>;
   nbModsSimules?: number;
+  /**
+   * FR : ⚠️ AJOUT (28/10/2026, branche draft-mod-armures) - les six statistiques RÉELLES du jeu pour une ARMURE, lues dans le composant 304 (`ItemStats`) de l'API Bungie par `lib/bungie/inventaire.ts`, la valeur 0 comprise. Posé quand le composant est présent (aucune clé si absent) ; jamais sur une arme. Quand les SIX sont là, elles deviennent les `stats` de la pièce (elles font foi) et la reconstruction d'après le Manifest est gardée dans `statsReconstruites` ; sinon `stats` reste la reconstruction et `statsJeu` garde quand même ce que le jeu a donné (pour le diagnostic).
+   * EN: ⚠️ ADDED - the REAL in-game stats of an ARMOR piece, read from Bungie's component 304 (ItemStats) by the inventory loader; zero included. Set when the component is present (no key when absent); never on weapons. When all SIX are present they become the piece's `stats` and the Manifest reconstruction is kept in `statsReconstruites`; otherwise `stats` stays the reconstruction and `statsJeu` still holds what the game gave (for diagnostics).
+   */
+  statsJeu?: Partial<StatBlock>;
+  /**
+   * FR : ⚠️ AJOUT (28/10/2026) - la reconstruction des statistiques d'après les plugs du Manifest, gardée à part quand les `stats` viennent du jeu (`statsJeu` complet) : c'est le côté « appli » de la comparaison du diagnostic des statistiques de base. Absente quand le jeu n'a pas remplacé `stats`.
+   * EN: ⚠️ ADDED - the Manifest-plug reconstruction of the stats, kept aside when `stats` comes from the game (complete `statsJeu`): the "app" side of the base-stats diagnostic comparison. Absent when the game did not replace `stats`.
+   */
+  statsReconstruites?: Partial<StatBlock>;
   /** FR : nom officiel de l'élément de l'arme (Cinétique/Solaire/Arc/Abyssal/Stase/Filobscur), résolu via le Manifest - absent pour l'armure. / EN: weapon's official element name (Kinetic/Solar/Arc/Void/Stasis/Strand), resolved via the Manifest - absent for armor. */
   elementArme?: string;
   /** FR : URL de l'icône officielle de l'élément (résolue via le Manifest), pour affichage visuel au lieu du texte. / EN: URL of the element's official icon (resolved via the Manifest), for visual display instead of text. */
