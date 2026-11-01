@@ -340,3 +340,8 @@ summary:has(.titre-repliable) .bloc-repliable-ligne { width: 100%; }
 /* FR : ⚠️ CHANGÉ (12/10/2026, v0.4.0) - la hauteur commune des logos DÉPEND maintenant de la largeur disponible pour que les quatre boutons du sélecteur tiennent toujours sur une ligne : (largeur de la page − marges − trois espaces) / 4 × 1024 / 4316, bornée entre 2,6 rem et 3,5 rem. La page fait au plus 1032 px ; la marge de 1,1 rem tient compte d'une barre de défilement classique (100vw l'inclut). Résultat mesuré : 56 px dès ~1040 px de fenêtre, puis 53 px (1000), 51 (960), 47 (900), 43 (820). Les titres des blocs et les boutons de profil suivent la MÊME variable, donc la même taille. ⚠️ 22/10/2026 (TODO §25) : inchangé — le sélecteur garde ses QUATRE onglets (les pages « Carrière » et « Accomplissements » du compte ne sont pas des onglets).
    EN: ⚠️ CHANGED - the shared logo height now depends on the available width so the four selector buttons always fit on one line. */
 :root { --hauteur-logo-titre: clamp(2.6rem, calc((min(1032px, 100vw - 1.1rem) - 3rem - 2.25rem) / 4 * 1024 / 4316), 3.5rem); }
+
+/* FR : ⚠️ AJOUT (30/10/2026) - boutons d'ACTION visuels (`BoutonAction`) : survol (légère clarté), focus clavier (contour bleu), appui (léger enfoncement). Rien n'est ajouté à l'état désactivé (déjà atténué par le composant). / EN: ⚠️ ADDED - visual action buttons: hover, keyboard focus and press states. */
+.bouton-action:not(:disabled):hover img { filter: brightness(1.18); }
+.bouton-action:not(:disabled):active img { transform: translateY(1px); }
+.bouton-action:focus-visible { outline: 2px solid #7aa2f7; outline-offset: 2px; }
