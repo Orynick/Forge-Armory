@@ -67,7 +67,7 @@ with sync_playwright() as p:
     rang(pm, "Fusil d'essai").get_by_role("button", name="Détails").click(); pm.wait_for_timeout(300)
     tm = pm.evaluate(TITRE)
     ok("DÉTAILS (Mon Build) : l'icône est à gauche du nom pour l'arme façonnée (Fusil d'essai)", tm and tm["aGauche"] and tm["ecartY"] <= 4 and tm["nom"] == "Arme façonnée" and tm["nb"] == 1, tm)
-    pm.get_by_role("button", name="✕").first.click(); pm.wait_for_timeout(150)
+    pm.get_by_role("button", name="Fermer").first.click(); pm.wait_for_timeout(150)
     rang(pm, "Fusil à paliers").get_by_role("button", name="Détails").click(); pm.wait_for_timeout(300)
     ok("DÉTAILS (Mon Build) d'une arme NON façonnée, même aux perks simulés (Fusil à paliers) : pas d'icône à gauche du nom", pm.evaluate(TITRE) is None)
     pm.close()
@@ -76,12 +76,12 @@ with sync_playwright() as p:
     pl.goto("file://" + racine + "/tests/ui/_sortie/inventaire.html?pool=1"); pl.wait_for_function("window.__pret===true"); pl.get_by_role("button", name="Charger mon inventaire").click(); pl.wait_for_timeout(500); pl.evaluate("document.querySelectorAll('details').forEach(d => d.open = true)"); pl.wait_for_timeout(200)
     rangee(pl, "f4").get_by_role("button", name="Détails").click(); pl.wait_for_timeout(300)
     texte = pl.inner_text("body")
-    ok("DÉTAILS (Mon Inventaire) d'une arme façonnée à pool : les perks POSSIBLES apparaissent (Rainurage polygonal, Frein tête-de-flèche, Canon lisse ; Chargeur en alliage, Gros chargeur ; Rafale d'élan ; Démoralisation), et les perks RÉELLEMENT équipés sont cochés (Frein tête-de-flèche, Chargeur en alliage, Munitions déstabilisantes, et le perk absent du Manifest) sans que le perk par défaut de la liste le soit", all(n in texte for n in ("Rainurage polygonal", "Canon lisse", "Gros chargeur", "Rafale d'élan", "Démoralisation")) and all(f"✓ {n}" in texte for n in ("Frein tête-de-flèche", "Chargeur en alliage", "Munitions déstabilisantes", "Perk équipé hors pool")) and "✓ Rainurage polygonal" not in texte and "✓ Chargeur tactique" not in texte, [m for m in ("✓ Frein tête-de-flèche", "✓ Rainurage polygonal") if m in texte])
+    ok("DÉTAILS (Mon Inventaire) d'une arme façonnée à pool : les perks POSSIBLES apparaissent (Rainurage polygonal, Frein tête-de-flèche, Canon lisse ; Chargeur en alliage, Gros chargeur ; Rafale d'élan ; Démoralisation), et les perks RÉELLEMENT équipés sont cochés (Frein tête-de-flèche, Chargeur en alliage, Munitions déstabilisantes, et le perk absent du Manifest) sans que le perk par défaut de la liste le soit", all(n in texte for n in ("Rainurage polygonal", "Canon lisse", "Gros chargeur", "Rafale d'élan", "Démoralisation")) and all(f"✓\n{n}" in texte for n in ("Frein tête-de-flèche", "Chargeur en alliage", "Munitions déstabilisantes", "Perk équipé hors pool")) and "✓\nRainurage polygonal" not in texte and "✓\nChargeur tactique" not in texte, [m for m in ("✓\nFrein tête-de-flèche", "✓\nRainurage polygonal") if m in texte])   # ⚠️ 30/10/2026 : fenêtre unique : le ✓ et le nom sont sur deux lignes dans le texte de la page
     pl.close()
     pb = build_page("?pool=1")
     rang(pb, "Mesure corrective d'essai").get_by_role("button", name="Détails").click(); pb.wait_for_timeout(300)
     texte = pb.inner_text("body")
-    ok("DÉTAILS (Mon Build) d'une arme façonnée à pool : même résultat (perks possibles visibles, perks équipés cochés, perk par défaut non coché) et icône à gauche du nom", all(n in texte for n in ("Rainurage polygonal", "Canon lisse", "Gros chargeur", "Démoralisation")) and all(f"✓ {n}" in texte for n in ("Frein tête-de-flèche", "Chargeur en alliage", "Munitions déstabilisantes", "Perk équipé hors pool")) and "✓ Rainurage polygonal" not in texte and pb.evaluate(TITRE) is not None, pb.evaluate(TITRE))
+    ok("DÉTAILS (Mon Build) d'une arme façonnée à pool : même résultat (perks possibles visibles, perks équipés cochés, perk par défaut non coché) et icône à gauche du nom", all(n in texte for n in ("Rainurage polygonal", "Canon lisse", "Gros chargeur", "Démoralisation")) and all(f"✓\n{n}" in texte for n in ("Frein tête-de-flèche", "Chargeur en alliage", "Munitions déstabilisantes", "Perk équipé hors pool")) and "✓\nRainurage polygonal" not in texte and pb.evaluate(TITRE) is not None, pb.evaluate(TITRE))   # ⚠️ 30/10/2026 : fenêtre unique : le ✓ et le nom sont sur deux lignes dans le texte de la page
     pb.close()
     ok("aucune erreur JavaScript pendant tout le scénario", len(erreurs) == 0, erreurs[:3])
     b.close()

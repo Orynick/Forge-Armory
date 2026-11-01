@@ -221,6 +221,13 @@ export default function DashboardPage() {
   const [cibleInventaire, setCibleInventaire] = useState<CibleInventaire | null>(null);
   // FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - arme envoyée à la Forge par un bouton « Forge » des fenêtres Détails (Mon Inventaire, Coffre, Mon Build) ; la Forge part du roll RÉEL (`pieceReelle`), pas du roll simulé. Le Build Analyzer reste monté (caché) : le retour retrouve tout tel quel. / EN: a weapon sent to the Forge by a "Forge" button; the Forge starts from the REAL roll.
   const [cibleForge, setCibleForge] = useState<CibleForge | null>(null);
+  // FR : ⚠️ AJOUT (29/10/2026, demande de l'utilisateur) - le bouton « Optimiseur » de Mon Build ouvre la Forge directement sur l'optimiseur ; la demande est remise à faux dès que la Forge l'a prise en compte (elle ne se rejoue pas à la prochaine visite). / EN: ⚠️ ADDED - My Build's "Optimizer" button opens the Forge on the optimizer.
+  const [demandeOptimiseur, setDemandeOptimiseur] = useState(false);
+  function ouvrirOptimiseur() {
+    setCibleForge(null);
+    setDemandeOptimiseur(true);
+    setVue("forge");
+  }
   function ouvrirForge(piece: GearPiece) {
     setCibleForge({ piece: pieceReelle(piece), origine: "analyseur", demande: Date.now() });
     setVue("forge");
@@ -565,7 +572,7 @@ export default function DashboardPage() {
       {/* FR : ⚠️ CHANGÉ (06/10/2026, v0.3.5) - NOUVEAUX BOUTONS (fournis par l'utilisateur) et troisième vue « Load-outs » : voir components/SelecteurVues.tsx. / EN: ⚠️ CHANGED - NEW BUTTONS and a third view. */}
       <SelecteurVues vue={vue} onChanger={setVue} />
 
-      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} onLireLore={ouvrirLoreDepuisObjet} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
+      {vue === "forge" && <PageForge db={db} membership={memberships[0] ?? null} cible={cibleForge} onRetour={retourDepuisForge} onAjouterAuBuild={ajouterObjetAuBuild} idsDansBuild={idsDansBuild} onLireLore={ouvrirLoreDepuisObjet} prismatiqueDuBuild={monBuild.subclass.element === "prismatique"} classeDuBuild={monBuild.subclass.classe} demandeOptimiseur={demandeOptimiseur} onDemandeOptimiseurTraitee={() => setDemandeOptimiseur(false)} />}   {/* ⚠️ v0.4.3 : la Collection lit les collections du compte */}
       {vue === "bibliotheque" && <Bibliotheque db={db} pageCible={cibleLegendarium?.pageId} provenance={cibleLegendarium?.provenance} onRetourObjet={cibleLegendarium ? retourDepuisLegendarium : undefined} />}   {/* ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : lien profond fiche Détails → page de Lore + retour vers l'objet */}
 
       {/* FR : ⚠️ AJOUT (06/10/2026, v0.3.5) - vue « Load-outs » : le MÊME panneau que le tiroir, en pleine page (mode « page »). Le tiroir, lui, est masqué avec la vue Build Analyzer (qui reste montée) : les deux se tiennent
@@ -677,6 +684,8 @@ export default function DashboardPage() {
         <ResumeBuild
           build={buildEffectif}
           onOuvrirForge={ouvrirForge}
+          onOuvrirOptimiseur={ouvrirOptimiseur}
+          onLireLore={ouvrirLoreDepuisObjet}   // ⚠️ AJOUT (30/10/2026) : « Lire le Lore » aussi dans la fenêtre Détails de Mon Build
           membership={memberships[0] ?? null}
           personnages={personnages}
           db={db}
