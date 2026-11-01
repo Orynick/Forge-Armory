@@ -53,19 +53,121 @@ Côté revue (ici) : `npx tsc -b` + `node scripts/test-logique.mjs` (garde Sceau
 
 ## 28/10/2026 — LIVRAISON v0.5.6 : merge PR #19 (draft-mod-armures — modification des mods d'armure complète)
 
-**Livraison** : la PR #19 (branche `draft-mod-armures`) est mergée dans `main` (merge commit, le merge GitHub était en conflit après l'avance de `main` — résolu en local, conflit DEVLOG : entrées de `main` conservées). Le chantier « modification des mods d'armure » est **bouclé** : simulation des mods d'armure dans les pop-ups Détails (Mon Inventaire, Coffre, Mon Build) **et** dans la Forge, avec **budget d'énergie** (jauge + garde-fou : une simulation qui dépasse l'énergie est ignorée par le score), **lien score/Mon Build en temps réel** (comparaison « réel → simulé », delta des stats, badge « 🔨 simulé » sur l'origine d'un verbe), **ajustement** (règle du « + » propre à chaque armure, symbole ⇅), et interface allégée (composant partagé `SimulationModsArmure`, `StatsArmure`). **Rien n'est écrit chez Bungie** (Phase 1).
+---
 
-**Contenu détaillé** : entrées du 24/10 (étape 2, fondations + validation utilisateur 8/8), 25/10 (budget d'énergie), 26/10 (règle de l'ajustement, correctif 3 fenêtres), 27/10 (⇅, lien score visible, badge verbe simulé, deux défauts Mon Build corrigés), 28/10 (régression évitée : page Accomplissements restaurée à l'identique de la v0.5.5).
+## 31/10/2026 (soir, suite 3) — CORRECTIF : commentaires JSX « /* */ » rendus comme du TEXTE + hauteur des boutons en `2.5rem` (= barre Forge, suit le zoom)
 
-**Vérifié** : `npx tsc -b` 0 erreur ; batterie **48/48 suites, 981/981 contrôles** ; `npm run build` ✓ ; CI GitHub Actions verte (PR #19). **Validé par l'utilisateur** : 8/8 le 24/10 (données réelles, `npm run dev`) + évolutions 25-27/10 validées au fil de l'eau.
+Retour utilisateur (capture) : du texte parasite « 31/10/2026 : hauteur 40 px */ » apparaissait à côté des boutons « Lire le Lore » et « Mettre dans Mon Build », et les boutons semblaient « encore trop grands ».
 
-**Pourquoi v0.5.6** : fonctionnalité complète et visible pour l'utilisateur (édition des mods d'armure hors Forge, budget d'énergie, comparaison de score) — au-delà d'un correctif (0.5.x incrémental, pas de 0.6 car pas de rupture ni de chantier majeur nouveau, la suite « Phase 2 » reste à décider).
+- **Cause du texte parasite** : des commentaires `/* … */` placés en fin de ligne APRÈS un élément JSX (hors accolades `{ }`) sont interprétés par JSX comme du **texte affiché**. Corrigé : tous les commentaires concernés remis en `{/* … */}` (ou déplacés sur leur propre ligne) dans `BoutonLireLore.tsx`, `FenetreDetailsPiece.tsx`, `PageForge.tsx`, `InventaireArmes.tsx`, `InventaireArmures.tsx`. Balayage du `src/` : plus aucun `/* */` hors accolades après un `/>`.
+- **Cause de « trop grand »** : la barre Forge est en `2.5rem` (unité relative au zoom du navigateur), les boutons d'action en `40` **px absolus** — au zoom ≠ 100 %, les px ne suivent pas la barre. Corrigé : `BoutonAction.hauteur` accepte désormais `number | string`, défaut **`"2.5rem"`** (= `HAUTEUR_BOUTONS_BARRE`) ; tous les appels passent en `hauteur="2.5rem"` (retour, plus, lore, actualisation, forgemods, modifier/fermer). La largeur calculée pour l'attribut `width` utilise toujours 40 px (2.5rem ≈ 40 px à zoom 100 %). Résultat : les 7 boutons d'action font **exactement la même hauteur que les 5 boutons de la barre Forge à tout zoom** (40 px à 100 %, dans la plage charte 36–44).
+- Tests UI : `fenetre-details.py` et `forge-armures.py` lisent la hauteur réelle (plage 36–44 px à zoom 100 %, égalité stricte entre boutons d'une même fenêtre, et entre « Modifier » et « Fermer » — aucun décalage à la bascule).
 
-**Tag** : `v0.5.6`. **Branche supprimée** après livraison : `draft-mod-armures`. **Propagation** : `main` (v0.5.6) répercutée sur les branches de chantier actives (voir entrée de propagation ci-dessous).
+**Vérifié** : `tsc -b` 0 erreur ; batterie 53/54 suites, 1103/1104 (seul `icones.test.tsx`, connu, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
+## 31/10/2026 (soir, suite 2) — TAILLE UNIFORME 40 px DES 7 BOUTONS D'ACTION + VISUEL « ACTUALISATION » PARTOUT (retour utilisateur)
+
+Retour utilisateur : « adapter la taille du bouton Actualisation » et « utiliser la même taille pour les autres boutons ajoutés » (retour bandeau Forge + fenêtre Détails, plus « Mettre dans Mon Build », lore, actualisation, forgemods).
+
+- **`BoutonAction.tsx`** : la hauteur est posée **aussi sur le `<button>`** (`height: hauteur` dans le style inline, pas seulement sur l'`img`) — le conteneur fait exactement 40 px. Défaut `hauteur = 40` confirmé (= `HAUTEUR_BOUTONS_BARRE` 2,5 rem de la barre Forge).
+- **`hauteur={40}` explicite** posé sur tous les `BoutonAction` : retour (`PageForge` bandeau + `FenetreDetailsPiece`), plus « Mettre dans Mon Build », lore (`BoutonLireLore`), forgemods (`FenetreDetailsPiece`), modifier/fermer (déjà fait).
+- **« Actualisation de l'inventaire » remplace l'ancien texte « ↻ Recharger mon inventaire » dans les ARMURES aussi** (`InventaireArmures.tsx`) : après le premier chargement, le `BoutonAction` `boutons-action.actualisation` (40 px, `data-actualiser-inventaire`) s'affiche — comme déjà dans `InventaireArmes.tsx`. Le bouton **texte « Charger mon inventaire » reste pour le premier chargement** (l'image dit « Actualisation », elle ne convient pas à « Charger »). Pendant un rechargement, le visuel reste affiché (état `disabled`, atténué) au lieu de repasser en texte.
+- Tests UI : `forge-armures.py` ligne 45 attend désormais le visuel + 40 px + aria-label « …recharger mon inventaire » et l'absence du texte « Recharger mon inventaire » ; `fenetre-details.py` contrôle la hauteur **sur le `<button>`** (== 40 exactement) et le visuel actualisation des armures de la Forge.
+
+**Vérifié** : `tsc -b` 0 erreur ; batterie 53/54 suites, 1103/1104 contrôles (seul `icones.test.tsx`, connu, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
+## 31/10/2026 (soir, suite) — 7e BOUTON D'ACTION « FERMER » branché (archive fournie par l'utilisateur, commit `f4dd8e1`)
+
+L'utilisateur a ajouté `public/assets/boutons-action/bouton-fermer.svg` (viewBox 2590 × 1000, croix cyan dans un losange — même plaque et même hauteur que « Modifier », aucun décalage). Branchement :
+
+- Déclaré dans `forgeAssetsComplement.ts` : `boutons-action.fermer` (ratio 2,59).
+- `IdBoutonAction` étendu dans `BoutonAction.tsx`.
+- `SimulationModsArmure` : la bascule « Modifier » ↔ « Fermer » utilise désormais les **deux visuels** (40 px chacun) au lieu du texte « Fermer ».
+- **Règle de la charte §9 appliquée** : tous les `id` internes du SVG préfixés `fa-boutons-action-bouton-fermer-` (le fichier livré avait des id nus `t`, `silver`, … qui auraient fait échouer `visuels.test.ts` — collision avec les autres boutons affichés ensemble).
+- Tests : `reproductibilite-visuels.test.ts` compte 13 fichiers boutons-action ; `fenetre-details.py` attend désormais `bouton-fermer.svg` + aria-label « Fermer » + 40 px à l'état ouvert.
+
+**Vérifié** : `tsc -b` 0 erreur ; `visuels.test.ts` **20/20** (préfixes fa- OK) ; `reproductibilite-visuels` 7/7 ; batterie 53/54 suites, 1103/1104 (seul `icones.test.tsx`, connu, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
+## 31/10/2026 (soir) — CORRECTIFS POP-UP DÉTAILS sur `test` (branche `vibe/fix-popups-details-87155d`, retours utilisateur après merge du chantier)
+
+Trois retours sur la pop-up Détails, corrigés :
+
+1. **Bouton « Actualisation de l'inventaire » à la même taille que la barre Forge** : `BoutonAction` recevait sa hauteur par défaut (40 px) sans explicite — passé en `hauteur={40}` explicite dans `InventaireArmes.tsx` (= `HAUTEUR_BOUTONS_BARRE` = 2,5 rem = 40 px des 5 boutons stylisés Collection/Inventaire/Armes/Armures/Optimisation).
+2. **Bouton « Modifier » stylisé branché** : `SimulationModsArmure` utilisait encore un bouton texte. Il utilise désormais le visuel de la charte `boutons-action.modifier` (`bouton-modifier.svg`, 40 px, `aria-expanded`) en vue compacte ; une fois ouvert, il redevient le texte « Fermer » (le visuel ne porte que « Modifier ») — exactement ce que prévoit le test UI `fenetre-details.py`. `data-basculer-modifier` conservé pour les tests.
+3. **Ancien affichage qui persistait sous la simulation (« Mods d'armure », « Attributs de l'armure »)** : `estGereeParSimulation` ne couvrait que les rôles statistique/ajustement/cumulable + `enhancements.*` sur le plug équipé. Elle couvre désormais **tout emplacement de mods modifiable** (catégorie de plug `enhancements.…` OU nom de catégorie de socket contenant « mod », via `estEmplacementMod` exporté de `armure.ts`). Seuls les emplacements **fixes** (archétype, amélioration, ensemble, exotique) restent en lecture seule sous la simulation. Nouveau contrôle dans `energie-mods.test.ts` (47/47).
+
+**Tests UI** : `simulation-mods-armure.py` — la lecture du libellé du bouton retombe sur `aria-label` quand le texte est vide (visuel).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie **53/54 suites, 1103/1104 contrôles** (seul échec connu `icones.test.tsx`, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
+## 31/10/2026 (matin) — MERGE DE `Import-modif-mods-armures` DANS `test` : le chantier ZIP du 30/10 passe sur la branche de test
+
+**Contexte** : la branche `test` n'était que `main` v0.5.6 + documentation — le chantier (barre Forge à 5 boutons stylisés + Optimisation, fenêtre Détails unique, optimiseur d'armures, 6 boutons d'action de la charte) n'existait que sur `Import-modif-mods-armures`. Merge demandé par l'utilisateur (« Import-modif-mods-armures → test est la logique des choses »).
+
+**Contenu mergé** : 62 fichiers (code `src/`, visuels `public/assets/boutons-action/` + 6 `icones/`, tests, `index.css`, `forgeAssetsComplement.ts`, DEVLOG). **Retiré du merge** : le fichier parasite vide `forge-armory/git` (artefact du ZIP, commit `de6a6a4`, jamais présent sur `main`).
+
+**Conflit** : un seul, dans `DEVLOG.md` (tête du fichier) — résolu en gardant les DEUX entrées : l'entrée du 30/10 soir (point d'avancement sur `test`) ci-dessous, puis la note de propagation v0.5.6 sur `Import-modif-mods-armures`, puis la LIVRAISON v0.5.6 de `main`.
+
+**Vérifié** : page Accomplissements = version cartes carrées de `main` (le ZIP embarquait une vieille version en lignes — `VueAccomplissements.tsx` et `tests/ui/vue-accomplissements.py` restaurés à l'identique de `main` v0.5.6, comme dans `bc83d32`) ; fichier parasite `forge-armory/git` retiré ; `npx tsc -b` 0 erreur ; batterie 53/54 suites, 1102/1103 contrôles (seul échec connu `icones.test.tsx`, OK en CI) ; `npm run build` ✓ ; CI verte sur `Import-modif-mods-armures` (`b858c5e`).
+
+**⚠️ Incident lors du push de l'utilisateur** : son `git pull` sur `test` a mergé une vieille branche orpheline (`b98b1b0`→`3ef9e8d`, base `21a80c4` = v0.3.19, 12-19/10) dans `test` (merge `072fcc6`), ramenant `TODO.md`/`CHANGELOG.md` à la version 0.3.19. Corrigé ici : `TODO.md` et `CHANGELOG.md` restaurés à l'identique de `da20bbf` (v0.5.6). Backup de l'état intermédiaire : branche `backup-test-avant-merge-import`.
+
+**Reste à valider par l'utilisateur** : `npm run dev` sur `test` (barre Forge conforme à la capture « barre-forge-après », bouton Optimisation sous Statistiques de Mon Build, 6 boutons d'action visuels dans les fenêtres Détails).
+
+**Version inchangée (0.5.6).**
+
+---
+
+## 30/10/2026 (soir) — POINT D'AVANCEMENT sur la branche `test` (documentation seule)
+
+**Livré** : `documentation/suivi/POINT-AVANCEMENT-2026-10-30.md` — instantané du projet au 30/10/2026 (version courante **0.5.6**, recoupement `draft-optimiseur` vs `Import-modif-mods-armures` / `Import-optimiseur`, état des 13 branches, CI 100 % verte, TODO restant, prochaines étapes). La ligne `suivi/` a été ajoutée à l'index `documentation/LISEZ-MOI.md` (nommage `POINT-AVANCEMENT-AAAA-MM-JJ.md`).
+
+**Vérifié avant écriture** : la branche `test` est à jour de `main` (0 commit de retard, merge-base = `b2d1c3b` = tag `v0.5.6`) et **strictement identique à `main` côté code** (0 ligne de diff sur `src/`, `tests/`, `package.json`, `CHANGELOG.md`, `TODO.md`, `NOTICE.md`) — le point Sceaux est donc bien celui de `main` : cartes carrées identiques (`aspect-ratio: 1 / 1`, zone barre/pct à hauteur fixe), 0 diff sur `VueAccomplissements.tsx`.
+
+**Aucun code modifié, version inchangée (0.5.6).**
+
+---
+
+## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `test`
+
+**Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6` — modification des mods d'armure via les pop-ups Détails + Forge, avec budget d'énergie et lien score) a été répercutée sur la branche `test` pour limiter les conflits futurs. La branche `test` reste OUVERTE (demande de l'utilisateur).
+
+**Conflit** : un seul, dans `DEVLOG.md` — résolu en gardant les DEUX côtés : les entrées de `main` (LIVRAISON v0.5.6 + chantier 24-28/10) en haut, puis la note de propagation v0.5.5 propre à `test`.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie logique 48/48 suites, 981/981 contrôles ; `npm run build` ✓.
 
 **Version 0.5.6.**
 
 ---
+
+## 28/10/2026 — LIVRAISON v0.5.6 : merge PR #19 (draft-mod-armures — modification des mods d'armure complète)
+
+---
+
+## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `Import-modif-mods-armures`
+
+**Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6` — modification des mods d'armure : pop-up Détails + Forge, budget d'énergie, lien score) a été répercutée sur la branche `Import-modif-mods-armures` pour limiter les conflits futurs. Merge propre (aucun conflit). La branche `draft-mod-armures` est supprimée après livraison.
+
+**Version 0.5.6.**
+
+---
+
 
 ## 24/10/2026 (soir, après la livraison v0.5.5) — branche `draft-mod-armures` (PR #19) : Forge des armures, étape 2 — modification des mods DANS la pop-up Détails + lien avec le score et Mon Build
 
@@ -232,6 +334,16 @@ Côté revue (ici) : `npx tsc -b` + `node scripts/test-logique.mjs` (garde Sceau
 **Défauts de MON travail, rattrapés** : mon extraction du style du bloc de texte existant a visé deux fois la mauvaise ligne (le bouton, puis une expression qui s'arrêtait à une flèche `=>`) avant de lire la bonne ; les pièces SANS emplacement de mod affichaient « somme lue 0 » (faux zéro trompeur) : elles disent maintenant « aucun emplacement de mod » ; deux de mes contrôles plantaient au lieu d'échouer quand le bouton manquait.
 **NON vérifié** : (a) la présence réelle de `energyCost`, `energyCapacity` et `energyUsed` dans les données du compte de l'utilisateur : c'est exactement ce que le diagnostic doit révéler (si ces champs manquent, il le dit : « non lue », « illisible ») ; (b) ce que compte exactement `energyUsed` (mods d'ajustement, mods cosmétiques) : un « écart » généralisé le montrerait ; (c) le temps de calcul sur un gros inventaire (plusieurs centaines d'armures) : les lectures sont mémorisées par modèle et par mod ; (d) le rendu dans le logiciel installé : sans objet (mode développement seulement).
 **Suite prévue** : quand le texte du diagnostic réel aura été renvoyé : brancher le budget d'énergie dans la simulation des mods (jauge « énergie utilisée / capacité », mods trop chers grisés), avec les VRAIS coûts, puis reprendre les maquettes.
+
+## 24/10/2026 — PROPAGATION : v0.5.5 répercutée sur les branches de chantier
+
+**Propagation** : la livraison v0.5.5 (merge PR #21 dans `main`, tag `v0.5.5`) a été répercutée sur les 7 branches actives pour limiter les conflits futurs : les 6 branches de chantier (`draft-armure-score`, `draft-legendarium`, `draft-netlify`, `draft-optimiseur`, `draft-sec`, `test`) + `draft-mod-armures` (branche de la PR #19 ouverte). La branche `test` reste OUVERTE (demande de l'utilisateur).
+
+**Conflits** : un seul, sur `draft-optimiseur` (`DashboardPage.tsx` : le chantier optimiseur importe `StatKey`/`demoExigences` là où le fix S1 de main les retire) — résolu en gardant les DEUX : le fix S1 (`demoExigences` non passée à `evaluerBuild`) + `StatKey` (utilisé par `changerAjustementStat` du chantier). `draft-sec` : merge propre. Vérifié sur `draft-optimiseur` : tsc 0, **46/46 suites, 927/927 contrôles**, build OK. Sur `draft-sec` : tsc 0, **41/41 suites, 801/801 contrôles**, build OK.
+
+**Branches de livraison supprimées** après livraison : `vibe/postmaster-5-8-c40641`, `vibe/livraison-055-c40641` (convention du dépôt).
+
+**Version 0.5.5.**
 
 ---
 
