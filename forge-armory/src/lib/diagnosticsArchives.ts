@@ -19,6 +19,8 @@ export const DIAGNOSTICS_ACTIFS = {
   coutsEnergieMods: true,
   // FR : ⚠️ AJOUT (24/10/2026, « Diag d'abord ») - bouton « Diagnostic : mods en double » de l'inventaire des armures (mode développement) : les noms de mods qui existent en DEUX versions de coûts différents (107 sur le compte de l'utilisateur), avec la comparaison brute de leurs définitions du Manifest. À archiver (false) une fois la bonne version identifiée et branchée. / EN: ⚠️ ADDED - duplicate-mod diagnostic button (dev mode).
   modsEnDouble: true,
+  // FR : ⚠️ AJOUT (27/10/2026, branche draft-mod-armures) - bouton « Diagnostic : statistiques de base des armures chargées » de l'inventaire des armures (mode développement) : statistiques de base (réelles − mod de statistique − ajustement), forme, archétype, comparaison appli/jeu. Sert à vérifier le modèle de l'optimiseur sur les données réelles. / EN: base-stats diagnostic button (dev mode).
+  statsBase: true,
 
   // FR : ⚠️ RETIRÉ (23/10/2026, audit) - entrée supprimée avec son bloc de diagnostic (résolu). / EN: ⚠️ REMOVED - entry deleted with its diagnostic block (resolved).
 

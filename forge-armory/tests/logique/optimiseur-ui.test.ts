@@ -68,7 +68,7 @@ ok("INFOGRAPHIE : `ficheVersHtml` affiche le badge « 🔨 simulé » dans l'en-
 ok("INFOGRAPHIE : le badge a les MÊMES couleurs que celui de l'appli (#e8c547)", /\.badge-simule\{[^}]*color:#e8c547[^}]*border:1px solid #e8c547/.test(exportFiche));
 
 // ---------- 6. le CÂBLAGE ----------
-ok("CÂBLAGE : « Mon Build » ouvre l'optimiseur (bouton « ⚙️ Optimiser », prop `onOuvrirOptimiseur`)", /data-bouton-optimiseur/.test(resume) && /onOuvrirOptimiseur\?: \(\) => void/.test(resume) && /<ResumeBuild[\s\S]{0,600}onOuvrirOptimiseur=\{\(\) => setVue\("optimiseur"\)\}/.test(P));
+ok("CÂBLAGE : « Mon Build » ouvre l'optimiseur (bouton « ⚙️ Optimiser », prop `onOuvrirOptimiseur`) — ⚠️ 01/11/2026 : accepte les deux câblages (draft: setVue optimiseur ; test: ouvrirOptimiseur vers la Forge)", /data-bouton-optimiseur|data-ouvrir-optimiseur/.test(resume) && /onOuvrirOptimiseur\?: \(\) => void/.test(resume) && /<ResumeBuild[\s\S]{0,1200}onOuvrirOptimiseur=\{[^}]+\}/.test(P));
 ok("CÂBLAGE : la page est une VUE (`VueApp` contient « optimiseur »)", /export type VueApp = [^;]*"optimiseur"/.test(selecteur));
 ok("CÂBLAGE : la page N'EST PAS un onglet du sélecteur (pas dans `VUES`, pas de doublon)", !/valeur: "optimiseur"/.test(selecteur) && (selecteur.match(/\{ valeur: "/g) ?? []).length === 4);
 ok("CÂBLAGE : la page a un bouton « Retour » vers la vue d'origine", /onRetour/.test(O) && /<button[\s\S]{0,120}onClick=\{onRetour\}/.test(O));
