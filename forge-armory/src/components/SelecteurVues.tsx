@@ -55,7 +55,8 @@ export function BoutonVue({ vue, libelle, actif = false, hauteur, roleOnglet = f
  * lueur contenue dans le cadre) et même cadre 4316 × 1024 que les boutons du sélecteur principal ; seule la hauteur diffère (`hauteur`, 2,75 rem par défaut : au-dessus du minimum de 40 px de la charte). C'est un ONGLET (`role="tab"`) : son nom est dans `aria-label` puisque le titre est dans l'image.
  * EN: ⚠️ ADDED - stylised button of a Forge sub-menu (Collection, Inventory): same two stacked states and CSS as the main selector, smaller height.
  */
-export function BoutonSousMenu({ identifiant, libelle, actif, hauteur = "2.75rem", onClick }: { identifiant: "collection" | "inventaire"; libelle: string; actif: boolean; hauteur?: string; onClick: () => void }) {
+export function BoutonSousMenu({ identifiant, libelle, actif, hauteur = "2.75rem", onClick, objetLogo }: { identifiant: "collection" | "inventaire" | "armes" | "armures" | "optimisation"; libelle: string; actif: boolean; hauteur?: string; onClick: () => void; objetLogo?: string }) {
+  // FR : ⚠️ CHANGÉ (30/10/2026, retour de l'utilisateur : « vérifie les boutons Armes et Armures, c'est pas cohérent ») - le composant sert AUSSI aux boutons « Armes », « Armures » et « Optimisation » de la barre de la Forge (boutons stylisés de la charte, `selecteur.armes|armures|optimisation`, deux états chacun) : même cadre, même hauteur, même survol, même lueur que « Collection » et « Inventaire » ; `objetLogo` pose `data-objet-logo` (les tests et le câblage s'y accrochent). / EN: ⚠️ CHANGED - also used for the Weapons / Armor / Optimization buttons: same charter artwork as Collection / Inventory.
   return (
     <button
       type="button"
@@ -66,6 +67,7 @@ export function BoutonSousMenu({ identifiant, libelle, actif, hauteur = "2.75rem
       className="bouton-vue"
       data-actif={actif}
       data-sous-menu={identifiant}
+      data-objet-logo={objetLogo}
       onClick={onClick}
       style={{ "--hauteur-bouton": hauteur } as CSSProperties}
     >

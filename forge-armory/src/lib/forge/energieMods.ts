@@ -6,7 +6,7 @@ import type { GearPiece, StatKey } from "../../types/build";
 import { obtenirDefinition } from "../manifest/download";
 import { normaliser } from "../manifest/search";
 import { lireCoutEnergie } from "./diagnosticEnergie";
-import type { ColonneArmure, PlugArmure } from "./armure";
+import { estEmplacementMod, type ColonneArmure, type PlugArmure } from "./armure";   // ⚠️ 31/10/2026 : estEmplacementMod pour estGereeParSimulation
 import { infoAjustement, nonIntrinsequesDePiece, statDePlus } from "./ajustement";   // ⚠️ AJOUT (26/10/2026)
 import { choisir, retirerColonne, type ChoixColonne, type Simulations } from "./simulation";
 
@@ -29,7 +29,10 @@ export function roleColonne(col: ColonneArmure): RoleColonne {
 /** FR : ⚠️ AJOUT (26/10/2026) - vrai si l'emplacement est pris en charge par `SimulationModsArmure` (mod de statistique, ajustement, cumulable, ou autre emplacement MODIFIABLE de mods). Les autres (archétype, amélioration, ensemble, cosmétiques, mods non modifiables) restent affichés EN LECTURE SEULE par la fenêtre qui appelle le composant. / EN: true when the socket is handled by `SimulationModsArmure`; the others stay read-only in the calling window. */
 export function estGereeParSimulation(col: ColonneArmure): boolean {
   if (!col.modifiable) return false;
-  return roleColonne(col) !== "autre" || RE_MOD.test(col.equipe.categoriePlug);
+  // ⚠️ CHANGÉ (31/10/2026, retour utilisateur : « Mods d'armure » et « Attributs de l'armure » restaient affichés sous la simulation) :
+  // un emplacement est géré par la simulation dès qu'il s'agit d'un EMPLACEMENT DE MODS (catégorie de plug « enhancements.… »
+  // OU nom de catégorie de socket contenant « mod »), pas seulement les rôles statistique/ajustement/cumulable.
+  return roleColonne(col) !== "autre" || estEmplacementMod(col.equipe.categoriePlug, col.categorie);
 }
 /** FR : vrai pour le plug qui représente « aucun mod » (« Emplacement de mod vide », « Emplacement de mod d'ajustement vide »). / EN: true for the "no mod" placeholder plug. */
 export function estPlugVide(p: PlugArmure): boolean {
