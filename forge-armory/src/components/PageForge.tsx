@@ -69,7 +69,7 @@ export default function PageForge({ db, membership = null, cible = null, onRetou
         <div data-retour-forge="" style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", margin: "0 0 0.6rem", fontSize: "0.8rem", color: "#9a968a" }}>
           {/* FR : ⚠️ CHANGÉ (30/10/2026, archive « boutons-action-final ») - « Retour à Build Analyzer » utilise le VISUEL de la charte (texte fixe « Retour à Build Analyzer ») ; pour les autres origines (Load-outs…), le bouton texte reste. / EN: ⚠️ CHANGED - charter artwork when returning to Build Analyzer. */}
           {LIBELLES_ORIGINE[cible.origine] === "Build Analyzer"
-            ? <BoutonAction id="boutons-action.retour" libelle="Retour à Build Analyzer" onClick={onRetour} donnees={{ "retour-bandeau": true }} />
+            ? <BoutonAction id="boutons-action.retour" libelle="Retour à Build Analyzer" onClick={onRetour} hauteur="2.5rem" donnees={{ "retour-bandeau": true }} />
             : <button onClick={onRetour} style={{ fontSize: "0.8rem" }}>← Retour à {LIBELLES_ORIGINE[cible.origine]}</button>}
           <span>Vous venez de la fenêtre « Détails » de « {cible.piece.nom} ».</span>
         </div>

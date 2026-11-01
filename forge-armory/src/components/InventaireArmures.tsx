@@ -16,6 +16,7 @@ import { reinitialiserArme, nbColonnesSimulees, armuresSimulees, Simulations } f
 import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 import StatsArmure from "./StatsArmure";   // ⚠️ AJOUT (27/10/2026)
 import FenetreDetailsPiece from "./FenetreDetailsPiece";   // ⚠️ AJOUT (30/10/2026) : la fenêtre de détails UNIQUE (Build Analyzer et Forge)
+import BoutonAction from "./BoutonAction";   // ⚠️ AJOUT (31/10/2026) : visuel de la charte « Actualisation de l'inventaire » (remplace le texte « Recharger ») 
 import OptimiseurArmures from "./OptimiseurArmures";   // ⚠️ AJOUT (29/10/2026) : l'optimiseur de statistiques d'armure (troisième partie de la barre)
 import { LIBELLES_SLOT } from "../data/libellesUI";
 // FR : ⚠️ AJOUT (23/10/2026, audit) - styles partagés des fenêtres liste (dedup). / EN: ⚠️ ADDED - shared list-window styles (dedup).
@@ -141,7 +142,9 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
         Vos armures (personnages et Coffre). Ouvrez une armure pour voir ses <strong>emplacements</strong> et <strong>simuler</strong> d'autres <strong>mods</strong>, avec l'effet sur les statistiques. <strong>Rien n'est modifié dans le jeu</strong> ; la simulation reste dans l'appli, mais <strong>le score et Mon Build en tiennent compte</strong> (statistiques recalculées, « réel → simulé » à côté du score). Une simulation qui dépasse l'énergie de la pièce est ignorée par le score.
       </p>
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
-        <button onClick={charger} disabled={enCours}>{enCours ? "Chargement…" : pieces ? "↻ Recharger mon inventaire" : "Charger mon inventaire"}</button>
+        {pieces
+          ? <BoutonAction id="boutons-action.actualisation" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} disabled={enCours} hauteur="2.5rem" donnees={{ "actualiser-inventaire": true }} />
+          : <button onClick={charger} disabled={enCours}>{enCours ? "Chargement…" : "Charger mon inventaire"}</button>}
         {idsAvecSimulation.length > 0 && <button onClick={() => appliquer((s) => idsAvecSimulation.reduce((acc, id) => reinitialiserArme(acc, id, "armures"), s))} data-effacer-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer les simulations d'armures ({idsAvecSimulation.length})</button>}
         {nbArmuresSim > idsAvecSimulation.length && <button onClick={() => appliquer((s) => armuresSimulees(s).reduce((acc, id) => reinitialiserArme(acc, id, "armures"), s))} data-effacer-toutes-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer TOUTES les simulations d'armures ({nbArmuresSim})</button>}
       </div>

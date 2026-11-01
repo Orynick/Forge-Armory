@@ -4,6 +4,67 @@
 
 ---
 
+## 31/10/2026 (soir, suite 3) — CORRECTIF : commentaires JSX « /* */ » rendus comme du TEXTE + hauteur des boutons en `2.5rem` (= barre Forge, suit le zoom)
+
+Retour utilisateur (capture) : du texte parasite « 31/10/2026 : hauteur 40 px */ » apparaissait à côté des boutons « Lire le Lore » et « Mettre dans Mon Build », et les boutons semblaient « encore trop grands ».
+
+- **Cause du texte parasite** : des commentaires `/* … */` placés en fin de ligne APRÈS un élément JSX (hors accolades `{ }`) sont interprétés par JSX comme du **texte affiché**. Corrigé : tous les commentaires concernés remis en `{/* … */}` (ou déplacés sur leur propre ligne) dans `BoutonLireLore.tsx`, `FenetreDetailsPiece.tsx`, `PageForge.tsx`, `InventaireArmes.tsx`, `InventaireArmures.tsx`. Balayage du `src/` : plus aucun `/* */` hors accolades après un `/>`.
+- **Cause de « trop grand »** : la barre Forge est en `2.5rem` (unité relative au zoom du navigateur), les boutons d'action en `40` **px absolus** — au zoom ≠ 100 %, les px ne suivent pas la barre. Corrigé : `BoutonAction.hauteur` accepte désormais `number | string`, défaut **`"2.5rem"`** (= `HAUTEUR_BOUTONS_BARRE`) ; tous les appels passent en `hauteur="2.5rem"` (retour, plus, lore, actualisation, forgemods, modifier/fermer). La largeur calculée pour l'attribut `width` utilise toujours 40 px (2.5rem ≈ 40 px à zoom 100 %). Résultat : les 7 boutons d'action font **exactement la même hauteur que les 5 boutons de la barre Forge à tout zoom** (40 px à 100 %, dans la plage charte 36–44).
+- Tests UI : `fenetre-details.py` et `forge-armures.py` lisent la hauteur réelle (plage 36–44 px à zoom 100 %, égalité stricte entre boutons d'une même fenêtre, et entre « Modifier » et « Fermer » — aucun décalage à la bascule).
+
+**Vérifié** : `tsc -b` 0 erreur ; batterie 53/54 suites, 1103/1104 (seul `icones.test.tsx`, connu, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
+## 31/10/2026 (soir, suite 2) — TAILLE UNIFORME 40 px DES 7 BOUTONS D'ACTION + VISUEL « ACTUALISATION » PARTOUT (retour utilisateur)
+
+Retour utilisateur : « adapter la taille du bouton Actualisation » et « utiliser la même taille pour les autres boutons ajoutés » (retour bandeau Forge + fenêtre Détails, plus « Mettre dans Mon Build », lore, actualisation, forgemods).
+
+- **`BoutonAction.tsx`** : la hauteur est posée **aussi sur le `<button>`** (`height: hauteur` dans le style inline, pas seulement sur l'`img`) — le conteneur fait exactement 40 px. Défaut `hauteur = 40` confirmé (= `HAUTEUR_BOUTONS_BARRE` 2,5 rem de la barre Forge).
+- **`hauteur={40}` explicite** posé sur tous les `BoutonAction` : retour (`PageForge` bandeau + `FenetreDetailsPiece`), plus « Mettre dans Mon Build », lore (`BoutonLireLore`), forgemods (`FenetreDetailsPiece`), modifier/fermer (déjà fait).
+- **« Actualisation de l'inventaire » remplace l'ancien texte « ↻ Recharger mon inventaire » dans les ARMURES aussi** (`InventaireArmures.tsx`) : après le premier chargement, le `BoutonAction` `boutons-action.actualisation` (40 px, `data-actualiser-inventaire`) s'affiche — comme déjà dans `InventaireArmes.tsx`. Le bouton **texte « Charger mon inventaire » reste pour le premier chargement** (l'image dit « Actualisation », elle ne convient pas à « Charger »). Pendant un rechargement, le visuel reste affiché (état `disabled`, atténué) au lieu de repasser en texte.
+- Tests UI : `forge-armures.py` ligne 45 attend désormais le visuel + 40 px + aria-label « …recharger mon inventaire » et l'absence du texte « Recharger mon inventaire » ; `fenetre-details.py` contrôle la hauteur **sur le `<button>`** (== 40 exactement) et le visuel actualisation des armures de la Forge.
+
+**Vérifié** : `tsc -b` 0 erreur ; batterie 53/54 suites, 1103/1104 contrôles (seul `icones.test.tsx`, connu, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
+## 31/10/2026 (soir, suite) — 7e BOUTON D'ACTION « FERMER » branché (archive fournie par l'utilisateur, commit `f4dd8e1`)
+
+L'utilisateur a ajouté `public/assets/boutons-action/bouton-fermer.svg` (viewBox 2590 × 1000, croix cyan dans un losange — même plaque et même hauteur que « Modifier », aucun décalage). Branchement :
+
+- Déclaré dans `forgeAssetsComplement.ts` : `boutons-action.fermer` (ratio 2,59).
+- `IdBoutonAction` étendu dans `BoutonAction.tsx`.
+- `SimulationModsArmure` : la bascule « Modifier » ↔ « Fermer » utilise désormais les **deux visuels** (40 px chacun) au lieu du texte « Fermer ».
+- **Règle de la charte §9 appliquée** : tous les `id` internes du SVG préfixés `fa-boutons-action-bouton-fermer-` (le fichier livré avait des id nus `t`, `silver`, … qui auraient fait échouer `visuels.test.ts` — collision avec les autres boutons affichés ensemble).
+- Tests : `reproductibilite-visuels.test.ts` compte 13 fichiers boutons-action ; `fenetre-details.py` attend désormais `bouton-fermer.svg` + aria-label « Fermer » + 40 px à l'état ouvert.
+
+**Vérifié** : `tsc -b` 0 erreur ; `visuels.test.ts` **20/20** (préfixes fa- OK) ; `reproductibilite-visuels` 7/7 ; batterie 53/54 suites, 1103/1104 (seul `icones.test.tsx`, connu, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
+## 31/10/2026 (soir) — CORRECTIFS POP-UP DÉTAILS sur `test` (branche `vibe/fix-popups-details-87155d`, retours utilisateur après merge du chantier)
+
+Trois retours sur la pop-up Détails, corrigés :
+
+1. **Bouton « Actualisation de l'inventaire » à la même taille que la barre Forge** : `BoutonAction` recevait sa hauteur par défaut (40 px) sans explicite — passé en `hauteur={40}` explicite dans `InventaireArmes.tsx` (= `HAUTEUR_BOUTONS_BARRE` = 2,5 rem = 40 px des 5 boutons stylisés Collection/Inventaire/Armes/Armures/Optimisation).
+2. **Bouton « Modifier » stylisé branché** : `SimulationModsArmure` utilisait encore un bouton texte. Il utilise désormais le visuel de la charte `boutons-action.modifier` (`bouton-modifier.svg`, 40 px, `aria-expanded`) en vue compacte ; une fois ouvert, il redevient le texte « Fermer » (le visuel ne porte que « Modifier ») — exactement ce que prévoit le test UI `fenetre-details.py`. `data-basculer-modifier` conservé pour les tests.
+3. **Ancien affichage qui persistait sous la simulation (« Mods d'armure », « Attributs de l'armure »)** : `estGereeParSimulation` ne couvrait que les rôles statistique/ajustement/cumulable + `enhancements.*` sur le plug équipé. Elle couvre désormais **tout emplacement de mods modifiable** (catégorie de plug `enhancements.…` OU nom de catégorie de socket contenant « mod », via `estEmplacementMod` exporté de `armure.ts`). Seuls les emplacements **fixes** (archétype, amélioration, ensemble, exotique) restent en lecture seule sous la simulation. Nouveau contrôle dans `energie-mods.test.ts` (47/47).
+
+**Tests UI** : `simulation-mods-armure.py` — la lecture du libellé du bouton retombe sur `aria-label` quand le texte est vide (visuel).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie **53/54 suites, 1103/1104 contrôles** (seul échec connu `icones.test.tsx`, vert en CI) ; `npm run build` ✓.
+
+**Version inchangée (0.5.6).**
+
+---
+
 ## 31/10/2026 (matin) — MERGE DE `Import-modif-mods-armures` DANS `test` : le chantier ZIP du 30/10 passe sur la branche de test
 
 **Contexte** : la branche `test` n'était que `main` v0.5.6 + documentation — le chantier (barre Forge à 5 boutons stylisés + Optimisation, fenêtre Détails unique, optimiseur d'armures, 6 boutons d'action de la charte) n'existait que sur `Import-modif-mods-armures`. Merge demandé par l'utilisateur (« Import-modif-mods-armures → test est la logique des choses »).

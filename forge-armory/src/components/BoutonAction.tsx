@@ -4,7 +4,7 @@ import { urlVisuel } from "../lib/visuelsForge";
 import { forgeAsset } from "../data/forge/forgeAssets";
 import { FORGE_ASSETS_COMPLEMENT } from "../data/forge/forgeAssetsComplement";
 
-export type IdBoutonAction = "boutons-action.retour" | "boutons-action.plus" | "boutons-action.lore" | "boutons-action.actualisation" | "boutons-action.forgemods" | "boutons-action.modifier";
+export type IdBoutonAction = "boutons-action.retour" | "boutons-action.plus" | "boutons-action.lore" | "boutons-action.actualisation" | "boutons-action.forgemods" | "boutons-action.modifier" | "boutons-action.fermer";   // ⚠️ 31/10/2026 : + « fermer »
 
 interface Props {
   id: IdBoutonAction;
@@ -12,8 +12,8 @@ interface Props {
   libelle?: string;
   onClick: () => void;
   disabled?: boolean;
-  /** FR : hauteur d'affichage en px (36 à 44 conseillé). */
-  hauteur?: number;
+  /** FR : hauteur d'affichage (unité CSS, ex. `40` en px ou `"2.5rem"`). ⚠️ 31/10/2026 : défaut `"2.5rem"` = `HAUTEUR_BOUTONS_BARRE` de la barre Forge — les boutons d'action suivent ainsi le zoom du navigateur exactement comme la barre (un `40` en px absolus divergeait au zoom ≠ 100 %). La charte conseille 36 à 44 px à 100 %. */
+  hauteur?: number | string;
   title?: string;
   /** FR : ⚠️ AJOUT (30/10/2026) - état déplié / replié d'un bouton qui ouvre un bloc (`aria-expanded`) : « Modifier ». / EN: ⚠️ ADDED - `aria-expanded` for toggle buttons. */
   ariaExpanded?: boolean;
@@ -21,10 +21,11 @@ interface Props {
   donnees?: Record<string, string | number | boolean | undefined>;
 }
 
-export default function BoutonAction({ id, libelle, onClick, disabled = false, hauteur = 40, title, ariaExpanded, donnees = {} }: Props) {
+export default function BoutonAction({ id, libelle, onClick, disabled = false, hauteur = "2.5rem", title, ariaExpanded, donnees = {} }: Props) {   // ⚠️ 31/10/2026 : défaut "2.5rem" = barre Forge (HAUTEUR_BOUTONS_BARRE), unité relative au zoom
   const entree = forgeAsset(id) ?? FORGE_ASSETS_COMPLEMENT.find((a) => a.id === id);
   const etiquette = libelle ?? entree?.label ?? id;
-  const largeur = Math.round(hauteur * (entree?.ratio ?? 4));
+  const hauteurPx = typeof hauteur === "number" ? hauteur : 40;   // ⚠️ 31/10/2026 : px seulement pour le calcul de la largeur de l'attribut width (2.5rem ≈ 40 px à zoom 100 %)
+  const largeur = Math.round(hauteurPx * (entree?.ratio ?? 4));
   const attributs: Record<string, string> = {};
   for (const [k, v] of Object.entries(donnees)) if (v !== undefined && v !== false) attributs[`data-${k}`] = v === true ? "" : String(v);
   return (
@@ -37,9 +38,9 @@ export default function BoutonAction({ id, libelle, onClick, disabled = false, h
       onClick={onClick}
       {...attributs}
       className="bouton-action"
-      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, margin: 0, border: 0, background: "transparent", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.45 : 1, lineHeight: 0, borderRadius: 6 }}
+      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", height: hauteur, padding: 0, margin: 0, border: 0, background: "transparent", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.45 : 1, lineHeight: 0, borderRadius: 6 }}
     >
-      <img src={urlVisuel(id)} alt="" width={largeur} height={hauteur} draggable={false} style={{ display: "block", height: hauteur, width: "auto", maxWidth: "100%", pointerEvents: "none" }} />
+      <img src={urlVisuel(id)} alt="" width={largeur} height={hauteurPx} draggable={false} style={{ display: "block", height: hauteur, width: "auto", maxWidth: "100%", pointerEvents: "none" }} />
     </button>
   );
 }
