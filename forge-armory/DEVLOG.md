@@ -12,7 +12,7 @@
 - **Nommage** (README §4) : le préfixe `draft-<slug>` ne vaut que pour les chantiers pilotés par l'utilisateur ; `vibe/...` et `ccr-...` n'y sont pas soumis.
 - **Chantiers triviaux et corrections mineures** → directement sur `main` (README §5, exception à l'Article VI, rappels aux Articles V et VII), avec une **checklist courte** (`templates/CHECKLIST-correctif-mineur.md`). L'assistant propose la qualification « trivial », l'utilisateur confirme ; en cas de doute, workflow complet.
 - **Article X** : la référence périmée « TODO §12 » (devenu « Équiper ») remplacée par un lien vers `electron/dossierDonnees.cjs` et l'entrée DEVLOG du 05/10/2026 (suite 12).
-- **Template d'index des specs** : `templates/INDEX-specs.md` (cible : `documentation/specs/INDEX.md`, non créé).
+- **Template d'index des specs** : `templates/INDEX-specs.md` ; l'index `documentation/specs/INDEX.md` est créé (même jour, sur demande de l'utilisateur) avec la seule spec existante, Legendarium (livrée en 0.5.0, 22/10/2026).
 - **Nouvel Article XI** : la constitution ne change que sur décision explicite de l'utilisateur ; l'assistant propose, n'applique pas ; modification, entrée DEVLOG et annexe dans le même commit.
 
 **Vérifié** : liens relatifs des nouveaux fichiers contrôlés ; aucun fichier hors `documentation/methode/`, `TODO.md` et `DEVLOG.md` modifié (hors merge de la branche `vibe/methode-spec-kit-70789e`). Pas de `tsc`/`build` à relancer (documentation seule).
