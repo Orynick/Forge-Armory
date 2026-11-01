@@ -140,18 +140,17 @@ ok("critère 3 : l'ordre des classes verrouillé est bien Titan → Chasseur →
 
   // Dans les 4 fiches + la pop-up Build Analyzer : le bouton est SOUS la croix de fermeture
   const fiches: Array<[string, string]> = [
-    ["InventaireArmes.tsx", "src/components/InventaireArmes.tsx"],
-    ["InventaireArmures.tsx", "src/components/InventaireArmures.tsx"],
+    // ⚠️ CHANGÉ (30/10/2026) : la fenêtre des armes et des armures de la Forge, celle de l'Inventaire et celle de Mon Build sont maintenant UNE SEULE fenêtre (`FenetreDetailsPiece`) : c'est elle qui porte la croix et le bouton.
+    ["FenetreDetailsPiece.tsx (fenêtre UNIQUE : Inventaire, Mon Build, Forge armes et armures)", "src/components/FenetreDetailsPiece.tsx"],
     ["CollectionArmes.tsx", "src/components/CollectionArmes.tsx"],
     ["CollectionArmures.tsx", "src/components/CollectionArmures.tsx"],
-    ["SelecteurInventaire.tsx (pop-up Build Analyzer)", "src/components/SelecteurInventaire.tsx"],
   ];
   const GUILLEMET = String.fromCharCode(34);
   const CROIX = "aria-label=" + GUILLEMET + "Fermer" + GUILLEMET;   // « aria-label="Fermer" » construit sans guillemets droits dans la source
   const CROIX_POPUP = "setDetailsOuverts(false)";   // SelecteurInventaire : la croix de la pop-up Détails n'a pas d'aria-label, elle porte le gestionnaire de fermeture
   for (const [nom, chemin] of fiches) {
     const src = lire(chemin);
-    const iCroix = chemin.includes("SelecteurInventaire") ? src.indexOf(CROIX_POPUP) : src.indexOf(CROIX);
+    const iCroix = chemin.includes("SelecteurInventaire") ? src.indexOf(CROIX_POPUP) : src.indexOf(CROIX);   // (CROIX_POPUP ne sert plus que si une fiche reprend l'ancienne pop-up)
     const iBouton = src.indexOf("<BoutonLireLore");
     ok("critère 5 : " + nom + " — le bouton « Lire le Lore » est SOUS la croix de fermeture (dans le DOM, après la croix) et UNIQUEMENT si onLireLore est fourni",
       iCroix !== -1 && iBouton !== -1 && iBouton > iCroix && /\{onLireLore && <BoutonLireLore/.test(src),
