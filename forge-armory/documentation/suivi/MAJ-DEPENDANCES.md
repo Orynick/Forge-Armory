@@ -61,6 +61,10 @@ Playwright (non exécutés en CI, voir entrée du 21/10) reste la marche à suiv
 - `@vitejs/plugin-react@5.2.0` : peer `vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0` ✅
 - `vite-plugin-mkcert@2.1.0` : peer `vite: >=3` ✅
 - Vite 7.3.7 : Node `^20.19.0 || >=22.12.0` — on a Node 22.23.3 ✅
+- ⚠️ **Depuis le 24/10/2026** : le projet exige **Node.js >=24.22.1**
+  (`engines.node` dans `package.json` + `.nvmrc` + `netlify.toml`) pour
+  corriger des CVE d'octobre 2026 (Brotli RCE, TLS bypass, DNS NUL
+  truncation). La CI passe à `node-version: 24.22.1`.
 
 **Résultat** : `npx tsc -b` OK, `npx vite build` OK (196 modules), 36/36 suites de tests, 708/708 contrôles réussis.
 
@@ -142,3 +146,11 @@ node tests/lancer-tout.mjs
 - Ne pas oublier de mettre à jour `package-lock.json` (inclus dans les commits).
 - Electron 44 embarque Chromium récent : vérifier que React 19 et Vite 7
   fonctionnent bien dans le contexte Electron (pas de souci attendu).
+  ✅ **Effectif** : le projet tourne sous **Electron 45.0.0** depuis la
+  v0.5.1 (palier 2bis ci-dessus), validé par l'utilisateur.
+- **État final du chantier** (tous paliers livrés sur `main`, branche
+  `draft-deps` supprimée) : `react`/`react-dom` **19.3.1**,
+  `react-router-dom` **7.18.4**, `vite` **7.3.7**,
+  `@vitejs/plugin-react` **5.2.0**, `vite-plugin-mkcert` **2.1.0**,
+  `electron` **45.0.0**, `typescript` **5.9.3**, `sql.js` **1.15.1** —
+  **0 vulnérabilité npm**.
