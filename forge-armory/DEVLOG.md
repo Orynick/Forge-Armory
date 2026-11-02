@@ -151,7 +151,6 @@ Trois retours sur la pop-up Détails, corrigés :
 
 ---
 
-
 ## 24/10/2026 (soir, après la livraison v0.5.5) — branche `draft-mod-armures` (PR #19) : Forge des armures, étape 2 — modification des mods DANS la pop-up Détails + lien avec le score et Mon Build
 
 **Demande** : « Création du "draft-mod-armures" — En lien avec l'optimiseur, et parce qu'on a mis ce sujet de côté : il va falloir finir la modification des mods d'armure via la pop-up Détails des armures. Je crois qu'on avait commencé à travailler dessus. Il faut voir ce qui est déjà en place, adapter aux dernières versions de Forge Armory, et continuer. » Reprise du chantier mis de côté après la 0.4.12 : c'est le premier item de la liste « Pas fait (étapes suivantes à décider) » de l'entrée du 15/10/2026 (lien avec le score et Mon Build) et le **niveau 1** (simulation dans l'appli, sans rien toucher en jeu) du TODO §2 pour les armures. **Version inchangée (0.5.5)** à cette étape : livraison sur la branche `draft-mod-armures` (PR #19) ; les évolutions du 25-27/10 portent la branche vers la **v0.5.6**.
@@ -1495,6 +1494,7 @@ Les deux derniers échecs de la batterie de logique sont corrigés ; les 30 suit
 **À CONTRÔLER sur le compte de l'utilisateur** (avant tout usage du palier dans la Forge) : le sens exact des valeurs de `gearTier` sur des exemplaires réels (arme de base, arme améliorée, arme façonnée), par exemple avec un diagnostic en mode dev à ajouter au moment du branchement Forge.
 
 **Vérifié** : `npm run build` strict ✓ built in 1,8 s ; batterie ciblée — `plugs-disponibles` **22/22** (dont 3 nouveaux contrôles PALIER), `saison` 22/22, `simulation` 15/15, `appliquer-simulation` 20/20, `faconnee` 7/7.
+
 ## 19/10/2026 (soir) — correctifs : `npm run build` strict rétabli (BadgeSaison supprimé), restes « Bibliothèque » retirés (renommés Legendarium)
 
 **Demandes de l'utilisateur** : (1) supprimer la branche fusionnée `vibe/nettoyage-audit-2bis` ; (2) « Point 2 : ok fais-le dans test » — corriger le défaut TypeScript qui bloque `npm run build` strict ; (3) « "Bibliothèque" n'est plus utilisé, ça a été renommé "Legendarium" » — confirmer et retirer les restes. **Version inchangée (0.4.13).**
