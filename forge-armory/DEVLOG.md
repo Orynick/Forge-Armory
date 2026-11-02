@@ -4,6 +4,24 @@
 
 ---
 
+## 01/11/2026 — LIVRAISON v0.5.7 : chantier Forge propagé de `test` sur `main` et les 14 autres branches + bump de version
+
+**Livraison** : la branche `test` (chantier `Import-modif-mods-armures` + PR #24, merge `e6b7b44`, validée par l'utilisateur) est propagée sur `main` (`c9711a5`) puis sur **les 14 autres branches distantes** — vérifié : toutes contiennent `e6b7b44`. Contenu :
+
+- Barre Forge 5 boutons stylisés (`HAUTEUR_BOUTONS_BARRE = "2.5rem"`, `data-objet-logo`) ; partie « Optimisation » + optimiseur d'armures (`OptimiseurArmures.tsx`) + bouton « Optimiseur » dans Mon Build (`ResumeBuild` → `DashboardPage.ouvrirOptimiseur`/`demandeOptimiseur`).
+- Fenêtre Détails UNIQUE (`FenetreDetailsPiece.tsx`) dans Build Analyzer / Inventaire / Forge / Mon Build.
+- 7 boutons d'action de la charte (`BoutonAction.tsx` + `boutons-action/*.svg` dans le complément, id SVG préfixés charte §9) à hauteur uniforme `"2.5rem"` ; PR #24 : visuel « Actualisation » aussi dans Armures, bascule Modifier↔Fermer sans décalage, `estGereeParSimulation` élargi à tous les emplacements de mods modifiables, correctif commentaires JSX rendus comme texte.
+- `documentation/suivi/POINT-AVANCEMENT-2026-10-30.md` + index LISEZ-MOI.
+- PR #25 (méthode spec-kit-like, `vibe/methode-spec-kit-70789e`) mergée sur `main` par l'utilisateur entre-temps (`ab93924`) — aucun code applicatif.
+
+**Conflits de propagation** : DEVLOG seul sur la plupart des branches (union des deux côtés) ; `draft-optimiseur` et `vibe/draft-podcast-840f64` : `ResumeBuild.tsx`/`DashboardPage.tsx` résolus en **union** (props `onChangerAjustement` + `onOuvrirOptimiseur` + `onLireLore` conservées, doublon `onOuvrirOptimiseur` supprimé, câblage podcast conservé ; tests `cablage-forge`/`optimiseur-ui` assouplis). `Import-modif-mods-armures` : `VueAccomplissements.tsx` + test sceaux re-restaurés depuis `test` (cartes carrées conservées — le ZIP portait l'ancienne version lignes). Branche `vibe/fix-popups-details-87155d` supprimée (PR #24 MERGED automatiquement).
+
+**Bump de version** : `package.json` et `package-lock.json` (racine + `packages[""]`) → **0.5.7** (la v0.5.6 avait été posée par l'utilisateur avec tag `v0.5.6` sur `b2d1c3b`) ; `TODO.md` « version courante : 0.5.7 » ; section `## v0.5.7 — 01/11/2026` ajoutée en tête du CHANGELOG (orienté utilisateur).
+
+**Vérifié** : `tsc -b` 0 erreur ; batterie **53/54 suites, 1103/1104 contrôles** (seul `icones.test.tsx`, connu local-only, vert en CI) ; `npm run build` ✓ ; `npm ci` OK avec le lock 0.5.7. CI GitHub Actions verte sur toutes les branches propagées (dernier échec `vibe/draft-podcast-840f64` = merge intermédiaire avec marqueurs de conflit, remplacé par 2 runs SUCCESS `41290098671`/`41290102813` après résolution en union).
+
+**Tag** : `v0.5.7` (annoté) sur le commit de livraison. **Version 0.5.7.**
+
 <<<<<<< HEAD
 ## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `draft-update-triomphes`
 
