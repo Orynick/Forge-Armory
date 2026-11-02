@@ -4,7 +4,7 @@ import { urlVisuel } from "../lib/visuelsForge";
 import { forgeAsset } from "../data/forge/forgeAssets";
 import { FORGE_ASSETS_COMPLEMENT } from "../data/forge/forgeAssetsComplement";
 
-export type IdBoutonAction = "boutons-action.retour" | "boutons-action.plus" | "boutons-action.lore" | "boutons-action.actualisation" | "boutons-action.forgemods" | "boutons-action.modifier" | "boutons-action.fermer";   // ⚠️ 31/10/2026 : + « fermer »
+export type IdBoutonAction = "boutons-action.retour" | "boutons-action.plus" | "boutons-action.lore" | "boutons-action.actualisation" | "boutons-action.forgemods" | "boutons-action.forgeperks" | "boutons-action.modifier" | "boutons-action.fermer";   // ⚠️ 31/10/2026 : + « fermer » ; ⚠️ 02/11/2026 : + « forgeperks » (pack v11, 8e bouton, armes)
 
 interface Props {
   id: IdBoutonAction;
@@ -38,7 +38,7 @@ export default function BoutonAction({ id, libelle, onClick, disabled = false, h
       onClick={onClick}
       {...attributs}
       className="bouton-action"
-      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", height: hauteur, padding: 0, margin: 0, border: 0, background: "transparent", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.45 : 1, lineHeight: 0, borderRadius: 6 }}
+      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", height: hauteur, padding: 0, margin: 0, border: 0, background: "transparent", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.45 : 1, lineHeight: 0, borderRadius: 6 }}   // ⚠️ 02/11/2026 (pack v11) : `height` SEULE, jamais largeur+hauteur (sinon image déformée) ; `width: auto` sur l'img = règle TAILLE-DES-BOUTONS.md
     >
       <img src={urlVisuel(id)} alt="" width={largeur} height={hauteurPx} draggable={false} style={{ display: "block", height: hauteur, width: "auto", maxWidth: "100%", pointerEvents: "none" }} />
     </button>
