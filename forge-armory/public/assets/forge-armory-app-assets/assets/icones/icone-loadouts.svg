@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="fa-icones-icone-loadouts-title fa-icones-icone-loadouts-desc">
+  <title id="fa-icones-icone-loadouts-title">Forge Armory — Load-outs (icône)</title>
+  <desc id="fa-icones-icone-loadouts-desc">Arborescence de load-out argentée et cyan dans un cercle, cristaux cyan, et titre Load-outs.</desc>
+  <defs>
+    <linearGradient id="fa-icones-icone-loadouts-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-loadouts-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-loadouts-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-loadouts-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-loadouts-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-icones-icone-loadouts-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-icones-icone-loadouts-silver)" stroke-width="22"/>
+    <path fill-rule="evenodd" fill="url(#fa-icones-icone-loadouts-silver)" d="M 262 318 h 84 v 84 h -84 Z M 273 329 v 62 h 62 v -62 Z"/><rect x="284" y="340" width="40" height="40" fill="url(#fa-icones-icone-loadouts-silver)"/><path d="M 380 343.0 L 727.0 343.0 L 744 360.0 L 727.0 377.0 L 380 377.0 Z" fill="url(#fa-icones-icone-loadouts-silver)"/><path d="M 304.0 422 L 304.0 698 M 304.0 490 L 366.0 490 M 304.0 594 L 366.0 594 M 304.0 698 L 366.0 698" fill="none" stroke="#2fd4ff" stroke-width="9" stroke-linecap="square" filter="url(#fa-icones-icone-loadouts-glowSoft)"/><path d="M 394.0 470 L 410.0 490 L 394.0 510 L 378.0 490 Z" fill="url(#fa-icones-icone-loadouts-silver)"/><path d="M 440.0 477.0 L 627.0 477.0 L 640 490 L 627.0 503.0 L 440.0 503.0 Z" fill="url(#fa-icones-icone-loadouts-silver)"/><path d="M 394.0 574 L 410.0 594 L 394.0 614 L 378.0 594 Z" fill="url(#fa-icones-icone-loadouts-silver)"/><path d="M 440.0 581.0 L 591.0 581.0 L 604 594 L 591.0 607.0 L 440.0 607.0 Z" fill="url(#fa-icones-icone-loadouts-silver)"/><path d="M 394.0 678 L 410.0 698 L 394.0 718 L 378.0 698 Z" fill="url(#fa-icones-icone-loadouts-silver)"/><path d="M 440.0 685.0 L 609.0 685.0 L 622 698 L 609.0 711.0 L 440.0 711.0 Z" fill="url(#fa-icones-icone-loadouts-silver)"/>
+    
+    <g filter="url(#fa-icones-icone-loadouts-glow)">
+      <path d="M 512 110 L 512 282 L 491 189.12 Z" fill="url(#fa-icones-icone-loadouts-cyanL)"/>
+      <path d="M 512 110 L 533 189.12 L 512 282 Z" fill="url(#fa-icones-icone-loadouts-cyanR)"/>
+      <path d="M 512 122 L 514.2 189.12 L 512 270 L 509.8 189.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 175.12 L 515 186.12 L 526 189.12 L 515 192.12 L 512 203.12 L 509 192.12 L 498 189.12 L 509 186.12 Z" fill="#ffffff"/>
+    </g>
+    
+    <g filter="url(#fa-icones-icone-loadouts-glow)">
+      <path d="M 512 744 L 512 916 L 491 823.12 Z" fill="url(#fa-icones-icone-loadouts-cyanL)"/>
+      <path d="M 512 744 L 533 823.12 L 512 916 Z" fill="url(#fa-icones-icone-loadouts-cyanR)"/>
+      <path d="M 512 756 L 514.2 823.12 L 512 904 L 509.8 823.12 Z" fill="#e8fdff" opacity="0.9"/>
+      <path d="M 512 809.12 L 515 820.12 L 526 823.12 L 515 826.12 L 512 837.12 L 509 826.12 L 498 823.12 L 509 820.12 Z" fill="#ffffff"/>
+    </g>
+  </g>
+</svg>
