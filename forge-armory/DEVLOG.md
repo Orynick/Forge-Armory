@@ -23,10 +23,12 @@
 **Tag** : `v0.5.7` (annoté) sur le commit de livraison. **Version 0.5.7.**
 
 <<<<<<< HEAD
+
 ## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `draft-netlify`
 
 **Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6` — modification des mods d'armure : pop-up Détails + Forge, budget d'énergie, lien score) a été répercutée sur la branche `draft-netlify` pour limiter les conflits futurs. Merge propre (aucun conflit). La branche `draft-mod-armures` est supprimée après livraison.
 =======
+
 ## 31/10/2026 (soir, suite 3) — CORRECTIF : commentaires JSX « /* */ » rendus comme du TEXTE + hauteur des boutons en `2.5rem` (= barre Forge, suit le zoom)
 
 Retour utilisateur (capture) : du texte parasite « 31/10/2026 : hauteur 40 px */ » apparaissait à côté des boutons « Lire le Lore » et « Mettre dans Mon Build », et les boutons semblaient « encore trop grands ».
@@ -131,6 +133,7 @@ Trois retours sur la pop-up Détails, corrigés :
 
 <<<<<<< HEAD
 =======
+
 ## 28/10/2026 — LIVRAISON v0.5.6 : merge PR #19 (draft-mod-armures — modification des mods d'armure complète)
 
 ---
@@ -1465,6 +1468,7 @@ Les deux derniers échecs de la batterie de logique sont corrigés ; les 30 suit
 **À CONTRÔLER sur le compte de l'utilisateur** (avant tout usage du palier dans la Forge) : le sens exact des valeurs de `gearTier` sur des exemplaires réels (arme de base, arme améliorée, arme façonnée), par exemple avec un diagnostic en mode dev à ajouter au moment du branchement Forge.
 
 **Vérifié** : `npm run build` strict ✓ built in 1,8 s ; batterie ciblée — `plugs-disponibles` **22/22** (dont 3 nouveaux contrôles PALIER), `saison` 22/22, `simulation` 15/15, `appliquer-simulation` 20/20, `faconnee` 7/7.
+
 ## 19/10/2026 (soir) — correctifs : `npm run build` strict rétabli (BadgeSaison supprimé), restes « Bibliothèque » retirés (renommés Legendarium)
 
 **Demandes de l'utilisateur** : (1) supprimer la branche fusionnée `vibe/nettoyage-audit-2bis` ; (2) « Point 2 : ok fais-le dans test » — corriger le défaut TypeScript qui bloque `npm run build` strict ; (3) « "Bibliothèque" n'est plus utilisé, ça a été renommé "Legendarium" » — confirmer et retirer les restes. **Version inchangée (0.4.13).**
@@ -10280,3 +10284,38 @@ armatures anti-champion (point 4), jetons sur armes et armures exotiques
   Recherche insensible aux accents et à la casse ("dévoration" trouve aussi
   "Devoration", "DÉVORATION"...). Le Manifest se charge à la demande (bouton
   dédié), pas au démarrage, pour ne pas télécharger ~100 Mo inutilement.
+
+## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `vibe/doc-mise-a-jour-87155d`
+
+**Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6`) a été répercutée sur la branche `vibe/doc-mise-a-jour-87155d` pour limiter les conflits futurs.
+
+**Conflits** : deux, dans `DEVLOG.md` et `TODO.md` — résolus en gardant les DEUX côtés : les entrées de `main` (LIVRAISON v0.5.6 + chantier 24-28/10, TODO §2 niveau 1 FAIT) en haut, puis la mise à jour documentaire de la branche ; le TODO retient la version courante **0.5.6**.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie logique 48/48 suites, 981/981 contrôles ; `npm run build` ✓.
+
+**Version 0.5.6.**
+
+---
+
+## 24/10/2026 — MISE À JOUR DOCUMENTAIRE COMPLÈTE (audit post-v0.5.5, branche `vibe/doc-mise-a-jour-87155d`)
+
+**Contexte** : après le point projet du 24/10 (v0.5.5 livrée), audit systématique de toutes les documentations. La PR #19 (`draft-mod-armures`) est en cours de test : **pas de merge**.
+
+**Corrections** (8 fichiers) :
+
+- **`CHANGELOG.md`** : la section **v0.5.2 manquait** (saut v0.5.3 → v0.5.1). Ajoutée entre v0.5.3 et v0.5.1 : livraison finale du chantier Accomplissements (sceaux en cartes, validée utilisateur) + nouveau logo (cristaux cyan, identité du 19/10). Règle respectée : la présentation en cartes reste un détail DEVLOG (décision du 23/10), le CHANGELOG ne cite que les changements visibles majeurs — la livraison finale du chantier en est un.
+- **`GUIDE-DEMARRAGE-INVITE.md`** : prérequis Node.js « version 18 ou plus récente » → **« 24.22.1 ou plus récente »** (exigence posée le 24/10, commit `09483fb`).
+- **`NOTICE.md`** : (1) section Démarrage : ajout du prérequis **Node.js >=24.22.1** ; (2) « Fabriquer le logiciel installable » : Electron 44 → **Electron 45** (deux occurrences, effectif depuis v0.5.1) ; (3) table Fonctionnalités : ligne « Mon Inventaire / Coffre » mentionne la section **📨 Courrier** (livrée v0.5.5) ; (4) ligne « Transférer vers » : « objet équipé **ou au courrier** non transférable » ; (5) **nouvelle section « Le Courrier (postmaster) »** après « Transférer un objet » (section propre, bouton grisé avec explication, exclu de Mon Inventaire et du Coffre) ; (6) sommaire mis à jour.
+- **`TODO.md`** : (1) « version courante » 0.5.4 → **0.5.5** ; (2) item 1 (audit externe) : le reste « ajouter une CSP » est passé 🟡 → **✅ FAIT en v0.5.4** (chantier `draft-sec` + correctif `wasm-unsafe-eval`, test `cablage-csp-wasm.test.ts` 15 contrôles, validé utilisateur) — reste noté : fusion propre de `draft-sec` (chiffrement `safeStorage`, liste blanche réseau, permissions refusées) ; (3) React 19.2.9 → **19.3.1** (version effective du lockfile).
+- **`.github/workflows/ci.yml`** : `node-version: 22` → **24.22.1** (alignement `engines.node` + `.nvmrc`) ; commentaires : 38 → **41 suites**, 761 → **801 contrôles**.
+- **`documentation/suivi/MAJ-DEPENDANCES.md`** : note Node.js >=24.22.1 (depuis le 24/10, CVE octobre 2026) ; note Electron 45 effectif (valide la ligne « Electron 44 embarque Chromium récent ») ; bloc « État final du chantier » récapitulant le stack livré (React 19.3.1, Vite 7.3.7, Electron 45.0.0, 0 vulnérabilité).
+- **`README.md` (forge-armory + racine)** : vérifiés, à jour (pas de numéro de version ni de version de stack à mettre à jour).
+- **`documentation/LISEZ-MOI.md`** : vérifié, à jour (structure des dossiers, pas de référence de version périmée).
+
+**Vérifié sans correction** : `CHARTE-GRAPHIQUE.md` (logo à cristaux cyan déjà documenté, « mise à jour par l'utilisateur le 19/10/2026 ») ; `NOTICE.md` sections Legendarium / Carrière / Accomplissements (à jour, cartes en grille documentées) ; `forge-armory/README.md` (fonctionnalités à jour).
+
+**Non fait (volontaire)** : pas de bump de version (0.5.5 reste la courante — cette PR est documentaire uniquement) ; pas de modification de code.
+
+**Version inchangée (0.5.5).**
+
+---
