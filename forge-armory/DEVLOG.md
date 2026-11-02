@@ -4,6 +4,12 @@
 
 ---
 
+## 02/11/2026 — POINT D'AVANCEMENT publié (`documentation/suivi/POINT-AVANCEMENT-2026-11-02.md`)
+
+Récap du projet en lien avec la TODO, à l'état du 02/11/2026 : main = `b309687`, version **0.5.7** (tag `v0.5.7`), 15 branches toutes à jour et en 0.5.7, 1 seule PR ouverte (#26 podcast, de côté), CI verte. TODO : aucun bloquant ; Important = CSP restante (draft-sec), Phase 2 écriture Bungie (InsertSocketPlugFree), Agent IA ⏸️, tests scoring côté utilisateur ; Confort = items 5–22. Prochaines étapes : validation UI du pack v11 + tests Playwright, décision Phase 2, tri des branches de sauvegarde, tag v0.5.3 manquant. Aucun code changé.
+
+---
+
 ## 02/11/2026 — PACK D'ASSETS v11 : les 8 boutons d'action passent en cadre 1024 (même cercle/plaque que le sélecteur à hauteur égale)
 
 **Contexte** : note de l'utilisateur `TAILLE-DES-BOUTONS.md` (pack v11, branche `pack-assets-v11`) — tous les boutons du pack doivent avoir un cadre de 1024 de haut, cercle r=436/trait 22 (Ø 894), plaque 524 ; à hauteur CSS égale, cercle et plaque ont alors EXACTEMENT la même taille quelle que soit la famille. Audit : le code respectait déjà la règle (une seule hauteur `HAUTEUR_BOUTONS_BARRE = "2.5rem"` partagée barre Forge + tous les `BoutonAction` ; `height` seule + `width: auto` sur l'img ; ratio du catalogue pour l'attribut `width`), mais les 7 SVG de `public/assets/boutons-action/` étaient encore l'ancien pack v10 (cadre 1000, cercle r=468/trait 30 = 96,6 % de la hauteur, contre 87,3 % pour le sélecteur) : à hauteur égale, les boutons d'action avaient un cercle/plaque ~10 % plus gros que la barre Forge. Idem pour les 6 icônes rondes d'action (1000 × 1000).
