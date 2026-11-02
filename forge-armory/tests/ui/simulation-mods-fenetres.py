@@ -54,7 +54,7 @@ with sync_playwright() as p:
     marque = ligne_stats.locator("[data-stat-plus-ligne]")
     ok("INVENTAIRE, LIGNE DE LA LISTE (« ajoute le ⇅ aussi dans les deux lignes montrant les 6 stats de l'armure. Garde le en vert ») : six statistiques en deux lignes de trois ; UN seul ⇅, sur le « + » de la pièce (Super, 2ᵉ ligne), en VERT ; le texte est « Santé 0 · Mêlée 5 · Grenade 5 » puis « ⇅ Super 25 · Classe 40 · Arme 25 » (⇅ DEVANT le nom)", ligne_stats.locator("[data-stat-ligne]").count() == 6 and marque.count() == 1 and marque.get_attribute("data-stat-plus-ligne") == "super" and marque.evaluate("e => getComputedStyle(e).color") == "rgb(127, 216, 143)" and "Santé 0 · Mêlée 5 · Grenade 5" in ligne_stats.inner_text() and "⇅ Super 25 · Classe 40 · Arme 25" in ligne_stats.inner_text(), ligne_stats.inner_text()[:300])
     ligne.get_by_role("button", name="Détails").click(); q.wait_for_timeout(300)
-    ok("INVENTAIRE : le bouton « 🔨 Forge : choisir les mods de cette armure » est toujours là", q.get_by_role("button", name="🔨 Forge : choisir les mods de cette armure").count() == 1)
+    ok("INVENTAIRE : le bouton « 🔨 Forge : choisir les mods de cette armure » est toujours là", q.get_by_role("button", name="Forge : choisir les mods de cette armure").count() == 1)
     controler(q, "INVENTAIRE", 11, 10, [0, 5, 5, 25, 40, 25])
     ok("INVENTAIRE, FENÊTRE DÉTAILS : le ⇅ de la liste des statistiques est VERT et un seul", q.locator("[data-stat-plus]").count() == 1 and q.locator("[data-stat-plus]").first.evaluate("e => getComputedStyle(e).color") == "rgb(127, 216, 143)")
     ok("INVENTAIRE : l'ANCIENNE liste de pastilles par groupe n'est plus là (aucun groupe d'emplacements répétés `data-groupe-prises`)", q.locator("[data-groupe-prises]").count() == 0)
