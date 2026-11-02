@@ -2,11 +2,15 @@
 
 **Destiny 2 Build Analyzer**, par Orynick/Orygamer. Ce document explique comment installer, configurer et utiliser l'application. Pour un aperçu rapide, voir le `README.md`.
 
-**Sommaire** : Démarrage · Créer votre application Bungie · Fabriquer le logiciel installable · Fonctionnalités · Comprendre le score · Télécharger les Manifests · Loadouts · Le Legendarium (lire le Lore) · La page Carrière (vos statistiques) · La page Accomplissements (vos Triomphes).
+**Sommaire** : Démarrage · Créer votre application Bungie · Fabriquer le logiciel installable · Fonctionnalités · Comprendre le score · Télécharger les Manifests · Loadouts · Le Legendarium (lire le Lore) · La page Carrière (vos statistiques) · La page Accomplissements (vos Triomphes) · Le Courrier (postmaster).
 
 ---
 
 ## Démarrage
+
+**Prérequis** : [Node.js](https://nodejs.org) **version 24.22.1 ou plus
+récente** doit être installé (les versions antérieures sont refusées par
+l'application — un message vous dira laquelle utiliser si besoin).
 
 1. Dans une fenêtre de commande (`cmd`) ouverte dans le dossier du projet :
    ```
@@ -178,13 +182,13 @@ npm.cmd run electron:build
 y est bloquée par la politique d'exécution des scripts de Windows.)
 
 La première commande installe les outils. Depuis Electron 42 (le projet
-utilise Electron 44 depuis la v0.3.0), le moteur Electron n'est plus
+utilise Electron 45 depuis la v0.5.1), le moteur Electron n'est plus
 téléchargé à ce moment-là, mais la première fois qu'il sert (premier
 `electron:dev` ou première fabrication) : prévoir quelques minutes et une
 connexion Internet ce jour-là. La seconde commande produit l'installateur
 dans un nouveau dossier **`installateur/`**, nommé
 `Forge-Armory-Setup-<version>.exe`. Double-cliquez dessus pour
-installer. Electron 44 ne fonctionne que sur Windows **64 bits**.
+installer. Electron 45 ne fonctionne que sur Windows **64 bits**.
 
 ⚠️ **Chemin du projet : court et SANS ESPACE.** La fabrication de
 l'installateur (étape `makensis` d'electron-builder) échoue si le chemin
@@ -250,7 +254,7 @@ npm run electron:dev   (fenêtre 2)
 | Connexion Bungie (OAuth, profil, inventaire, coffre) | ✅ Fonctionnel |
 | Manifest (téléchargement, recherche bilingue, cache d'instance) | ✅ Fonctionnel — rechargé automatiquement au démarrage ; si Bungie publie une nouvelle version, elle est **téléchargée automatiquement** (seulement dans ce cas ; le tout premier téléchargement reste un clic) |
 | Doctrine — sous-classes, aspects, fragments, capacité réelle en fragments | ✅ Fonctionnel |
-| Mon Inventaire / Coffre — filtres, recherche, doublons, popup Détails | ✅ Fonctionnel |
+| Mon Inventaire / Coffre — filtres, recherche, doublons, popup Détails, section 📨 Courrier | ✅ Fonctionnel |
 | Icônes (classes, armures, 18 types d'armes, activités, éléments) | ✅ Fonctionnel |
 | Anti-champion — armatures d'armes + jetons du jeu + armures exotiques | 🟡 20 armatures sur 27 recensées |
 | Bonus de set d'armure (affichage) | ✅ Fonctionnel — données réelles du Manifest |
@@ -266,7 +270,7 @@ npm run electron:dev   (fenêtre 2)
 | Filtre d'**élément de dégâts** (Cinétique, Solaire, Cryo-électrique, Abyssal, Stase, Filobscur) dans la recherche du Manifest, Mon Inventaire et le Coffre | ✅ Fonctionnel — porte sur les armes |
 | Bouton **« Aller à »** (recherche du Manifest → Mon Inventaire, filtré sur l'objet) | ✅ Fonctionnel |
 | Export infographique : logos de section, icônes de classe, d'élément et de contexte | ✅ Fonctionnel — logos de section : Doctrine, Armes, Armure, Artefact |
-| Bouton **« Transférer vers »** (Mon Inventaire et Coffre → personnages et Coffre) | ✅ Fonctionnel — objet équipé non transférable, confirmation, un transfert à la fois |
+| Bouton **« Transférer vers »** (Mon Inventaire et Coffre → personnages et Coffre) | ✅ Fonctionnel — objet équipé ou au courrier non transférable, confirmation, un transfert à la fois |
 | Onglet **Forge**, vue **Collection** (toutes les armes du jeu, leurs perks possibles, grisées si jamais obtenues) | ✅ Fonctionnel — consultation seule |
 | Onglet **Forge**, vue **Inventaire** (vos armes possédées : roll réel et simulation des perks et du mod) | ✅ Fonctionnel — simulation locale, rien n'est modifié dans le jeu ; **le score en tient compte** |
 | Onglet **Forge**, vue **Inventaire** : vos **armures** possédées (emplacements, mods et ajustements, simulation avec statistiques avant → après) | ✅ Fonctionnel — quand votre exemplaire ne liste aucun mod possible, les plugs du modèle du jeu complètent (marqués « possibles ») ; les emplacements identiques sont regroupés (× N) |
@@ -346,6 +350,21 @@ Dans **Mon Inventaire** et dans le **Coffre**, chaque objet a un bouton **Transf
 - une **armure** ne peut aller que chez un personnage de **sa classe** ou au Coffre ;
 - si la destination est pleine, Bungie refuse : l'appli l'explique et l'objet reste où il était (ou au Coffre si le transfert s'est arrêté à mi-chemin) ;
 - un bandeau en haut de « Mon Inventaire » dit ce qui s'est passé. En cas de doute, **Recharger mon inventaire** remet l'affichage d'accord avec le jeu.
+
+## Le Courrier (postmaster)
+
+Les objets qui **attendent au courrier** (envois des vendeurs, récompenses
+non ramassées…) apparaissent dans « Mon Inventaire », dans leur propre
+section **📨 Courrier** (visible seulement s'il y a des objets en attente).
+Ils y sont listés par emplacement, avec la note « un objet au courrier ne
+peut pas être équipé ni transféré d'ici ».
+
+- Le bouton **« Transférer vers »** y est **grisé avec l'explication** :
+  un objet au courrier ne se déplace pas d'ici (il faut d'abord le
+  récupérer en jeu).
+- **« Équiper »** y est refusé avec le même message.
+- Le courrier est **exclu** de « Mon Inventaire » (filtres/recherche) et du
+  Coffre : il a sa propre section, à part.
 
 ## La Forge : Collection des armes
 
