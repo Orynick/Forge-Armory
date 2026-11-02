@@ -34,6 +34,7 @@ Logiciel Windows installable : `npm run electron:build` (détails dans la [notic
 - [`CHANGELOG.md`](CHANGELOG.md) — changements visibles par version (pour les utilisateurs).
 - [`DEVLOG.md`](DEVLOG.md) — historique complet du développement (décisions, détails techniques).
 - [`TODO.md`](TODO.md) — ce qui reste à faire.
+- [`documentation/methode/`](documentation/methode/) — méthode de travail (constitution, templates de spec/plan, checklist de livraison).
 
 ## Licence
 
