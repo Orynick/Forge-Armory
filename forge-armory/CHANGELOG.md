@@ -3,6 +3,17 @@
 > **Ce fichier est désormais un changelog orienté utilisateur.**
 > L'historique complet et détaillé du développement (DEVLOG) se trouve dans [`DEVLOG.md`](DEVLOG.md).
 
+## v0.5.7 — 01/11/2026
+
+- **La Forge s'habille à la charte graphique** : la barre de la Forge compte désormais CINQ boutons stylisés — Collection, Inventaire, puis Armes, Armures et **Optimisation** (nouveau, à droite, derrière un séparateur) — tous à la même hauteur.
+- **Nouvelle partie « Optimisation »** : un optimiseur de statistiques d'armure dans la Forge (six objectifs réglables, simulation des mods, énergie, ajout des pièces à Mon Build). Un bouton « Optimiseur » apparaît aussi dans Mon Build, juste sous le cadre « Statistiques ».
+- **Une seule fenêtre « Détails » partout** : que la pièce vienne de la Collection, de l'Inventaire, de Mon Build ou de la Forge, la pop-up est identique — mêmes sections, même ordre, même largeur (lore, source, ensemble, actions, simulation…).
+- **Sept boutons d'action de la charte** (plaques Forge, tous à la même hauteur, qui suit le zoom de la fenêtre) : « Retour », « Mettre dans Mon Build », « Lire le Lore », « Actualisation de l'inventaire », « Forge : choisir les mods », et « Modifier » ↔ « Fermer » (la bascule se fait sans aucun décalage). Le bouton « Actualisation de l'inventaire » remplace aussi l'ancien « Recharger mon inventaire » dans la partie Armures de la Forge.
+- **Pop-up Détails des armures** : la simulation des mods couvre désormais **tous les emplacements modifiables** (statistique, ajustements, mods cumulables, autres) ; seuls les emplacements fixes (archétype, amélioration, bonus d'ensemble, perk exotique) restent en lecture seule en dessous.
+- **Documentation** : point d'avancement publié dans `documentation/suivi/POINT-AVANCEMENT-2026-10-30.md`.
+
+→ Détails complets : [DEVLOG.md](DEVLOG.md)
+
 ## v0.5.6 — 28/10/2026
 
 - **Forge des armures, étape 2 — la simulation des mods d'armure est terminée** : vous pouvez modifier les mods d'une armure **directement dans la pop-up « Détails »** (Mon Inventaire, Coffre et Mon Build), sans passer par la fenêtre Forge. Le **score et Mon Build réagissent en temps réel** : les statistiques de l'armure sont recalculées avec les mods simulés, et le bandeau « Score calculé avec des mods d'armure simulés » s'affiche à côté du score.
