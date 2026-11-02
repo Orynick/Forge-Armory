@@ -4,6 +4,23 @@
 
 ---
 
+## 02/11/2026 — PACK D'ASSETS v11 : les 8 boutons d'action passent en cadre 1024 (même cercle/plaque que le sélecteur à hauteur égale)
+
+**Contexte** : note de l'utilisateur `TAILLE-DES-BOUTONS.md` (pack v11, branche `pack-assets-v11`) — tous les boutons du pack doivent avoir un cadre de 1024 de haut, cercle r=436/trait 22 (Ø 894), plaque 524 ; à hauteur CSS égale, cercle et plaque ont alors EXACTEMENT la même taille quelle que soit la famille. Audit : le code respectait déjà la règle (une seule hauteur `HAUTEUR_BOUTONS_BARRE = "2.5rem"` partagée barre Forge + tous les `BoutonAction` ; `height` seule + `width: auto` sur l'img ; ratio du catalogue pour l'attribut `width`), mais les 7 SVG de `public/assets/boutons-action/` étaient encore l'ancien pack v10 (cadre 1000, cercle r=468/trait 30 = 96,6 % de la hauteur, contre 87,3 % pour le sélecteur) : à hauteur égale, les boutons d'action avaient un cercle/plaque ~10 % plus gros que la barre Forge. Idem pour les 6 icônes rondes d'action (1000 × 1000).
+
+**Intégration** (archive de référence déposée par l'utilisateur sur `pack-assets-v11`, déplacée hors de `public/assets` vers `forge-armory/ressources-installateur/forge-armory/app-assets-v11/` — `visuels.test.ts` exige qu'aucun SVG non déclaré ne reste sous `public/assets`, CI de la branche en failure pour ça) :
+
+- 8 boutons d'action copiés depuis `assets/actions/` du pack v11 vers `public/assets/boutons-action/` (cadres 1024, cercle r=436/trait 22 centré à 512, plaque 524), renommés sur les noms existants + nouveau `bouton-forgeperks.svg` ; identifiants internes réécrits `fa-actions-<fichier>-` → `fa-boutons-action-<fichier>-` (charte §9).
+- 8 icônes rondes copiées vers `public/assets/icones/` (1024 × 1024), renommées + préfixes `fa-icones-…` réécrits ; 2 nouvelles : `icone-forgeperks.svg`, `icone-fermer.svg`.
+- `forgeAssetsComplement.ts` : 8 entrées `boutons-action.*` (largeur/hauteur 1024, ratio, hauteurMinPx 40) + 8 entrées `icones.*` (1024 × 1024).
+- `BoutonAction.tsx` : `IdBoutonAction` + `"boutons-action.forgeperks"` (8e bouton) ; commentaire règle « height seule, width auto ».
+- `FenetreDetailsPiece.tsx` : l'ARME a désormais son visuel « Forge : choisir les perks de cette arme » (`boutons-action.forgeperks`, hauteur "2.5rem") à la place du bouton texte « 🔨 … » ; l'armure garde `forgemods`. Les deux à la même hauteur que la barre.
+- Tests : `reproductibilite-visuels.test.ts` (16 fichiers hors archive : 8 boutons + 8 icones), `fenetre-details.py` (ratio forgemods 8,703 → 6,941 = 7108/1024), `detail-popup.py` / `resumebuild.py` / `faconnee-listes.py` / `simulation-mods-fenetres.py` (nom accessible du bouton perks = aria-label sans emoji 🔨).
+
+**Vérifié** : tsc 0, batterie 53/54 (1103/1104), build OK, `visuels.test.ts` 20/20 (cadres = catalogue, préfixes, unicité, aucun SVG non déclaré). Version 0.5.7 (tag posé avant ce correctif — bump éventuel v0.5.8 à décider).
+
+---
+
 ## 01/11/2026 — LIVRAISON v0.5.7 : chantier Forge propagé de `test` sur `main` et les 14 autres branches + bump de version
 
 **Livraison** : la branche `test` (chantier `Import-modif-mods-armures` + PR #24, merge `e6b7b44`, validée par l'utilisateur) est propagée sur `main` (`c9711a5`) puis sur **les 14 autres branches distantes** — vérifié : toutes contiennent `e6b7b44`. Contenu :

@@ -30,7 +30,7 @@ with sync_playwright() as p:
     ok("l'icône est posée EN BAS À GAUCHE de la vignette de 31 px (à l'intérieur, comme en jeu), à une taille proportionnée (moins de la moitié de la vignette), chez le Titan comme au Coffre", all(g and g["dedans"] and g["dx"] <= 4 and g["dy"] <= 4 and g["bw"] < g["iw"] / 2 for g in (g1, g2)) and g1["iw"] == 31, [g1, g2])
     ok("sa teinte est le saumon corail du jeu (#e49f87), son nom accessible est « Arme façonnée » et son infobulle dit que les perks se changent à la forge en jeu", g1["fill"] == "rgb(228, 159, 135)" and g1["nom"] == "Arme façonnée" and "forge en jeu" in g1["titre"], g1)
     ligne("f1").get_by_role("button", name="Détails").click(); pg.wait_for_timeout(250)
-    ok("la fenêtre « Détails » de cette arme façonnée s'ouvre normalement (le bouton « 🔨 Forge » y est toujours)", pg.get_by_role("button", name="🔨 Forge : choisir les perks de cette arme").count() == 1)
+    ok("la fenêtre « Détails » de cette arme façonnée s'ouvre normalement (le bouton « Forge » y est toujours)", pg.get_by_role("button", name="Forge : choisir les perks de cette arme").count() == 1)
     pg.close()
     # ---------- Mon Build ----------
     def build_page(param):
