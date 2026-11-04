@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="fa-icones-icone-mon-build-title">
+  <title id="fa-icones-icone-mon-build-title">Forge Armory — Mon Build (icône)</title>
+  <defs>
+    <linearGradient id="fa-icones-icone-mon-build-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9dde2"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-mon-build-silverText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#d4d9df"/>
+      <stop offset="1" stop-color="#f2f4f6"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-mon-build-cyanL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ff3ff"/>
+      <stop offset="1" stop-color="#1cc6ff"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-mon-build-cyanR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00aef5"/>
+      <stop offset="1" stop-color="#0078d0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-mon-build-glow" x="-150%" y="-30%" width="400%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="fa-icones-icone-mon-build-glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <mask id="fa-icones-icone-mon-build-mHelm" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect x="-2000" y="-2000" width="5000" height="5000" fill="#fff"/><path d="M 410 446 L 614 446 L 596 488 L 536 488 L 536 596 L 512 626 L 488 596 L 488 488 L 428 488 Z" fill="#000" stroke="#000" stroke-width="22" stroke-linejoin="miter"/><path d="M 512 318 L 512 424" stroke="#000" stroke-width="9" fill="none"/><path d="M 446 528 L 418 592 M 578 528 L 606 592" stroke="#000" stroke-width="8" fill="none"/></mask>
+    <linearGradient id="fa-icones-icone-mon-build-plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#131923"/><stop offset="1" stop-color="#080b11"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-mon-build-fadeH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.12" stop-color="#e8ebef" stop-opacity="0.85"/>
+      <stop offset="0.88" stop-color="#e8ebef" stop-opacity="0.85"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fa-icones-icone-mon-build-fadeV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8ebef" stop-opacity="0"/><stop offset="0.25" stop-color="#e8ebef" stop-opacity="0.7"/>
+      <stop offset="0.75" stop-color="#e8ebef" stop-opacity="0.7"/><stop offset="1" stop-color="#e8ebef" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="fa-icones-icone-mon-build-glowStar" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-icones-icone-mon-build-silver)" stroke-width="22"/>
+    <g transform="translate(512 512) scale(1.4) translate(-512 -512)"><path d="M 512 308 C 590 308 650 356 652 440 L 656 540 L 628 612 L 584 668 L 544 716 L 512 716 L 480 716 L 440 668 L 396 612 L 368 540 L 372 440 C 374 356 434 308 512 308 Z" fill="url(#fa-icones-icone-mon-build-silver)" mask="url(#fa-icones-icone-mon-build-mHelm)"/><g filter="url(#fa-icones-icone-mon-build-glowSoft)"><path d="M 410 446 L 614 446 L 596 488 L 536 488 L 536 596 L 512 626 L 488 596 L 488 488 L 428 488 Z" fill="url(#fa-icones-icone-mon-build-cyanL)"/></g></g>
+    
+  </g>
+</svg>

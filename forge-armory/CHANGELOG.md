@@ -3,6 +3,17 @@
 > **Ce fichier est désormais un changelog orienté utilisateur.**
 > L'historique complet et détaillé du développement (DEVLOG) se trouve dans [`DEVLOG.md`](DEVLOG.md).
 
+## v0.6.0 — 04/11/2026
+
+- **« Appliquer en jeu » — LA Forge écrit vraiment chez Bungie** : les perks et mods que vous simulez peuvent désormais être **appliqués réellement sur votre compte Destiny 2**, pièce par pièce. Première fonctionnalité d'écriture de l'appli — d'où le passage de palier 0.5.7 → 0.6.0.
+- **Où le trouver** : le **bouton plaque « Appliquer en jeu »** dans la pop-up « Détails » (armes et armures, où que vous l'ouvriez), et l'**icône seule** dans les cartes de la Forge. Il n'apparaît **que si votre simulation diffère de l'état réel** de l'objet.
+- **Avant d'écrire, tout est montré** : un écran de confirmation liste chaque prise (plug actuel → plug visé) et vous rappelle que les changements s'appliquent à votre compte Destiny 2.
+- **En sécurité** : une prise à la fois, arrêt au **premier refus du jeu** (le message exact de Bungie s'affiche, rien n'est annulé en silence), relance possible des prises restantes uniquement. Après un succès complet, la simulation locale est effacée : le réel a remplacé la simulation.
+- **Couvre les mods d'armure ET les perks d'armes** (version améliorée comprise), **objets du Coffre inclus**. Personnage en espace social, en orbite ou hors ligne requis par le jeu.
+- **Nouveaux visuels de la charte** : bouton « Appliquer en jeu » et son icône (archive `forge-armory-app-assets`).
+
+→ Détails complets : [DEVLOG.md](DEVLOG.md)
+
 ## v0.5.7 — 01/11/2026
 
 - **La Forge s'habille à la charte graphique** : la barre de la Forge compte désormais CINQ boutons stylisés — Collection, Inventaire, puis Armes, Armures et **Optimisation** (nouveau, à droite, derrière un séparateur) — tous à la même hauteur.
