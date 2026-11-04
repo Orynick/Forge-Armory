@@ -24,6 +24,21 @@
 
 ---
 
+## 03/11/2026 — MODS-PHASE-2, VARIANTE B : le bouton « Appliquer en jeu » couvre aussi les perks d'ARMES (décision utilisateur : ordre 3 → 1 → 2)
+
+**Décisions de l'utilisateur après la validation en jeu des mods d'armure** : (1) le chantier s'étend aux **perks d'armes** (variante B) ; (2) ensuite seulement : PR prête pour revue puis fusion ; (3) puis **bump v0.6.0 — reporté jusqu'à la validation des perks d'armes** ; (4) **un bouton stylisé dédié pour « ⚡ Appliquer en jeu » sera fourni par l'utilisateur** (le bouton texte actuel est provisoire — même méthode d'intégration que le pack v11).
+
+**Réalisé** :
+
+- `src/components/AppliquerEnJeu.tsx` — étendu aux ARMES : colonnes NON masquées du Manifest (`obtenirOptionsToutesColonnes`, cosmétiques/ornements exclus d'office), perk équipé lu dans `perksParColonne` (une prise sans perk équipé connu ne peut pas produire d'écart), simulation du bloc « armes », plug VISÉ = hash « effectif » (version améliorée pour une arme améliorée, SPEC §7) ; noms des perks dans l'écran de confirmation ; effacement de la simulation dans le BON bloc après succès.
+- `src/components/FenetreDetailsPiece.tsx` — le bouton « Appliquer en jeu » apparaît désormais pour les armes AUSSI (fenêtre Détails, peu importe d'où elle est ouverte). Les cartes d'armes de la Forge ne sont pas touchées (le bouton d'une arme vit dans sa fenêtre Détails).
+- `src/lib/bungie/equiper.ts` — `diagnostiquerInsertionPlug` reçoit le MÊME correctif `itemId` que `insererPlug` (justifié : sans lui, le diagnostic rapportait le faux refus 1663 au lieu de la vraie réponse — écart du périmètre 3.2 « le diagnostic est conservé tel quel », motivé par la variante B qui s'appuie sur lui).
+- `tests/logique/ecarts-simulation.test.ts` — 4 contrôles ARME (14 au total) : écart avec plug visé = « effectif » (202, la version améliorée), prise sans perk équipé connu ignorée, choix identique au roll réel = aucun écart, ordre des prises.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` 55/55 suites, 1118/1118 contrôles ; `npm run build` OK. ⏳ **Reste : validation par l'utilisateur en jeu des perks d'armes** (une arme à rolls aléatoires non façonnée sera probablement refusée par Bungie — le message exact s'affichera ; une arme FAÇONNÉE devrait passer).
+
+---
+
 ## 03/11/2026 — MODS-PHASE-2 (variante A) : première écriture RÉELLE chez Bungie — bouton « Appliquer en jeu » dans la Forge des armures
 
 **Contexte** : TODO §2, niveau 2 (« En jeu : appliquer réellement le changement sur l'objet », tranché le 24/10/2026). Méthode spec-kit respectée : SPEC (`SPEC-MODS-PHASE-2-2026-11-03.md`) rédigée sans code, **3 décisions verrouillées par l'utilisateur le 03/11/2026** — (1) **variante A** : mods d'armure uniquement (les perks d'armes restent hors écriture, chantier séparé) ; (2) **objets du Coffre modifiables aussi** (tentative directe, message Bungie exact si refus, aucun transfert automatique) ; (3) **scope OAuth `MoveEquipDestinyItems`** : confirmé dans la doc Bungie (pas d'« Advanced Write Action » requis), déjà actif puisque l'équipement fonctionne — puis PLAN (`PLAN-MODS-PHASE-2-2026-11-03.md`) puis codage. Endpoint : `POST /Destiny2/Actions/Items/InsertSocketPlugFree/` (insertion gratuite, aucun matériau).

@@ -600,9 +600,9 @@ export async function diagnostiquerInsertionPlug(
         "X-API-Key": bungieConfig.apiKey,
         Authorization: `Bearer ${accessToken}`,
       },
+      // FR : ⚠️ CORRECTIF (03/11/2026, même cause que `insererPlug`) - l'endpoint GRATUIT attend `itemId`, pas `itemInstanceId` (champ du endpoint PAYANT) ; sans ce correctif, le diagnostic rapportait le faux refus ErrorCode 1663 « This action can only be done in-game » au lieu de la vraie réponse. / EN: same fix as `insererPlug`: the FREE endpoint expects `itemId`.
       body: JSON.stringify({
-        actionToken: null,
-        itemInstanceId,
+        itemId: String(itemInstanceId),
         plug: { socketIndex, socketArrayType: 0, plugItemHash },
         characterId,
         membershipType: membership.membershipType,

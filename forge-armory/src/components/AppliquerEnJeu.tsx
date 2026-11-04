@@ -1,4 +1,4 @@
-// FR : ⚠️ AJOUT (03/11/2026, chantier mods-phase-2, retour utilisateur : « le bouton devrait apparaître dans la carte ainsi que dans la pop-up Détails, peu importe d'où elle est ouverte ») - COMPOSANT PARTAGÉ « Appliquer en jeu » : le bouton (visible uniquement si la simulation d'armure diffère de l'état réel) et l'écran de confirmation avec progression, UN plug par appel, ARRÊT au premier refus (message exact de Bungie), relance des prises restantes uniquement, puis effacement de la simulation. Utilisé par la carte d'armure de la Forge (InventaireArmures) ET par la fenêtre Détails unique (FenetreDetailsPiece). Variante A : ARMURES uniquement — le composant ne s'affiche jamais pour une arme. ⚠️ CORRECTIF du 03/11 (retour utilisateur en jeu) : le corps de requête utilise `itemId` (l'endpoint GRATUIT attend `itemId`, pas `itemInstanceId` — cf. DIM ; l'ancien champ provoquait ErrorCode 1663 « This action can only be done in-game »).
+// FR : ⚠️ AJOUT (03/11/2026, chantier mods-phase-2, retour utilisateur : « le bouton devrait apparaître dans la carte ainsi que dans la pop-up Détails, peu importe d'où elle est ouverte ») - COMPOSANT PARTAGÉ « Appliquer en jeu » : le bouton (visible uniquement si la simulation d'armure diffère de l'état réel) et l'écran de confirmation avec progression, UN plug par appel, ARRÊT au premier refus (message exact de Bungie), relance des prises restantes uniquement, puis effacement de la simulation. Utilisé par la carte d'armure de la Forge (InventaireArmures) ET par la fenêtre Détails unique (FenetreDetailsPiece). ⚠️ CHANGÉ (03/11/2026, décision utilisateur : ordre 3 → 1 → 2) : VARIANTE B — le composant couvre AUSSI les perks d'ARMES (colonnes non masquées du Manifest, simulation du bloc « armes », plug visé = « effectif »). ⚠️ CORRECTIF du 03/11 (retour utilisateur en jeu) : le corps de requête utilise `itemId` (l'endpoint GRATUIT attend `itemId`, pas `itemInstanceId` — cf. DIM ; l'ancien champ provoquait ErrorCode 1663 « This action can only be done in-game »).
 // EN: shared "Apply in game" component: button + confirmation screen with per-socket progress; used by both the Forge armor card and the shared details window. Variant A: armor only. Request body uses `itemId` (not `itemInstanceId`).
 import { useMemo, useState } from "react";
 import type { Database } from "sql.js";
@@ -8,9 +8,10 @@ import { colonnesArmure } from "../lib/forge/armure";
 import { ecartsApplicables, reinitialiserArme, EcartSocket, ColonneApplicable } from "../lib/forge/simulation";
 import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 import { insererPlug, lireProfilEquipement, localiserDansProfil } from "../lib/bungie/equiper";
+import { obtenirOptionsToutesColonnes } from "../lib/manifest/doctrine";   // ⚠️ AJOUT (03/11/2026, variante B) : colonnes de perks d’ARME (prises non masquées seulement)
 import Modale from "./Modale";
 
-const SLOTS_ARMURE = ["casque", "gants", "torse", "jambes", "marque"];
+const SLOTS_ARME = ["cinetique", "energie", "lourde"];
 const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste", coffre: "Coffre", courrier: "Courrier" };
 
 interface Props {
@@ -28,13 +29,21 @@ export default function AppliquerEnJeu({ db, membership, piece, compact = false,
   const [appli, setAppli] = useState<{ ecarts: EcartSocket[]; etats: Array<"enAttente" | "enCours" | "reussi" | "echoue">; libelles: Record<number, { actuel: string; vise: string }>; message: string | null; echec: boolean; termine: boolean } | null>(null);
 
   // FR : les écarts applicables de CETTE pièce : une prise MODIFIABLE dont le choix simulé diffère du plug équipé. Vide (bouton absent) sans écart, sans exemplaire possédé, sans Manifest, sans connexion, ou pour une ARME (variante A). / EN: this piece's applicable differences; empty (no button) without any.
+  const estArme = SLOTS_ARME.includes(piece.slot as string);
   const ecarts = useMemo(() => {
-    if (!db || !membership || !piece.itemInstanceId || !SLOTS_ARMURE.includes(piece.slot as string)) return [];
+    if (!db || !membership || !piece.itemInstanceId) return [];
     try {
+      if (estArme) {
+        // FR : ⚠️ AJOUT (03/11/2026, variante B décidée par l'utilisateur : le chantier s'étend aux perks d'armes) - les colonnes de l'ARME : seules les prises NON masquées sont renvoyées (cosmétiques et ornements exclus d'office) ; le perk ÉQUIPÉ vient de `perksParColonne` (une prise sans perk équipé connu ne peut pas produire d'écart). La simulation vit dans le bloc « armes » ; le plug VISÉ est l'« effectif » (version améliorée pour une arme améliorée — spéc §7). / EN: weapon columns (non-masked only); the simulation lives in the "armes" block; the target hash is the "effectif".
+        const equipes = new Map((piece.perksParColonne ?? []).map((p) => [p.socketIndex, p.hash]));
+        const colonnes: ColonneApplicable[] = obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashes, { equipesParColonne: piece.perksParColonne })
+          .map((c) => ({ socketIndex: c.socketIndex, hashEquipe: equipes.get(c.socketIndex) ?? -1, modifiable: true }));
+        return ecartsApplicables(colonnes, simulations.armes[piece.itemInstanceId]);
+      }
       const colonnes: ColonneApplicable[] = colonnesArmure(db, piece).map((c) => ({ socketIndex: c.socketIndex, hashEquipe: c.equipe.hash, modifiable: c.modifiable }));
       return ecartsApplicables(colonnes, simulations.armures?.[piece.itemInstanceId]);
     } catch { return []; }
-  }, [db, membership, piece, simulations]);
+  }, [db, membership, piece, simulations, estArme]);
 
   if (ecarts.length === 0) return null;
 
@@ -43,10 +52,20 @@ export default function AppliquerEnJeu({ db, membership, piece, compact = false,
     if (!db || !piece.itemInstanceId) return;
     const libelles: Record<number, { actuel: string; vise: string }> = {};
     try {
-      for (const c of colonnesArmure(db, piece)) {
-        for (const e of ecarts) {
-          if (e.socketIndex !== c.socketIndex) continue;
-          libelles[e.socketIndex] = { actuel: c.equipe.nom, vise: c.options.find((o) => o.hash === e.plugVise)?.nom ?? `plug ${e.plugVise}` };
+      if (estArme) {
+        // FR : ⚠️ AJOUT (03/11/2026, variante B) - noms des perks d'arme depuis les colonnes du Manifest (l'équipé et le visé peuvent être absents des options : repli sur le hash). / EN: weapon perk names from the Manifest columns.
+        for (const c of obtenirOptionsToutesColonnes(db, piece.itemHash, piece.perkHashes, { equipesParColonne: piece.perksParColonne })) {
+          for (const e of ecarts) {
+            if (e.socketIndex !== c.socketIndex) continue;
+            libelles[e.socketIndex] = { actuel: c.options.find((o) => o.hash === e.plugActuel)?.nom ?? `perk ${e.plugActuel}`, vise: c.options.find((o) => o.hash === e.plugVise)?.nom ?? `perk ${e.plugVise}` };
+          }
+        }
+      } else {
+        for (const c of colonnesArmure(db, piece)) {
+          for (const e of ecarts) {
+            if (e.socketIndex !== c.socketIndex) continue;
+            libelles[e.socketIndex] = { actuel: c.equipe.nom, vise: c.options.find((o) => o.hash === e.plugVise)?.nom ?? `plug ${e.plugVise}` };
+          }
         }
       }
     } catch { /* libellés best-effort : les écarts restent affichés par index */ }
@@ -96,8 +115,8 @@ export default function AppliquerEnJeu({ db, membership, piece, compact = false,
       return;
     }
     // FR : SUCCÈS COMPLET : la simulation est effacée (l'état réel vient d'être écrit), puis l'appelant recharge ce qu'il faut. / EN: full success: clear the simulation, then let the caller reload.
-    mettreAJourSimulations((s) => reinitialiserArme(s, instance, "armures"));
-    setAppli({ ...appli, etats, message: `✅ Appliqué en jeu : ${appli.ecarts.length} prise${appli.ecarts.length > 1 ? "s" : ""} écrite${appli.ecarts.length > 1 ? "s" : ""} sur « ${piece.nom ?? "armure"} ». La simulation locale est effacée : rechargez l'inventaire pour voir l'état réel.`, echec: false, termine: true });
+    mettreAJourSimulations((s) => reinitialiserArme(s, instance, estArme ? "armes" : "armures"));
+    setAppli({ ...appli, etats, message: `✅ Appliqué en jeu : ${appli.ecarts.length} prise${appli.ecarts.length > 1 ? "s" : ""} écrite${appli.ecarts.length > 1 ? "s" : ""} sur « ${piece.nom ?? (estArme ? "arme" : "armure")} ». La simulation locale est effacée : rechargez l’inventaire pour voir l’état réel.`, echec: false, termine: true });
     onSucces?.();
   }
 

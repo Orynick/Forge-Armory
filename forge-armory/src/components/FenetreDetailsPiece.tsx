@@ -152,7 +152,7 @@ export default function FenetreDetailsPiece({ db, piece: ouverte, onFermer, onLi
           </div>
         )}
         {/* (5) actions */}
-        {(onRetour || ((onAjouterAuBuild || dansBuild) && instance) || onOuvrirForge || (!estArme && membership)) && (
+        {(onRetour || ((onAjouterAuBuild || dansBuild) && instance) || onOuvrirForge || membership) && (
           <div data-ligne-actions="" style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", margin: "0 0 0.6rem" }}>
             {onRetour && (libelleRetour === "Build Analyzer"
               ? <BoutonAction id="boutons-action.retour" libelle="Retour à Build Analyzer" onClick={() => { fermer(); onRetour(); }} hauteur="2.5rem" donnees={{ "retour-fenetre": true }} />
@@ -166,8 +166,8 @@ export default function FenetreDetailsPiece({ db, piece: ouverte, onFermer, onLi
                 ? <BoutonAction id="boutons-action.forgeperks" libelle="Forge : choisir les perks de cette arme" onClick={() => onOuvrirForge(ouverte)} hauteur="2.5rem" donnees={{ "ouvrir-forge": true }} />
                 : <BoutonAction id="boutons-action.forgemods" libelle="Forge : choisir les mods de cette armure" onClick={() => onOuvrirForge(ouverte)} hauteur="2.5rem" donnees={{ "ouvrir-forge": true }} />
             )}
-            {/* FR : ⚠️ AJOUT (03/11/2026, mods-phase-2, retour utilisateur) - bouton « Appliquer en jeu » DANS la fenêtre Détails, peu importe d'où elle est ouverte (Forge, Mon Inventaire/Coffre, Mon Build) : le composant partagé ne s'affiche que pour une ARMURE possédée dont la simulation diffère du réel (variante A). / EN: shared "Apply in game" button in the details window, from wherever it was opened. */}
-            {!estArme && <AppliquerEnJeu db={db} membership={membership} piece={ouverte} onSucces={onAppliqueEnJeu} />}
+            {/* FR : ⚠️ AJOUT (03/11/2026, mods-phase-2, retour utilisateur) puis ⚠️ CHANGÉ (variante B, décision utilisateur du 03/11 : le chantier s'étend aux perks d'armes) - bouton « Appliquer en jeu » DANS la fenêtre Détails, peu importe d'où elle est ouverte (Forge, Mon Inventaire/Coffre, Mon Build), pour une ARMURE (mods) comme pour une ARME (perks) possédée dont la simulation diffère du réel. / EN: shared "Apply in game" button in the details window, armor mods AND weapon perks (variant B). */}
+            <AppliquerEnJeu db={db} membership={membership} piece={ouverte} onSucces={onAppliqueEnJeu} />
             {messageBuild && <span data-message-build="" role="status" style={{ fontSize: "0.75rem", color: "#7fd88f" }}>{messageBuild}</span>}
           </div>
         )}

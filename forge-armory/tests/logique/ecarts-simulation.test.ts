@@ -27,4 +27,13 @@ const s = choisir(choisir(SIMULATIONS_VIDES(), "a1", 2, { choisi: 201, effectif:
 ok("la simulation d'armure issue du MAGASIN (`choisir` avec la partie « armures ») produit bien les écarts attendus, dans l'ordre des prises", (() => { const e = ecartsApplicables(cols, s.armures?.["a1"]); return e.length === 2 && e[0].socketIndex === 1 && e[0].plugVise === 101 && e[1].socketIndex === 2 && e[1].plugVise === 201; })());
 ok("une simulation d'ARME (bloc « armes ») n'est jamais lue pour une armure : aucun écart croisé", ecartsApplicables(cols, undefined).length === 0 && ecartsApplicables(cols, SIMULATIONS_VIDES().armes["a1"]).length === 0);
 
+// ---------- 3. les ARMES (variante B, décidée le 03/11/2026 : le chantier s'étend aux perks d'armes) ----------
+// FR : pour une ARME, les colonnes viennent de `obtenirOptionsToutesColonnes` (seules les prises NON masquées y figurent : cosmétiques et ornements exclus d'office) ; le hash équipé vient de `perksParColonne`. La simulation vit dans le bloc « armes », avec la paire choisi/effectif (effectif = version AMÉLIORÉE si l'arme est améliorée). / EN: weapons: non-masked columns only; the simulation lives in the "armes" block.
+const colsArme = [colonne(1, 100), colonne(2, 200), colonne(3, 300)];
+const simArme = sim({ 2: [201, 202] });   // choisi 201 (base), effectif 202 (améliorée)
+ok("ARME : un choix simulé différent du perk équipé donne UN écart, et le plug VISÉ est l'« EFFECTIF » (version améliorée 202 pour une arme améliorée — c'est ce hash qui sera envoyé à Bungie, spéc §7)", (() => { const e = ecartsApplicables(colsArme, simArme); return e.length === 1 && e[0].socketIndex === 2 && e[0].plugActuel === 200 && e[0].plugVise === 202; })());
+ok("ARME : une prise sans perk équipé connu (hashEquipe absent de perksParColonne) ne peut pas produire d'écart — elle est ignorée sans erreur", (() => { const e = ecartsApplicables([colonne(9, 0)], sim({ 9: [901, 901] })); return e.length === 0; })() || ecartsApplicables([], simArme).length === 0);
+ok("ARME : un choix simulé IDENTIQUE au perk équipé (retour au roll réel) ne donne AUCUN écart", ecartsApplicables(colsArme, sim({ 1: [100, 100] })).length === 0);
+ok("ARME : le bouton n'apparaît qu'avec des écarts — plusieurs prises simulées,ordre des prises respecté", (() => { const e = ecartsApplicables(colsArme, sim({ 3: [301, 301], 1: [101, 101] })); return e.length === 2 && e[0].socketIndex === 1 && e[1].socketIndex === 3; })());
+
 console.log(`\n${res.filter(Boolean).length}/${res.length} contrôles réussis`); process.exit(res.every(Boolean) ? 0 : 1);

@@ -4,7 +4,7 @@
 **Statut :** ✅ **LIVRÉE ET VALIDÉE EN JEU le 03/11/2026** (confirmation utilisateur après le correctif `itemId` : « Parfait ça fonctionne ! ») — décisions verrouillées le 03/11/2026 (variante A ; objets du Coffre modifiables ; scope OAuth `MoveEquipDestinyItems`).
 **Branche prévue :** `draft-mods-phase-2` (préparation uniquement — aucun code tant que la spec n'est pas validée)
 **Version de l'appli à la rédaction :** 0.5.7
-**Version visée :** 0.6.0 (première écriture de perks/mods chez Bungie : passage de palier à justifier dans le DEVLOG à la livraison)
+**Version visée :** 0.6.0 — ⚠️ **reporté le 03/11/2026 (décision utilisateur) jusqu'à la validation en jeu des perks d'armes** (première écriture de perks/mods chez Bungie : passage de palier à justifier dans le DEVLOG à la livraison)
 
 ---
 
@@ -51,6 +51,7 @@ Sont **exclus** de l'écriture, comme de la simulation : ornements, revêtements
   - **Variante A (recommandée)** : première livraison = **mods d'armure uniquement** (usage confirmé par les autres outils), le bouton « Appliquer en jeu » des armes n'apparaît que si l'insertion est tentée et autorisée — avec le diagnostic existant pour trancher sur le compte réel de l'utilisateur ;
   - **Variante B** : perks d'armes et mods d'armure d'un coup si le diagnostic le prouve.
   - **Décision verrouillée le 03/11/2026 : VARIANTE A** — première livraison = mods d'armure uniquement ; les perks d'armes restent hors écriture dans ce chantier (chantier séparé si le diagnostic les prouve réalisables plus tard).
+  - ⚠️ **ÉTENDUE le 03/11/2026 (décision utilisateur, après validation en jeu des mods d'armure : ordre 3 → 1 → 2) : VARIANTE B ENGAGÉE** — le même chantier couvre désormais les **perks d'armes** : même bouton/même écran via le composant partagé `AppliquerEnJeu` (fenêtre Détails ; colonnes NON masquées du Manifest seulement, simulation du bloc « armes », plug visé = hash « effectif » — version améliorée pour une arme améliorée, §7). ⏳ Validation en jeu restante. Le **bump v0.6.0 est reporté jusqu'à la validation des perks d'armes** ; **un bouton stylisé dédié pour « ⚡ Appliquer en jeu » sera fourni par l'utilisateur** (le bouton texte actuel est provisoire).
 - Règles de scoring impactées : **aucune** — le score continue de consommer la simulation ; après re-lecture, réel et simulation convergent naturellement.
 - Persistance / migration : aucune nouvelle donnée persistée ; l'état simulé existant (`storeSimulations`) est consommé tel quel, puis vidé pour l'objet appliqué après re-lecture réussie.
 - Coût matériaux : l'endpoint « Free » n'en consomme pas ; si Bungie refuse un plug payant, l'erreur est affichée telle quelle (aucune gestion de matériaux dans l'appli).
