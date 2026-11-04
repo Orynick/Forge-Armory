@@ -4,6 +4,107 @@
 
 ---
 
+## 03/11/2026 — MODS-PHASE-2, correctifs du premier test réel : champ `itemId` (cause du 1663) + bouton « Appliquer en jeu » dans la carte et la fenêtre Détails
+
+**Retour utilisateur après test en jeu** : (1) le bouton apparaissait À CÔTÉ de la carte — il doit être DANS la carte ET dans la pop-up Détails, peu importe d'où elle est ouverte ; (2) refus Bungie : `Prise 2 refusée — HTTP 500, ErrorCode 1663 (DestinyItemActionForbidden) : This action can only be done in-game.`
+
+**Cause du 1663 (racine, vérifiée contre l'implémentation de référence de DIM)** : l'endpoint GRATUIT `InsertSocketPlugFree` attend le champ **`itemId`** (l'objet en chaîne), PAS `itemInstanceId` — c'est le endpoint PAYANT (`InsertSocketPlug`, « Advanced Write Action ») qui utilise `itemInstanceId`. Avec l'ancien champ, Bungie ne voyait AUCUN objet et répondait 1663 « This action can only be done in-game ». Ce n'était donc NI un refus d'autorisation, NI une limite du jeu : un corps de requête mal formé, hérité du squelette de `diagnostiquerInsertionPlug` (qui porte le même défaut — non corrigé ici, hors périmètre, à reprendre si la doctrine l'utilise). Corps correct : `{ itemId, characterId, membershipType, plug: { socketIndex, socketArrayType: 0, plugItemHash } }`.
+
+**Réalisé** :
+
+- `src/lib/bungie/equiper.ts` — `insererPlug` envoie `itemId: String(itemInstanceId)` (commentaire de correctif avec la preuve DIM) ; le conseil affiché sur échec mentionne désormais aussi la contrainte « espace social / orbite / hors ligne » ;
+- `src/components/AppliquerEnJeu.tsx` — NOUVEAU composant PARTAGÉ : bouton (visible si écarts réels non vides, armure possédée, connecté) + modale de confirmation + progression ✓/✗/– + arrêt au premier refus + relance des prises restantes + effacement de la simulation après succès complet ; variante A : jamais pour une arme ;
+- `src/components/InventaireArmures.tsx` — la carte devient un `div role="button"` (HTML interdit les boutons imbriqués ; mêmes attributs `data-*` pour les tests) et le bouton vit DANS la carte ; la logique locale (memo écarts, état, modale) est retirée au profit du composant partagé ; après succès, la Forge recharge son inventaire (`onSucces={charger}`) ;
+- `src/components/FenetreDetailsPiece.tsx` — bouton « Appliquer en jeu » dans la ligne d'actions de la fenêtre Détails (armures uniquement), nouvelles props `membership` + `onAppliqueEnJeu` ;
+- `src/components/SelecteurInventaire.tsx` / `ResumeBuild.tsx` — passage du `membership` jusqu'à la fenêtre Détails (peu importe d'où elle est ouverte).
+
+**Périmètre** : mise à jour de la SPEC (§2.1 emplacement du bouton verrouillé, §3.1/3.2 la fenêtre Détails entre dans le périmètre — décision utilisateur, §4 correctif `itemId`) et du PLAN (table des fichiers). `InventaireArmes.tsx` toujours non touché (variante A).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` 55/55 suites, 1114/1114 contrôles ; `npm run build` OK. ✅ **VALIDATION UTILISATEUR EN JEU (03/11/2026)** : « Parfait ça fonctionne ! » — l'insertion réelle des mods d'armure via `InsertSocketPlugFree` fonctionne sur le compte de l'utilisateur avec le champ corrigé `itemId`. Critère 5 de la SPEC validé : le changement est réellement appliqué en jeu. **Le niveau 2 du TODO §2 (première écriture de mods chez Bungie) est FAIT.** Reste hors périmètre : les perks d'armes (variante A).
+
+---
+
+## 04/11/2026 — INTÉGRATION COMPLÈTE du pack v12 `forge-armory-app-assets` (nouvel « app-assets ») + rangement des archives
+
+**Contexte (demande et décisions de l'utilisateur)** : le pack `forge-armory-app-assets-v12` devient le nouvel « app-assets » de référence ; l'ancien « app-assets » (catalogue de travail v7 + icône optimisation, 81 actifs) part dans `archives-precedentes/`. Le pack v11 (97 actifs, famille `actions`, `TAILLE-DES-BOUTONS.md`) prend le nom `archives-precedentes/app-assets-v11` ; l'ancien catalogue de travail est renommé `archives-precedentes/app-assets-v7-optimisation` (les deux vivaient sous le même nom — séparés sans perte).
+
+**Intégration** :
+
+- `public/assets/` RECONSTRUIT depuis le pack v12 (100 SVG + 2 PNG : familles `actions`, `blocs-repliables`, `icones`, `marque`, `marques`, `profils`, `selecteur`, `symboles`, `titres`), puis `scripts/retoucher-visuels.mjs` rejoué (37 retouches : soulignage des titres, proportions d'icônes, import des versions FIXES connexion/manifest — déjà présentes en 7505 dans v12, renumérotation des cartes du Scoring, fabrication de `bouton-carriere-large`), puis les 5 fichiers fabriqués regénérés par `scripts/generer-propositions-solo-forge.mjs` (boutons Forge et Inventaire, icône Forge — modèles lus dans v12). L'ancien dossier `boutons-action/` disparaît (remplacé par `actions/`).
+- **Catalogue** : `src/data/forge/forgeAssets.ts` = catalogue GÉNÉRÉ du pack v12, TEL QUEL (règle du projet : jamais modifié à la main) — il couvre désormais les familles `actions` (10 boutons, avec les états repos/sélectionné d'« Appliquer en jeu ») et `marques`. Le COMPLÉMENT ne garde que les 12 entrées hors catalogue : les titres fixes et renumérotés, les boutons fabriqués (Forge, Inventaire, Carrière-large) et l'icône Forge. Les 18 entrées `boutons-action.*`/icônes d'action disparaissent.
+- **Ids renommés dans le code** (le catalogue v12 impose ses ids) : `boutons-action.retour` → `actions.retour-build-analyzer`, `.plus` → `actions.mettre-dans-mon-build`, `.lore` → `actions.lire-le-lore`, `.actualisation` → `actions.actualisation-inventaire`, `.forgemods` → `actions.forge-mods-armure`, `.forgeperks` → `actions.forge-perks-arme`, `.modifier` → `actions.modifier`, `.fermer` → `actions.fermer`, `.appliquerenjeu` → `actions.appliquer-en-jeu.repos` ; `icones.appliquerenjeu` → `icones.appliquer-en-jeu`. 8 composants touchés, `IdBoutonAction` mis à jour.
+- **Scripts/tests repointés vers v12** : `generer-propositions-solo-forge.mjs`, `carriere-large.test.ts`, `reproductibilite-visuels.test.ts` (la liste ad hoc « boutonsAction » disparaît : les boutons d'action viennent DÉSORMAIS de l'archive ; seuls les 5 fichiers fabriqués restent hors archive). `propositions/` (dossier d'assemblage du générateur) ajouté au `.gitignore`.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` **55/55 suites, 1118/1118 contrôles** ; `npm run build` OK ; reproductibilité **7/7** (106 fichiers reconstruits OCTET POUR OCTET depuis v12) ; préfixes §9 conformes sur les 109 SVG (0 écart).
+
+---
+
+## 04/11/2026 — LIVRAISON v0.6.0 : première écriture RÉELLE des perks et mods chez Bungie (« Appliquer en jeu »)
+
+**⏳→✅ VALIDATION UTILISATEUR EN JEU DES PERKS D'ARMES (04/11/2026)** : « OK ça fonctionne » — la variante B est validée sur le compte réel. Le chantier mods-phase-2 est donc TERMINÉ de bout en bout : SPEC (décisions verrouillées), PLAN, codage, correctifs du premier test réel (champ `itemId`), validation des mods d'armure, extension aux perks d'armes, boutons de la charte, validation des perks d'armes.
+
+**Passage de palier 0.5.7 → 0.6.0 (justifié)** : c'est la PREMIÈRE fonctionnalité de l'appli qui ÉCRIT les perks/mods sur le compte Destiny 2 (l'équipement et le transfert existaient déjà ; ici, l'appli modifie les rolls et mods des objets). Le « X » de 0.X.Y monte : changement de nature, pas un simple ajout.
+
+**Contenu de la version** (détail dans les entrées des 03–04/11) :
+- Bouton **« Appliquer en jeu »** (charte : plaque dans les pop-up Détails, icône seule dans les cartes d'Armes et d'Armures) — visible uniquement quand la simulation diffère du réel ;
+- Écran de confirmation socket par socket (plug actuel → visé, avertissement compte Destiny 2), écriture UN plug par appel via `InsertSocketPlugFree` (champ `itemId`), **arrêt au premier refus** avec le message exact de Bungie, relance des prises restantes uniquement ;
+- Après succès : effacement de la simulation (le réel l'a remplacée) et re-lecture de l'inventaire dans la Forge ; objets du Coffre inclus (tentative directe) ;
+- Couvre les **mods d'armure** ET les **perks d'armes** (plug visé = hash « effectif », version améliorée comprise) ;
+- Correctif au passage : `diagnostiquerInsertionPlug` utilisait lui aussi le mauvais champ (`itemInstanceId` au lieu de `itemId`) — il rapportait le faux refus 1663.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` 55/55 suites, 1118/1118 contrôles ; `npm run build` OK ; CI verte sur la PR #27.
+
+---
+
+## 04/11/2026 — BOUTONS « Appliquer en jeu » de la charte intégrés (archive `forge-armory-app-assets` fournie par l'utilisateur) + cartes d'armes
+
+**Contexte** : l'utilisateur a poussé sur `main` (f7466b0) l'archive `ressources-installateur/forge-armory/app-assets/forge-armory-app-assets/` (l'ancienne archive part dans `archives-precedentes/app-assets-v11`) avec les visuels demandés : le **bouton plaque « Appliquer en jeu »** pour les pop-up Détails et l'**icône seule** pour les cartes d'Armes et d'Armures. Merge de main dans la branche du chantier, puis intégration.
+
+**Réalisé** :
+
+- `public/assets/boutons-action/bouton-appliquer-en-jeu.svg` (cadre 4902 × 1024, ratio 4,7871 ; préfixes internes réécrits `fa-actions-` → `fa-boutons-action-` à la copie, règle §9) et `public/assets/icones/icone-appliquer-en-jeu.svg` (1024 × 1024, préfixes déjà conformes) ; les variantes « -selectionne » du pack ne sont pas livrées (comme les 8 autres boutons d'action).
+- `forgeAssetsComplement.ts` : + `boutons-action.appliquerenjeu` et `icones.appliquerenjeu` ; `BoutonAction.tsx` : + l'id.
+- `AppliquerEnJeu.tsx` : le bouton TEXTE provisoire est remplacé — **bouton plaque via `BoutonAction`** (hauteur 2.5rem = barre Forge) dans la fenêtre Détails, **icône seule** (24 px, aria-label « Appliquer en jeu (N prises) ») dans les cartes.
+- `InventaireArmes.tsx` : la carte d'arme devient un `div role="button"` (HTML interdit les boutons imbriqués, mêmes attributs `data-*`) et reçoit l'**icône seule dans la carte**, comme les armures — le bouton d'une arme vit donc AUSSI dans sa carte désormais.
+- **Correctif de chemins** (régression du commit f7466b0 sur la CI) : `carriere-large.test.ts`, `reproductibilite-visuels.test.ts` et `generer-propositions-solo-forge.mjs` référençaient l'ANCIEN chemin `app-assets/assets` (ENOENT) — ils pointent désormais vers `archives-precedentes/app-assets-v11/assets` (l'archive de référence de la reproductibilité). Le NOUVEAU pack `forge-armory-app-assets` est traité comme le fut le pack v11 : source des nouveaux visuels, pas encore intégré en masse.
+- `reproductibilite-visuels.test.ts` : la liste des fichiers hors archive passe de 16 à **18** (+ bouton et icône « Appliquer en jeu »).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` **55/55 suites, 1118/1118 contrôles** ; `npm run build` OK ; `visuels.test.ts` 20/20 (cadres, préfixes §9, unicités, aucun SVG non déclaré).
+
+---
+
+## 03/11/2026 — MODS-PHASE-2, VARIANTE B : le bouton « Appliquer en jeu » couvre aussi les perks d'ARMES (décision utilisateur : ordre 3 → 1 → 2)
+
+**Décisions de l'utilisateur après la validation en jeu des mods d'armure** : (1) le chantier s'étend aux **perks d'armes** (variante B) ; (2) ensuite seulement : PR prête pour revue puis fusion ; (3) puis **bump v0.6.0 — reporté jusqu'à la validation des perks d'armes** ; (4) **un bouton stylisé dédié pour « ⚡ Appliquer en jeu » sera fourni par l'utilisateur** (le bouton texte actuel est provisoire — même méthode d'intégration que le pack v11).
+
+**Réalisé** :
+
+- `src/components/AppliquerEnJeu.tsx` — étendu aux ARMES : colonnes NON masquées du Manifest (`obtenirOptionsToutesColonnes`, cosmétiques/ornements exclus d'office), perk équipé lu dans `perksParColonne` (une prise sans perk équipé connu ne peut pas produire d'écart), simulation du bloc « armes », plug VISÉ = hash « effectif » (version améliorée pour une arme améliorée, SPEC §7) ; noms des perks dans l'écran de confirmation ; effacement de la simulation dans le BON bloc après succès.
+- `src/components/FenetreDetailsPiece.tsx` — le bouton « Appliquer en jeu » apparaît désormais pour les armes AUSSI (fenêtre Détails, peu importe d'où elle est ouverte). Les cartes d'armes de la Forge ne sont pas touchées (le bouton d'une arme vit dans sa fenêtre Détails).
+- `src/lib/bungie/equiper.ts` — `diagnostiquerInsertionPlug` reçoit le MÊME correctif `itemId` que `insererPlug` (justifié : sans lui, le diagnostic rapportait le faux refus 1663 au lieu de la vraie réponse — écart du périmètre 3.2 « le diagnostic est conservé tel quel », motivé par la variante B qui s'appuie sur lui).
+- `tests/logique/ecarts-simulation.test.ts` — 4 contrôles ARME (14 au total) : écart avec plug visé = « effectif » (202, la version améliorée), prise sans perk équipé connu ignorée, choix identique au roll réel = aucun écart, ordre des prises.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` 55/55 suites, 1118/1118 contrôles ; `npm run build` OK. ⏳ **Reste : validation par l'utilisateur en jeu des perks d'armes** (une arme à rolls aléatoires non façonnée sera probablement refusée par Bungie — le message exact s'affichera ; une arme FAÇONNÉE devrait passer).
+
+---
+
+## 03/11/2026 — MODS-PHASE-2 (variante A) : première écriture RÉELLE chez Bungie — bouton « Appliquer en jeu » dans la Forge des armures
+
+**Contexte** : TODO §2, niveau 2 (« En jeu : appliquer réellement le changement sur l'objet », tranché le 24/10/2026). Méthode spec-kit respectée : SPEC (`SPEC-MODS-PHASE-2-2026-11-03.md`) rédigée sans code, **3 décisions verrouillées par l'utilisateur le 03/11/2026** — (1) **variante A** : mods d'armure uniquement (les perks d'armes restent hors écriture, chantier séparé) ; (2) **objets du Coffre modifiables aussi** (tentative directe, message Bungie exact si refus, aucun transfert automatique) ; (3) **scope OAuth `MoveEquipDestinyItems`** : confirmé dans la doc Bungie (pas d'« Advanced Write Action » requis), déjà actif puisque l'équipement fonctionne — puis PLAN (`PLAN-MODS-PHASE-2-2026-11-03.md`) puis codage. Endpoint : `POST /Destiny2/Actions/Items/InsertSocketPlugFree/` (insertion gratuite, aucun matériau).
+
+**Réalisé** (périmètre 3.1 de la SPEC, rien d'autre) :
+
+- `src/lib/forge/simulation.ts` : `ecartsApplicables(colonnes, sim)` (PURE) — les écarts réels vs simulés d'une armure, par prise modifiable, dans l'ordre des prises ; les prises fixes et cosmétiques (ornement/shader/tracker/memento) n'y figurent JAMAIS ; un choix identique au plug équipé n'est pas un écart. Aucune fonction existante modifiée.
+- `src/lib/bungie/equiper.ts` : `insererPlug(...)` — insertion réelle bâtie sur le squelette de `diagnostiquerInsertionPlug` (mêmes en-têtes, même corps de requête), contrat structuré `{ reussi, statutHttp, errorCode, errorStatus, message }` ; le diagnostic existant est conservé tel quel.
+- `src/components/InventaireArmures.tsx` : bouton « ⚡ Appliquer en jeu (N) » par armure simulée dont les écarts sont NON VIDES (calcul mémoïsé, seules les pièces simulées sont analysées) ; modale de confirmation listant chaque prise (plug actuel → plug visé, noms du Manifest) avec l'avertissement « compte Destiny 2 » ; progression ✓/✗/– prise par prise, UN plug par appel, **arrêt au premier refus** avec le `ErrorCode`/`ErrorStatus`/`Message` EXACT de Bungie et un conseil ; « Relancer les prises restantes » uniquement (jamais de ré-application aveugle) ; après succès complet : re-lecture de l'inventaire puis effacement de la simulation de la pièce (réel et simulation convergent, le badge disparaît). Le personnage porteur est lu UNE fois via `lireProfilEquipement` ; un objet du Coffre (sans porteur) est tenté sur le premier personnage — décision verrouillée, message Bungie exact si refus.
+- `tests/logique/ecarts-simulation.test.ts` : NOUVELLE suite (10 contrôles) — constitution des écarts, ordre des prises, exclusion des prises fixes/cosmétiques, lien avec le magasin (`choisir` partie « armures »), aucun écart croisé avec le bloc « armes ».
+
+**Hors périmètre respecté** : `FenetreDetailsPiece.tsx` et `InventaireArmes.tsx` NON touchés (variante A : pas de bouton pour les armes), moteur de scoring, OAuth, Collection, Load-outs, Optimiseur, Legendarium inchangés. `inventaire.ts` inchangé (la re-lecture réutilise le chargement existant du composant).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` **55/55 suites, 1114/1114 contrôles** (54 suites avant) ; `npm run build` OK. ⏳ **Reste : validation par l'utilisateur en jeu sur un objet réel** (critère 5 de la SPEC, à consigner ici après test).
+
+---
+
 ## 02/11/2026 — POINT D'AVANCEMENT publié (`documentation/suivi/POINT-AVANCEMENT-2026-11-02.md`)
 
 Récap du projet en lien avec la TODO, à l'état du 02/11/2026 : main = `b309687`, version **0.5.7** (tag `v0.5.7`), 15 branches toutes à jour et en 0.5.7, 1 seule PR ouverte (#26 podcast, de côté), CI verte. TODO : aucun bloquant ; Important = CSP restante (draft-sec), Phase 2 écriture Bungie (InsertSocketPlugFree), Agent IA ⏸️, tests scoring côté utilisateur ; Confort = items 5–22. Prochaines étapes : validation UI du pack v11 + tests Playwright, décision Phase 2, tri des branches de sauvegarde, tag v0.5.3 manquant. Aucun code changé.
