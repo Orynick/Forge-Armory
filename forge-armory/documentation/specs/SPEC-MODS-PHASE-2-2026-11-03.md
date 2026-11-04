@@ -66,13 +66,13 @@ Sont **exclus** de l'écriture, comme de la simulation : ornements, revêtements
 
 ## 6. Vérifications requises (remplies à la livraison)
 
-- [ ] `npx tsc -b` : 0 erreur
-- [ ] `npm run test:logique` : N/N suites, M/M contrôles (préciser les suites ajoutées/modifiées)
-- [ ] `npm run build` : OK
-- [ ] CI GitHub Actions verte sur la PR
-- [ ] Diff vs `main` limité au périmètre 3.1 (Article V)
+- [x] `npx tsc -b` : 0 erreur (03/11/2026)
+- [x] `npm run test:logique` : 55/55 suites, 1114/1114 contrôles (03/11/2026 — nouvelle suite `ecarts-simulation.test.ts`, 10 contrôles ; aucune suite existante modifiée)
+- [x] `npm run build` : OK (03/11/2026)
+- [ ] CI GitHub Actions verte sur la PR (à cocher après le push)
+- [x] Diff vs `main` limité au périmètre 3.1 (Article V) — `InventaireArmes.tsx` et `FenetreDetailsPiece.tsx` non touchés (variante A)
 - [ ] Validation utilisateur : en jeu, sur l'objet réel (à consigner dans le DEVLOG)
-- [ ] Entrée DEVLOG rédigée
+- [x] Entrée DEVLOG rédigée (03/11/2026)
 
 ## 7. Risques et points d'attention
 

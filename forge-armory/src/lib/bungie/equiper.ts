@@ -637,6 +637,65 @@ export async function diagnostiquerInsertionPlug(
   return lignes.join("\n");
 }
 
+// FR : ⚠️ AJOUT (03/11/2026, chantier mods-phase-2, variante A) - INSERTION RÉELLE d'un plug « gratuit » dans une prise d'un objet possédé, via POST /Destiny2/Actions/Items/InsertSocketPlugFree/ (endpoint « Free » : aucun matériau consommé ; scope OAuth requis : MoveEquipDestinyItems, déjà actif pour l'équipement ; PAS de « Advanced Write Action » requis — vérifié dans la doc Bungie le 03/11/2026). Bâtie sur le squelette de `diagnostiquerInsertionPlug` (mêmes en-têtes, même corps de requête, analyse ErrorCode) mais avec un contrat STRUCTURÉ pour l'UI : `reussi` + `errorCode`/`errorStatus`/`message` exacts de Bungie. Le diagnostic existant est conservé tel quel. ⚠️ Cette fonction MODIFIE RÉELLEMENT l'objet si l'appel réussit : elle n'est appelée que derrière l'écran de confirmation du bouton « Appliquer en jeu » (SPEC-MODS-PHASE-2-2026-11-03.md), un plug par appel, arrêt au premier échec côté appelant. / EN: ⚠️ ADDED - REAL insertion of a free plug via InsertSocketPlugFree, structured result for the UI; the existing diagnostic is kept as-is.
+export interface ResultatInsertionPlug {
+  reussi: boolean;
+  statutHttp: number;
+  errorCode?: number;
+  errorStatus?: string;
+  message: string;
+}
+
+export async function insererPlug(
+  membership: DestinyMembership,
+  characterId: string,
+  itemInstanceId: string,
+  socketIndex: number,
+  plugItemHash: number
+): Promise<ResultatInsertionPlug> {
+  let accessToken: string;
+  try {
+    accessToken = await obtenirAccessTokenValide();
+  } catch (e) {
+    return { reussi: false, statutHttp: 0, message: `jeton d'accès indisponible (${(e as Error).message})` };
+  }
+  let reponse: Response;
+  try {
+    reponse = await fetch(`${BUNGIE_API_ROOT}/Destiny2/Actions/Items/InsertSocketPlugFree/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": bungieConfig.apiKey,
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        actionToken: null,
+        itemInstanceId,
+        plug: { socketIndex, socketArrayType: 0, plugItemHash },
+        characterId,
+        membershipType: membership.membershipType,
+      }),
+    });
+  } catch (e) {
+    return { reussi: false, statutHttp: 0, message: `appel impossible (${(e as Error).message})` };
+  }
+  const corps = await reponse.text().catch(() => "");
+  try {
+    const data = JSON.parse(corps) as { ErrorCode?: number; ErrorStatus?: string; Message?: string };
+    const errorCode = data.ErrorCode;
+    const reussi = errorCode === 1;
+    return {
+      reussi,
+      statutHttp: reponse.status,
+      errorCode,
+      errorStatus: data.ErrorStatus,
+      message: reussi ? "Insertion réussie." : (data.Message || `refus de Bungie (ErrorCode ${errorCode ?? "?"}, ErrorStatus ${data.ErrorStatus ?? "?"})`),
+    };
+  } catch {
+    return { reussi: false, statutHttp: reponse.status, message: `réponse non-JSON de Bungie (HTTP ${reponse.status} ${reponse.statusText})` };
+  }
+}
+
 // FR : ⚠️ AJOUT (04/08/2026) - équipement en LOT avec seconde passe.
 //
 // Problème constaté par l'utilisateur : équiper un build contenant la

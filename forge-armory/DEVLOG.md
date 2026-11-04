@@ -4,6 +4,23 @@
 
 ---
 
+## 03/11/2026 — MODS-PHASE-2 (variante A) : première écriture RÉELLE chez Bungie — bouton « Appliquer en jeu » dans la Forge des armures
+
+**Contexte** : TODO §2, niveau 2 (« En jeu : appliquer réellement le changement sur l'objet », tranché le 24/10/2026). Méthode spec-kit respectée : SPEC (`SPEC-MODS-PHASE-2-2026-11-03.md`) rédigée sans code, **3 décisions verrouillées par l'utilisateur le 03/11/2026** — (1) **variante A** : mods d'armure uniquement (les perks d'armes restent hors écriture, chantier séparé) ; (2) **objets du Coffre modifiables aussi** (tentative directe, message Bungie exact si refus, aucun transfert automatique) ; (3) **scope OAuth `MoveEquipDestinyItems`** : confirmé dans la doc Bungie (pas d'« Advanced Write Action » requis), déjà actif puisque l'équipement fonctionne — puis PLAN (`PLAN-MODS-PHASE-2-2026-11-03.md`) puis codage. Endpoint : `POST /Destiny2/Actions/Items/InsertSocketPlugFree/` (insertion gratuite, aucun matériau).
+
+**Réalisé** (périmètre 3.1 de la SPEC, rien d'autre) :
+
+- `src/lib/forge/simulation.ts` : `ecartsApplicables(colonnes, sim)` (PURE) — les écarts réels vs simulés d'une armure, par prise modifiable, dans l'ordre des prises ; les prises fixes et cosmétiques (ornement/shader/tracker/memento) n'y figurent JAMAIS ; un choix identique au plug équipé n'est pas un écart. Aucune fonction existante modifiée.
+- `src/lib/bungie/equiper.ts` : `insererPlug(...)` — insertion réelle bâtie sur le squelette de `diagnostiquerInsertionPlug` (mêmes en-têtes, même corps de requête), contrat structuré `{ reussi, statutHttp, errorCode, errorStatus, message }` ; le diagnostic existant est conservé tel quel.
+- `src/components/InventaireArmures.tsx` : bouton « ⚡ Appliquer en jeu (N) » par armure simulée dont les écarts sont NON VIDES (calcul mémoïsé, seules les pièces simulées sont analysées) ; modale de confirmation listant chaque prise (plug actuel → plug visé, noms du Manifest) avec l'avertissement « compte Destiny 2 » ; progression ✓/✗/– prise par prise, UN plug par appel, **arrêt au premier refus** avec le `ErrorCode`/`ErrorStatus`/`Message` EXACT de Bungie et un conseil ; « Relancer les prises restantes » uniquement (jamais de ré-application aveugle) ; après succès complet : re-lecture de l'inventaire puis effacement de la simulation de la pièce (réel et simulation convergent, le badge disparaît). Le personnage porteur est lu UNE fois via `lireProfilEquipement` ; un objet du Coffre (sans porteur) est tenté sur le premier personnage — décision verrouillée, message Bungie exact si refus.
+- `tests/logique/ecarts-simulation.test.ts` : NOUVELLE suite (10 contrôles) — constitution des écarts, ordre des prises, exclusion des prises fixes/cosmétiques, lien avec le magasin (`choisir` partie « armures »), aucun écart croisé avec le bloc « armes ».
+
+**Hors périmètre respecté** : `FenetreDetailsPiece.tsx` et `InventaireArmes.tsx` NON touchés (variante A : pas de bouton pour les armes), moteur de scoring, OAuth, Collection, Load-outs, Optimiseur, Legendarium inchangés. `inventaire.ts` inchangé (la re-lecture réutilise le chargement existant du composant).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` **55/55 suites, 1114/1114 contrôles** (54 suites avant) ; `npm run build` OK. ⏳ **Reste : validation par l'utilisateur en jeu sur un objet réel** (critère 5 de la SPEC, à consigner ici après test).
+
+---
+
 ## 02/11/2026 — POINT D'AVANCEMENT publié (`documentation/suivi/POINT-AVANCEMENT-2026-11-02.md`)
 
 Récap du projet en lien avec la TODO, à l'état du 02/11/2026 : main = `b309687`, version **0.5.7** (tag `v0.5.7`), 15 branches toutes à jour et en 0.5.7, 1 seule PR ouverte (#26 podcast, de côté), CI verte. TODO : aucun bloquant ; Important = CSP restante (draft-sec), Phase 2 écriture Bungie (InsertSocketPlugFree), Agent IA ⏸️, tests scoring côté utilisateur ; Confort = items 5–22. Prochaines étapes : validation UI du pack v11 + tests Playwright, décision Phase 2, tri des branches de sauvegarde, tag v0.5.3 manquant. Aucun code changé.
