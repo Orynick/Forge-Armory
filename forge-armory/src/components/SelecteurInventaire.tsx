@@ -233,6 +233,7 @@ export function texteSurvol(piece: GearPiece, db: Database): string {
 function LigneObjet({
   piece,
   db,
+  membership = null,   // ⚠️ AJOUT (03/11/2026, mods-phase-2) : passé à la fenêtre Détails pour le bouton « Appliquer en jeu »
   afficherStats = false,
   onAjouterObjet,
   onTransferer,
@@ -242,6 +243,8 @@ function LigneObjet({
 }: {
   piece: GearPiece;
   db: Database;
+  /** FR : ⚠️ AJOUT (03/11/2026, mods-phase-2) - compte Bungie pour le bouton « Appliquer en jeu » de la fenêtre Détails. / EN: Bungie account for the details window's "Apply in game" button. */
+  membership?: DestinyMembership | null;
   /** FR : true pour l'armure du coffre - montre les stats plutôt que les perks (les perks sont faciles à changer, moins pertinentes à afficher ici). / EN: true for vault armor - shows stats rather than perks (perks are easy to change, less relevant to show here). */
   afficherStats?: boolean;
   onAjouterObjet: (p: GearPiece) => void;
@@ -471,7 +474,7 @@ function LigneObjet({
       fond assombri, centré, fermeture par ✕ ou clic en dehors. */}
       {/* FR : ⚠️ CHANGÉ (30/10/2026) - la fenêtre de détails du Build Analyzer (Mon Inventaire, Coffre, Courrier) est LA FENÊTRE UNIQUE `FenetreDetailsPiece` : même contenu et mêmes emplacements que dans la Forge et Mon Build. La pièce est passée telle quelle (c'est l'exemplaire réel). / EN: the Build Analyzer's details window is now the shared single window. */}
       {detailsOuverts && (
-        <FenetreDetailsPiece db={db} piece={piece} onFermer={() => setDetailsOuverts(false)} onLireLore={onLireLore} onOuvrirForge={onOuvrirForge} />
+        <FenetreDetailsPiece db={db} piece={piece} membership={membership} onFermer={() => setDetailsOuverts(false)} onLireLore={onLireLore} onOuvrirForge={onOuvrirForge} />
       )}
     </li>
   );
@@ -1002,7 +1005,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           ) : (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                               {g.items.map((p) => (
-                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
+                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} membership={membership} />
                               ))}
                             </ul>
                           )}
@@ -1021,7 +1024,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           ) : (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                               {g.items.map((p) => (
-                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
+                                <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} membership={membership} />
                               ))}
                             </ul>
                           )}
@@ -1057,7 +1060,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                     <div style={{ fontSize: "0.7rem", color: "#7d7a70" }}>{LIBELLES_SLOT[g.slot]}</div>
                     <ul style={{ listStyle: "none", padding: 0, margin: "0.2rem 0 0" }}>
                       {g.items.map((p) => (
-                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
+                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} membership={membership} />
                       ))}
                     </ul>
                   </li>
@@ -1208,7 +1211,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                       }}
                     >
                       {g.items.map((p) => (
-                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
+                        <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} membership={membership} />
                       ))}
                     </ul>
                   </details>
@@ -1252,7 +1255,7 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
                           }}
                         >
                           {g.items.map((p) => (
-                            <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} afficherStats onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} />
+                            <LigneObjet key={p.itemInstanceId ?? p.itemHash} piece={p} db={db!} afficherStats onAjouterObjet={onAjouterObjet} onTransferer={transferer} transfertBloque={transfertEnCours !== null} onOuvrirForge={onOuvrirForge} onLireLore={onLireLore} membership={membership} />
                           ))}
                         </ul>
                       </div>

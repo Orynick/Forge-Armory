@@ -470,7 +470,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
         par ✕ ou clic en dehors), pour un comportement identique. */}
         {/* FR : ⚠️ CHANGÉ (30/10/2026) - la fenêtre de Mon Build est LA FENÊTRE UNIQUE `FenetreDetailsPiece` : Mon Build lui passe la pièce RÉELLE (`pieceReelle(piece)` : perks, mods et statistiques réels), pour que le ✓ « équipé en jeu » marque le roll réel et jamais un perk simulé. / EN: Mon Build now uses the shared details window, given the REAL piece. */}
         {detailsOuverts && (
-          <FenetreDetailsPiece db={db} piece={pieceReelle(piece)} onFermer={() => setDetailsOuverts(false)} onLireLore={onLireLore} onOuvrirForge={onOuvrirForge} dejaDansBuild />
+          <FenetreDetailsPiece db={db} piece={pieceReelle(piece)} membership={membership} onFermer={() => setDetailsOuverts(false)} onLireLore={onLireLore} onOuvrirForge={onOuvrirForge} dejaDansBuild />
         )}
       </li>
     );
