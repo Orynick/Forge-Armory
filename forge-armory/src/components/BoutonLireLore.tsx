@@ -20,7 +20,7 @@ export default function BoutonLireLore({ db, itemHash, nomObjet, onLireLore }: P
   return (
     <div data-ligne-lire-lore="" style={{ display: "flex", justifyContent: "flex-end", margin: "0.15rem 0 0.4rem" }}>
       {/* FR : ⚠️ CHANGÉ (30/10/2026, archive « boutons-action-final ») - le bouton utilise le VISUEL de la charte (`BoutonAction`, `boutons-action.lore`) ; l'`aria-label` « Lire le Lore » le rend trouvable par son nom ; mêmes repères `data-*` qu'avant. ⚠️ 31/10/2026 : hauteur "2.5rem" = barre Forge. / EN: ⚠️ CHANGED - the button now uses the charter artwork. */}
-      <BoutonAction id="boutons-action.lore" libelle="Lire le Lore" title={`Lire le Lore de « ${nomObjet} » dans le Legendarium`} onClick={() => onLireLore(itemHash, nomObjet)} hauteur="2.5rem" donnees={{ "bouton-lire-lore": true, "item-hash": itemHash }} />
+      <BoutonAction id="actions.lire-le-lore" libelle="Lire le Lore" title={`Lire le Lore de « ${nomObjet} » dans le Legendarium`} onClick={() => onLireLore(itemHash, nomObjet)} hauteur="2.5rem" donnees={{ "bouton-lire-lore": true, "item-hash": itemHash }} />
     </div>
   );
 }
