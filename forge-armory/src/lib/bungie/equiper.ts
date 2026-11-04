@@ -668,9 +668,9 @@ export async function insererPlug(
         "X-API-Key": bungieConfig.apiKey,
         Authorization: `Bearer ${accessToken}`,
       },
+      // FR : ⚠️ CORRECTIF (03/11/2026, retour utilisateur en jeu) - l'endpoint GRATUIT attend le champ `itemId` (l'objet sous forme de chaîne), PAS `itemInstanceId` : c'est le endpoint PAYANT (InsertSocketPlug, « Advanced Write Action ») qui utilise `itemInstanceId`. Avec l'ancien champ, Bungie ne voyait AUCUN objet et répondait ErrorCode 1663 (DestinyItemActionForbidden, « This action can only be done in-game »). Forme vérifiée contre l'implémentation de référence de DIM (wiki « Applying an Armor Ornament… » : { itemId, characterId, membershipType, plug: { socketIndex, socketArrayType, plugItemHash } }). / EN: the FREE endpoint expects `itemId` (string), NOT `itemInstanceId` (that's the PAID endpoint) — with the old field Bungie saw NO item and returned ErrorCode 1663.
       body: JSON.stringify({
-        actionToken: null,
-        itemInstanceId,
+        itemId: String(itemInstanceId),
         plug: { socketIndex, socketArrayType: 0, plugItemHash },
         characterId,
         membershipType: membership.membershipType,

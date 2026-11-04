@@ -22,7 +22,10 @@
 | `tests/logique/ecarts-simulation.test.ts` | Nouvelle suite : écarts réel vs simulé, exclusion des sockets interdits, liste vide sans différence |
 | `src/lib/forge/simulation.ts` | Ajout de `ecartsApplicables` (fonction pure, tests d'abord) — aucune fonction existante modifiée |
 | `src/lib/bungie/equiper.ts` | Ajout de `insererPlug` (insertion réelle, analyse ErrorCode) — `diagnostiquerInsertionPlug` conservé tel quel |
-| `src/components/InventaireArmures.tsx` | Bouton « Appliquer en jeu », écran de confirmation, progression, gestion d'erreur (variante A : armures uniquement — les armes n'ont PAS le bouton dans ce chantier) |
+| `src/components/InventaireArmures.tsx` | Bouton « Appliquer en jeu » DANS la carte (retour utilisateur du 03/11), la logique est déléguée au composant partagé (variante A : armures uniquement) |
+| `src/components/AppliquerEnJeu.tsx` | ⚠️ AJOUTÉ le 03/11 (retour utilisateur) : composant PARTAGÉ bouton + écran de confirmation + progression + gestion d'erreur, utilisé par la carte de la Forge ET la fenêtre Détails |
+| `src/components/FenetreDetailsPiece.tsx` | ⚠️ AJOUTÉ le 03/11 (retour utilisateur) : bouton « Appliquer en jeu » dans la fenêtre Détails, peu importe d'où elle est ouverte (prop `membership` + `onAppliqueEnJeu`) |
+| `src/components/SelecteurInventaire.tsx` / `ResumeBuild.tsx` | ⚠️ AJOUTÉ le 03/11 : passage du `membership` à la fenêtre Détails |
 | `src/lib/bungie/inventaire.ts` | Appel supplémentaire de re-lecture après succès (fonction existante réutilisée) |
 | `TODO.md` / `DEVLOG.md` | Suivi du chantier et entrée de livraison |
 

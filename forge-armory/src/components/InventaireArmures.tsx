@@ -8,13 +8,12 @@ import { listerObjetsPossedes } from "../lib/bungie/inventaire";
 import { SessionExpiree } from "../lib/bungie/oauth";
 import { obtenirBonusSet } from "../lib/manifest/doctrine";
 import { normaliser } from "../lib/manifest/search";
-import { statsSimulees, colonnesArmure } from "../lib/forge/armure";
+import { statsSimulees } from "../lib/forge/armure";
 import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";   // ⚠️ AJOUT (24/10/2026)
 import { diagnosticEnergieMods, diagnosticModsEnDouble } from "../lib/forge/diagnosticEnergie";   // ⚠️ AJOUT (24/10/2026)
 import { diagnosticStatsBaseArmures } from "../lib/forge/diagnosticStatsBase";   // ⚠️ AJOUT (27/10/2026)
-import { reinitialiserArme, nbColonnesSimulees, armuresSimulees, Simulations, ecartsApplicables, EcartSocket, ColonneApplicable } from "../lib/forge/simulation";
-import { insererPlug, lireProfilEquipement, localiserDansProfil } from "../lib/bungie/equiper";   // ⚠️ AJOUT (03/11/2026, mods-phase-2) : écriture réelle chez Bungie
-import Modale from "./Modale";   // ⚠️ AJOUT (03/11/2026, mods-phase-2) : écran de confirmation de l'écriture en jeu
+import { reinitialiserArme, nbColonnesSimulees, armuresSimulees, Simulations } from "../lib/forge/simulation";
+import AppliquerEnJeu from "./AppliquerEnJeu";   // ⚠️ AJOUT (03/11/2026, mods-phase-2, retour utilisateur) : bouton + écran de confirmation PARTAGÉS avec la fenêtre Détails
 import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 import StatsArmure from "./StatsArmure";   // ⚠️ AJOUT (27/10/2026)
 import FenetreDetailsPiece from "./FenetreDetailsPiece";   // ⚠️ AJOUT (30/10/2026) : la fenêtre de détails UNIQUE (Build Analyzer et Forge)
@@ -121,90 +120,6 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
   const idsAvecSimulation = (pieces ?? []).filter((p) => p.itemInstanceId && nbSim(p) > 0).map((p) => p.itemInstanceId as string);
   const nbArmuresSim = armuresSimulees(simulations).length;
 
-  // FR : ⚠️ AJOUT (03/11/2026, chantier mods-phase-2, variante A) - LES ÉCARTS APPLICABLES par armure simulée : ce qui diffère RÉELLEMENT entre l'état en jeu et la simulation (une prise modifiable dont le choix simulé ≠ plug équipé). Le bouton « Appliquer en jeu » n'apparaît que si cette liste est NON VIDE (critère d'acceptation 1 de la spécification). Calcul mémoïsé : seules les pièces SIMULÉES sont analysées, et seulement à l'ouverture (colonnes lues dans le Manifest une fois par rendu utile). / EN: applicable differences per simulated armor; the "Apply in game" button appears only when this list is non-empty.
-  const ecartsParPiece = useMemo(() => {
-    const m = new Map<string, EcartSocket[]>();
-    if (!db) return m;
-    for (const p of pieces ?? []) {
-      if (!p.itemInstanceId || nbSim(p) === 0) continue;
-      try {
-        const colonnes: ColonneApplicable[] = colonnesArmure(db, p).map((c) => ({ socketIndex: c.socketIndex, hashEquipe: c.equipe.hash, modifiable: c.modifiable }));
-        const ecarts = ecartsApplicables(colonnes, simulations.armures?.[p.itemInstanceId]);
-        if (ecarts.length > 0) m.set(p.itemInstanceId, ecarts);
-      } catch { /* Manifest illisible pour cette pièce : pas d'écarts proposés */ }
-    }
-    return m;
-  }, [pieces, simulations, db]);
-
-  // FR : ⚠️ AJOUT (03/11/2026, mods-phase-2) - l'état de l'écran « Appliquer en jeu » : la pièce visée, ses écarts, l'état de chaque prise (en attente / en cours / ✓ réussie / ✗ refusée), le message de fin et le libellé de chaque plug (pour la confirmation). / EN: the "Apply in game" screen state.
-  const [appli, setAppli] = useState<{ piece: GearPiece; ecarts: EcartSocket[]; etats: Array<"enAttente" | "enCours" | "reussi" | "echoue">; libelles: Record<number, { actuel: string; vise: string }>; message: string | null; echec: boolean; termine: boolean } | null>(null);
-
-  /** FR : ⚠️ AJOUT (03/11/2026, mods-phase-2) - ouvre l'écran de confirmation de la pièce : chaque écart avec le NOM du plug actuel et du plug visé (lus dans le Manifest via les colonnes). / EN: opens the confirmation screen with plug names. */
-  function ouvrirAppli(p: GearPiece) {
-    if (!db || !p.itemInstanceId) return;
-    const ecarts = ecartsParPiece.get(p.itemInstanceId) ?? [];
-    const libelles: Record<number, { actuel: string; vise: string }> = {};
-    try {
-      for (const c of colonnesArmure(db, p)) {
-        for (const e of ecarts) {
-          if (e.socketIndex !== c.socketIndex) continue;
-          libelles[e.socketIndex] = { actuel: c.equipe.nom, vise: c.options.find((o) => o.hash === e.plugVise)?.nom ?? `plug ${e.plugVise}` };
-        }
-      }
-    } catch { /* libellés best-effort : les écarts restent affichés par index */ }
-    setAppli({ piece: p, ecarts, etats: ecarts.map(() => "enAttente"), libelles, message: null, echec: false, termine: false });
-  }
-
-  /** FR : ⚠️ AJOUT (03/11/2026, mods-phase-2) - écrit RÉELLEMENT les écarts chez Bungie, UN plug par appel, dans l'ordre affiché, ARRÊT au premier échec (le message exact de Bungie est affiché, rien n'est annulé). L'objet du Coffre est tenté tel quel (décision du 03/11/2026) : si Bungie refuse, son message exact est affiché. Après un succès complet : re-lecture de l'inventaire puis effacement de la simulation (réel et simulation convergent). / EN: writes the differences for real, one plug per call, stop on first failure; after full success, re-read and clear the simulation. */
-  async function ecrireEnJeu(depuis: number) {
-    if (!membership || !appli || !appli.piece.itemInstanceId) return;
-    const instance = appli.piece.itemInstanceId;
-    const ecarts = appli.ecarts;
-    const etats = [...appli.etats];
-    setAppli({ ...appli, etats, message: null, echec: false, termine: false });
-    // FR : le personnage porteur est lu UNE fois (le profil donne aussi la liste des personnages pour un objet du Coffre, qui n'a pas de porteur). / EN: the bearer character is read once; vault items get the first character (direct attempt, decision 03/11/2026).
-    let characterId: string | undefined;
-    try {
-      const lecture = await lireProfilEquipement(membership);
-      if (!lecture.ok) {
-        setAppli({ ...appli, etats, message: `position de l'objet illisible (${lecture.raison}) : rechargez votre inventaire, puis réessayez.`, echec: true, termine: true });
-        return;
-      }
-      const pos = localiserDansProfil(lecture.profil, instance);
-      if (pos.etat !== "localisee") {
-        setAppli({ ...appli, etats, message: "objet introuvable dans votre profil (déplacé ou dématérialisé en jeu ?) : rechargez votre inventaire, puis réessayez.", echec: true, termine: true });
-        return;
-      }
-      characterId = pos.characterId ?? Object.keys(lecture.profil.classes ?? {})[0];
-    } catch (e) {
-      setAppli({ ...appli, etats, message: `position de l'objet illisible (${(e as Error).message}) : rechargez votre inventaire, puis réessayez.`, echec: true, termine: true });
-      return;
-    }
-    if (!characterId) {
-      setAppli({ ...appli, etats, message: "aucun personnage trouvé sur votre compte : reconnectez-vous, puis réessayez.", echec: true, termine: true });
-      return;
-    }
-    for (let i = depuis; i < ecarts.length; i++) {
-      etats[i] = "enCours";
-      setAppli({ ...appli, piece: appli.piece, ecarts, etats: [...etats], libelles: appli.libelles, message: null, echec: false, termine: false });
-      const r = await insererPlug(membership, characterId, instance, ecarts[i].socketIndex, ecarts[i].plugVise);
-      if (r.reussi) {
-        etats[i] = "reussi";
-        setAppli({ piece: appli.piece, ecarts, etats: [...etats], libelles: appli.libelles, message: null, echec: false, termine: false });
-        continue;
-      }
-      // FR : ARRÊT au premier échec : les prises suivantes restent « en attente », le message EXACT de Bungie est affiché avec un conseil, rien n'est annulé. / EN: stop on first failure; remaining sockets stay pending, Bungie's exact message is shown.
-      etats[i] = "echoue";
-      const conseil = r.statutHttp === 401 || r.statutHttp === 403 ? " (problème d'autorisation : reconnectez-vous)" : r.errorCode ? " (refus logique du jeu : ce plug n'est peut-être pas autorisé sur cette prise, ou le jeu l'interdit)" : " (réseau ou serveur Bungie : réessayez)";
-      setAppli({ piece: appli.piece, ecarts, etats: [...etats], libelles: appli.libelles, message: `Prise ${ecarts[i].socketIndex} refusée par Bungie — HTTP ${r.statutHttp}${r.errorCode !== undefined ? `, ErrorCode ${r.errorCode}` : ""}${r.errorStatus ? ` (${r.errorStatus})` : ""} : ${r.message}${conseil}. Les prises restantes n'ont PAS été écrites.`, echec: true, termine: true });
-      return;
-    }
-    // FR : SUCCÈS COMPLET : re-lecture de l'inventaire (l'état réel remplace la simulation), puis effacement de la simulation de la pièce : Détails, Mon Build et le score repartent du réel. / EN: full success: re-read the inventory, then clear the piece's simulation.
-    await charger();
-    appliquer((s) => reinitialiserArme(s, instance, "armures"));
-    setAppli({ piece: appli.piece, ecarts, etats, libelles: appli.libelles, message: `✅ Appliqué en jeu : ${ecarts.length} prise${ecarts.length > 1 ? "s" : ""} écrite${ecarts.length > 1 ? "s" : ""} sur « ${appli.piece.nom ?? "armure"} ». Inventaire rechargé : le réel a remplacé la simulation.`, echec: false, termine: true });
-  }
-
   if (!membership) return <p style={{ margin: 0, fontSize: "0.85rem", color: "#e0c080" }}>⚠️ Vous n'êtes pas connecté à Bungie : connectez-vous (bloc « Connexion à Bungie ») pour voir vos armures.</p>;
   if (!db) return <p style={{ margin: 0, fontSize: "0.85rem", color: "#e0c080" }}>⚠️ Manifest pas encore chargé. Chargez-le depuis Build Analyzer, dans le bloc « Recherche dans le Manifest ».</p>;
 
@@ -291,9 +206,11 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
           <p data-nb-armures-possedees={liste.length} style={{ fontSize: "0.8rem", color: "#9a968a", margin: "0 0 0.5rem" }}>{liste.length} armure{liste.length > 1 ? "s" : ""}{liste.length === 0 ? " : aucune ne correspond." : ""}</p>
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(17rem, 1fr))", gap: "0.5rem" }}>
             {liste.slice(0, affichees).map((p) => (
-              <li key={p.itemInstanceId ?? `${p.itemHash}-${p.origine}`} style={{ display: "flex", gap: "0.35rem", alignItems: "stretch" }}>
-                <button onClick={() => setOuverte(p)} data-armure-possedee={p.itemInstanceId ?? ""} data-lieu={p.origine ?? ""} data-simulee={nbSim(p) > 0 ? "1" : ""}
-                  style={{ flex: 1, minWidth: 0, textAlign: "left", display: "flex", gap: "0.5rem", alignItems: "flex-start", padding: "0.4rem", background: "#12151c", color: "#e8e6df", border: `1px solid ${couleurRarete(p)}`, borderRadius: 8, cursor: "pointer" }}>
+              <li key={p.itemInstanceId ?? `${p.itemHash}-${p.origine}`}>
+                {/* FR : ⚠️ CHANGÉ (03/11/2026, retour utilisateur : « le bouton devrait apparaître dans la carte ») - la carte devient un div role=button (un vrai <button> ne peut pas contenir le bouton « Appliquer en jeu » : HTML interdit les boutons imbriqués) ; même attributs data pour les tests. / EN: the card is now a div role=button so the apply button can live INSIDE it. */}
+                <div role="button" tabIndex={0} onClick={() => setOuverte(p)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setOuverte(p); }} data-armure-possedee={p.itemInstanceId ?? ""} data-lieu={p.origine ?? ""} data-simulee={nbSim(p) > 0 ? "1" : ""}
+                  style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.35rem", padding: "0.4rem", background: "#12151c", color: "#e8e6df", border: `1px solid ${couleurRarete(p)}`, borderRadius: 8, cursor: "pointer" }}>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
                   <VignetteArme icone={p.icone} taille={44} reserverPlace db={db} itemHash={p.itemHash} />
                   <span style={{ minWidth: 0 }}>
                     <strong style={{ fontSize: "0.85rem", display: "block" }}>{p.nom ?? `Armure ${p.itemHash}`}</strong>
@@ -308,13 +225,12 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
                      {db && <StatsArmure db={db} piece={p} stats={nbSim(p) > 0 && p.itemInstanceId ? statsSimulees(db, p, simulations.armures?.[p.itemInstanceId]).simulees : undefined} />}
                      {nbSim(p) > 0 && <span data-badge-simulation="" style={{ fontSize: "0.7rem", color: "#e8c547" }}>Simulation ({nbSim(p)} emplacement{nbSim(p) > 1 ? "s" : ""})</span>}
                   </span>
-                </button>
-                {/* FR : ⚠️ AJOUT (03/11/2026, chantier mods-phase-2, variante A) - bouton « Appliquer en jeu » : UNIQUEMENT si la simulation de la pièce diffère de l'état réel (écarts applicables NON VIDES). Il ouvre l'écran de confirmation — rien n'est écrit avant confirmation. / EN: "Apply in game" button, only when the simulation differs from the real state. */}
-                {p.itemInstanceId && (ecartsParPiece.get(p.itemInstanceId)?.length ?? 0) > 0 && (
-                  <button onClick={() => ouvrirAppli(p)} data-appliquer-en-jeu={p.itemInstanceId} style={{ padding: "0.4rem 0.6rem", background: "#2a2412", color: "#f4e3a0", border: "1px solid #e8c547", borderRadius: 8, cursor: "pointer", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
-                    ⚡ Appliquer en jeu ({ecartsParPiece.get(p.itemInstanceId)!.length})
-                  </button>
-                )}
+                  </div>
+                  {/* FR : ⚠️ AJOUT (03/11/2026, mods-phase-2) puis ⚠️ DÉPLACÉ DANS LA CARTE (retour utilisateur du 03/11) - bouton « Appliquer en jeu » : UNIQUEMENT si la simulation diffère de l'état réel ; le clic ouvre l'écran de confirmation (rien n'est écrit avant), sans ouvrir la fenêtre Détails. / EN: "Apply in game" button INSIDE the card, only when the simulation differs from the real state. */}
+                  <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} style={{ display: "flex" }}>
+                    <AppliquerEnJeu db={db} membership={membership} piece={p} compact onSucces={charger} />
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
@@ -324,28 +240,7 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
       </div>
       {/* FR : ⚠️ CHANGÉ (30/10/2026) - la fenêtre est maintenant LA FENÊTRE UNIQUE `FenetreDetailsPiece` (même contenu, mêmes emplacements que dans Build Analyzer). / EN: the single shared details window. */}
       {ouverte && (
-        <FenetreDetailsPiece db={db} piece={ouverte} onFermer={() => setOuverte(null)} onLireLore={onLireLore} onRetour={cible && onRetour ? onRetour : undefined} libelleRetour={libelleRetour} onAjouterAuBuild={onAjouterAuBuild} dejaDansBuild={!!(ouverte.itemInstanceId && idsDansBuild?.has(ouverte.itemInstanceId))} />
-      )}
-      {/* FR : ⚠️ AJOUT (03/11/2026, chantier mods-phase-2, variante A) - ÉCRAN DE CONFIRMATION « Appliquer en jeu » : liste EXACTE de ce qui va être écrit (objet, lieu, chaque prise : plug actuel → plug visé), avertissement compte Destiny 2, puis progression prise par prise (✓ réussie, ✗ refusée, – restante). Arrêt au premier échec, message Bungie exact, relance possible sur les prises RESTANTES uniquement (jamais de ré-application aveugle). / EN: the "Apply in game" confirmation screen: exact list, warning, per-socket progress, stop on first failure. */}
-      {appli && (
-        <Modale titre="Appliquer en jeu" onFermer={() => setAppli(null)} largeur={560}>
-          <p style={{ margin: "0 0 0.4rem", fontSize: "0.85rem" }}><strong>{appli.piece.nom ?? `Armure ${appli.piece.itemHash}`}</strong> — {LIEUX[appli.piece.origine ?? ""] ?? "lieu inconnu"}{appli.piece.equipe ? " · équipée" : ""}</p>
-          <p style={{ margin: "0 0 0.6rem", fontSize: "0.78rem", color: "#e0a080" }}>⚠️ Ces changements s'appliquent à ton compte Destiny 2, pas seulement à l'appli. Chaque prise est écrite l'une après l'autre ; l'écriture s'arrête au premier refus du jeu.</p>
-          <ul data-ecarts-en-jeu="" style={{ listStyle: "none", padding: 0, margin: "0 0 0.6rem", display: "grid", gap: "0.3rem" }}>
-            {appli.ecarts.map((e, i) => (
-              <li key={e.socketIndex} data-etat-prise={appli.etats[i]} style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", padding: "0.25rem 0.4rem", background: "#0d0f14", border: "1px solid #3a3f4b", borderRadius: 6 }}>
-                <span style={{ width: "1.2rem", textAlign: "center" }}>{appli.etats[i] === "reussi" ? "✅" : appli.etats[i] === "echoue" ? "❌" : appli.etats[i] === "enCours" ? "⏳" : "–"}</span>
-                <span>Prise {e.socketIndex} : <strong>{appli.libelles[e.socketIndex]?.actuel ?? `plug ${e.plugActuel}`}</strong> → <strong style={{ color: "#f4e3a0" }}>{appli.libelles[e.socketIndex]?.vise ?? `plug ${e.plugVise}`}</strong></span>
-              </li>
-            ))}
-          </ul>
-          {appli.message && <p role="alert" data-message-en-jeu="" style={{ fontSize: "0.78rem", color: appli.echec ? "#e0a080" : "#a0d080", margin: "0 0 0.6rem", whiteSpace: "pre-wrap" }}>{appli.message}</p>}
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            {!appli.termine && <button onClick={() => ecrireEnJeu(0)} data-confirmer-en-jeu="" style={{ padding: "0.4rem 0.8rem", background: "#2a2412", color: "#f4e3a0", border: "1px solid #e8c547", borderRadius: 8, cursor: "pointer" }}>Écrire ces {appli.ecarts.length} prise{appli.ecarts.length > 1 ? "s" : ""} en jeu</button>}
-            {appli.termine && appli.etats.some((e) => e === "enAttente") && <button onClick={() => ecrireEnJeu(appli.etats.findIndex((e) => e === "enAttente"))} data-relancer-en-jeu="" style={{ padding: "0.4rem 0.8rem", background: "#2a2412", color: "#f4e3a0", border: "1px solid #e8c547", borderRadius: 8, cursor: "pointer" }}>Relancer les prises restantes ({appli.etats.filter((e) => e === "enAttente").length})</button>}
-            <button onClick={() => setAppli(null)} style={{ padding: "0.4rem 0.8rem", background: "#12151c", color: "#e8e6df", border: "1px solid #3a3f4b", borderRadius: 8, cursor: "pointer" }}>{appli.termine ? "Fermer" : "Annuler"}</button>
-          </div>
-        </Modale>
+        <FenetreDetailsPiece db={db} piece={ouverte} membership={membership} onAppliqueEnJeu={charger} onFermer={() => setOuverte(null)} onLireLore={onLireLore} onRetour={cible && onRetour ? onRetour : undefined} libelleRetour={libelleRetour} onAjouterAuBuild={onAjouterAuBuild} dejaDansBuild={!!(ouverte.itemInstanceId && idsDansBuild?.has(ouverte.itemInstanceId))} />
       )}
     </div>
   );

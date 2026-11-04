@@ -4,6 +4,26 @@
 
 ---
 
+## 03/11/2026 — MODS-PHASE-2, correctifs du premier test réel : champ `itemId` (cause du 1663) + bouton « Appliquer en jeu » dans la carte et la fenêtre Détails
+
+**Retour utilisateur après test en jeu** : (1) le bouton apparaissait À CÔTÉ de la carte — il doit être DANS la carte ET dans la pop-up Détails, peu importe d'où elle est ouverte ; (2) refus Bungie : `Prise 2 refusée — HTTP 500, ErrorCode 1663 (DestinyItemActionForbidden) : This action can only be done in-game.`
+
+**Cause du 1663 (racine, vérifiée contre l'implémentation de référence de DIM)** : l'endpoint GRATUIT `InsertSocketPlugFree` attend le champ **`itemId`** (l'objet en chaîne), PAS `itemInstanceId` — c'est le endpoint PAYANT (`InsertSocketPlug`, « Advanced Write Action ») qui utilise `itemInstanceId`. Avec l'ancien champ, Bungie ne voyait AUCUN objet et répondait 1663 « This action can only be done in-game ». Ce n'était donc NI un refus d'autorisation, NI une limite du jeu : un corps de requête mal formé, hérité du squelette de `diagnostiquerInsertionPlug` (qui porte le même défaut — non corrigé ici, hors périmètre, à reprendre si la doctrine l'utilise). Corps correct : `{ itemId, characterId, membershipType, plug: { socketIndex, socketArrayType: 0, plugItemHash } }`.
+
+**Réalisé** :
+
+- `src/lib/bungie/equiper.ts` — `insererPlug` envoie `itemId: String(itemInstanceId)` (commentaire de correctif avec la preuve DIM) ; le conseil affiché sur échec mentionne désormais aussi la contrainte « espace social / orbite / hors ligne » ;
+- `src/components/AppliquerEnJeu.tsx` — NOUVEAU composant PARTAGÉ : bouton (visible si écarts réels non vides, armure possédée, connecté) + modale de confirmation + progression ✓/✗/– + arrêt au premier refus + relance des prises restantes + effacement de la simulation après succès complet ; variante A : jamais pour une arme ;
+- `src/components/InventaireArmures.tsx` — la carte devient un `div role="button"` (HTML interdit les boutons imbriqués ; mêmes attributs `data-*` pour les tests) et le bouton vit DANS la carte ; la logique locale (memo écarts, état, modale) est retirée au profit du composant partagé ; après succès, la Forge recharge son inventaire (`onSucces={charger}`) ;
+- `src/components/FenetreDetailsPiece.tsx` — bouton « Appliquer en jeu » dans la ligne d'actions de la fenêtre Détails (armures uniquement), nouvelles props `membership` + `onAppliqueEnJeu` ;
+- `src/components/SelecteurInventaire.tsx` / `ResumeBuild.tsx` — passage du `membership` jusqu'à la fenêtre Détails (peu importe d'où elle est ouverte).
+
+**Périmètre** : mise à jour de la SPEC (§2.1 emplacement du bouton verrouillé, §3.1/3.2 la fenêtre Détails entre dans le périmètre — décision utilisateur, §4 correctif `itemId`) et du PLAN (table des fichiers). `InventaireArmes.tsx` toujours non touché (variante A).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` 55/55 suites, 1114/1114 contrôles ; `npm run build` OK. ⏳ Nouveau test en jeu attendu (le champ corrigé doit faire passer l'insertion).
+
+---
+
 ## 03/11/2026 — MODS-PHASE-2 (variante A) : première écriture RÉELLE chez Bungie — bouton « Appliquer en jeu » dans la Forge des armures
 
 **Contexte** : TODO §2, niveau 2 (« En jeu : appliquer réellement le changement sur l'objet », tranché le 24/10/2026). Méthode spec-kit respectée : SPEC (`SPEC-MODS-PHASE-2-2026-11-03.md`) rédigée sans code, **3 décisions verrouillées par l'utilisateur le 03/11/2026** — (1) **variante A** : mods d'armure uniquement (les perks d'armes restent hors écriture, chantier séparé) ; (2) **objets du Coffre modifiables aussi** (tentative directe, message Bungie exact si refus, aucun transfert automatique) ; (3) **scope OAuth `MoveEquipDestinyItems`** : confirmé dans la doc Bungie (pas d'« Advanced Write Action » requis), déjà actif puisque l'équipement fonctionne — puis PLAN (`PLAN-MODS-PHASE-2-2026-11-03.md`) puis codage. Endpoint : `POST /Destiny2/Actions/Items/InsertSocketPlugFree/` (insertion gratuite, aucun matériau).

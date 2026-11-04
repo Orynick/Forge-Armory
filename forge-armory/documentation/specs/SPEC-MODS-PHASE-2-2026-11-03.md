@@ -18,7 +18,7 @@ Appliquer **réellement en jeu** les perks (armes) et mods (armes et armures) qu
 
 Dans la fenêtre Forge d'une arme ou d'une armure possédée (vue Inventaire), l'utilisateur choisit ses perks/mods comme aujourd'hui (simulation inchangée), puis :
 
-1. un bouton **« Appliquer en jeu »** apparaît, **uniquement** pour les pièces possédées (`itemInstanceId` réel) et uniquement si la sélection simulée **diffère** de l'état réel de l'objet ;
+1. un bouton **« Appliquer en jeu »** apparaît, **uniquement** pour les pièces possédées (`itemInstanceId` réel) et uniquement si la sélection simulée **diffère** de l'état réel de l'objet. ⚠️ **Emplacement verrouillé le 03/11/2026 (retour utilisateur après test en jeu)** : **DANS la carte d'armure de la Forge ET dans la fenêtre Détails, peu importe d'où elle est ouverte** (Forge, Mon Inventaire/Coffre, Mon Build) — composant partagé `AppliquerEnJeu` ;
 2. un **écran de confirmation** liste précisément ce qui va être écrit : objet, personnage porteur, chaque socket (index, nom du perk/mod actuel → nom du perk/mod visé), et l'avertissement « ces changements s'appliquent à ton compte Destiny 2, pas seulement à l'appli » ;
 3. à la confirmation, l'appli insère les plugs **un par un, dans l'ordre affiché**, via `POST /Destiny2/Actions/Items/InsertSocketPlugFree/` ;
 4. chaque insertion réussie est signalée (✓) ; un échec **arrête la chaîne** et affiche le `ErrorCode`/`ErrorStatus`/`Message` exact de Bungie avec un conseil (ex. 401/403 = autorisation, refus logique = plug non autorisé sur ce socket, limite du jeu) ; **rien n'est jamais annulé automatiquement** ;
@@ -41,7 +41,7 @@ Sont **exclus** de l'écriture, comme de la simulation : ornements, revêtements
 ### 3.2 Hors périmètre (explicite — règle anti-régression, Article V)
 
 - RIEN d'autre que la liste 3.1 ne doit être modifié. Toute modification hors périmètre doit être justifiée par écrit dans la PR.
-- Ne pas toucher : moteur de scoring, fenêtres Détails (autre que le bouton déjà existant), Collection, Load-outs, Optimiseur, Legendarium, doctrine, OAuth (les droits déjà demandés suffisent : **vérifié le 03/11/2026 dans la doc Bungie** — `InsertSocketPlugFree` requiert le scope `MoveEquipDestinyItems`, n'exige PAS « Advanced Write Action » ; l'appli ne passe pas de paramètre `scope` dans son URL d'autorisation (`oauth.ts`) : le scope est déclaré dans le portail d'application Bungie.net, il suffit qu'il y soit coché — seul point de contrôle utilisateur avant codage).
+- Ne pas toucher : moteur de scoring, Collection, Load-outs, Optimiseur, Legendarium, doctrine, OAuth. ⚠️ **CHANGÉ le 03/11/2026 (retour utilisateur)** : la fenêtre Détails `FenetreDetailsPiece.tsx` ENTRE dans le périmètre (ajout du bouton « Appliquer en jeu », de la prop `membership` et de `onAppliqueEnJeu` uniquement) — ainsi que le nouveau composant partagé `AppliquerEnJeu.tsx` et le passage du `membership` par `SelecteurInventaire.tsx` / `ResumeBuild.tsx` / `InventaireArmures.tsx` ; (les droits déjà demandés suffisent : **vérifié le 03/11/2026 dans la doc Bungie** — `InsertSocketPlugFree` requiert le scope `MoveEquipDestinyItems`, n'exige PAS « Advanced Write Action » ; l'appli ne passe pas de paramètre `scope` dans son URL d'autorisation (`oauth.ts`) : le scope est déclaré dans le portail d'application Bungie.net, il suffit qu'il y soit coché — seul point de contrôle utilisateur avant codage).
 - Aucune écriture « en lot » non confirmée, aucun transfert ni équipement d'objet (chantiers séparés).
 
 ## 4. Règles métier et contraintes
@@ -54,6 +54,7 @@ Sont **exclus** de l'écriture, comme de la simulation : ornements, revêtements
 - Règles de scoring impactées : **aucune** — le score continue de consommer la simulation ; après re-lecture, réel et simulation convergent naturellement.
 - Persistance / migration : aucune nouvelle donnée persistée ; l'état simulé existant (`storeSimulations`) est consommé tel quel, puis vidé pour l'objet appliqué après re-lecture réussie.
 - Coût matériaux : l'endpoint « Free » n'en consomme pas ; si Bungie refuse un plug payant, l'erreur est affichée telle quelle (aucune gestion de matériaux dans l'appli).
+- ⚠️ **CORRECTIF du 03/11/2026 (premier test réel de l'utilisateur)** : le corps de requît doit envoyer **`itemId`** (chaîne), PAS `itemInstanceId` — c'est le champ du endpoint GRATUIT (le PAYANT, `InsertSocketPlug`, utilise `itemInstanceId`). Avec l'ancien champ, Bungie ne voyait aucun objet et répondait **HTTP 500, ErrorCode 1663 (DestinyItemActionForbidden, « This action can only be done in-game »)**. Forme vérifiée contre l'implémentation de référence de DIM : `{ itemId, characterId, membershipType, plug: { socketIndex, socketArrayType: 0, plugItemHash } }`. L'ancien diagnostic `diagnostiquerInsertionPlug` porte le même défaut (consigné au DEVLOG, hors périmètre du correctif).
 
 ## 5. Critères d'acceptation (testables)
 
