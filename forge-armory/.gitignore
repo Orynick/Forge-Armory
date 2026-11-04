@@ -35,3 +35,7 @@ tests/logique/_sortie/
 # FR : artefacts de construction des pages de test d'interface (tests/ui/build.mjs), ne pas versionner
 # EN: UI test page build artifacts, must not be committed
 tests/ui/_sortie/
+
+# FR : dossier d'assemblage du générateur (scripts/generer-propositions-solo-forge.mjs), ne pas versionner
+# EN: generator staging folder, must not be committed
+propositions/

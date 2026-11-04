@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="fa-icones-icone-appliquer-en-jeu-title">
+  <title id="fa-icones-icone-appliquer-en-jeu-title">Appliquer en jeu</title>
+  <defs>
+    <linearGradient id="fa-icones-icone-appliquer-en-jeu-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#d9dde2"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+    <linearGradient id="fa-icones-icone-appliquer-en-jeu-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e08a"/><stop offset="0.55" stop-color="#e8c547"/><stop offset="1" stop-color="#f3d977"/></linearGradient>
+    <linearGradient id="fa-icones-icone-appliquer-en-jeu-cyanL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ff3ff"/><stop offset="1" stop-color="#1cc6ff"/></linearGradient>
+    <linearGradient id="fa-icones-icone-appliquer-en-jeu-cyanR" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00aef5"/><stop offset="1" stop-color="#0078d0"/></linearGradient>
+    <filter id="fa-icones-icone-appliquer-en-jeu-glowSoft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-icones-icone-appliquer-en-jeu-silver)" stroke-width="22"/>
+    <path d="M 326 332 L 438 512 L 326 692 L 214 512 Z" fill="none" stroke="url(#fa-icones-icone-appliquer-en-jeu-gold)" stroke-width="24" stroke-linejoin="miter" stroke-dasharray="42.40 28.27" stroke-dashoffset="21.20"/>
+    <path d="M 466 488 L 508 488 L 508 454 L 560 512 L 508 570 L 508 536 L 466 536 Z" fill="url(#fa-icones-icone-appliquer-en-jeu-silver)"/>
+    <g filter="url(#fa-icones-icone-appliquer-en-jeu-glowSoft)"><path d="M 698 332 L 698 692 L 586 512 Z" fill="url(#fa-icones-icone-appliquer-en-jeu-cyanL)"/><path d="M 698 332 L 810 512 L 698 692 Z" fill="url(#fa-icones-icone-appliquer-en-jeu-cyanR)"/><path d="M 698 346 L 701 512 L 698 678 L 695 512 Z" fill="#e8fdff" opacity="0.9"/></g>
+  </g>
+</svg>

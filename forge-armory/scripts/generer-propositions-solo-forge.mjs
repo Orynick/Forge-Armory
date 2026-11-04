@@ -15,7 +15,7 @@ import { TEXTES, lettresEtiquetees, mesurerBords, trouverTexte, trouverSoulignag
 const args = process.argv.slice(2);
 const racine = process.cwd();
 const sortie = path.resolve(args.includes("--sortie") ? args[args.indexOf("--sortie") + 1] : "propositions");
-const ARCHIVE = path.join(racine, "ressources-installateur/forge-armory/app-assets/assets/");
+const ARCHIVE = path.join(racine, "ressources-installateur/forge-armory/app-assets/forge-armory-app-assets-v12/assets/");
 const LIVRES = path.join(racine, "public/assets/");
 const lire = (base, f) => fs.readFileSync(base + f, "utf-8");
 // FR : ⚠️ AJOUT (13/10/2026, v0.4.4) - SOURCE DE REPLI des lettres : le bouton « Bibliothèque » de l'utilisateur a été remplacé par « Legendarium » dans l'archive v5, mais le MODÈLE D'ESPACEMENT ci-dessous en mesure encore les lettres ; une copie est conservée dans `sources-lettres/` (voir son LISEZMOI) pour que les fichiers fabriqués restent identiques. / EN: ⚠️ ADDED - fallback letter source (the old Library button, kept verbatim).
