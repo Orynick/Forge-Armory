@@ -24,6 +24,21 @@
 
 ---
 
+## 04/11/2026 — INTÉGRATION COMPLÈTE du pack v12 `forge-armory-app-assets` (nouvel « app-assets ») + rangement des archives
+
+**Contexte (demande et décisions de l'utilisateur)** : le pack `forge-armory-app-assets-v12` devient le nouvel « app-assets » de référence ; l'ancien « app-assets » (catalogue de travail v7 + icône optimisation, 81 actifs) part dans `archives-precedentes/`. Le pack v11 (97 actifs, famille `actions`, `TAILLE-DES-BOUTONS.md`) prend le nom `archives-precedentes/app-assets-v11` ; l'ancien catalogue de travail est renommé `archives-precedentes/app-assets-v7-optimisation` (les deux vivaient sous le même nom — séparés sans perte).
+
+**Intégration** :
+
+- `public/assets/` RECONSTRUIT depuis le pack v12 (100 SVG + 2 PNG : familles `actions`, `blocs-repliables`, `icones`, `marque`, `marques`, `profils`, `selecteur`, `symboles`, `titres`), puis `scripts/retoucher-visuels.mjs` rejoué (37 retouches : soulignage des titres, proportions d'icônes, import des versions FIXES connexion/manifest — déjà présentes en 7505 dans v12, renumérotation des cartes du Scoring, fabrication de `bouton-carriere-large`), puis les 5 fichiers fabriqués regénérés par `scripts/generer-propositions-solo-forge.mjs` (boutons Forge et Inventaire, icône Forge — modèles lus dans v12). L'ancien dossier `boutons-action/` disparaît (remplacé par `actions/`).
+- **Catalogue** : `src/data/forge/forgeAssets.ts` = catalogue GÉNÉRÉ du pack v12, TEL QUEL (règle du projet : jamais modifié à la main) — il couvre désormais les familles `actions` (10 boutons, avec les états repos/sélectionné d'« Appliquer en jeu ») et `marques`. Le COMPLÉMENT ne garde que les 12 entrées hors catalogue : les titres fixes et renumérotés, les boutons fabriqués (Forge, Inventaire, Carrière-large) et l'icône Forge. Les 18 entrées `boutons-action.*`/icônes d'action disparaissent.
+- **Ids renommés dans le code** (le catalogue v12 impose ses ids) : `boutons-action.retour` → `actions.retour-build-analyzer`, `.plus` → `actions.mettre-dans-mon-build`, `.lore` → `actions.lire-le-lore`, `.actualisation` → `actions.actualisation-inventaire`, `.forgemods` → `actions.forge-mods-armure`, `.forgeperks` → `actions.forge-perks-arme`, `.modifier` → `actions.modifier`, `.fermer` → `actions.fermer`, `.appliquerenjeu` → `actions.appliquer-en-jeu.repos` ; `icones.appliquerenjeu` → `icones.appliquer-en-jeu`. 8 composants touchés, `IdBoutonAction` mis à jour.
+- **Scripts/tests repointés vers v12** : `generer-propositions-solo-forge.mjs`, `carriere-large.test.ts`, `reproductibilite-visuels.test.ts` (la liste ad hoc « boutonsAction » disparaît : les boutons d'action viennent DÉSORMAIS de l'archive ; seuls les 5 fichiers fabriqués restent hors archive). `propositions/` (dossier d'assemblage du générateur) ajouté au `.gitignore`.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` **55/55 suites, 1118/1118 contrôles** ; `npm run build` OK ; reproductibilité **7/7** (106 fichiers reconstruits OCTET POUR OCTET depuis v12) ; préfixes §9 conformes sur les 109 SVG (0 écart).
+
+---
+
 ## 04/11/2026 — LIVRAISON v0.6.0 : première écriture RÉELLE des perks et mods chez Bungie (« Appliquer en jeu »)
 
 **⏳→✅ VALIDATION UTILISATEUR EN JEU DES PERKS D'ARMES (04/11/2026)** : « OK ça fonctionne » — la variante B est validée sur le compte réel. Le chantier mods-phase-2 est donc TERMINÉ de bout en bout : SPEC (décisions verrouillées), PLAN, codage, correctifs du premier test réel (champ `itemId`), validation des mods d'armure, extension aux perks d'armes, boutons de la charte, validation des perks d'armes.

@@ -1,6 +1,6 @@
 // Généré — catalogue des visuels Forge Armory (voir manifest.json). Les chemins sont relatifs à ce fichier.
 export type ForgeEtat = 'repos' | 'selectionne' | 'replie' | 'deplie' | null;
-export type ForgeFamille = 'selecteur' | 'profils' | 'blocs-repliables' | 'titres' | 'icones' | 'symboles' | 'marque';
+export type ForgeFamille = 'selecteur' | 'profils' | 'blocs-repliables' | 'titres' | 'icones' | 'symboles' | 'marque' | 'actions';
 export interface ForgeAsset { id: string; famille: ForgeFamille; label: string; etat: ForgeEtat; fichier: string; largeur: number; hauteur: number; ratio: number; hauteurMinPx: number; format: 'svg' | 'png'; couleur?: string; }
 export const FORGE_ASSETS: readonly ForgeAsset[] = [
  {
@@ -216,6 +216,102 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "largeur": 4316,
   "hauteur": 1024,
   "ratio": 4.2148,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "actions.retour-build-analyzer",
+  "famille": "actions",
+  "label": "Retour à Build Analyzer",
+  "etat": null,
+  "fichier": "assets/actions/bouton-retour-build-analyzer.svg",
+  "largeur": 4721,
+  "hauteur": 1024,
+  "ratio": 4.6104,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "actions.mettre-dans-mon-build",
+  "famille": "actions",
+  "label": "Mettre dans Mon Build",
+  "etat": null,
+  "fichier": "assets/actions/bouton-mettre-dans-mon-build.svg",
+  "largeur": 4581,
+  "hauteur": 1024,
+  "ratio": 4.4736,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "actions.lire-le-lore",
+  "famille": "actions",
+  "label": "Lire le Lore",
+  "etat": null,
+  "fichier": "assets/actions/bouton-lire-le-lore.svg",
+  "largeur": 2924,
+  "hauteur": 1024,
+  "ratio": 2.8555,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "actions.actualisation-inventaire",
+  "famille": "actions",
+  "label": "Actualisation de l'inventaire",
+  "etat": null,
+  "fichier": "assets/actions/bouton-actualisation-inventaire.svg",
+  "largeur": 6519,
+  "hauteur": 1024,
+  "ratio": 6.3662,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "actions.forge-mods-armure",
+  "famille": "actions",
+  "label": "Forge : choisir les mods de cette armure",
+  "etat": null,
+  "fichier": "assets/actions/bouton-forge-mods-armure.svg",
+  "largeur": 7108,
+  "hauteur": 1024,
+  "ratio": 6.9414,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "actions.forge-perks-arme",
+  "famille": "actions",
+  "label": "Forge : choisir les perks de cette arme",
+  "etat": null,
+  "fichier": "assets/actions/bouton-forge-perks-arme.svg",
+  "largeur": 6805,
+  "hauteur": 1024,
+  "ratio": 6.6455,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "actions.modifier",
+  "famille": "actions",
+  "label": "Modifier",
+  "etat": null,
+  "fichier": "assets/actions/bouton-modifier.svg",
+  "largeur": 2511,
+  "hauteur": 1024,
+  "ratio": 2.4521,
+  "hauteurMinPx": 40,
+  "format": "svg"
+ },
+ {
+  "id": "actions.fermer",
+  "famille": "actions",
+  "label": "Fermer",
+  "etat": null,
+  "fichier": "assets/actions/bouton-fermer.svg",
+  "largeur": 2313,
+  "hauteur": 1024,
+  "ratio": 2.2588,
   "hauteurMinPx": 40,
   "format": "svg"
  },
@@ -893,6 +989,102 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "label": "Optimisation (sélectionné)",
   "etat": "selectionne",
   "fichier": "assets/icones/icone-optimisation-selectionne.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.retour-build-analyzer",
+  "famille": "icones",
+  "label": "Retour à Build Analyzer",
+  "etat": null,
+  "fichier": "assets/icones/icone-retour-build-analyzer.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.mettre-dans-mon-build",
+  "famille": "icones",
+  "label": "Mettre dans Mon Build",
+  "etat": null,
+  "fichier": "assets/icones/icone-mettre-dans-mon-build.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.lire-le-lore",
+  "famille": "icones",
+  "label": "Lire le Lore",
+  "etat": null,
+  "fichier": "assets/icones/icone-lire-le-lore.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.actualisation-inventaire",
+  "famille": "icones",
+  "label": "Actualisation de l'inventaire",
+  "etat": null,
+  "fichier": "assets/icones/icone-actualisation-inventaire.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.forge-mods-armure",
+  "famille": "icones",
+  "label": "Forge : choisir les mods de cette armure",
+  "etat": null,
+  "fichier": "assets/icones/icone-forge-mods-armure.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.forge-perks-arme",
+  "famille": "icones",
+  "label": "Forge : choisir les perks de cette arme",
+  "etat": null,
+  "fichier": "assets/icones/icone-forge-perks-arme.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.modifier",
+  "famille": "icones",
+  "label": "Modifier",
+  "etat": null,
+  "fichier": "assets/icones/icone-modifier.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24,
+  "format": "svg"
+ },
+ {
+  "id": "icones.fermer",
+  "famille": "icones",
+  "label": "Fermer",
+  "etat": null,
+  "fichier": "assets/icones/icone-fermer.svg",
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,

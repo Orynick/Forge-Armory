@@ -155,16 +155,16 @@ export default function FenetreDetailsPiece({ db, piece: ouverte, onFermer, onLi
         {(onRetour || ((onAjouterAuBuild || dansBuild) && instance) || onOuvrirForge || membership) && (
           <div data-ligne-actions="" style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", margin: "0 0 0.6rem" }}>
             {onRetour && (libelleRetour === "Build Analyzer"
-              ? <BoutonAction id="boutons-action.retour" libelle="Retour à Build Analyzer" onClick={() => { fermer(); onRetour(); }} hauteur="2.5rem" donnees={{ "retour-fenetre": true }} />
+              ? <BoutonAction id="actions.retour-build-analyzer" libelle="Retour à Build Analyzer" onClick={() => { fermer(); onRetour(); }} hauteur="2.5rem" donnees={{ "retour-fenetre": true }} />
               : <button data-retour-fenetre="" onClick={() => { fermer(); onRetour(); }} style={styleAction}>← Retour à {libelleRetour}</button>)}
             {(onAjouterAuBuild || dansBuild) && instance && (dansBuild
               ? <span data-mettre-dans-build="" data-deja="1" style={{ fontSize: "0.8rem", color: "#7fd88f" }}>✓ Déjà dans Mon Build</span>
-              : <BoutonAction id="boutons-action.plus" libelle="Mettre dans Mon Build" onClick={() => { onAjouterAuBuild?.(ouverte); setAjoutee(true); setMessageBuild(`✅ « ${ouverte.nom} » est dans Mon Build : le score tient compte de votre simulation, en temps réel. Rien n'est équipé en jeu.`); }} hauteur="2.5rem" donnees={{ "mettre-dans-build": true }} />)}
+              : <BoutonAction id="actions.mettre-dans-mon-build" libelle="Mettre dans Mon Build" onClick={() => { onAjouterAuBuild?.(ouverte); setAjoutee(true); setMessageBuild(`✅ « ${ouverte.nom} » est dans Mon Build : le score tient compte de votre simulation, en temps réel. Rien n'est équipé en jeu.`); }} hauteur="2.5rem" donnees={{ "mettre-dans-build": true }} />)}
             {/* ⚠️ 30/10/2026 : visuel de la charte pour l'ARMURE (`boutons-action.forgemods`) ; ⚠️ 02/11/2026 (pack v11) : l'ARME a elle aussi son visuel (`boutons-action.forgeperks`, 8e bouton) — le bouton texte « 🔨 … » est supprimé. Les deux à hauteur "2.5rem" = barre Forge. */}
             {onOuvrirForge && instance && (
               estArme
-                ? <BoutonAction id="boutons-action.forgeperks" libelle="Forge : choisir les perks de cette arme" onClick={() => onOuvrirForge(ouverte)} hauteur="2.5rem" donnees={{ "ouvrir-forge": true }} />
-                : <BoutonAction id="boutons-action.forgemods" libelle="Forge : choisir les mods de cette armure" onClick={() => onOuvrirForge(ouverte)} hauteur="2.5rem" donnees={{ "ouvrir-forge": true }} />
+                ? <BoutonAction id="actions.forge-perks-arme" libelle="Forge : choisir les perks de cette arme" onClick={() => onOuvrirForge(ouverte)} hauteur="2.5rem" donnees={{ "ouvrir-forge": true }} />
+                : <BoutonAction id="actions.forge-mods-armure" libelle="Forge : choisir les mods de cette armure" onClick={() => onOuvrirForge(ouverte)} hauteur="2.5rem" donnees={{ "ouvrir-forge": true }} />
             )}
             {/* FR : ⚠️ AJOUT (03/11/2026, mods-phase-2, retour utilisateur) puis ⚠️ CHANGÉ (variante B, décision utilisateur du 03/11 : le chantier s'étend aux perks d'armes) - bouton « Appliquer en jeu » DANS la fenêtre Détails, peu importe d'où elle est ouverte (Forge, Mon Inventaire/Coffre, Mon Build), pour une ARMURE (mods) comme pour une ARME (perks) possédée dont la simulation diffère du réel. / EN: shared "Apply in game" button in the details window, armor mods AND weapon perks (variant B). */}
             <AppliquerEnJeu db={db} membership={membership} piece={ouverte} onSucces={onAppliqueEnJeu} />

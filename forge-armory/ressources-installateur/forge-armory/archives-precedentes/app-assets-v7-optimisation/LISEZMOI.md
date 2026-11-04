@@ -1,6 +1,6 @@
 # Forge Armory — visuels à intégrer dans l'appli (Destiny 2 Build Analyzer)
 
-97 fichiers (95 SVG + 2 images PNG du logo), SVG au fond transparent, aucune police à charger. Détails, dimensions et catalogue : `docs/charte-graphique.html`.
+81 fichiers (79 SVG + 2 images PNG du logo), SVG au fond transparent, aucune police à charger. Détails, dimensions et catalogue : `docs/charte-graphique.html`.
 
 ## Structure
 ```
@@ -9,9 +9,8 @@ assets/
                          (viewBox 4316 × 1024 ; Accomplissements : 4897 × 1024, plaque élargie au titre)
   profils/            8  Neutre, PvE Roaming, PvE DPS, PVP × repos / sélectionné            viewBox 3781 × 1024
   blocs-repliables/  14  7 blocs × replié / déplié (losange + / −)                          viewBox 7805 × 1024
-  actions/            8  boutons d'action compacts (menus et pop-up) — hauteur 1024 (comme le sélecteur), largeur variable selon le texte
   titres/             8  contexte (0. + ligne), cartes 1 à 5, score global — repos          viewBox 7505 × 1024
-  icones/            34  cercle + symbole seuls (barres réduites, onglets, export infographique)  viewBox 1024 × 1024
+  icones/            26  cercle + symbole seuls (barres réduites, onglets, export infographique)  viewBox 1024 × 1024
   symboles/           4  symboles des profils vectorisés, sans cercle
   marque/             3  emblème Forge Armory (SVG), logo avec titre (PNG), planche des déclinaisons (PNG)
 manifest.json         catalogue de tous les actifs (id, libellé, état, fichier, dimensions, ratio)
@@ -19,17 +18,10 @@ forgeAssets.ts        même catalogue typé pour le code de l'appli
 docs/charte-graphique.html
 ```
 
-## Boutons d'action (`assets/actions/`, menus et pop-up)
-**Même taille que les boutons du sélecteur** : cadre de 1024 de haut, même cercle (diamètre 894) et même plaque (524 de haut) que Collection, Inventaire, Armes, Armures… Il suffit d'afficher les boutons d'action à la **même hauteur CSS** que ceux-là pour qu'ils aient exactement la même taille de cercle et de plaque (voir `TAILLE-DES-BOUTONS.md`). Chaque bouton a la largeur de son texte (pas de largeur commune). Texte en casse mixte, sauf « Actualisation de l'inventaire » (capitales).
-- `actions.retour-build-analyzer` · `actions.mettre-dans-mon-build` · `actions.lire-le-lore` · `actions.actualisation-inventaire` (remplace « Recharger mon inventaire »)
-- `actions.forge-mods-armure` et `actions.forge-perks-arme` : dans les Détails d'une armure / arme possédée (Mon Inventaire, Coffre ou Mon Build), sur la ligne d'actions ; pas dans la Forge elle-même. Le second remplace le texte seul « 🔨 Forge : choisir les perks de cette arme ».
-- `actions.modifier` (mods, dans les Détails) et `actions.fermer` : « Fermer » s'affiche à la place de « Modifier » quand on édite un mod ; même plaque et même hauteur.
-- Les logos ronds seuls sont dans `icones/` (`icones.<même nom>`).
-
 ## Boutons du sélecteur et des menus
 - Avec cristaux (haut et bas) : Build Analyzer, Legendarium, Load-outs, Collection.
 - Sans cristaux, symbole agrandi : Carrière (blason, quartier cyan), Accomplissements (emblème, yeux cyan), Armes (épée), Armures (bouclier à cristal central) et Optimisation (trois curseurs à losanges cyan). Armes et Armures ont la même plaque que Collection.
-- **Accomplissements** a une plaque plus large (4897 au lieu de 4316) car son titre est plus long. À la même hauteur d'affichage, il est donc plus large que les autres boutons : **décision prise, on garde cette largeur** (les autres boutons du sélecteur restent à 4316).
+- **Accomplissements** a une plaque plus large (4897 au lieu de 4316) car son titre est plus long. À la même hauteur d'affichage, il sera donc plus large que les autres boutons : à trancher (garder tel quel ou élargir tous les boutons du sélecteur à 4897).
 
 ## Logo de l'appli (`marque/`)
 - `logo-forge-armory.png` et `forge-armory-declinaisons.png` : le O de FORGE et le O d'ARMORY portent le même cristal cyan lumineux (images, pas de version vectorielle du titre).

@@ -113,7 +113,7 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
       </p>
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
         {pieces
-          ? <BoutonAction id="boutons-action.actualisation" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} disabled={enCours} hauteur="2.5rem" donnees={{ "actualiser-inventaire": true }} />
+          ? <BoutonAction id="actions.actualisation-inventaire" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} disabled={enCours} hauteur="2.5rem" donnees={{ "actualiser-inventaire": true }} />
           : <button onClick={charger} disabled={enCours}>{enCours ? "Chargement…" : "Charger mon inventaire"}</button>}
         {nbArmesSimulees > 0 && <button onClick={() => appliquer(() => SIMULATIONS_VIDES())} data-effacer-simulations="" style={{ fontSize: "0.8rem" }}>✕ Effacer toutes les simulations ({nbArmesSimulees})</button>}
       </div>
