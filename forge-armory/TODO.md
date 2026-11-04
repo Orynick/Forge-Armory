@@ -141,14 +141,14 @@ développement (3e étape de l'ordre du 30/09/2026).
 - Rien n'est écrit chez Bungie ; enregistrement/partage/export/équipement
   gardent les mods réels.
 
-🟡 **Reste à faire — niveau 2 (en jeu)** : ✅ **CODÉ le
+✅ **Niveau 2 (en jeu) : FAIT le 03/11/2026** (validation en jeu par l'utilisateur) — ✅ **CODÉ le
 03/11/2026 (branche `draft-mods-phase-2`, PR #27, variante A : mods
 d'armure uniquement)** — bouton « Appliquer en jeu » dans la Forge des
 armures, écran de confirmation prise par prise, écriture réelle via
 `InsertSocketPlugFree` (scope OAuth `MoveEquipDestinyItems` confirmé), arrêt
 au premier refus avec le message exact de Bungie, re-lecture de
 l'inventaire après succès. Objets du Coffre inclus (décision du 03/11).
-⏳ **Reste : validation par l'utilisateur en jeu, sur un objet réel**
+✅ Validation en jeu obtenue le 03/11/2026 (« Parfait ça fonctionne ! »).
 (spécification `SPEC-MODS-PHASE-2-2026-11-03.md`, critère 5). Les perks
 d'armes restent hors écriture (variante A) : chantier séparé si le
 diagnostic les prouve réalisables.
@@ -189,9 +189,9 @@ effet sur le build.
    pièce dans le build, pour voir l'effet sur la fiche et le score, sans
    rien toucher en jeu. ✅ **FAIT le 24/10/2026** (armes depuis la 0.4.x,
    armures via PR #19).
-2. **En jeu** : appliquer réellement le changement sur l'objet. 🟡
-   **Codé le 03/11/2026** (voir `InsertSocketPlugFree` ci-dessus) —
-   validation utilisateur en jeu restante.
+2. **En jeu** : appliquer réellement le changement sur l'objet. ✅
+   **FAIT le 03/11/2026** (voir `InsertSocketPlugFree` ci-dessus) — validé
+   en jeu par l'utilisateur.
 
 **Points de conception déjà identifiés** (traités par la Forge depuis la
 0.4.x) :

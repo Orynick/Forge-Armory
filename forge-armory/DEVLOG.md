@@ -20,7 +20,7 @@
 
 **Périmètre** : mise à jour de la SPEC (§2.1 emplacement du bouton verrouillé, §3.1/3.2 la fenêtre Détails entre dans le périmètre — décision utilisateur, §4 correctif `itemId`) et du PLAN (table des fichiers). `InventaireArmes.tsx` toujours non touché (variante A).
 
-**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` 55/55 suites, 1114/1114 contrôles ; `npm run build` OK. ⏳ Nouveau test en jeu attendu (le champ corrigé doit faire passer l'insertion).
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` 55/55 suites, 1114/1114 contrôles ; `npm run build` OK. ✅ **VALIDATION UTILISATEUR EN JEU (03/11/2026)** : « Parfait ça fonctionne ! » — l'insertion réelle des mods d'armure via `InsertSocketPlugFree` fonctionne sur le compte de l'utilisateur avec le champ corrigé `itemId`. Critère 5 de la SPEC validé : le changement est réellement appliqué en jeu. **Le niveau 2 du TODO §2 (première écriture de mods chez Bungie) est FAIT.** Reste hors périmètre : les perks d'armes (variante A).
 
 ---
 

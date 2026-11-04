@@ -1,7 +1,7 @@
 # SPEC — mods-phase-2
 
 **Date :** 2026-11-03
-**Statut :** décisions verrouillées par l'utilisateur le 03/11/2026 (variante A ; objets du Coffre modifiables ; scope OAuth `MoveEquipDestinyItems` confirmé par la doc Bungie) — prête pour la phase de codage.
+**Statut :** ✅ **LIVRÉE ET VALIDÉE EN JEU le 03/11/2026** (confirmation utilisateur après le correctif `itemId` : « Parfait ça fonctionne ! ») — décisions verrouillées le 03/11/2026 (variante A ; objets du Coffre modifiables ; scope OAuth `MoveEquipDestinyItems`).
 **Branche prévue :** `draft-mods-phase-2` (préparation uniquement — aucun code tant que la spec n'est pas validée)
 **Version de l'appli à la rédaction :** 0.5.7
 **Version visée :** 0.6.0 (première écriture de perks/mods chez Bungie : passage de palier à justifier dans le DEVLOG à la livraison)
@@ -62,7 +62,7 @@ Sont **exclus** de l'écriture, comme de la simulation : ornements, revêtements
 2. La liste de confirmation montre exactement les sockets qui vont être écrits, et aucun socket exclu (ornement/shader/tracker/memento) n'y figure jamais (test logique) ;
 3. Chaque appel émis est bien `InsertSocketPlugFree` avec `itemInstanceId`, `socketIndex`, `plugItemHash` corrects (espion réseau des outils de diagnostic, comme en 0.4.12) ;
 4. Un échec simulé (refus ErrorCode) arrête la chaîne et affiche le message Bungie exact, sans écrire les sockets suivants ;
-5. Après succès sur l'objet réel de l'utilisateur : re-lecture de l'inventaire, badge « simulé » retiré, score recalculé sur l'état réel — **à valider par l'utilisateur en jeu** ;
+5. Après succès sur l'objet réel de l'utilisateur : re-lecture de l'inventaire, badge « simulé » retiré, score recalculé sur l'état réel — ✅ **VALIDÉ par l'utilisateur en jeu le 03/11/2026** (« Parfait ça fonctionne ! », après le correctif `itemId`) ;
 6. `npx tsc -b` : 0 erreur ; `npm run test:logique` : N/N suites ; `npm run build` : OK ; CI verte.
 
 ## 6. Vérifications requises (remplies à la livraison)
@@ -72,7 +72,7 @@ Sont **exclus** de l'écriture, comme de la simulation : ornements, revêtements
 - [x] `npm run build` : OK (03/11/2026)
 - [x] CI GitHub Actions verte sur la PR (runs 41912135665 + 41912142885, 03/11/2026)
 - [x] Diff vs `main` limité au périmètre 3.1 (Article V) — `InventaireArmes.tsx` et `FenetreDetailsPiece.tsx` non touchés (variante A)
-- [ ] Validation utilisateur : en jeu, sur l'objet réel (à consigner dans le DEVLOG)
+- [x] Validation utilisateur : en jeu, sur l'objet réel — ✅ le 03/11/2026, confirmation de l'utilisateur (« Parfait ça fonctionne ! »), consignée au DEVLOG
 - [x] Entrée DEVLOG rédigée (03/11/2026)
 
 ## 7. Risques et points d'attention
