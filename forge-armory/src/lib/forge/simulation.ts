@@ -132,3 +132,22 @@ export function niveauDePerk(item: ItemLu, socketIndex: number, disponibles: Rec
   const liste = disponibles[socketIndex] ?? [];
   return liste.includes(item.option.hash) || (item.ameliore ? liste.includes(item.ameliore.hash) : false) ? "disponible" : "possible";
 }
+
+/** FR : ⚠️ AJOUT (03/11/2026, chantier mods-phase-2, variante A) - une colonne LÉGÈRE pour le calcul des écarts applicables : l'index de prise, le hash du plug ÉQUIPÉ et la modifiabilité de la prise. La Forge construit cette forme depuis `colonnesArmure` (lib/forge/armure.ts) ; ce fichier reste PUR, sans dépendance vers le Manifest. / EN: light column for the applicable-diff computation. */
+export interface ColonneApplicable { socketIndex: number; hashEquipe: number; modifiable: boolean }
+
+/** FR : ⚠️ AJOUT (03/11/2026, chantier mods-phase-2) - UN écart à écrire en jeu : la prise, le plug ÉQUIPÉ (réel) et le plug VISÉ (le hash « effectif » de la simulation, celui qui sera envoyé à Bungie). / EN: one difference to write in game. */
+export interface EcartSocket { socketIndex: number; plugActuel: number; plugVise: number }
+
+/** FR : ⚠️ AJOUT (03/11/2026, chantier mods-phase-2, variante A) - LES ÉCARTS APPLICABLES d'une armure possédée : pour chaque prise MODIFIABLE dont le choix simulé diffère du plug équipé, un écart, DANS L'ORDRE DES PRISES (l'ordre d'affichage de la confirmation et d'écriture chez Bungie). Les prises NON modifiables (fixes : archétype, amélioration, perk exotique) et COSMÉTIQUES (ornement, shader, tracker, memento) ne figurent JAMAIS dans la liste : la modifiabilité est déjà calculée par `colonnesArmure`. Un choix simulé IDENTIQUE au plug équipé n'est pas un écart. Une simulation sur une prise inconnue de la pièce est ignorée. Fonction PURE, testée dans tests/logique/ecarts-simulation.test.ts. / EN: the applicable differences of an owned armor: one per MODIFIABLE socket whose simulated choice differs from the equipped plug, in socket order. */
+export function ecartsApplicables(colonnes: ColonneApplicable[], sim?: SimulationArmure): EcartSocket[] {
+  const ecarts: EcartSocket[] = [];
+  for (const c of colonnes) {
+    if (!c.modifiable) continue;
+    const choix = sim?.[c.socketIndex];
+    if (!choix) continue;
+    if (choix.effectif === c.hashEquipe || choix.choisi === c.hashEquipe) continue;
+    ecarts.push({ socketIndex: c.socketIndex, plugActuel: c.hashEquipe, plugVise: choix.effectif });
+  }
+  return ecarts.sort((a, b) => a.socketIndex - b.socketIndex);
+}

@@ -141,12 +141,22 @@ développement (3e étape de l'ordre du 30/09/2026).
 - Rien n'est écrit chez Bungie ; enregistrement/partage/export/équipement
   gardent les mods réels.
 
-🔴 **Reste à faire — niveau 2 (en jeu)** : appliquer réellement le
-changement sur l'objet. À étudier : l'API Bungie propose une action
-d'insertion de plug gratuite (`InsertSocketPlugFree`), utilisée par
-d'autres outils ; ses conditions exactes (quels plugs sont autorisés,
-droits OAuth nécessaires, coûts en matériaux exclus) sont **à vérifier
-dans la documentation de Bungie** avant toute promesse.
+✅ **Niveau 2 (en jeu) : FAIT le 03/11/2026** (validation en jeu par l'utilisateur) — ✅ **CODÉ le
+03/11/2026 (branche `draft-mods-phase-2`, PR #27, variante A : mods
+d'armure uniquement)** — bouton « Appliquer en jeu » dans la Forge des
+armures, écran de confirmation prise par prise, écriture réelle via
+`InsertSocketPlugFree` (scope OAuth `MoveEquipDestinyItems` confirmé), arrêt
+au premier refus avec le message exact de Bungie, re-lecture de
+l'inventaire après succès. Objets du Coffre inclus (décision du 03/11).
+✅ Validation en jeu obtenue le 03/11/2026 (« Parfait ça fonctionne ! »).
+✅ **Variante B FAITE et VALIDÉE EN JEU le 04/11/2026** (« OK ça
+fonctionne ») : les perks d'armes s'écrivent aussi réellement en jeu,
+dans la fenêtre Détails et par l'icône des cartes (boutons de la
+charte intégrés le 04/11). PR #27 prête pour revue puis fusion,
+puis **bump v0.6.0** (débloqué).
+✅ **Bouton stylisé dédié FOURNI et INTÉGRÉ le 04/11/2026** (archive
+`forge-armory-app-assets`) : bouton plaque dans les pop-up Détails,
+icône seule dans les cartes d'Armes et d'Armures.
 
 **Reste à faire — niveau 1 (évolutions)** :
 - **Collection des armures** (toutes les armures du jeu) et **ensembles et
@@ -184,8 +194,9 @@ effet sur le build.
    pièce dans le build, pour voir l'effet sur la fiche et le score, sans
    rien toucher en jeu. ✅ **FAIT le 24/10/2026** (armes depuis la 0.4.x,
    armures via PR #19).
-2. **En jeu** : appliquer réellement le changement sur l'objet. 🔴
-   **Reste à faire** (voir `InsertSocketPlugFree` ci-dessus).
+2. **En jeu** : appliquer réellement le changement sur l'objet. ✅
+   **FAIT le 03/11/2026** (voir `InsertSocketPlugFree` ci-dessus) — validé
+   en jeu par l'utilisateur.
 
 **Points de conception déjà identifiés** (traités par la Forge depuis la
 0.4.x) :
