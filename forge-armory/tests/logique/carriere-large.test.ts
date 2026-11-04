@@ -7,7 +7,7 @@ import { FORGE_ASSETS_COMPLEMENT } from "../../src/data/forge/forgeAssetsComplem
 const res: boolean[] = [];
 const ok = (nom: string, cond: unknown, detail?: unknown) => { res.push(!!cond); console.log(cond ? "✅" : "❌", nom); if (!cond && detail !== undefined) console.log("   détail :", JSON.stringify(detail).slice(0, 500)); };
 const racine = process.cwd();
-const SEL = path.join(racine, "public/assets/selecteur"), ARCHIVE = path.join(racine, "ressources-installateur/forge-armory/app-assets/assets/selecteur");
+const SEL = path.join(racine, "public/assets/selecteur"), ARCHIVE = path.join(racine, "ressources-installateur/forge-armory/app-assets/forge-armory-app-assets-v12/assets/selecteur");
 const lire = (dossier: string, f: string) => fs.readFileSync(path.join(dossier, f), "utf-8");
 const sha = (dossier: string, f: string) => crypto.createHash("sha256").update(fs.readFileSync(path.join(dossier, f))).digest("hex");
 

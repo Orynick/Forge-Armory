@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="fa-icones-icone-optimisation-title">
+  <title id="fa-icones-icone-optimisation-title">Optimisation</title>
+  <defs>
+    <linearGradient id="fa-icones-icone-optimisation-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#d9dde2"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+    <linearGradient id="fa-icones-icone-optimisation-cyanL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ff3ff"/><stop offset="1" stop-color="#1cc6ff"/></linearGradient>
+    <linearGradient id="fa-icones-icone-optimisation-cyanR" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00aef5"/><stop offset="1" stop-color="#0078d0"/></linearGradient>
+    <filter id="fa-icones-icone-optimisation-glowSoft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <mask id="fa-icones-icone-optimisation-fentes" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <g fill="#000" stroke="#000" stroke-width="28" stroke-linejoin="miter"><path d="M 342 540 L 418 600 L 342 660 L 266 600 Z"/><path d="M 512 330 L 588 390 L 512 450 L 436 390 Z"/><path d="M 682 460 L 758 520 L 682 580 L 606 520 Z"/></g>
+    </mask>
+  </defs>
+  <g shape-rendering="geometricPrecision">
+    <circle cx="512" cy="512" r="436" fill="none" stroke="url(#fa-icones-icone-optimisation-silver)" stroke-width="22"/>
+    <path d="M 320 244 L 364 244 L 364 780 L 320 780 Z M 490 244 L 534 244 L 534 780 L 490 780 Z M 660 244 L 704 244 L 704 780 L 660 780 Z" fill="url(#fa-icones-icone-optimisation-silver)" mask="url(#fa-icones-icone-optimisation-fentes)"/>
+    <g filter="url(#fa-icones-icone-optimisation-glowSoft)"><path d="M 342 540 L 342 660 L 266 600 Z" fill="url(#fa-icones-icone-optimisation-cyanL)"/><path d="M 342 540 L 418 600 L 342 660 Z" fill="url(#fa-icones-icone-optimisation-cyanR)"/><path d="M 512 330 L 512 450 L 436 390 Z" fill="url(#fa-icones-icone-optimisation-cyanL)"/><path d="M 512 330 L 588 390 L 512 450 Z" fill="url(#fa-icones-icone-optimisation-cyanR)"/><path d="M 682 460 L 682 580 L 606 520 Z" fill="url(#fa-icones-icone-optimisation-cyanL)"/><path d="M 682 460 L 758 520 L 682 580 Z" fill="url(#fa-icones-icone-optimisation-cyanR)"/></g>
+  </g>
+</svg>
