@@ -149,12 +149,11 @@ armures, écran de confirmation prise par prise, écriture réelle via
 au premier refus avec le message exact de Bungie, re-lecture de
 l'inventaire après succès. Objets du Coffre inclus (décision du 03/11).
 ✅ Validation en jeu obtenue le 03/11/2026 (« Parfait ça fonctionne ! »).
-🟢 **Suite décidée le 03/11/2026 (ordre 3 → 1 → 2)** : le chantier
-s'étend aux **perks d'armes** (variante B, codé le 03/11 — même bouton
-« Appliquer en jeu » dans la fenêtre Détails, plug visé = « effectif ») ;
-⏳ **validation en jeu restante**. Ensuite : PR #27 prête pour revue puis
-fusion, puis **bump v0.6.0 — reporté jusqu'à la validation des perks
-d'armes** (décision du 03/11/2026).
+✅ **Variante B FAITE et VALIDÉE EN JEU le 04/11/2026** (« OK ça
+fonctionne ») : les perks d'armes s'écrivent aussi réellement en jeu,
+dans la fenêtre Détails et par l'icône des cartes (boutons de la
+charte intégrés le 04/11). PR #27 prête pour revue puis fusion,
+puis **bump v0.6.0** (débloqué).
 ✅ **Bouton stylisé dédié FOURNI et INTÉGRÉ le 04/11/2026** (archive
 `forge-armory-app-assets`) : bouton plaque dans les pop-up Détails,
 icône seule dans les cartes d'Armes et d'Armures.

@@ -24,6 +24,23 @@
 
 ---
 
+## 04/11/2026 — LIVRAISON v0.6.0 : première écriture RÉELLE des perks et mods chez Bungie (« Appliquer en jeu »)
+
+**⏳→✅ VALIDATION UTILISATEUR EN JEU DES PERKS D'ARMES (04/11/2026)** : « OK ça fonctionne » — la variante B est validée sur le compte réel. Le chantier mods-phase-2 est donc TERMINÉ de bout en bout : SPEC (décisions verrouillées), PLAN, codage, correctifs du premier test réel (champ `itemId`), validation des mods d'armure, extension aux perks d'armes, boutons de la charte, validation des perks d'armes.
+
+**Passage de palier 0.5.7 → 0.6.0 (justifié)** : c'est la PREMIÈRE fonctionnalité de l'appli qui ÉCRIT les perks/mods sur le compte Destiny 2 (l'équipement et le transfert existaient déjà ; ici, l'appli modifie les rolls et mods des objets). Le « X » de 0.X.Y monte : changement de nature, pas un simple ajout.
+
+**Contenu de la version** (détail dans les entrées des 03–04/11) :
+- Bouton **« Appliquer en jeu »** (charte : plaque dans les pop-up Détails, icône seule dans les cartes d'Armes et d'Armures) — visible uniquement quand la simulation diffère du réel ;
+- Écran de confirmation socket par socket (plug actuel → visé, avertissement compte Destiny 2), écriture UN plug par appel via `InsertSocketPlugFree` (champ `itemId`), **arrêt au premier refus** avec le message exact de Bungie, relance des prises restantes uniquement ;
+- Après succès : effacement de la simulation (le réel l'a remplacée) et re-lecture de l'inventaire dans la Forge ; objets du Coffre inclus (tentative directe) ;
+- Couvre les **mods d'armure** ET les **perks d'armes** (plug visé = hash « effectif », version améliorée comprise) ;
+- Correctif au passage : `diagnostiquerInsertionPlug` utilisait lui aussi le mauvais champ (`itemInstanceId` au lieu de `itemId`) — il rapportait le faux refus 1663.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` 55/55 suites, 1118/1118 contrôles ; `npm run build` OK ; CI verte sur la PR #27.
+
+---
+
 ## 04/11/2026 — BOUTONS « Appliquer en jeu » de la charte intégrés (archive `forge-armory-app-assets` fournie par l'utilisateur) + cartes d'armes
 
 **Contexte** : l'utilisateur a poussé sur `main` (f7466b0) l'archive `ressources-installateur/forge-armory/app-assets/forge-armory-app-assets/` (l'ancienne archive part dans `archives-precedentes/app-assets-v11`) avec les visuels demandés : le **bouton plaque « Appliquer en jeu »** pour les pop-up Détails et l'**icône seule** pour les cartes d'Armes et d'Armures. Merge de main dans la branche du chantier, puis intégration.
