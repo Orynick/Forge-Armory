@@ -16,7 +16,8 @@ import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimula
 import { estFaconnee } from "../lib/forge/faconnee";   // ⚠️ AJOUT (14/10/2026, v0.4.10) : armes façonnées (« forgées »)
 import IconesArme from "./IconesArme";
 import BoutonAction from "./BoutonAction";   // ⚠️ AJOUT (30/10/2026) : boutons d'action visuels de la charte
-import FenetreDetailsPiece from "./FenetreDetailsPiece";   // ⚠️ AJOUT (30/10/2026) : la fenêtre de détails UNIQUE (Build Analyzer et Forge)
+import FenetreDetailsPiece from "./FenetreDetailsPiece";
+import AppliquerEnJeu from "./AppliquerEnJeu";   // ⚠️ AJOUT (04/11/2026, mods-phase-2 variante B + visuels fournis) : icône « Appliquer en jeu » dans la carte d’arme   // ⚠️ AJOUT (30/10/2026) : la fenêtre de détails UNIQUE (Build Analyzer et Forge)
 // FR : ⚠️ AJOUT (23/10/2026, audit) - styles partagés des fenêtres liste (dedup). / EN: ⚠️ ADDED - shared list-window styles (dedup).
 import { couleurRarete, styleChamp } from "../lib/forge/stylesListes";
 
@@ -153,8 +154,10 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(17rem, 1fr))", gap: "0.5rem" }}>
             {liste.slice(0, affichees).map((p) => (
               <li key={p.itemInstanceId ?? `${p.itemHash}-${p.origine}`}>
-                <button onClick={() => setOuverte(p)} data-arme-possedee={p.itemInstanceId ?? ""} data-lieu={p.origine ?? ""} data-simulee={nbSim(p) > 0 ? "1" : ""} data-faconnee={p.itemInstanceId && faconnees.has(p.itemInstanceId) ? "1" : ""}
-                  style={{ width: "100%", textAlign: "left", display: "flex", gap: "0.5rem", alignItems: "flex-start", padding: "0.4rem", background: "#12151c", color: "#e8e6df", border: `1px solid ${couleurRarete(p)}`, borderRadius: 8, cursor: "pointer" }}>
+                {/* FR : ⚠️ CHANGÉ (04/11/2026, retour utilisateur : icône « Appliquer en jeu » DANS la carte, comme les armures) - la carte devient un div role=button (HTML interdit les boutons imbriqués) ; mêmes attributs data pour les tests. / EN: the card is now a div role=button so the apply icon can live INSIDE it. */}
+                <div role="button" tabIndex={0} onClick={() => setOuverte(p)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setOuverte(p); }} data-arme-possedee={p.itemInstanceId ?? ""} data-lieu={p.origine ?? ""} data-simulee={nbSim(p) > 0 ? "1" : ""} data-faconnee={p.itemInstanceId && faconnees.has(p.itemInstanceId) ? "1" : ""}
+                  style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.35rem", padding: "0.4rem", background: "#12151c", color: "#e8e6df", border: `1px solid ${couleurRarete(p)}`, borderRadius: 8, cursor: "pointer" }}>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
                   {/* FR : ⚠️ CHANGÉ (14/10/2026, v0.4.10) - ARME FAÇONNÉE : l'icône du jeu (teinte saumon corail) est posée EN BAS À GAUCHE de la vignette de l'arme, comme dans le jeu (demande de l'utilisateur, avec capture). Elle remplace le texte « 🔧 Façonnée » ; nom accessible et infobulle sur l'enveloppe. / EN: ⚠️ CHANGED - the game's icon at the bottom-left of the weapon tile. */}
                   <VignetteArme icone={p.icone} taille={44} reserverPlace faconnee={!!p.itemInstanceId && faconnees.has(p.itemInstanceId)} db={db} itemHash={p.itemHash} />
                   <span style={{ minWidth: 0 }}>
@@ -163,7 +166,12 @@ export default function InventaireArmes({ db, membership, cible = null, onAjoute
                     <span data-lieu-texte="" style={{ display: "block", fontSize: "0.72rem", color: "#9a968a" }}>{LIEUX[p.origine ?? ""] ?? "Lieu inconnu"}{p.equipe ? " · équipée" : ""}</span>
                     {nbSim(p) > 0 && <span data-badge-simulation="" style={{ fontSize: "0.7rem", color: "#e8c547" }}>Simulation ({nbSim(p)} colonne{nbSim(p) > 1 ? "s" : ""})</span>}
                   </span>
-                </button>
+                  </div>
+                  {/* FR : ⚠️ AJOUT (04/11/2026, mods-phase-2 variante B) - icône seule « Appliquer en jeu » dans la CARTE d'arme (visible uniquement si la simulation diffère du réel) ; le clic ouvre l'écran de confirmation, sans ouvrir la fenêtre Détails. / EN: icon-only "Apply in game" inside the weapon card. */}
+                  <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} style={{ display: "flex" }}>
+                    <AppliquerEnJeu db={db} membership={membership} piece={p} compact onSucces={charger} />
+                  </div>
+                </div>
               </li>
             ))}
           </ul>

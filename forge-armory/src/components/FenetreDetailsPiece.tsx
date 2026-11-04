@@ -2,9 +2,11 @@
 // EN: ⚠️ ADDED - THE single details window of a weapon or armor piece, used by Build Analyzer (Inventory, My Build) AND the Forge: same information, same places.
 import { useEffect, useMemo, useState } from "react";
 import type { Database } from "sql.js";
+import type { DestinyMembership } from "../lib/bungie/api";   // ⚠️ AJOUT (03/11/2026, mods-phase-2)
 import type { GearPiece } from "../types/build";
 import BoutonLireLore from "./BoutonLireLore";
 import BoutonAction from "./BoutonAction";
+import AppliquerEnJeu from "./AppliquerEnJeu";   // ⚠️ AJOUT (03/11/2026, mods-phase-2, retour utilisateur) : bouton « Appliquer en jeu » (armures, variante A) dans la fenêtre Détails
 import IconeSaison from "./IconeSaison";
 import IconeTitreFaconnee from "./IconeTitreFaconnee";
 import IconesArme from "./IconesArme";
@@ -46,9 +48,13 @@ export interface PropsFenetreDetails {
   /** FR : « Mettre dans Mon Build » ; `dejaDansBuild` : la pièce y est déjà (Mon Build, ou ajoutée à l'instant). */
   onAjouterAuBuild?: (piece: GearPiece) => void;
   dejaDansBuild?: boolean;
+  /** FR : ⚠️ AJOUT (03/11/2026, mods-phase-2, retour utilisateur : bouton « Appliquer en jeu » dans la pop-up Détails, peu importe d'où elle est ouverte) - le compte Bungie connecté : sans lui, pas d'écriture en jeu (le bouton n'apparaît pas). / EN: the signed-in Bungie account; without it, no in-game write (no button). */
+  membership?: DestinyMembership | null;
+  /** FR : ⚠️ AJOUT (03/11/2026, mods-phase-2) - re-lecture après un succès complet (la Forge y recharge son inventaire ; absent ailleurs : le message invite à recharger). / EN: reload after full success. */
+  onAppliqueEnJeu?: () => void;
 }
 
-export default function FenetreDetailsPiece({ db, piece: ouverte, onFermer, onLireLore, onOuvrirForge, onRetour, libelleRetour = "la vue d'origine", onAjouterAuBuild, dejaDansBuild = false }: PropsFenetreDetails) {
+export default function FenetreDetailsPiece({ db, piece: ouverte, onFermer, onLireLore, onOuvrirForge, onRetour, libelleRetour = "la vue d'origine", onAjouterAuBuild, dejaDansBuild = false, membership = null, onAppliqueEnJeu }: PropsFenetreDetails) {
   const estArme = SLOTS_ARME.includes(ouverte.slot as string);
   const simulations = useSimulations();
   const appliquer = (transformation: (s: Simulations) => Simulations) => mettreAJourSimulations(transformation);
@@ -146,7 +152,7 @@ export default function FenetreDetailsPiece({ db, piece: ouverte, onFermer, onLi
           </div>
         )}
         {/* (5) actions */}
-        {(onRetour || ((onAjouterAuBuild || dansBuild) && instance) || onOuvrirForge) && (
+        {(onRetour || ((onAjouterAuBuild || dansBuild) && instance) || onOuvrirForge || membership) && (
           <div data-ligne-actions="" style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap", margin: "0 0 0.6rem" }}>
             {onRetour && (libelleRetour === "Build Analyzer"
               ? <BoutonAction id="boutons-action.retour" libelle="Retour à Build Analyzer" onClick={() => { fermer(); onRetour(); }} hauteur="2.5rem" donnees={{ "retour-fenetre": true }} />
@@ -160,6 +166,8 @@ export default function FenetreDetailsPiece({ db, piece: ouverte, onFermer, onLi
                 ? <BoutonAction id="boutons-action.forgeperks" libelle="Forge : choisir les perks de cette arme" onClick={() => onOuvrirForge(ouverte)} hauteur="2.5rem" donnees={{ "ouvrir-forge": true }} />
                 : <BoutonAction id="boutons-action.forgemods" libelle="Forge : choisir les mods de cette armure" onClick={() => onOuvrirForge(ouverte)} hauteur="2.5rem" donnees={{ "ouvrir-forge": true }} />
             )}
+            {/* FR : ⚠️ AJOUT (03/11/2026, mods-phase-2, retour utilisateur) puis ⚠️ CHANGÉ (variante B, décision utilisateur du 03/11 : le chantier s'étend aux perks d'armes) - bouton « Appliquer en jeu » DANS la fenêtre Détails, peu importe d'où elle est ouverte (Forge, Mon Inventaire/Coffre, Mon Build), pour une ARMURE (mods) comme pour une ARME (perks) possédée dont la simulation diffère du réel. / EN: shared "Apply in game" button in the details window, armor mods AND weapon perks (variant B). */}
+            <AppliquerEnJeu db={db} membership={membership} piece={ouverte} onSucces={onAppliqueEnJeu} />
             {messageBuild && <span data-message-build="" role="status" style={{ fontSize: "0.75rem", color: "#7fd88f" }}>{messageBuild}</span>}
           </div>
         )}
