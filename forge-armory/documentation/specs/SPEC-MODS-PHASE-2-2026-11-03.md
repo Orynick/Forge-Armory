@@ -1,7 +1,7 @@
 # SPEC — mods-phase-2
 
 **Date :** 2026-11-03
-**Statut :** brouillon → à valider (l'utilisateur verrouille les décisions) — ce document fait foi une fois validé ; toute divergence doit être signalée **avant** codage.
+**Statut :** décisions verrouillées par l'utilisateur le 03/11/2026 (variante A ; objets du Coffre modifiables ; scope OAuth `MoveEquipDestinyItems` confirmé par la doc Bungie) — prête pour la phase de codage.
 **Branche prévue :** `draft-mods-phase-2` (préparation uniquement — aucun code tant que la spec n'est pas validée)
 **Version de l'appli à la rédaction :** 0.5.7
 **Version visée :** 0.6.0 (première écriture de perks/mods chez Bungie : passage de palier à justifier dans le DEVLOG à la livraison)
@@ -23,7 +23,7 @@ Dans la fenêtre Forge d'une arme ou d'une armure possédée (vue Inventaire), l
 3. à la confirmation, l'appli insère les plugs **un par un, dans l'ordre affiché**, via `POST /Destiny2/Actions/Items/InsertSocketPlugFree/` ;
 4. chaque insertion réussie est signalée (✓) ; un échec **arrête la chaîne** et affiche le `ErrorCode`/`ErrorStatus`/`Message` exact de Bungie avec un conseil (ex. 401/403 = autorisation, refus logique = plug non autorisé sur ce socket, limite du jeu) ; **rien n'est jamais annulé automatiquement** ;
 5. après un succès complet, l'inventaire local est **re-lecture** (refresh Bungie) pour que Détails, Mon Build et le score repartent de l'état réel ; le badge « simulé » disparaît car il n'y a plus d'écart ;
-6. si l'objet est dans le Coffre, l'appli le signale : l'insertion doit être tentée sur le personnage qui le possède — `[À CLARIFIER: confirmation du comportement exact quand l'objet n'est sur aucun personnage]`.
+6. **objet dans le Coffre (verrouillé le 03/11/2026) : les objets du Coffre DOIVENT être modifiables eux aussi** — l'insertion est tentée directement sur l'objet du Coffre (`itemInstanceId` réel, personnage porteur = le coffre) ; si Bungie refuse l'écriture sur un objet hors personnage, l'`ErrorCode`/`Message` exact est affiché tel quel (conformément au point 4), sans contournement (aucun transfert automatique — hors périmètre 3.2).
 
 Sont **exclus** de l'écriture, comme de la simulation : ornements, revêtements (shaders), compteurs/trackers, mementos (sauf « Memento Mori », vrai perk) — la liste exclue est celle déjà maintenue pour l'affichage (protection de `obtenirPlugsDetailles`).
 
@@ -41,7 +41,7 @@ Sont **exclus** de l'écriture, comme de la simulation : ornements, revêtements
 ### 3.2 Hors périmètre (explicite — règle anti-régression, Article V)
 
 - RIEN d'autre que la liste 3.1 ne doit être modifié. Toute modification hors périmètre doit être justifiée par écrit dans la PR.
-- Ne pas toucher : moteur de scoring, fenêtres Détails (autre que le bouton déjà existant), Collection, Load-outs, Optimiseur, Legendarium, doctrine, OAuth (les droits déjà demandés suffisent : `MoveEquipDestinyItems` — `[À CLARIFIER: vérifier le scope OAuth exact requis par InsertSocketPlugFree dans la doc Bungie avant codage]`).
+- Ne pas toucher : moteur de scoring, fenêtres Détails (autre que le bouton déjà existant), Collection, Load-outs, Optimiseur, Legendarium, doctrine, OAuth (les droits déjà demandés suffisent : **vérifié le 03/11/2026 dans la doc Bungie** — `InsertSocketPlugFree` requiert le scope `MoveEquipDestinyItems`, n'exige PAS « Advanced Write Action » ; l'appli ne passe pas de paramètre `scope` dans son URL d'autorisation (`oauth.ts`) : le scope est déclaré dans le portail d'application Bungie.net, il suffit qu'il y soit coché — seul point de contrôle utilisateur avant codage).
 - Aucune écriture « en lot » non confirmée, aucun transfert ni équipement d'objet (chantiers séparés).
 
 ## 4. Règles métier et contraintes
@@ -50,7 +50,7 @@ Sont **exclus** de l'écriture, comme de la simulation : ornements, revêtements
 - **Limites connues du jeu (à vérifier avant codage, point 12 des « points à trancher »)** : les perks d'une arme à rolls aléatoires NON façonnée ne sont probablement **pas modifiables** via l'API ; l'endpoint a aussi été historiquement restreint pour les applications tierces. La spec distingue donc deux livrables possibles :
   - **Variante A (recommandée)** : première livraison = **mods d'armure uniquement** (usage confirmé par les autres outils), le bouton « Appliquer en jeu » des armes n'apparaît que si l'insertion est tentée et autorisée — avec le diagnostic existant pour trancher sur le compte réel de l'utilisateur ;
   - **Variante B** : perks d'armes et mods d'armure d'un coup si le diagnostic le prouve.
-  - `[À CLARIFIER: variante A ou B ?]`
+  - **Décision verrouillée le 03/11/2026 : VARIANTE A** — première livraison = mods d'armure uniquement ; les perks d'armes restent hors écriture dans ce chantier (chantier séparé si le diagnostic les prouve réalisables plus tard).
 - Règles de scoring impactées : **aucune** — le score continue de consommer la simulation ; après re-lecture, réel et simulation convergent naturellement.
 - Persistance / migration : aucune nouvelle donnée persistée ; l'état simulé existant (`storeSimulations`) est consommé tel quel, puis vidé pour l'objet appliqué après re-lecture réussie.
 - Coût matériaux : l'endpoint « Free » n'en consomme pas ; si Bungie refuse un plug payant, l'erreur est affichée telle quelle (aucune gestion de matériaux dans l'appli).
@@ -80,5 +80,5 @@ Sont **exclus** de l'écriture, comme de la simulation : ornements, revêtements
 - **Limite du jeu sur les perks d'armes** (point 12) : traitée par la variante A/B ci-dessus ;
 - **Écriture partielle** (échec au milieu d'une chaîne) : l'écran affiche l'état exact de ce qui a été écrit / pas écrit, l'utilisateur relance ce qu'il veut — jamais de ré-application aveugle ;
 - **Perk améliorée / paliers** : l'insertion vise le hash du plug **tel que sélectionné dans la Forge** ; si le palier de l'arme ne permet pas la version améliorée, Bungie refuse et le message est affiché — aucun recalcul de palier dans ce chantier ;
-- **Objet équipé par un autre personnage / dans le Coffre** : comportement à clarifier (voir 2.6) ;
+- **Objet équipé par un autre personnage / dans le Coffre** : verrouillé le 03/11/2026 (voir 2.6) — tentative directe, message Bungie exact si refus ;
 - Consommation de quota API : négligeable (un appel par plug, usage manuel confirmé).
