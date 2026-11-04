@@ -4,7 +4,7 @@ import { urlVisuel } from "../lib/visuelsForge";
 import { forgeAsset } from "../data/forge/forgeAssets";
 import { FORGE_ASSETS_COMPLEMENT } from "../data/forge/forgeAssetsComplement";
 
-export type IdBoutonAction = "boutons-action.retour" | "boutons-action.plus" | "boutons-action.lore" | "boutons-action.actualisation" | "boutons-action.forgemods" | "boutons-action.forgeperks" | "boutons-action.modifier" | "boutons-action.fermer";   // ⚠️ 31/10/2026 : + « fermer » ; ⚠️ 02/11/2026 : + « forgeperks » (pack v11, 8e bouton, armes)
+export type IdBoutonAction = "boutons-action.retour" | "boutons-action.plus" | "boutons-action.lore" | "boutons-action.actualisation" | "boutons-action.forgemods" | "boutons-action.forgeperks" | "boutons-action.modifier" | "boutons-action.fermer" | "boutons-action.appliquerenjeu";   // ⚠️ 04/11/2026 : + « Appliquer en jeu » (archive forge-armory-app-assets)   // ⚠️ 31/10/2026 : + « fermer » ; ⚠️ 02/11/2026 : + « forgeperks » (pack v11, 8e bouton, armes)
 
 interface Props {
   id: IdBoutonAction;

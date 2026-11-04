@@ -40,6 +40,7 @@ export const FORGE_ASSETS_COMPLEMENT: readonly ForgeAssetComplement[] = [
   { id: "boutons-action.forgeperks", famille: "boutons-action", label: "Forge : choisir les perks de cette arme", etat: null, fichier: "assets/boutons-action/bouton-forgeperks.svg", largeur: 6805, hauteur: 1024, ratio: 6.6455, hauteurMinPx: 40, format: "svg" },
   { id: "boutons-action.modifier", famille: "boutons-action", label: "Modifier", etat: null, fichier: "assets/boutons-action/bouton-modifier.svg", largeur: 2511, hauteur: 1024, ratio: 2.4521, hauteurMinPx: 40, format: "svg" },
   { id: "boutons-action.fermer", famille: "boutons-action", label: "Fermer", etat: null, fichier: "assets/boutons-action/bouton-fermer.svg", largeur: 2313, hauteur: 1024, ratio: 2.2588, hauteurMinPx: 40, format: "svg" },
+  { id: "boutons-action.appliquerenjeu", famille: "boutons-action", label: "Appliquer en jeu", etat: null, fichier: "assets/boutons-action/bouton-appliquer-en-jeu.svg", largeur: 4902, hauteur: 1024, ratio: 4.7871, hauteurMinPx: 40, format: "svg" },   // ⚠️ AJOUT (04/11/2026, archive `forge-armory-app-assets` fournie par l’utilisateur) : bouton « Appliquer en jeu » des pop-up Détails
   // FR : ⚠️ CHANGÉ (02/11/2026, pack v11) - les logos ronds seuls des actions, désormais en 1024 × 1024 comme toutes les autres icônes (2 nouveaux : forgeperks et fermer). / EN: the round logos, now 1024 × 1024 like all other icons.
   { id: "icones.retour", famille: "icones", label: "Retour à Build Analyzer", etat: null, fichier: "assets/icones/icone-retour.svg", largeur: 1024, hauteur: 1024, ratio: 1, hauteurMinPx: 24, format: "svg" },
   { id: "icones.plus", famille: "icones", label: "Mettre dans Mon Build", etat: null, fichier: "assets/icones/icone-plus.svg", largeur: 1024, hauteur: 1024, ratio: 1, hauteurMinPx: 24, format: "svg" },
@@ -49,6 +50,7 @@ export const FORGE_ASSETS_COMPLEMENT: readonly ForgeAssetComplement[] = [
   { id: "icones.forgeperks", famille: "icones", label: "Forge : choisir les perks de cette arme", etat: null, fichier: "assets/icones/icone-forgeperks.svg", largeur: 1024, hauteur: 1024, ratio: 1, hauteurMinPx: 24, format: "svg" },
   { id: "icones.modifier", famille: "icones", label: "Modifier", etat: null, fichier: "assets/icones/icone-modifier.svg", largeur: 1024, hauteur: 1024, ratio: 1, hauteurMinPx: 24, format: "svg" },
   { id: "icones.fermer", famille: "icones", label: "Fermer", etat: null, fichier: "assets/icones/icone-fermer.svg", largeur: 1024, hauteur: 1024, ratio: 1, hauteurMinPx: 24, format: "svg" },
+  { id: "icones.appliquerenjeu", famille: "icones", label: "Appliquer en jeu", etat: null, fichier: "assets/icones/icone-appliquer-en-jeu.svg", largeur: 1024, hauteur: 1024, ratio: 1, hauteurMinPx: 24, format: "svg" },   // ⚠️ AJOUT (04/11/2026) : icône seule des cartes d’Armes et d’Armures
 ];
 
 /**

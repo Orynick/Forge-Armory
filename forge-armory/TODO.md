@@ -155,10 +155,9 @@ s'étend aux **perks d'armes** (variante B, codé le 03/11 — même bouton
 ⏳ **validation en jeu restante**. Ensuite : PR #27 prête pour revue puis
 fusion, puis **bump v0.6.0 — reporté jusqu'à la validation des perks
 d'armes** (décision du 03/11/2026).
-🔴 **À fournir par l'utilisateur** : un **bouton stylisé dédié pour
-« ⚡ Appliquer en jeu »** (même méthode que le pack v11 : SVG fourni,
-intégré via `BoutonAction`/équivalent) — le bouton texte actuel est
-provisoire.
+✅ **Bouton stylisé dédié FOURNI et INTÉGRÉ le 04/11/2026** (archive
+`forge-armory-app-assets`) : bouton plaque dans les pop-up Détails,
+icône seule dans les cartes d'Armes et d'Armures.
 
 **Reste à faire — niveau 1 (évolutions)** :
 - **Collection des armures** (toutes les armures du jeu) et **ensembles et

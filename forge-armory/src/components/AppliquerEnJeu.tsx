@@ -10,6 +10,8 @@ import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimula
 import { insererPlug, lireProfilEquipement, localiserDansProfil } from "../lib/bungie/equiper";
 import { obtenirOptionsToutesColonnes } from "../lib/manifest/doctrine";   // ⚠️ AJOUT (03/11/2026, variante B) : colonnes de perks d’ARME (prises non masquées seulement)
 import Modale from "./Modale";
+import BoutonAction from "./BoutonAction";   // ⚠️ AJOUT (04/11/2026) : bouton charte « Appliquer en jeu » (archive forge-armory-app-assets)
+import { urlVisuel } from "../lib/visuelsForge";   // ⚠️ AJOUT (04/11/2026) : icône seule des cartes
 
 const SLOTS_ARME = ["cinetique", "energie", "lourde"];
 const LIEUX: Record<string, string> = { titan: "Titan", chasseur: "Chasseur", arcaniste: "Arcaniste", coffre: "Coffre", courrier: "Courrier" };
@@ -120,13 +122,15 @@ export default function AppliquerEnJeu({ db, membership, piece, compact = false,
     onSucces?.();
   }
 
+  // FR : ⚠️ CHANGÉ (04/11/2026, visuels fournis par l'utilisateur, archive `forge-armory-app-assets`) - le bouton TEXTE provisoire est remplacé par les visuels de la charte : le BOUTON plaque « Appliquer en jeu » (`boutons-action.appliquerenjeu`, via `BoutonAction`, hauteur 2.5rem = barre Forge) dans la fenêtre Détails, et l'ICÔNE SEULE (`icones.appliquerenjeu`) dans les cartes d'Armes et d'Armures ; l'aria-label porte le nombre de prises. / EN: charter visuals replace the provisional text button: full plate button in the details window, icon-only on the cards.
+  const libelle = `Appliquer en jeu (${ecarts.length} prise${ecarts.length > 1 ? "s" : ""})`;
   return (
     <>
-      <button onClick={ouvrir} data-appliquer-en-jeu={piece.itemInstanceId} style={compact
-        ? { width: "100%", padding: "0.3rem 0.5rem", background: "#2a2412", color: "#f4e3a0", border: "1px solid #e8c547", borderRadius: 8, cursor: "pointer", fontSize: "0.72rem", textAlign: "center" }
-        : { padding: "0.4rem 0.8rem", background: "#2a2412", color: "#f4e3a0", border: "1px solid #e8c547", borderRadius: 8, cursor: "pointer", fontSize: "0.8rem", whiteSpace: "nowrap" }}>
-        ⚡ Appliquer en jeu ({ecarts.length})
-      </button>
+      {compact
+        ? <button type="button" onClick={ouvrir} data-appliquer-en-jeu={piece.itemInstanceId} aria-label={libelle} title={libelle} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, border: 0, background: "transparent", cursor: "pointer", lineHeight: 0, borderRadius: 6 }}>
+            <img src={urlVisuel("icones.appliquerenjeu")} alt="" width={24} height={24} draggable={false} style={{ display: "block", pointerEvents: "none" }} />
+          </button>
+        : <BoutonAction id="boutons-action.appliquerenjeu" libelle={libelle} onClick={ouvrir} hauteur="2.5rem" title={libelle} donnees={{ "appliquer-en-jeu": piece.itemInstanceId ?? "" }} />}
       {appli && (
         <Modale titre="Appliquer en jeu" onFermer={() => setAppli(null)} largeur={560}>
           <p style={{ margin: "0 0 0.4rem", fontSize: "0.85rem" }}><strong>{piece.nom ?? `Armure ${piece.itemHash}`}</strong> — {LIEUX[piece.origine ?? ""] ?? "lieu inconnu"}{piece.equipe ? " · équipée" : ""}</p>

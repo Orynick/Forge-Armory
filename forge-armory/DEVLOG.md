@@ -24,6 +24,23 @@
 
 ---
 
+## 04/11/2026 — BOUTONS « Appliquer en jeu » de la charte intégrés (archive `forge-armory-app-assets` fournie par l'utilisateur) + cartes d'armes
+
+**Contexte** : l'utilisateur a poussé sur `main` (f7466b0) l'archive `ressources-installateur/forge-armory/app-assets/forge-armory-app-assets/` (l'ancienne archive part dans `archives-precedentes/app-assets-v11`) avec les visuels demandés : le **bouton plaque « Appliquer en jeu »** pour les pop-up Détails et l'**icône seule** pour les cartes d'Armes et d'Armures. Merge de main dans la branche du chantier, puis intégration.
+
+**Réalisé** :
+
+- `public/assets/boutons-action/bouton-appliquer-en-jeu.svg` (cadre 4902 × 1024, ratio 4,7871 ; préfixes internes réécrits `fa-actions-` → `fa-boutons-action-` à la copie, règle §9) et `public/assets/icones/icone-appliquer-en-jeu.svg` (1024 × 1024, préfixes déjà conformes) ; les variantes « -selectionne » du pack ne sont pas livrées (comme les 8 autres boutons d'action).
+- `forgeAssetsComplement.ts` : + `boutons-action.appliquerenjeu` et `icones.appliquerenjeu` ; `BoutonAction.tsx` : + l'id.
+- `AppliquerEnJeu.tsx` : le bouton TEXTE provisoire est remplacé — **bouton plaque via `BoutonAction`** (hauteur 2.5rem = barre Forge) dans la fenêtre Détails, **icône seule** (24 px, aria-label « Appliquer en jeu (N prises) ») dans les cartes.
+- `InventaireArmes.tsx` : la carte d'arme devient un `div role="button"` (HTML interdit les boutons imbriqués, mêmes attributs `data-*`) et reçoit l'**icône seule dans la carte**, comme les armures — le bouton d'une arme vit donc AUSSI dans sa carte désormais.
+- **Correctif de chemins** (régression du commit f7466b0 sur la CI) : `carriere-large.test.ts`, `reproductibilite-visuels.test.ts` et `generer-propositions-solo-forge.mjs` référençaient l'ANCIEN chemin `app-assets/assets` (ENOENT) — ils pointent désormais vers `archives-precedentes/app-assets-v11/assets` (l'archive de référence de la reproductibilité). Le NOUVEAU pack `forge-armory-app-assets` est traité comme le fut le pack v11 : source des nouveaux visuels, pas encore intégré en masse.
+- `reproductibilite-visuels.test.ts` : la liste des fichiers hors archive passe de 16 à **18** (+ bouton et icône « Appliquer en jeu »).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` **55/55 suites, 1118/1118 contrôles** ; `npm run build` OK ; `visuels.test.ts` 20/20 (cadres, préfixes §9, unicités, aucun SVG non déclaré).
+
+---
+
 ## 03/11/2026 — MODS-PHASE-2, VARIANTE B : le bouton « Appliquer en jeu » couvre aussi les perks d'ARMES (décision utilisateur : ordre 3 → 1 → 2)
 
 **Décisions de l'utilisateur après la validation en jeu des mods d'armure** : (1) le chantier s'étend aux **perks d'armes** (variante B) ; (2) ensuite seulement : PR prête pour revue puis fusion ; (3) puis **bump v0.6.0 — reporté jusqu'à la validation des perks d'armes** ; (4) **un bouton stylisé dédié pour « ⚡ Appliquer en jeu » sera fourni par l'utilisateur** (le bouton texte actuel est provisoire — même méthode d'intégration que le pack v11).
