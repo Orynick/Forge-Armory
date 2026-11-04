@@ -13,6 +13,7 @@ import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";   // ⚠️ AJO
 import { diagnosticEnergieMods, diagnosticModsEnDouble } from "../lib/forge/diagnosticEnergie";   // ⚠️ AJOUT (24/10/2026)
 import { diagnosticStatsBaseArmures } from "../lib/forge/diagnosticStatsBase";   // ⚠️ AJOUT (27/10/2026)
 import { reinitialiserArme, nbColonnesSimulees, armuresSimulees, Simulations } from "../lib/forge/simulation";
+import AppliquerEnJeu from "./AppliquerEnJeu";   // ⚠️ AJOUT (03/11/2026, mods-phase-2, retour utilisateur) : bouton + écran de confirmation PARTAGÉS avec la fenêtre Détails
 import { useSimulations, mettreAJourSimulations } from "../lib/forge/storeSimulations";
 import StatsArmure from "./StatsArmure";   // ⚠️ AJOUT (27/10/2026)
 import FenetreDetailsPiece from "./FenetreDetailsPiece";   // ⚠️ AJOUT (30/10/2026) : la fenêtre de détails UNIQUE (Build Analyzer et Forge)
@@ -143,7 +144,7 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
       </p>
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.6rem" }}>
         {pieces
-          ? <BoutonAction id="boutons-action.actualisation" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} disabled={enCours} hauteur="2.5rem" donnees={{ "actualiser-inventaire": true }} />
+          ? <BoutonAction id="actions.actualisation-inventaire" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} disabled={enCours} hauteur="2.5rem" donnees={{ "actualiser-inventaire": true }} />
           : <button onClick={charger} disabled={enCours}>{enCours ? "Chargement…" : "Charger mon inventaire"}</button>}
         {idsAvecSimulation.length > 0 && <button onClick={() => appliquer((s) => idsAvecSimulation.reduce((acc, id) => reinitialiserArme(acc, id, "armures"), s))} data-effacer-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer les simulations d'armures ({idsAvecSimulation.length})</button>}
         {nbArmuresSim > idsAvecSimulation.length && <button onClick={() => appliquer((s) => armuresSimulees(s).reduce((acc, id) => reinitialiserArme(acc, id, "armures"), s))} data-effacer-toutes-simulations-armures="" style={{ fontSize: "0.8rem" }}>✕ Effacer TOUTES les simulations d'armures ({nbArmuresSim})</button>}
@@ -206,8 +207,10 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(17rem, 1fr))", gap: "0.5rem" }}>
             {liste.slice(0, affichees).map((p) => (
               <li key={p.itemInstanceId ?? `${p.itemHash}-${p.origine}`}>
-                <button onClick={() => setOuverte(p)} data-armure-possedee={p.itemInstanceId ?? ""} data-lieu={p.origine ?? ""} data-simulee={nbSim(p) > 0 ? "1" : ""}
-                  style={{ width: "100%", textAlign: "left", display: "flex", gap: "0.5rem", alignItems: "flex-start", padding: "0.4rem", background: "#12151c", color: "#e8e6df", border: `1px solid ${couleurRarete(p)}`, borderRadius: 8, cursor: "pointer" }}>
+                {/* FR : ⚠️ CHANGÉ (03/11/2026, retour utilisateur : « le bouton devrait apparaître dans la carte ») - la carte devient un div role=button (un vrai <button> ne peut pas contenir le bouton « Appliquer en jeu » : HTML interdit les boutons imbriqués) ; même attributs data pour les tests. / EN: the card is now a div role=button so the apply button can live INSIDE it. */}
+                <div role="button" tabIndex={0} onClick={() => setOuverte(p)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setOuverte(p); }} data-armure-possedee={p.itemInstanceId ?? ""} data-lieu={p.origine ?? ""} data-simulee={nbSim(p) > 0 ? "1" : ""}
+                  style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.35rem", padding: "0.4rem", background: "#12151c", color: "#e8e6df", border: `1px solid ${couleurRarete(p)}`, borderRadius: 8, cursor: "pointer" }}>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
                   <VignetteArme icone={p.icone} taille={44} reserverPlace db={db} itemHash={p.itemHash} />
                   <span style={{ minWidth: 0 }}>
                     <strong style={{ fontSize: "0.85rem", display: "block" }}>{p.nom ?? `Armure ${p.itemHash}`}</strong>
@@ -222,7 +225,12 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
                      {db && <StatsArmure db={db} piece={p} stats={nbSim(p) > 0 && p.itemInstanceId ? statsSimulees(db, p, simulations.armures?.[p.itemInstanceId]).simulees : undefined} />}
                      {nbSim(p) > 0 && <span data-badge-simulation="" style={{ fontSize: "0.7rem", color: "#e8c547" }}>Simulation ({nbSim(p)} emplacement{nbSim(p) > 1 ? "s" : ""})</span>}
                   </span>
-                </button>
+                  </div>
+                  {/* FR : ⚠️ AJOUT (03/11/2026, mods-phase-2) puis ⚠️ DÉPLACÉ DANS LA CARTE (retour utilisateur du 03/11) - bouton « Appliquer en jeu » : UNIQUEMENT si la simulation diffère de l'état réel ; le clic ouvre l'écran de confirmation (rien n'est écrit avant), sans ouvrir la fenêtre Détails. / EN: "Apply in game" button INSIDE the card, only when the simulation differs from the real state. */}
+                  <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} style={{ display: "flex" }}>
+                    <AppliquerEnJeu db={db} membership={membership} piece={p} compact onSucces={charger} />
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
@@ -232,7 +240,7 @@ export default function InventaireArmures({ db, membership, cible = null, onReto
       </div>
       {/* FR : ⚠️ CHANGÉ (30/10/2026) - la fenêtre est maintenant LA FENÊTRE UNIQUE `FenetreDetailsPiece` (même contenu, mêmes emplacements que dans Build Analyzer). / EN: the single shared details window. */}
       {ouverte && (
-        <FenetreDetailsPiece db={db} piece={ouverte} onFermer={() => setOuverte(null)} onLireLore={onLireLore} onRetour={cible && onRetour ? onRetour : undefined} libelleRetour={libelleRetour} onAjouterAuBuild={onAjouterAuBuild} dejaDansBuild={!!(ouverte.itemInstanceId && idsDansBuild?.has(ouverte.itemInstanceId))} />
+        <FenetreDetailsPiece db={db} piece={ouverte} membership={membership} onAppliqueEnJeu={charger} onFermer={() => setOuverte(null)} onLireLore={onLireLore} onRetour={cible && onRetour ? onRetour : undefined} libelleRetour={libelleRetour} onAjouterAuBuild={onAjouterAuBuild} dejaDansBuild={!!(ouverte.itemInstanceId && idsDansBuild?.has(ouverte.itemInstanceId))} />
       )}
     </div>
   );
