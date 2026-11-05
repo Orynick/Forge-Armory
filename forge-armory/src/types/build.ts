@@ -115,8 +115,18 @@ export interface GearPiece {
   perksParColonneReels?: Array<{ socketIndex: number; hash: DefinitionHash }>;
   nbColonnesSimulees?: number;
   /**
-   * FR : ⚠️ AJOUT (branche draft-mod-armures) - posés UNIQUEMENT par `lib/forge/appliquerSimulation.ts` sur une COPIE d'une ARMURE (jamais sur le build enregistré) quand au moins un de ses MODS est simulé : `modsSimules` = la simulation existe ; `statsReelles` = les six statistiques RÉELLES de l'exemplaire avant simulation (pour que les fenêtres « Détails » et Mon Build affichent le vrai total) ; `nbModsSimules` = combien d'emplacements de mods simulés. Dans la copie, `perkHashes` / `perksParColonne` contiennent les MODS SIMULÉS et `stats` les statistiques recalculées : c'est ce que lit le score (pilier stats_2_0 via `sommerStatsArmure`, et Pilier 2 via `extraireTextesEffetsBuild`).
-   * EN: ⚠️ ADDED - set only on a COPY of an ARMOR by the simulation overlay: the flags, the REAL stats before simulation, and the number of simulated mods. In the copy, `perkHashes`/`perksParColonne` hold the SIMULATED mods and `stats` the recomputed stats: this is what the score reads.
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - l'exemplaire est RÉELLEMENT masterwork (un plug de la catégorie `armor.masterworks` est actif sur la pièce). Lu à la lecture de l'inventaire, en même temps que les stats. Sert à l'optimiseur : l'option « supposer masterwork » n'applique son bonus HYPOTHÉTIQUE qu'aux pièces qui ne le sont PAS (évite le double comptage, les stats lues incluent déjà le bonus réel). `undefined` = donnée non lue (pièce ajoutée depuis la recherche, non possédée).
+   * EN: the instance is REALLY masterworked (an `armor.masterworks` plug is active on the piece). Read with the stats at inventory time. Used by the optimizer: the "assume masterwork" option only applies its HYPOTHETICAL bonus to pieces that are NOT (avoids double counting; read stats already include the real bonus). undefined = not read (search-added, not owned).
+   */
+  estMasterwork?: boolean;
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - stats INTRINSÈQUES de l'exemplaire (plugs `armor_stats` du Manifest, SANS mods ni masterwork). La règle du masterwork (+5) classe les « trois plus basses » sur CES stats, pas sur le total (comportement observé en jeu, voir lib/bungie/inventaire.ts). Sert à l'optimiseur (option « supposer masterwork »). `undefined` = non lu. Armure possédée uniquement.
+   * EN: the instance's INTRINSIC stats (`armor_stats` plugs, WITHOUT mods or masterwork). The masterwork rule (+5) ranks the "three lowest" on THESE stats, not on the total (in-game behaviour, see lib/bungie/inventaire.ts). Used by the optimizer ("assume masterwork" option). undefined = not read. Owned armor only.
+   */
+  statsIntrinseques?: Partial<StatBlock>;
+  /**
+   * FR : ⚠️ AJOUT (branche draft-mod-armures, fusion 28/10/2026) - posés UNIQUEMENT par `lib/forge/appliquerSimulation.ts` sur une COPIE d'une ARMURE (jamais sur le build enregistré) quand au moins un de ses MODS est simulé : `modsSimules` = la simulation existe ; `statsReelles` = les six statistiques RÉELLES de l'exemplaire avant simulation (pour que les fenêtres « Détails » et Mon Build affichent le vrai total) ; `nbModsSimules` = combien d'emplacements de mods simulés. Dans la copie, `perkHashes` / `perksParColonne` contiennent les MODS SIMULÉS et `stats` les statistiques recalculées : c'est ce que lit le score (pilier stats_2_0 via `sommerStatsArmure`, et Pilier 2 via `extraireTextesEffetsBuild`).
+   * EN: ⚠️ ADDED (draft-mod-armures, merge 28/10/2026) - set only on a COPY of an ARMOR by the simulation overlay: the flags, the REAL stats before simulation, and the number of simulated mods. In the copy, `perkHashes`/`perksParColonne` hold the SIMULATED mods and `stats` the recomputed stats: this is what the score reads.
    */
   modsSimules?: boolean;
   /** FR : ⚠️ AJOUT (27/10/2026, « travaille sur le lien entre stats simulées et score ») - la simulation de mods de cette armure DÉPASSE l'énergie de la pièce : elle est IGNORÉE par le score (une configuration irréalisable en jeu ne doit pas le faire monter) ; `energieDepassee` = l'excédent. / EN: ⚠️ ADDED - this armor's mod simulation exceeds its energy: ignored by the score. */
@@ -180,6 +190,21 @@ export interface BuildDraft {
   // pas une pièce en plus — sinon ses stats sont exclues du calcul du
   // pilier 5 (bug détecté par les tests du 01/08/2026, corrigé ici).
   armure: GearPiece[];
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur, fusion 28/10/2026) - AJUSTEMENTS MANUELS des stats du build
+   * (boutons −/+ à côté de chaque barre, granularité 5 points) : c'est un DELTA appliqué aux stats
+   * réelles du build (armure + bonus de fragments), simulant par exemple des mods non équipés ou un
+   * masterwork hypothétique. Borné : le TOTAL ajusté est clampé à [0, 200] (STAT_MAX) par stat - les
+   * surcharges liées aux charges d'armure (Fonts) ne sont PAS comptées ici, elles restent dans le pilier
+   * « Effets du Build ». Quand au moins un ajustement est non nul, le score lié est marqué du badge
+   * « simulé ». `undefined` ou vide = aucun ajustement (comportement historique, score inchangé).
+   * EN: MANUAL stat adjustments (the −/+ buttons next to each bar, 5-point granularity): a DELTA applied to
+   * the build's real stats (armor + fragment bonuses), simulating e.g. unequipped mods or a hypothetical
+   * masterwork. Clamped: the ADJUSTED total is clamped to [0, 200] (STAT_MAX) per stat - Armor Charge
+   * overcharges (Fonts) are NOT counted here, they stay in the "Effects of the Build" pillar. When at
+   * least one adjustment is non-zero, the related score carries the "simulated" badge.
+   */
+  ajustementsStats?: Partial<Record<StatKey, number>>;
 }
 
 
@@ -217,6 +242,25 @@ export interface PillarScore {
   /** FR : ⚠️ CHANGÉ (04/08/2026) - le poids n'est plus fixe à 0.20 : il dépend du CONTEXTE du build (voir lib/scoring/stats.ts et lib/scoring/pillars.ts). / EN: no longer a flat 0.20 - depends on the build CONTEXT. */
   poids: number;
   details: string[]; // justification lisible (ex: "Grenade au palier T10 requis par Caresse du Ver : OK")
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur, fusion 28/10/2026) - version ANNOTÉE des lignes de
+   * `details` : chaque ligne porte un drapeau `simule` (un effet provenant d'un perk choisi
+   * dans la Forge). Présent UNIQUEMENT quand au moins un effet est simulé ; sinon
+   * l'affichage retombe sur `details` (texte seul). Sert au badge « simulé » dans
+   * PilierCarte (même badge que dans Mon Build). Le texte porte AUSSI le suffixe
+   * « 🔨 simulé » dans `details`, pour la fiche/export texte.
+   * EN: ⚠️ ADDED (draft-optimiseur, merge 28/10/2026) - annotated version of `details` lines:
+   * each line carries a `simule` flag (an effect coming from a perk chosen in the Forge).
+   * Present ONLY when at least one effect is simulated; otherwise the display falls back
+   * to `details`. Used for the "simulated" badge in PilierCarte (same badge as in Mon Build).
+   */
+  detailsMarques?: DetailLigne[];
+}
+
+/** FR : une ligne de détail d'un pilier, avec son drapeau « simulé ». / EN: a pillar detail line, with its "simulated" flag. */
+export interface DetailLigne {
+  texte: string;
+  simule: boolean;
 }
 
 export interface BuildScoreResult {
