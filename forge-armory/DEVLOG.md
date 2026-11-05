@@ -146,6 +146,7 @@ Récap du projet en lien avec la TODO, à l'état du 02/11/2026 : main = `b30968
 
 **Tag** : `v0.5.7` (annoté) sur le commit de livraison. **Version 0.5.7.**
 
+HEAD
 ## 01/11/2026 — MÉTHODE : retours de revue sur la constitution (branche `vibe/methode-spec-kit-70789e` → `ccr-18c636a2-6p3cz9`)
 
 **Décision de l'utilisateur** (01/11/2026), après l'analyse de la branche `vibe/methode-spec-kit-70789e` (constitution + templates inspirés de spec-kit) : documentation uniquement, aucun fichier de code touché.
@@ -158,6 +159,26 @@ Récap du projet en lien avec la TODO, à l'état du 02/11/2026 : main = `b30968
 - **Nouvel Article XI** : la constitution ne change que sur décision explicite de l'utilisateur ; l'assistant propose, n'applique pas ; modification, entrée DEVLOG et annexe dans le même commit.
 
 **Vérifié** : liens relatifs des nouveaux fichiers contrôlés ; aucun fichier hors `documentation/methode/`, `TODO.md` et `DEVLOG.md` modifié (hors merge de la branche `vibe/methode-spec-kit-70789e`). Pas de `tsc`/`build` à relancer (documentation seule).
+## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `draft-optimiseur`
+
+**Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6`) a été répercutée sur la branche `draft-optimiseur` pour limiter les conflits futurs.
+
+**Conflits** : 8 fichiers — tous résolus en gardant les DEUX côtés (aucune fonctionnalité perdue) :
+- `types/build.ts` : union des champs — `estMasterwork`/`statsIntrinseques` (optimiseur) + `modsSimules`/`statsReelles`/`nbModsSimules`/`simulationRejetee`/`energieDepassee` (v0.5.6) + `ajustementsStats` (optimiseur, sur `BuildDraft`) + `DetailLigne`/`detailsMarques` (optimiseur, sur `PillarScore`).
+- `lib/bungie/inventaire.ts` : union des lectures d'exemplaire — `estMasterwork`/`statsIntrinseques` (optimiseur) + `energie`/`plugsInsertablesParColonne` (v0.5.6).
+- `lib/scoring/pillars.ts` + `lib/scoring/verbes.ts` : les DEUX systèmes de badge « simulé » coexistent — `detailsMarques` (ajustements de stats, optimiseur) + `MARQUE_SIMULE`/`extraireNomsPerksSimules` (perks/mods simulés, v0.5.6) ; `scoreVerbesDetectes` fusionnée accepte les deux (retourne `detailsMarques`, applique le marqueur).
+- `components/PilierCarte.tsx` : les deux badges rendus — `avecBadges(titre)` (MARQUE_SIMULE) + `BadgeSimule` (ligne marquée `simule`).
+- `components/ResumeBuild.tsx` : les deux deltas affichés — ajustements manuels (−/+ boutons, `data-delta-stat`) + delta simulation mods (`data-stat-delta-simulation`).
+- `pages/DashboardPage.tsx` : les 4 bandeaux coexistent (perks simulés, ajustements stats, mods armure simulés, comparaison réel→simulé + rejetées énergie).
+- `tests/logique/cablage-forge.test.ts` : liste fermée des usages de `buildEffectif` mise à jour à **10** (union des deux côtés) + contrôles optimiseur conservés.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie logique **53/53 suites, 1107/1107 contrôles** ; `npm run build` ✓.
+
+**Version 0.5.6.**
+
+---
+
+## 28/10/2026 — LIVRAISON v0.5.6 : merge PR #19 (draft-mod-armures — modification des mods d'armure complète)
 
 ---
 
