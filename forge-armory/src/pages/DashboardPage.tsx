@@ -16,14 +16,13 @@ import { appliquerSimulations, pieceReelle, nbArmesSimulees, nbArmuresSimulees, 
 import { comparerScores } from "../lib/forge/scoreSimule";   // ⚠️ AJOUT (27/10/2026)
 import ComparaisonScore from "../components/ComparaisonScore";   // ⚠️ AJOUT (27/10/2026)
 import type { CibleForge } from "../components/InventaireArmes";
-// FR : ⚠️ CHANGÉ (23/10/2026, audit) - `demoBuild` seul est importé : `demoExigences`
-// (Mêlée T10, « Exotique de démonstration ») n'est plus passée à `evaluerBuild`
-// (bug S1 : elle plafonnait le Pilier 5 de TOUS les builds et affichait une
-// ligne « ⚠️ Exotique de démonstration » fictive).
-// EN: ⚠️ CHANGED - only `demoBuild` is imported: `demoExigences` is no longer
-// passed to `evaluerBuild` (bug S1).
+// FR : ⚠️ RÉSOLU (24/10/2026, merge main dans draft-optimiseur) - on garde le fix
+// S1 de main (`demoExigences` n'est plus passée à `evaluerBuild`) ET le chantier
+// optimiseur (`StatKey` reste importé : `changerAjustementStat` l'utilise).
+// EN: RESOLVED - keep main's S1 fix (`demoExigences` no longer passed) AND the
+// optimizer work (`StatKey` stays imported: `changerAjustementStat` uses it).
 import { demoBuild } from "../data/demoBuild";
-import { BuildDraft, GearPiece, SubclassConfig, poserPieceDansBuild } from "../types/build";
+import { BuildDraft, GearPiece, StatKey, SubclassConfig, poserPieceDansBuild } from "../types/build";
 import PilierCarte from "../components/PilierCarte";
 import BlocContexte from "../components/BlocContexte";
 import PanneauTriomphes from "../components/PanneauTriomphes";
@@ -42,6 +41,7 @@ import { exporterVersDim } from "../lib/dim/export";
 import RechercheManifest from "../components/RechercheManifest";
 import SelecteurInventaire, { CibleInventaire } from "../components/SelecteurInventaire";
 import ResumeBuild from "../components/ResumeBuild";
+import PageOptimiseur from "../components/PageOptimiseur";   // ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) : page dédiée de l'optimiseur de build v2
 import GrilleDoctrine from "../components/GrilleDoctrine";
 // FR : ⚠️ AJOUT (31/08/2026) - diagnostic du Pilier 2 (voir verbes.ts).
 // EN: ⚠️ ADDED - Pillar 2 diagnostic (see verbes.ts).
@@ -64,6 +64,9 @@ import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic
 import Bibliotheque from "../components/Bibliotheque";
 import type { ProvenanceObjet } from "../lib/legendarium/types";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : provenance transitoire (fiche Détails → page de Lore)
 import { EtatPonderations, lirePonderations, poidsActifsEnFractions } from "../lib/scoring/ponderations";
+// FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - ajustements manuels des stats (boutons −/+ des barres).
+// EN: manual stat adjustments (the −/+ bar buttons).
+import { PAS_AJUSTEMENT_STAT, aDesAjustementsStats } from "../lib/scoring/stats";
 
 export default function DashboardPage() {
   // FR : le build n'est plus une constante figée - on garde une copie
@@ -158,6 +161,24 @@ export default function DashboardPage() {
   function changerSubclass(maj: Partial<SubclassConfig>) {
     setMonBuild((b) => ({ ...b, subclass: { ...b.subclass, ...maj } }));
   }
+
+  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - ajuste les stats du build EN COURS
+  // (boutons −/+ des barres de Mon Build). Le delta est un multiple de 5 ; le build réel (armure lue)
+  // n'est PAS modifié : seul `ajustementsStats` évolue, et le score le reflète (badge « simulé »).
+  // EN: adjusts the CURRENT build's stats (the −/+ bar buttons). Delta is a multiple of 5. The real build
+  // (read armor) is NOT modified: only `ajustementsStats` changes, and the score reflects it.
+  function changerAjustementStat(cle: StatKey, delta: number) {
+    setMonBuild((b) => {
+      const ajustements = { ...(b.ajustementsStats ?? {}) };
+      const nouveau = Math.round(delta / PAS_AJUSTEMENT_STAT) * PAS_AJUSTEMENT_STAT;
+      if (nouveau === 0) delete ajustements[cle];
+      else ajustements[cle] = nouveau;
+      return { ...b, ajustementsStats: Object.keys(ajustements).length === 0 ? undefined : ajustements };
+    });
+  }
+
+  // FR : vrai si le build en cours porte au moins un ajustement manuel de stat (badge « simulé » sur le score global).
+  const statsAjustees = aDesAjustementsStats(monBuild.ajustementsStats);
 
   // FR : ajoute un objet (issu de la recherche OU de l'inventaire réel) à
   // son emplacement dans le build - remplace ce qui s'y trouvait déjà.
@@ -605,6 +626,23 @@ export default function DashboardPage() {
       {/* FR : ⚠️ AJOUT (22/10/2026, TODO §25) - vue « Accomplissements » : PAGE dédiée aux Triomphes du compte, ouverte par le bouton « Accomplissements » du bloc Connexion. ⚠️ CHANGÉ (22/10/2026, retour utilisateur) : la page n'affiche PAS la vitrine « Solo sans mourir » (elle reste dans le tiroir latéral du Build Analyzer). ⚠️ CHANGÉ (23/10/2026, TODO n°23) : la page reçoit le PROFIL DES TRIOMPHES (`profilTriomphes`, composant 900 → records du compte) et le MANIFEST (`db`) pour les noms/descriptions FR des triomphes et des sceaux. / EN: the Accomplishments page (no Solo Flawless showcase here). CHANGED - the page gets the TRIUMPHS PROFILE (`profilTriomphes`, component 900) and the Manifest (`db`) for the FR names/descriptions. */}
       {vue === "accomplissements" && <VueAccomplissements profil={profilTriomphes} db={db} />}
 
+      {/* FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - vue « optimiseur » : PAGE DÉDIÉE de
+      l'optimiseur de build v2, ouverte par le bouton « ⚙️ Optimiser » de « Mon Build » (pas un onglet
+      du sélecteur : pas de doublon). HORS SCORING : la page ne lit pas le score et ne modifie pas le
+      build courant ; sa seule écriture est « Enregistrer comme build simulé » (flux Load-outs).
+      EN: the "optimizer" view: DEDICATED page of the build optimizer v2, opened by "Mon Build"'s
+      "⚙️ Optimize" button (not a selector tab: no duplicate). OUTSIDE scoring: the page neither
+      reads the score nor modifies the current build; its only write is "Save as simulated build". */}
+      {vue === "optimiseur" && (
+        <PageOptimiseur
+          build={monBuild}
+          membership={memberships[0] ?? null}
+          db={db}
+          auteur={connecte ? (nomBungie ?? resume?.compte ?? null) : null}
+          onRetour={() => setVue("analyseur")}
+        />
+      )}
+
       {/* FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - la vue Build Analyzer est
       MASQUÉE (display: none) et non retirée quand la Bibliothèque est
       affichée. Sinon, chaque aller-retour effacerait l'inventaire chargé,
@@ -684,7 +722,8 @@ export default function DashboardPage() {
         <ResumeBuild
           build={buildEffectif}
           onOuvrirForge={ouvrirForge}
-          onOuvrirOptimiseur={ouvrirOptimiseur}
+          onOuvrirOptimiseur={ouvrirOptimiseur}   // ⚠️ bouton « Optimiseur » sous les stats (main) : ouvre la Forge sur l'optimiseur d'armures
+          onOuvrirOptimiseurBuild={() => setVue("optimiseur")}   // ⚠️ 23/10/2026 (draft-optimiseur) : bouton « ⚙️ Optimiser le build » → page dédiée optimiseur de build v2 (vue « optimiseur »)
           onLireLore={ouvrirLoreDepuisObjet}   // ⚠️ AJOUT (30/10/2026) : « Lire le Lore » aussi dans la fenêtre Détails de Mon Build
           membership={memberships[0] ?? null}
           personnages={personnages}
@@ -692,6 +731,7 @@ export default function DashboardPage() {
           onReinitialiser={reinitialiserBuild}
           contexte={monBuild.contexte ?? "neutre"}
           onChangerContexte={(valeur) => setMonBuild((b) => ({ ...b, contexte: valeur }))}
+          onChangerAjustement={changerAjustementStat}
         />
       </div>
 
@@ -708,7 +748,17 @@ export default function DashboardPage() {
       l'enregistrer (JSON, texte, JPEG, PNG, PDF), demande de l'utilisateur.
       EN: ⚠️ ADDED - share the current build without saving it. */}
       {/* FR : ⚠️ CHANGÉ (06/10/2026, v0.3.3) - `auteur` : le pseudo affiché dans le bloc Connexion (même expression), seulement si l'on est connecté. / EN: ⚠️ CHANGED - `auteur`: the handle shown in the Connection block, only when connected. */}
-      <BlocPartage build={monBuild} db={db} auteur={connecte ? (nomBungie ?? resume?.compte ?? null) : null} onVoirLoadouts={() => setVue("loadouts")} />
+      <BlocPartage
+        build={monBuild}
+        db={db}
+        auteur={connecte ? (nomBungie ?? resume?.compte ?? null) : null}
+        onVoirLoadouts={() => setVue("loadouts")}
+        // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - le build reçu ici est le build RÉEL
+        // (sans simulation appliquée) : on passe explicitement s'il porte des perks simulés, pour que
+        // l'enregistrement depuis ce bloc soit marqué « simulation ». / EN: the build received here is
+        // the REAL one: we pass explicitly whether it carries simulated perks, so saving from this block is marked.
+        avecPerksSimules={buildEffectif.armes.some((a) => a.perksSimules === true)}
+      />
 
       {/* FR : ⚠️ AJOUT (04/08/2026) - panneau latéral des loadouts. En
       position `fixed`, il suit le défilement de la page (demande de
@@ -734,6 +784,10 @@ export default function DashboardPage() {
         personnages={personnages}
         db={db}
         build={monBuild}
+        // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - le build AVEC simulation appliquée,
+        // pour que la zone d'enregistrement détecte les perks simulés et marque l'enregistrement.
+        // EN: the build WITH the simulation applied, so the save zone detects simulated perks and marks the save.
+        buildAvecSimulation={buildEffectif}
         auteur={connecte ? (nomBungie ?? resume?.compte ?? null) : null}
       />
 
@@ -761,6 +815,16 @@ export default function DashboardPage() {
             🔨 Score calculé avec des perks simulés ({nbSimulees} arme{nbSimulees > 1 ? "s" : ""})
           </div>
         )}
+        {/* FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - ajustements manuels de stats actifs :
+        le score global reflète une hypothèse (mods/masterwork simulés), pas l'équipement réel. Même badge
+        que les perks simulés. / EN: manual stat adjustments active: the global score reflects a
+        hypothesis, not the real loadout. Same badge as simulated perks. */}
+        {statsAjustees && (
+          <div data-score-simule="" title="Les ajustements de stats (boutons −/+ des barres) sont pris en compte dans le score. L'enregistrement, le partage et l'équipement en jeu gardent vos stats réelles." style={{ fontSize: "0.85rem", color: "#e8c547", cursor: "help" }}>
+            🔨 Score calculé avec des ajustements de stats simulés
+          </div>
+        )}
+
         {/* ⚠️ AJOUT (branche draft-mod-armures) - même bandeau quand des MODS d'armure sont simulés : le score (pilier stats + Pilier 2) en tient compte. */}
         {nbArmuresSim > 0 && (
           <div data-score-simule-armures="" title="Les mods choisis dans la Forge (ou la pop-up Détails) remplacent ceux de vos armures pour le calcul du score (statistiques recalculées + effets des mods). L'enregistrement, le partage et l'équipement en jeu gardent vos mods réels." style={{ fontSize: "0.85rem", color: "#e8c547", cursor: "help" }}>
@@ -827,7 +891,14 @@ export default function DashboardPage() {
       />
 
       {resultat.piliers.map((p) => (
-        <PilierCarte key={p.pilier} pilier={p} stats={resultat.statsTotales} />
+        <PilierCarte
+          key={p.pilier}
+          pilier={p}
+          stats={resultat.statsTotales}
+          // FR : ⚠️ CHANGÉ (23/10/2026, branche draft-optimiseur) - le graphique du pilier 5 est en
+          // LECTURE SEULE : les boutons −/+ d'ajustement ont été retirés (la simulation se fait dans
+          // « Mon Build »). / EN: pillar 5's chart is READ-ONLY: the −/+ adjustment buttons were removed.
+        />
       ))}
 
       <div style={{ marginTop: "2rem", display: "flex", gap: "0.75rem" }}>
