@@ -13,7 +13,7 @@ passages retirés ou condensés lors du nettoyage du 06/10/2026 dans
 `documentation/todo/ARCHIVE-TODO-2026-10-06.md`. Conception du scoring :
 section « Le scoring » de `NOTES-CONCEPTION.md`. Tests en cours :
 `A-TESTER-<version>.pdf` (le numéro de version de l'appli est dans le nom ;
-version courante : 0.5.7).
+version courante : 0.6.0).
 
 ---
 
@@ -138,8 +138,10 @@ développement (3e étape de l'ordre du 30/09/2026).
   `plugsInsertablesParColonne` et `energie` ; deux défauts Mon Build corrigés
   (`LignePieceStable` : la fenêtre Détails ne se refermait plus à chaque clic ;
   les armures simulées mémorisent leurs mods/stats réels comme les armes).
-- Rien n'est écrit chez Bungie ; enregistrement/partage/export/équipement
-  gardent les mods réels.
+- ⚠️ **CHANGÉ (04/11/2026, niveau 2 livré)** : la SIMULATION n'écrit
+  toujours rien chez Bungie (enregistrement/partage/export/équipement
+  gardent les mods réels) ; l'écriture n'a lieu QUE par le bouton
+  « Appliquer en jeu », derrière confirmation explicite.
 
 ✅ **Niveau 2 (en jeu) : FAIT le 03/11/2026** (validation en jeu par l'utilisateur) — ✅ **CODÉ le
 03/11/2026 (branche `draft-mods-phase-2`, PR #27, variante A : mods
@@ -151,12 +153,17 @@ l'inventaire après succès. Objets du Coffre inclus (décision du 03/11).
 ✅ Validation en jeu obtenue le 03/11/2026 (« Parfait ça fonctionne ! »).
 ✅ **Variante B FAITE et VALIDÉE EN JEU le 04/11/2026** (« OK ça
 fonctionne ») : les perks d'armes s'écrivent aussi réellement en jeu,
-dans la fenêtre Détails et par l'icône des cartes (boutons de la
-charte intégrés le 04/11). PR #27 prête pour revue puis fusion,
-puis **bump v0.6.0** (débloqué).
-✅ **Bouton stylisé dédié FOURNI et INTÉGRÉ le 04/11/2026** (archive
-`forge-armory-app-assets`) : bouton plaque dans les pop-up Détails,
-icône seule dans les cartes d'Armes et d'Armures.
+dans la fenêtre Détails et par l'icône des cartes.
+✅ **Bouton stylisé dédié FOURNI et INTÉGRÉ le 04/11/2026** (pack v12
+`forge-armory-app-assets`, intégré COMPLÈTEMENT le 04/11) : bouton
+plaque dans les pop-up Détails, icône seule dans les cartes d'Armes
+et d'Armures.
+
+✅ **CHANTIER MODS-PHASE-2 CLOS le 04/11/2026** : PR #27 **fusionnée**,
+**v0.6.0 livrée et taguée** (`v0.6.0`), **pack v12 intégralement intégré**
+et **propagée aux 14 autres branches** (CI verte partout). Le TODO §2
+(perks et mods, simulation ET écriture en jeu) est TERMINÉ de bout en
+bout. Spécification complète : `documentation/specs/SPEC-MODS-PHASE-2-2026-11-03.md`.
 
 **Reste à faire — niveau 1 (évolutions)** :
 - **Collection des armures** (toutes les armures du jeu) et **ensembles et

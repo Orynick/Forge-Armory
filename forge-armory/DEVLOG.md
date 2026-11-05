@@ -58,6 +58,23 @@ Instantané du projet au 05/11/2026, premier point depuis la livraison de la **v
 
 ---
 
+## 04/11/2026 — CLÔTURE du chantier MODS-PHASE-2 (TODO §2 : perks et mods, simulation ET écriture en jeu)
+
+**Le chantier est clos de bout en bout.** Chronologie complète :
+
+- **03/11** — SPEC de cadrage rédigée sans code (méthode spec-kit), 3 décisions verrouillées par l'utilisateur (variante A : mods d'armure d'abord ; objets du Coffre modifiables ; scope OAuth `MoveEquipDestinyItems` déjà actif) ; PLAN puis codage (`ecartsApplicables`, `insererPlug`, composant `AppliquerEnJeu`) ;
+- **03/11** — premier test réel en jeu : refus ErrorCode 1663 « This action can only be done in-game » → **cause racine** : l'endpoint GRATUIT attend le champ `itemId`, pas `itemInstanceId` (preuve : implémentation de DIM) ; correctif + bouton déplacé DANS la carte et dans la fenêtre Détails (retour utilisateur) ;
+- **03/11** — ✅ **validation en jeu des mods d'armure** (« Parfait ça fonctionne ! ») ;
+- **03/11** — variante B : le chantier s'étend aux **perks d'armes** (décision utilisateur, ordre 3 → 1 → 2) ; le vieux diagnostic `diagnostiquerInsertionPlug` reçoit le même correctif `itemId` ;
+- **04/11** — boutons de la charte FOURNIS par l'utilisateur et intégrés (plaque dans les pop-up, icône seule dans les cartes d'Armes et d'Armures) ; ✅ **validation en jeu des perks d'armes** (« OK ça fonctionne ») ;
+- **04/11** — **livraison v0.6.0** (passage de palier justifié : première fonctionnalité d'ÉCRITURE chez Bungie), PR #27 fusionnée, **tag `v0.6.0`** posé ;
+- **04/11** — **intégration complète du pack v12** `forge-armory-app-assets` (nouvel app-assets ; archives rangées : v11 → `archives-precedentes/app-assets-v11`, ancien catalogue de travail → `archives-precedentes/app-assets-v7-optimisation`) ;
+- **04/11** — **propagation aux 14 autres branches** (fusions propres sauf `.gitignore` résolu par union), tsc 0 et batterie au vert localement sur chacune, **CI verte partout**.
+
+**Bilan** : TODO §2 TERMINÉ (simulation en v0.5.6/v0.5.7, écriture réelle en v0.6.0) ; SPEC `SPEC-MODS-PHASE-2-2026-11-03.md` checklist 7/7 ; 55/55 suites (1118/1118 contrôles, dont la suite `ecarts-simulation`) ; reproductibilité des visuels 7/7 depuis le pack v12. **Restent hors périmètre** (pistes futures, pas des engagements) : câbler dans l'UI les visuels du pack v12 non encore utilisés (ex. `marques.appliquer-en-jeu`, états « sélectionné » des boutons d'action) ; tri des branches de sauvegarde.
+
+---
+
 ## 04/11/2026 — INTÉGRATION COMPLÈTE du pack v12 `forge-armory-app-assets` (nouvel « app-assets ») + rangement des archives
 
 **Contexte (demande et décisions de l'utilisateur)** : le pack `forge-armory-app-assets-v12` devient le nouvel « app-assets » de référence ; l'ancien « app-assets » (catalogue de travail v7 + icône optimisation, 81 actifs) part dans `archives-precedentes/`. Le pack v11 (97 actifs, famille `actions`, `TAILLE-DES-BOUTONS.md`) prend le nom `archives-precedentes/app-assets-v11` ; l'ancien catalogue de travail est renommé `archives-precedentes/app-assets-v7-optimisation` (les deux vivaient sous le même nom — séparés sans perte).
