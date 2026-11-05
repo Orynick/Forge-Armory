@@ -8,7 +8,14 @@
 
 import type { CSSProperties } from "react";
 
-export type VueApp = "analyseur" | "loadouts" | "forge" | "bibliotheque" | "carriere" | "accomplissements";   // ⚠️ v0.4.0 : + « forge »
+// FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - la vue « optimiseur » (page dédiée de
+// l'optimiseur de build v2, ouverte par le bouton « ⚙️ Optimiser » de « Mon Build ») est un membre
+// de `VueApp` MAIS PAS un onglet de ce sélecteur (elle ne figure pas dans `VUES`, comme « carriere »
+// et « accomplissements » : pas de doublon de bouton).
+// EN: the "optimizer" view (dedicated build optimizer v2 page, opened by "Mon Build"'s "⚙️ Optimize"
+// button) is a member of `VueApp` BUT NOT a tab of this selector (not in `VUES`, like "carriere" and
+// "accomplissements": no duplicate button).
+export type VueApp = "analyseur" | "loadouts" | "forge" | "bibliotheque" | "carriere" | "accomplissements" | "optimiseur";   // ⚠️ v0.4.0 : + « forge »
 
 // FR : ⚠️ CHANGÉ (07/10/2026, v0.3.16) - les fichiers viennent du catalogue de l'archive « forge-armory-app-assets » (`urlVisuel`, identifiants `selecteur.<vue>.repos|selectionne`) au lieu de chemins écrits ici. / EN: ⚠️ CHANGED - files now come from the supplied catalogue.
 import { urlVisuel } from "../lib/visuelsForge";

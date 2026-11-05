@@ -22,11 +22,13 @@ import { Database } from "sql.js";
 import { BuildDraft, GearPiece, SlotArme, SlotArmure, StatKey } from "../types/build";
 import { LIBELLES_ELEMENT_FR as LIBELLES_ELEMENT } from "../data/libellesElements";
 import { LIBELLES_SLOT, LIBELLES_CATEGORIE } from "../data/libellesUI";
-import { STAT_MAX, sommerStatsArmure } from "../lib/scoring/stats";
+import { STAT_MAX, sommerStatsArmure, PAS_AJUSTEMENT_STAT, appliquerAjustementsStats, aDesAjustementsStats } from "../lib/scoring/stats";
 import { obtenirChampionsCouverts } from "../lib/scoring/verbes";
 import { obtenirBonusSetsActifs } from "../lib/scoring/armorSets";
 import RappelDoctrine from "./RappelDoctrine";
-import { surlignerVerbesConnus, IconeMunitionArme } from "./RenduTextePerk";
+import BadgeSimule from "./BadgeSimule";   // ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) : badge extrait pour réutilisation dans PilierCarte
+import { recommanderArchetype } from "../data/recommandationArchetype";   // ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) : bouton « Recommandation » sous les stats (simulation active)
+import { surlignerVerbesConnus, IconeMunitionArme } from "./RenduTextePerk";   // ⚠️ 01/11/2026 : IconeElementArme retiré de l'import (inutilisé ici après union merge — le rendu élémentaire reste dans SelecteurInventaire)
 
 // FR : ⚠️ AJOUT (24/08/2026) - isole les mentions d'impact sur les stats
 // (ex: "Grenade +10", "Santé -10 ▼") sur leur PROPRE LIGNE dans la
@@ -91,9 +93,27 @@ interface Props {
    */
   onOuvrirForge?: (piece: GearPiece) => void;
   /**
-   * FR : ⚠️ AJOUT (29/10/2026, demande de l'utilisateur : bouton « Optimiseur » aussi dans Mon Build) - bouton « Optimiseur » sous le cadre « Statistiques du build » : ouvre la Forge directement sur l'optimiseur (absent : pas de bouton). / EN: ⚠️ ADDED - "Optimizer" button under the stats frame: opens the Forge on the optimizer.
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - bouton −/+ à droite de chaque barre de
+   * stat (ajustements manuels, granularité 5). Facultatif : sans lui, les barres restent en lecture seule.
+   * Reçoit la stat et le NOUVEAU delta (multiple de 5, le total ajusté étant clampé à [0, 200]).
+   * EN: the −/+ button right of each stat bar (manual adjustments, 5-point granularity). Optional.
+   */
+  onChangerAjustement?: (cle: StatKey, delta: number) => void;
+  /**
+   * FR : ⚠️ AJOUT (29/10/2026, main v0.5.7) - bouton « Optimiseur » sous le cadre « Statistiques du build » :
+   * ouvre la FORGE directement sur l'optimiseur d'ARMURES (mods/pièces). / EN: "Optimizer" button under the
+   * stats frame: opens the FORGE on the armor optimizer.
    */
   onOuvrirOptimiseur?: () => void;
+  /**
+   * FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur, merge v0.6.0) - bouton « ⚙️ Optimiser le build »
+   * (sous le titre de « Mon Build », à côté de « ✕ Réinitialiser ») : ouvre la PAGE DÉDIÉE de l'optimiseur de build v2
+   * (vue « optimiseur »). DISTINCT de `onOuvrirOptimiseur` (bouton Forge) pour que les deux boutons coexistent.
+   * L'optimiseur de build ne modifie JAMAIS le build courant : sa seule écriture est son propre bouton
+   * « Enregistrer comme build simulé ». / EN: the "Optimize build" button: opens the dedicated build
+   * optimizer v2 page. The optimizer NEVER modifies the current build.
+   */
+  onOuvrirOptimiseurBuild?: () => void;
   /**
    * FR : ⚠️ AJOUT (30/10/2026) - clic du bouton « Lire le Lore » de la fenêtre Détails de Mon Build (fenêtre UNIQUE) : aiguille vers le Legendarium. / EN: ⚠️ ADDED - "Read the Lore" click from My Build's details window.
    */
@@ -119,7 +139,7 @@ function calculerSetsActifsResume(build: BuildDraft, db: Database) {
   return [...parSet.values()];
 }
 
-export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge, onOuvrirOptimiseur, onLireLore }: Props) {
+export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge, onChangerAjustement, onOuvrirOptimiseur, onOuvrirOptimiseurBuild, onLireLore }: Props) {   // ⚠️ union merge draft-optimiseur + test
   const setsAvecBonusActif = useMemo(() => db ? calculerSetsActifsResume(build, db) : [], [build, db]);
   const [personnageCible, setPersonnageCible] = useState<string>(personnages[0]?.characterId ?? "");
   const [enCours, setEnCours] = useState<string | null>(null);
@@ -129,6 +149,10 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
   const [rappelDoctrineOuvert, setRappelDoctrineOuvert] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [succes, setSucces] = useState<string | null>(null);
+  // FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - état ouvert/fermé du panneau
+  // « Recommandation » d'archétype (affiché sous les stats, uniquement si simulation).
+  // EN: open/closed state of the archetype "Recommendation" panel (under the stats, simulation only).
+  const [recoOuverte, setRecoOuverte] = useState(false);
 
   useEffect(() => {
     if (personnages.length > 0 && !personnages.some((p) => p.characterId === personnageCible)) {
@@ -347,9 +371,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
               </span>
               {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - BADGE « simulé » : cette arme porte des perks choisis dans la Forge (ils comptent dans le score, pas en jeu). / EN: ⚠️ ADDED - "simulated" badge. */}
               {piece.perksSimules && (
-                <span data-badge-simule="" title={`${piece.nbColonnesSimulees} colonne(s) de perks simulées dans la Forge : prises en compte dans le score, pas appliquées en jeu.`} style={{ fontSize: "0.7rem", color: "#e8c547", border: "1px solid #e8c547", borderRadius: 999, padding: "0 0.4rem", cursor: "help" }}>
-                  🔨 simulé
-                </span>
+                <BadgeSimule title={`${piece.nbColonnesSimulees} colonne(s) de perks simulées dans la Forge : prises en compte dans le score, pas appliquées en jeu.`} />
               )}
               {/* ⚠️ AJOUT (branche draft-mod-armures) - badge « simulé » sur une ARMURE dont des mods sont simulés (même repère que les armes). */}
               {/* FR : ⚠️ AJOUT (27/10/2026) - la simulation de cette armure DÉPASSE son énergie : le score l'ignore (garde-fou de `appliquerSimulationArmure`). / EN: ⚠️ ADDED - this armor's simulation exceeds its energy: ignored by the score. */}
@@ -594,6 +616,23 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
             ✕ Réinitialiser Mon Build
           </button>
         )}
+        {/* FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - bouton « Optimiser » : ouvre la
+        PAGE DÉDIÉE de l'optimiseur de build v2 (ensembles d'armures par paliers, hors scoring).
+        L'optimiseur ne touche pas au build courant : sa seule écriture passe par son propre
+        bouton « Enregistrer comme build simulé » (flux de sauvegarde des Load-outs).
+        EN: the "Optimize" button: opens the DEDICATED build optimizer v2 page (tier-based armor
+        sets, outside scoring). The optimizer does NOT touch the current build. */}
+        {onOuvrirOptimiseurBuild && (
+          <button
+            type="button"
+            data-bouton-optimiseur-build=""
+            onClick={onOuvrirOptimiseurBuild}
+            style={{ fontSize: "0.8rem" }}
+            title="Proposer les meilleurs ensembles d'armures (coffre + personnages) pour des minimums de stats — page dédiée hors scoring, le build courant n'est pas modifié"
+          >
+            ⚙️ Optimiser le build
+          </button>
+        )}
       </div>
 
       {erreur && <p style={{ color: "#e08080" }}>⚠️ {erreur}</p>}
@@ -687,9 +726,23 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                       totaux[cle] = (totaux[cle] ?? 0) + valeur;
                     }
                   }
-                  // FR : ⚠️ AJOUT (27/10/2026, « lien entre stats simulées et score ») - le DELTA dû à la simulation des mods d'armure, affiché à côté de chaque total (« 70 (+10) »). / EN: ⚠️ ADDED - the delta caused by the armor-mod simulation, next to each total.
+                  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - ajustements manuels : le
+                  // delta saisi par l'utilisateur (multiple de 5) est affiché à côté de la valeur réelle
+                  // ("150 (+15)"), et deux petits boutons −/+ sont alignés AVEC la barre (même ligne que
+                  // le libellé/valeur), pas à sa droite visuelle : ils encadrent la barre. Le clamp [0, 200]
+                  // est appliqué sur le TOTAL ajusté (voir appliquerAjustementsStats).
+                  // EN: manual adjustments: the entered delta (multiple of 5) shows next to the real value
+                  // ("150 (+15)"), and two small −/+ buttons sit ON the bar's row (same line as the
+                  // label/value), framing the bar.
+                  const ajustements = build.ajustementsStats ?? {};
+                  // ⚠️ AJOUT (27/10/2026, « lien entre stats simulées et score ») - le DELTA dû à la simulation des mods d'armure, affiché à côté de chaque total (« 70 (+10) »). / EN: ⚠️ ADDED - the delta caused by the armor-mod simulation, next to each total.
                   const deltaSimulation = deltaStatsArmure(build.armure);
                   return ORDRE.map((cle) => {
+                    const delta = Math.round((ajustements[cle] ?? 0) / PAS_AJUSTEMENT_STAT) * PAS_AJUSTEMENT_STAT;
+                    const ajuste = delta !== 0;
+                    const totalAjuste = Math.max(0, Math.min(STAT_MAX, (totaux[cle] ?? 0) + delta));
+                    const peutMonter = onChangerAjustement ? totalAjuste + PAS_AJUSTEMENT_STAT <= STAT_MAX : false;
+                    const peutDescendre = onChangerAjustement ? totalAjuste - PAS_AJUSTEMENT_STAT >= 0 : false;
                     // FR : ⚠️ AJOUT (04/08/2026) - barres de progression,
                     // demande de l'utilisateur. On réutilise STAT_MAX du
                     // module de scoring plutôt qu'un 200 codé en dur ici :
@@ -700,7 +753,7 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                     // rather than hardcoding 200 here: if the cap changes
                     // (Bungie has done it before), bars and score stay in
                     // agreement.
-                    const valeur = totaux[cle];
+                    const valeur = ajuste ? totalAjuste : totaux[cle];
                     // FR : ⚠️ CORRIGÉ (24/08/2026) - signalé par l'utilisateur :
                     // une stat négative affichait une barre bien visible au
                     // lieu d'une barre vide. Cause : `Math.min(100, ...)`
@@ -724,20 +777,119 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
                     const estNegatif = valeur < 0;
                     return (
                       <div key={cle} style={{ marginBottom: "3px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: "0.6rem", fontSize: "0.72rem" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.4rem", fontSize: "0.72rem" }}>
                           <span style={{ color: "#b7b3a8" }}>{LIBELLES[cle]}</span>
-                          <span style={{ color: estNegatif ? "#e08080" : undefined }}>{valeur}{(deltaSimulation[cle] ?? 0) !== 0 && <span data-stat-delta-simulation={cle} title="Écart dû aux mods simulés par rapport à vos armures réelles" style={{ marginLeft: 4, color: (deltaSimulation[cle] as number) > 0 ? "#7fd88f" : "#e0a080" }}>({(deltaSimulation[cle] as number) > 0 ? "+" : "−"}{Math.abs(deltaSimulation[cle] as number)})</span>}</span>
+                          {/* ⚠️ FUSION (28/10/2026, propagation v0.5.6) : les DEUX deltas coexistent —
+                              ajustements manuels (boutons −/+, branche draft-optimiseur) ET delta dû
+                              à la simulation des mods d'armure (main v0.5.6). */}
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+                            {onChangerAjustement && (
+                              <button
+                                type="button"
+                                data-ajustement-moins={cle}
+                                aria-label={`Diminuer ${LIBELLES[cle]} de ${PAS_AJUSTEMENT_STAT} (simulation)`}
+                                title={`−${PAS_AJUSTEMENT_STAT} ${LIBELLES[cle]} (ajustement simulé : le total réel reste ${totaux[cle]})`}
+                                disabled={!peutDescendre}
+                                onClick={() => onChangerAjustement(cle, delta - PAS_AJUSTEMENT_STAT)}
+                                style={{ fontSize: "0.62rem", lineHeight: 1, padding: "0 0.3rem", minWidth: "1.1rem", cursor: peutDescendre ? "pointer" : "default", opacity: peutDescendre ? 1 : 0.4 }}
+                              >
+                                −
+                              </button>
+                            )}
+                            <span style={{ color: estNegatif ? "#e08080" : undefined }} data-valeur-stat={cle}>
+                              {valeur}
+                              {ajuste && (
+                                <span style={{ color: "#e8c547" }} data-delta-stat={cle}>
+                                  {` (${delta > 0 ? "+" : ""}${delta})`}
+                                </span>
+                              )}
+                              {(deltaSimulation[cle] ?? 0) !== 0 && (
+                                <span data-stat-delta-simulation={cle} title="Écart dû aux mods simulés par rapport à vos armures réelles" style={{ marginLeft: 4, color: (deltaSimulation[cle] as number) > 0 ? "#7fd88f" : "#e0a080" }}>
+                                  {(deltaSimulation[cle] as number) > 0 ? "+" : "−"}{Math.abs(deltaSimulation[cle] as number)}
+                                </span>
+                              )}
+                            </span>
+                            {onChangerAjustement && (
+                              <button
+                                type="button"
+                                data-ajustement-plus={cle}
+                                aria-label={`Augmenter ${LIBELLES[cle]} de ${PAS_AJUSTEMENT_STAT} (simulation)`}
+                                title={`+${PAS_AJUSTEMENT_STAT} ${LIBELLES[cle]} (ajustement simulé : le total réel reste ${totaux[cle]})`}
+                                disabled={!peutMonter}
+                                onClick={() => onChangerAjustement(cle, delta + PAS_AJUSTEMENT_STAT)}
+                                style={{ fontSize: "0.62rem", lineHeight: 1, padding: "0 0.3rem", minWidth: "1.1rem", cursor: peutMonter ? "pointer" : "default", opacity: peutMonter ? 1 : 0.4 }}
+                              >
+                                +
+                              </button>
+                            )}
+                            {ajuste && <BadgeSimule title={`Ajustement simulé (${delta > 0 ? "+" : ""}${delta}) : pris en compte dans le score, pas appliqué en jeu. Total réel : ${totaux[cle]}.`} />}
+                          </span>
                         </div>
                         <div
                           style={{ height: 4, background: "#2a2e38", borderRadius: 2, overflow: "hidden" }}
-                          title={`${valeur} / ${STAT_MAX}`}
+                          title={`${valeur} / ${STAT_MAX}${ajuste ? ` (réel : ${totaux[cle]}, ajustement ${delta > 0 ? "+" : ""}${delta})` : ""}`}
                         >
-                          <div style={{ width: `${pourcent}%`, height: "100%", background: estNegatif ? "#8b4a4a" : "#7aa2f7" }} />
+                          <div style={{ width: `${pourcent}%`, height: "100%", background: estNegatif ? "#8b4a4a" : ajuste ? "#e8c547" : "#7aa2f7" }} />
                         </div>
                       </div>
                     );
                   });
                 })()}
+                {/* FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - note sur les PLAFONDS et les
+                surcharges : 175 max sans mods (archétype+masterwork+tuning), 200 avec mods (5× Majeur +10) ;
+                les surcharges de charges d'armure (Fonts) ne sont PAS dans ces barres, elles vivent dans le
+                pilier « Effets du Build ». Aide à visualiser l'impact des surcharges.
+                EN: note on CAPS and overcharges. */}
+                <div style={{ fontSize: "0.62rem", color: "#7d7a70", marginTop: "0.3rem" }} title="Plafond Armor 3.0 : 175 sans mods (archétype + masterwork + tuning), 200 avec mods (5× Majeur +10). Les surcharges liées aux charges d'armure (Fonts) ne sont PAS comptabilisées ici : elles apparaissent dans le pilier « Effets du Build ».">
+                  Plafond 200 (avec mods) · les surcharges de charges d'armure ne sont pas comptées ici (voir Effets du Build)
+                </div>
+                {/* FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - bouton « Recommandation » :
+                affiché UNIQUEMENT quand une simulation de stats est active (ajustementsStats non nul,
+                décision utilisateur : les stats se simulent dans « Mon Build »). Au clic, affiche
+                l'archétype d'armure à rechercher pour approcher les stats souhaitées. Calcul par le
+                module pur data/recommandationArchetype.ts (table Armor 3.0 de la knowledge-base) :
+                les stats RÉELLES (armure + bonus doctrine, comme les barres) sont comparées aux
+                CIBLES (totaux ajustés affichés ci-dessus).
+                EN: "Recommendation" button: shown ONLY when a stat simulation is active. On click,
+                shows the armor archetype to look for to reach the desired stats. Computed by the
+                pure module (Armor 3.0 archetype table from the knowledge base): REAL stats (armor +
+                doctrine bonus, same as the bars) compared to TARGETS (the adjusted totals above). */}
+                {aDesAjustementsStats(build.ajustementsStats) && (
+                  <div style={{ marginTop: "0.4rem" }} data-bloc-recommandation="">
+                    <button
+                      type="button"
+                      data-bouton-recommandation=""
+                      aria-expanded={recoOuverte}
+                      onClick={() => setRecoOuverte((v) => !v)}
+                      style={{ fontSize: "0.68rem", padding: "0.15rem 0.5rem" }}
+                    >
+                      Recommandation
+                    </button>
+                    {recoOuverte && (() => {
+                      // FR : mêmes totaux RÉELS que les barres (armure + bonus doctrine), puis
+                      // CIBLES = totaux ajustés affichés (même clamp [0, 200] que les barres).
+                      // EN: same REAL totals as the bars (armor + doctrine bonus), then TARGETS =
+                      // the adjusted totals shown above (same [0, 200] clamp as the bars).
+                      const totauxReels = sommerStatsArmure(build.armure);
+                      if (db) {
+                        const bonusDoctrine = obtenirBonusStatsDoctrine(db, build.subclass);
+                        for (const [cle, valeur] of Object.entries(bonusDoctrine) as [StatKey, number][]) {
+                          totauxReels[cle] = (totauxReels[cle] ?? 0) + valeur;
+                        }
+                      }
+                      const cibles = appliquerAjustementsStats(totauxReels, build.ajustementsStats);
+                      const reco = recommanderArchetype(totauxReels, cibles);
+                      return (
+                        <div
+                          data-recommandation-archetype={reco.archetype.id}
+                          style={{ marginTop: "0.35rem", fontSize: "0.72rem", color: "#e8c547" }}
+                        >
+                          <strong>« {reco.archetype.nomFr} »</strong> ({reco.archetype.nomEn}) — {reco.explication}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
               {/* FR : ⚠️ AJOUT (29/10/2026) - bouton « Optimiseur » JUSTE SOUS le cadre des statistiques, même colonne (même largeur) : ouvre la Forge sur l'optimiseur. Affiché seulement si la page principale fournit la fonction. / EN: ⚠️ ADDED - "Optimizer" button right under the stats frame, same column. */}
               {onOuvrirOptimiseur && (
