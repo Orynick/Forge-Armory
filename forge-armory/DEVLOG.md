@@ -17,6 +17,14 @@
   de la même façon. Conservées : chantiers actifs avec contenu unique (`ccr-18c636a2-6p3cz9`,
   `draft-armure-score`) ou PR ouverte (`draft-podcast` #26, `vibe/point-avancement-05-11-700253` #28).
 
+---
+
+## 05/11/2026 — POINT D'AVANCEMENT publié (`documentation/suivi/POINT-AVANCEMENT-2026-11-05.md`)
+
+Instantané du projet au 05/11/2026, premier point depuis la livraison de la **v0.6.0** : main = `ca8be9b` (pack v12 intégré), PR #27 (mods-phase-2) **mergée le 04/11** avec validation en jeu de l'utilisateur (« Parfait ça fonctionne ! ») — première fonctionnalité d'ÉCRITURE chez Bungie (`InsertSocketPlugFree`, variante A : mods d'armure uniquement). Recense : 16 branches distantes toutes en retard sur `main` (avancé de 14 commits depuis le point du 02/11), 1 PR ouverte (#26, podcast, de côté), CI verte sur les derniers commits de `main`, batterie logique 55/55 (1118/1118), aucun bloquant, TODO restante (variante B des perks d'armes, audit externe, agent IA, fixtures scoring), chantiers vivants à re-syncer et branches nettoyables (`draft-mods-phase-2` mergée, backups obsolètes). Aucun code.
+
+---
+
 ## 03/11/2026 — MODS-PHASE-2, correctifs du premier test réel : champ `itemId` (cause du 1663) + bouton « Appliquer en jeu » dans la carte et la fenêtre Détails
 
 **Retour utilisateur après test en jeu** : (1) le bouton apparaissait À CÔTÉ de la carte — il doit être DANS la carte ET dans la pop-up Détails, peu importe d'où elle est ouverte ; (2) refus Bungie : `Prise 2 refusée — HTTP 500, ErrorCode 1663 (DestinyItemActionForbidden) : This action can only be done in-game.`
