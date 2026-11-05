@@ -4,6 +4,21 @@
 
 ---
 
+## 06/11/2026 — branche `draft-sec` rouverte : couverture de tests du durcissement (safeStorage, liste blanche réseau, permissions refusées)
+
+**Constat de départ** : la TODO et les points d'avancement disaient encore « branche `draft-sec` à fusionner proprement (chiffrement des jetons `safeStorage`, liste blanche réseau, permissions refusées) ». Vérification faite (git, `merge-base --is-ancestor c9218ed main`) : ce durcissement est **déjà livré dans `main`** — commit `c9218ed`, merge PR #6 — et toujours présent à l'identique dans `electron/main.cjs` (canaux `securite:*`, `HOTES_AUTORISES`, `setPermissionRequestHandler`/`setPermissionCheckHandler` à false), `electron/preload.cjs` (pont `stockageSecurise`), `src/lib/stockageSecurise.ts` (migration du clair vers le coffre chiffré, repli localStorage documenté) et ses consommateurs (`oauth.ts`, `dim/apiKey.ts`, `main.tsx`). Ce qui manquait réellement : **aucune suite de test ne protégeait ce chantier**.
+
+**Réalisé (branche `draft-sec` rouverte depuis `main`, aucun changement de code applicatif)** :
+
+- `tests/logique/stockage-securise.test.ts` (13 contrôles) — test de COMPORTEMENT du cas nominal : pont factice (coffre safeStorage simulé) + localStorage factice ; repli localStorage avant l'init, cache peuplé depuis le coffre, **migration** d'une valeur encore en clair (écrite dans le coffre sous la clé préfixée `sec:`, supprimée de localStorage), écriture sans copie en clair, effacement des deux stockages + du cache ;
+- `tests/logique/stockage-securite-repli.test.ts` (7 contrôles) — cas de REPLI (chiffrement OS indisponible) : avertissement console, aucune migration, aucune écriture coffre, écriture/lecture/effacement via localStorage ;
+- `tests/logique/cablage-durcissement-sec.test.ts` (27 contrôles) — test de CÂBLAGE (lecture du texte du code, comme `cablage-csp-wasm` / `cablage-connexion-bungie`) : les quatre canaux IPC `securite:*` réservés à la fenêtre principale, `safeStorage.encryptString`/`decryptString` en base64, validations clé/valeur, liste blanche **exactement** trois hôtes (Bungie, DIM, GitHub), annulation de toute requête hors liste uniquement dans le logiciel installé, refus total des permissions sur les sessions principale ET de connexion, pont preload à quatre fonctions, consommateurs sans écriture directe des jetons dans localStorage, init avant le premier rendu, cohérence des clés avec `CLES_SECRETS` ;
+- `TODO.md` : les deux mentions « branche `draft-sec` à fusionner » rayées et corrigées (le code est dans `main` depuis la PR #6 ; la branche rouverte apporte les tests). Reste de la section : Node.js >=24.22.1.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `node tests/lancer-tout.mjs` : **logique 63/63 suites** (dont les 3 nouvelles, 47/47 contrôles) ; les 27 suites d'interface échouent dans l'environnement de travail (Playwright absent), sans lien avec ce changement. Aucun changement de code applicatif, aucune version bumpée.
+
+---
+
 ## 05/11/2026 (suite) — CORRECTIF : `scripts/tester-avec-fixtures.mjs` réparé sous Node (TODO §4) — lanceur esbuild + Node
 
 **Problème (retour utilisateur du 05/11, exécution depuis un ZIP `draft-optimiseur`)** : `node scripts/tester-avec-fixtures.mjs` plantait avec `ERR_MODULE_NOT_FOUND` (« Cannot find package 'a' » importé depuis `sql-wasm.wasm`). **Causes racines** : (1) `src/lib/manifest/download.ts` importe `sql.js/dist/sql-wasm.wasm?url` — suffixe **Vite** inconnu de Node, qui tentait de charger le `.wasm` comme module ESM ; (2) les imports internes du `src/` sont **sans extension** (convention bundler), non résolus par Node ESM nu. Le script n'avait jamais tourné depuis l'ajout de l'import `?url` ; la batterie logique, elle, passe déjà par esbuild (`tests/logique/lancer.mjs`).
