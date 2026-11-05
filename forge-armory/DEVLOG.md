@@ -4,6 +4,40 @@
 
 ---
 
+## 05/11/2026 (suite) — CORRECTIF : `scripts/tester-avec-fixtures.mjs` réparé sous Node (TODO §4) — lanceur esbuild + Node
+
+**Problème (retour utilisateur du 05/11, exécution depuis un ZIP `draft-optimiseur`)** : `node scripts/tester-avec-fixtures.mjs` plantait avec `ERR_MODULE_NOT_FOUND` (« Cannot find package 'a' » importé depuis `sql-wasm.wasm`). **Causes racines** : (1) `src/lib/manifest/download.ts` importe `sql.js/dist/sql-wasm.wasm?url` — suffixe **Vite** inconnu de Node, qui tentait de charger le `.wasm` comme module ESM ; (2) les imports internes du `src/` sont **sans extension** (convention bundler), non résolus par Node ESM nu. Le script n'avait jamais tourné depuis l'ajout de l'import `?url` ; la batterie logique, elle, passe déjà par esbuild (`tests/logique/lancer.mjs`).
+
+**Réalise** (aucun changement de code applicatif — `download.ts` est retourné à l'identique de `main`, périmètre strictement `scripts/`) :
+- `scripts/tester-avec-fixtures.mjs` devient un **LANCEUR** esbuild + Node, sur le modèle exact de `lancer.mjs` : bundle (imports TS sans extension, `?url`, `define import.meta.env`, modules factices `sql.js`/`fflate`/`idb`), exécution Node, nettoyage du bundle ;
+- le corps du test est déplacé tel quel dans `scripts/fixtures-corps.mjs` (seul l'en-tête documente le nouveau rôle) ;
+- le bundle est écrit **dans `scripts/`** (`_fixtures.bundle.mjs`, supprimé après exécution) pour que la résolution des fixtures par `import.meta.url` dans `fausse-db.mjs` (`../test-fixtures/`) reste correcte.
+
+**Vérifié** : `node scripts/tester-avec-fixtures.mjs` exit 0, sortie conforme (maillons `Ralentissement -> Gel`, `Gel -> Brisure` ; ressources grenade/Brèche abyssale ; +24 pts après `enrichirAvecChaines` — tous les « Attendu » respectés) ; `npx tsc -b` 0 erreur ; `npm run test:logique` 60/60 suites, 1244/1244 contrôles ; `npm run build` OK. **Reste** : validation côté utilisateur (TODO §4), puis contrôle régulier avant chaque version.
+
+---
+
+## 05/11/2026 — v0.6.1 : livraison de la PR #29 + doc à jour + ménage des branches
+
+- **Bump 0.6.0 → 0.6.1** (package.json/lock) ; entrée CHANGELOG utilisateur ; TODO §8 (archétypes utilisés
+  par la « Recommandation ») et nouveau TODO §23 (simulation des stats + optimiseur de build v2) ; README.
+- **Contenu livré** (PR #29, merge `69d6a3c`, CI 60/60 suites / 1244 contrôles) : ajustements manuels des
+  stats (−/+ dans « Mon Build » uniquement, badge « simulé », sauvegarde marquée + badge 🔨 infographie),
+  bouton « Recommandation » d'archétype, badge « simulé » sur verbes de perks simulés (union `MARQUE_SIMULE`),
+  optimiseur de build v2 en page dédiée (bouton « ⚙️ Optimiser le build », prop `onOuvrirOptimiseurBuild`).
+- **Ménage** : `draft-optimiseur` et `Import-optimiseur` supprimées après tags `archive/*` ; branches
+  doc-only (`draft-legendarium`, `draft-sec`, `draft-update-triomphes`, `draft-netlify`, `test`) archivées
+  de la même façon. Conservées : chantiers actifs avec contenu unique (`ccr-18c636a2-6p3cz9`,
+  `draft-armure-score`) ou PR ouverte (`draft-podcast` #26, `vibe/point-avancement-05-11-700253` #28).
+
+---
+
+## 05/11/2026 — POINT D'AVANCEMENT publié (`documentation/suivi/POINT-AVANCEMENT-2026-11-05.md`)
+
+Instantané du projet au 05/11/2026, premier point depuis la livraison de la **v0.6.0** : main = `ca8be9b` (pack v12 intégré), PR #27 (mods-phase-2) **mergée le 04/11** avec validation en jeu de l'utilisateur (« Parfait ça fonctionne ! ») — première fonctionnalité d'ÉCRITURE chez Bungie (`InsertSocketPlugFree`, variante A : mods d'armure uniquement). Recense : 16 branches distantes toutes en retard sur `main` (avancé de 14 commits depuis le point du 02/11), 1 PR ouverte (#26, podcast, de côté), CI verte sur les derniers commits de `main`, batterie logique 55/55 (1118/1118), aucun bloquant, TODO restante (variante B des perks d'armes, audit externe, agent IA, fixtures scoring), chantiers vivants à re-syncer et branches nettoyables (`draft-mods-phase-2` mergée, backups obsolètes). Aucun code.
+
+---
+
 ## 03/11/2026 — MODS-PHASE-2, correctifs du premier test réel : champ `itemId` (cause du 1663) + bouton « Appliquer en jeu » dans la carte et la fenêtre Détails
 
 **Retour utilisateur après test en jeu** : (1) le bouton apparaissait À CÔTÉ de la carte — il doit être DANS la carte ET dans la pop-up Détails, peu importe d'où elle est ouverte ; (2) refus Bungie : `Prise 2 refusée — HTTP 500, ErrorCode 1663 (DestinyItemActionForbidden) : This action can only be done in-game.`
@@ -21,6 +55,23 @@
 **Périmètre** : mise à jour de la SPEC (§2.1 emplacement du bouton verrouillé, §3.1/3.2 la fenêtre Détails entre dans le périmètre — décision utilisateur, §4 correctif `itemId`) et du PLAN (table des fichiers). `InventaireArmes.tsx` toujours non touché (variante A).
 
 **Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` 55/55 suites, 1114/1114 contrôles ; `npm run build` OK. ✅ **VALIDATION UTILISATEUR EN JEU (03/11/2026)** : « Parfait ça fonctionne ! » — l'insertion réelle des mods d'armure via `InsertSocketPlugFree` fonctionne sur le compte de l'utilisateur avec le champ corrigé `itemId`. Critère 5 de la SPEC validé : le changement est réellement appliqué en jeu. **Le niveau 2 du TODO §2 (première écriture de mods chez Bungie) est FAIT.** Reste hors périmètre : les perks d'armes (variante A).
+
+---
+
+## 04/11/2026 — CLÔTURE du chantier MODS-PHASE-2 (TODO §2 : perks et mods, simulation ET écriture en jeu)
+
+**Le chantier est clos de bout en bout.** Chronologie complète :
+
+- **03/11** — SPEC de cadrage rédigée sans code (méthode spec-kit), 3 décisions verrouillées par l'utilisateur (variante A : mods d'armure d'abord ; objets du Coffre modifiables ; scope OAuth `MoveEquipDestinyItems` déjà actif) ; PLAN puis codage (`ecartsApplicables`, `insererPlug`, composant `AppliquerEnJeu`) ;
+- **03/11** — premier test réel en jeu : refus ErrorCode 1663 « This action can only be done in-game » → **cause racine** : l'endpoint GRATUIT attend le champ `itemId`, pas `itemInstanceId` (preuve : implémentation de DIM) ; correctif + bouton déplacé DANS la carte et dans la fenêtre Détails (retour utilisateur) ;
+- **03/11** — ✅ **validation en jeu des mods d'armure** (« Parfait ça fonctionne ! ») ;
+- **03/11** — variante B : le chantier s'étend aux **perks d'armes** (décision utilisateur, ordre 3 → 1 → 2) ; le vieux diagnostic `diagnostiquerInsertionPlug` reçoit le même correctif `itemId` ;
+- **04/11** — boutons de la charte FOURNIS par l'utilisateur et intégrés (plaque dans les pop-up, icône seule dans les cartes d'Armes et d'Armures) ; ✅ **validation en jeu des perks d'armes** (« OK ça fonctionne ») ;
+- **04/11** — **livraison v0.6.0** (passage de palier justifié : première fonctionnalité d'ÉCRITURE chez Bungie), PR #27 fusionnée, **tag `v0.6.0`** posé ;
+- **04/11** — **intégration complète du pack v12** `forge-armory-app-assets` (nouvel app-assets ; archives rangées : v11 → `archives-precedentes/app-assets-v11`, ancien catalogue de travail → `archives-precedentes/app-assets-v7-optimisation`) ;
+- **04/11** — **propagation aux 14 autres branches** (fusions propres sauf `.gitignore` résolu par union), tsc 0 et batterie au vert localement sur chacune, **CI verte partout**.
+
+**Bilan** : TODO §2 TERMINÉ (simulation en v0.5.6/v0.5.7, écriture réelle en v0.6.0) ; SPEC `SPEC-MODS-PHASE-2-2026-11-03.md` checklist 7/7 ; 55/55 suites (1118/1118 contrôles, dont la suite `ecarts-simulation`) ; reproductibilité des visuels 7/7 depuis le pack v12. **Restent hors périmètre** (pistes futures, pas des engagements) : câbler dans l'UI les visuels du pack v12 non encore utilisés (ex. `marques.appliquer-en-jeu`, états « sélectionné » des boutons d'action) ; tri des branches de sauvegarde.
 
 ---
 
@@ -147,6 +198,21 @@ Récap du projet en lien avec la TODO, à l'état du 02/11/2026 : main = `b30968
 **Tag** : `v0.5.7` (annoté) sur le commit de livraison. **Version 0.5.7.**
 
 HEAD
+## 01/11/2026 — MÉTHODE : retours de revue sur la constitution (branche `vibe/methode-spec-kit-70789e` → `ccr-18c636a2-6p3cz9`)
+
+**Décision de l'utilisateur** (01/11/2026), après l'analyse de la branche `vibe/methode-spec-kit-70789e` (constitution + templates inspirés de spec-kit) : documentation uniquement, aucun fichier de code touché.
+- **Article IX corrigé** : vérifié que les tests Playwright ne tournent bien pas en CI (`.github/workflows/ci.yml` n'exécute que `tsc -b`, `npm run build`, `npm run test:logique`). L'article précise maintenant la commande de lancement, le rôle de l'assistant (écrit et rejoue quand l'environnement le permet, sinon le déclare) et celui de l'utilisateur (rejeu qui fait foi).
+- **Article III : échec connu toléré** : `icones.test.tsx` (53/54, 1103/1104) documenté comme seule exception ; suivi en **TODO 25** (cause à chercher ; commentaires de `ci.yml` périmés « 38 suites / 761 contrôles » notés au même endroit).
+- **Nommage** (README §4) : le préfixe `draft-<slug>` ne vaut que pour les chantiers pilotés par l'utilisateur ; `vibe/...` et `ccr-...` n'y sont pas soumis.
+- **Chantiers triviaux et corrections mineures** → directement sur `main` (README §5, exception à l'Article VI, rappels aux Articles V et VII), avec une **checklist courte** (`templates/CHECKLIST-correctif-mineur.md`). L'assistant propose la qualification « trivial », l'utilisateur confirme ; en cas de doute, workflow complet.
+- **Article X** : la référence périmée « TODO §12 » (devenu « Équiper ») remplacée par un lien vers `electron/dossierDonnees.cjs` et l'entrée DEVLOG du 05/10/2026 (suite 12).
+- **Template d'index des specs** : `templates/INDEX-specs.md` ; l'index `documentation/specs/INDEX.md` est créé (même jour, sur demande de l'utilisateur) avec la seule spec existante, Legendarium (livrée en 0.5.0, 22/10/2026).
+- **Nouvel Article XI** : la constitution ne change que sur décision explicite de l'utilisateur ; l'assistant propose, n'applique pas ; modification, entrée DEVLOG et annexe dans le même commit.
+
+**Vérifié** : liens relatifs des nouveaux fichiers contrôlés ; aucun fichier hors `documentation/methode/`, `TODO.md` et `DEVLOG.md` modifié (hors merge de la branche `vibe/methode-spec-kit-70789e`). Pas de `tsc`/`build` à relancer (documentation seule).
+
+---
+
 ## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `vibe/draft-podcast-840f64`
 
 **Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6`) a été répercutée sur la branche `vibe/draft-podcast-840f64` pour limiter les conflits futurs.
