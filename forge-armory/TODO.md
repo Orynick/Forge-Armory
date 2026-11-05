@@ -243,6 +243,15 @@ Chez l'utilisateur, `npm install` fonctionne désormais : à lancer une fois
 pour vérifier qu'il passe, et en faire un contrôle régulier avant chaque
 version.
 
+✅ **Correctif livré le 05/11/2026 (branche `vibe/fix-fixtures-node-700253`)** :
+le script plantait sous Node (`ERR_MODULE_NOT_FOUND` sur `sql.js` — import
+Vite `?url` — puis imports TS sans extension). Il est désormais un LANCEUR
+esbuild + Node (même mécanisme que la batterie logique `lancer.mjs`) qui
+empaquette le corps (`scripts/fixtures-corps.mjs`) avant de l'exécuter.
+Vérifié : exit 0, tous les « Attendu » conformes, tsc 0, batterie 60/60
+(1244/1244), build OK. **Reste à faire** : exécution et validation côté
+utilisateur, puis contrôle régulier avant chaque version.
+
 ---
 
 ## 🟢 Confort / plus tard
@@ -654,9 +663,9 @@ La batterie locale affiche **53/54 suites, 1103/1104 contrôles** : seule la sui
 ### 23. Simulation des stats dans « Mon Build » + optimiseur de build v2 — ✅ LIVRÉ v0.6.1 (PR #29, 05/11/2026, validé par l'utilisateur)
 
 - **Ajustements manuels des stats** : boutons −/+ par barre dans « Mon Build » UNIQUEMENT (pas de 5,
-  total clampé à [0, 200]) ; le Bloc 5 « Statistiques » du scoring reste en LECTURE SEULE. Badge « ������ simulé »
+  total clampé à [0, 200]) ; le Bloc 5 « Statistiques » du scoring reste en LECTURE SEULE. Badge « 🔨 simulé »
   (barres ajustées, titre du pilier 5, score global), sauvegarde marquée « simulé » (`Loadout.estSimulation`),
-  badge ������ dans l'infographie PNG/PDF (`FicheBuild.estSimulation`).
+  badge 🔨 dans l'infographie PNG/PDF (`FicheBuild.estSimulation`).
 - **« Recommandation » d'archétype** sous les stats de Mon Build, si simulation active — voir §8.
 - **Optimiseur de build v2** : page dédiée « ⚙️ Optimiser le build » (bouton dans Mon Build, prop
   `onOuvrirOptimiseurBuild` — distincte du bouton « Optimiseur » → Forge de la v0.5.7) ; module pur

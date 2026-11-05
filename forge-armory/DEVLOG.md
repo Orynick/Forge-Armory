@@ -4,6 +4,19 @@
 
 ---
 
+## 05/11/2026 (suite) — CORRECTIF : `scripts/tester-avec-fixtures.mjs` réparé sous Node (TODO §4) — lanceur esbuild + Node
+
+**Problème (retour utilisateur du 05/11, exécution depuis un ZIP `draft-optimiseur`)** : `node scripts/tester-avec-fixtures.mjs` plantait avec `ERR_MODULE_NOT_FOUND` (« Cannot find package 'a' » importé depuis `sql-wasm.wasm`). **Causes racines** : (1) `src/lib/manifest/download.ts` importe `sql.js/dist/sql-wasm.wasm?url` — suffixe **Vite** inconnu de Node, qui tentait de charger le `.wasm` comme module ESM ; (2) les imports internes du `src/` sont **sans extension** (convention bundler), non résolus par Node ESM nu. Le script n'avait jamais tourné depuis l'ajout de l'import `?url` ; la batterie logique, elle, passe déjà par esbuild (`tests/logique/lancer.mjs`).
+
+**Réalise** (aucun changement de code applicatif — `download.ts` est retourné à l'identique de `main`, périmètre strictement `scripts/`) :
+- `scripts/tester-avec-fixtures.mjs` devient un **LANCEUR** esbuild + Node, sur le modèle exact de `lancer.mjs` : bundle (imports TS sans extension, `?url`, `define import.meta.env`, modules factices `sql.js`/`fflate`/`idb`), exécution Node, nettoyage du bundle ;
+- le corps du test est déplacé tel quel dans `scripts/fixtures-corps.mjs` (seul l'en-tête documente le nouveau rôle) ;
+- le bundle est écrit **dans `scripts/`** (`_fixtures.bundle.mjs`, supprimé après exécution) pour que la résolution des fixtures par `import.meta.url` dans `fausse-db.mjs` (`../test-fixtures/`) reste correcte.
+
+**Vérifié** : `node scripts/tester-avec-fixtures.mjs` exit 0, sortie conforme (maillons `Ralentissement -> Gel`, `Gel -> Brisure` ; ressources grenade/Brèche abyssale ; +24 pts après `enrichirAvecChaines` — tous les « Attendu » respectés) ; `npx tsc -b` 0 erreur ; `npm run test:logique` 60/60 suites, 1244/1244 contrôles ; `npm run build` OK. **Reste** : validation côté utilisateur (TODO §4), puis contrôle régulier avant chaque version.
+
+---
+
 ## 05/11/2026 — v0.6.1 : livraison de la PR #29 + doc à jour + ménage des branches
 
 - **Bump 0.6.0 → 0.6.1** (package.json/lock) ; entrée CHANGELOG utilisateur ; TODO §8 (archétypes utilisés
