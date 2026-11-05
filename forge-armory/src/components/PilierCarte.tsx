@@ -1,6 +1,7 @@
 import { PillarScore, StatBlock } from "../types/build";
 import TitreCategorie, { CategorieTitre } from "./TitreCategorie";
 import StatsBarChart from "./StatsBarChart";
+import BadgeSimule from "./BadgeSimule";   // ⚠️ AJOUT (20/10/2026, branche draft-optimiseur)
 // FR : ⚠️ CHANGÉ (06/09/2026) - les libellés étaient redéclarés ici, en
 // 3e copie indépendante. Importés depuis la source unique désormais.
 // EN: ⚠️ CHANGED - labels were redeclared here as a 3rd independent copy.
@@ -40,14 +41,27 @@ export default function PilierCarte({ pilier, stats }: Props) {
   // `verbes.ts` commençant par 2 espaces est une sous-ligne du dernier titre.
   // EN: ⚠️ ADDED - groups details into "heading + sub-lines" for a REAL indent
   // (nested sub-list) rather than leading spaces that barely shifted anything.
-  const groupes: { titre: string; sousLignes: string[] }[] = [];
-  for (const ligne of pilier.details) {
+  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - si le pilier porte des lignes
+  // MARQUÉES (`detailsMarques`, même longueur que `details`), on garde le drapeau `simule` par
+  // ligne : une ligne « effet » marquée affiche le badge « simulé » (même badge que Mon
+  // Build). Sans `detailsMarques`, tout est non simulé (affichage texte inchangé).
+  // EN: if the pillar carries MARKED lines (`detailsMarques`, same length as `details`),
+  // we keep each line's `simule` flag: a marked "effect" line shows the "simulated" badge
+  // (same badge as Mon Build). Without `detailsMarques`, everything is not simulated
+  // (text display unchanged).
+  const marques = pilier.detailsMarques;
+  const simuleLigne = (i: number) => marques?.[i]?.simule === true;
+  // ⚠️ FUSION (28/10/2026, propagation v0.5.6) : les DEUX systèmes de badge coexistent —
+  // `simuleLigne(i)` (ajustements de stats, branche) + `avecBadges` (marqueur MARQUE_SIMULE
+  // des perks/mods simulés, main v0.5.6). Les lignes portent les deux traitements.
+  const groupes: { titre: string; titreSimule: boolean; sousLignes: { texte: string; simule: boolean }[] }[] = [];
+  pilier.details.forEach((ligne, i) => {
     if (ligne.startsWith("  ") && groupes.length > 0) {
-      groupes[groupes.length - 1].sousLignes.push(ligne.trim());
+      groupes[groupes.length - 1].sousLignes.push({ texte: ligne.trim(), simule: simuleLigne(i) });
     } else {
-      groupes.push({ titre: ligne, sousLignes: [] });
+      groupes.push({ titre: ligne, titreSimule: simuleLigne(i), sousLignes: [] });
     }
-  }
+  });
 
   return (
     <div className="pilier-carte">
@@ -68,15 +82,34 @@ export default function PilierCarte({ pilier, stats }: Props) {
           ⛓️ Chaîne de verbes détectée · 🔋 Énergie d'aptitude générée
         </p>
       )}
-      {pilier.pilier === "stats_2_0" && stats && <StatsBarChart stats={stats} />}
+      {/* FR : ⚠️ CHANGÉ (23/10/2026, branche draft-optimiseur) - le graphique du pilier 5 est en
+      LECTURE SEULE : les boutons −/+ d'ajustement ont été retirés (la simulation se fait dans
+      « Mon Build ») ; les totaux affichés sont déjà ajustés par le scoring.
+      EN: pillar 5's chart is READ-ONLY: the −/+ adjustment buttons were removed (simulation
+      lives in "Mon Build"); displayed totals are already adjusted by the scoring. */}
+      {pilier.pilier === "stats_2_0" && stats && (
+        <StatsBarChart stats={stats} />
+      )}
+      {/* FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - le pilier 5 marqué « simulé »
+      (ajustements de stats actifs) porte le badge dans son titre, en plus du badge par ligne de détail.
+      EN: pillar 5 flagged "simulated" (active stat adjustments) also carries the badge in its title. */}
+      {pilier.pilier === "stats_2_0" && pilier.detailsMarques?.some((l) => l.simule) && (
+        <span style={{ marginLeft: "0.3rem" }}>
+          <BadgeSimule title="Ce pilier reflète des ajustements de stats simulés (boutons −/+), pas votre équipement réel." />
+        </span>
+      )}
       <ul>
         {groupes.map((g, i) => (
           <li key={i}>
             {avecBadges(g.titre)}
+            {g.titreSimule && <BadgeSimule />}
             {g.sousLignes.length > 0 && (
               <ul style={{ marginTop: "0.15rem" }}>
                 {g.sousLignes.map((s, j) => (
-                  <li key={j}>{avecBadges(s)}</li>
+                  <li key={j}>
+                    {avecBadges(s.texte)}
+                    {s.simule && <BadgeSimule />}
+                  </li>
                 ))}
               </ul>
             )}
