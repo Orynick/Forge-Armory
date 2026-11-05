@@ -722,7 +722,8 @@ export default function DashboardPage() {
         <ResumeBuild
           build={buildEffectif}
           onOuvrirForge={ouvrirForge}
-          onOuvrirOptimiseur={ouvrirOptimiseur}   // ⚠️ union merge : test passe ouvrirOptimiseur (ouvre la Forge sur l'optimiseur d'armures) ; draft-optimiseur passait () => setVue("optimiseur") (page dédiée v2) — on garde la version test, la prop existe des deux côtés
+          onOuvrirOptimiseur={ouvrirOptimiseur}   // ⚠️ bouton « Optimiseur » sous les stats (main) : ouvre la Forge sur l'optimiseur d'armures
+          onOuvrirOptimiseurBuild={() => setVue("optimiseur")}   // ⚠️ 23/10/2026 (draft-optimiseur) : bouton « ⚙️ Optimiser le build » → page dédiée optimiseur de build v2 (vue « optimiseur »)
           onLireLore={ouvrirLoreDepuisObjet}   // ⚠️ AJOUT (30/10/2026) : « Lire le Lore » aussi dans la fenêtre Détails de Mon Build
           membership={memberships[0] ?? null}
           personnages={personnages}

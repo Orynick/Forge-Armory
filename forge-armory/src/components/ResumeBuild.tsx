@@ -100,17 +100,20 @@ interface Props {
    */
   onChangerAjustement?: (cle: StatKey, delta: number) => void;
   /**
-   * FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur) - bouton « Optimiser » (sous le titre de
-   * « Mon Build », à côté de « ✕ Réinitialiser ») : ouvre la page dédiée de l'optimiseur de build v2.
-   * Facultatif : sans lui, le bouton n'apparaît pas. L'optimiseur ne modifie JAMAIS le build courant :
-   * sa seule passerelle est son propre bouton « Enregistrer comme build simulé ».
-   * EN: the "Optimize" button (under "Mon Build"'s title, next to "✕ Reset"): opens the dedicated
-   * build optimizer v2 page. Optional. The optimizer NEVER modifies the current build.
+   * FR : ⚠️ AJOUT (29/10/2026, main v0.5.7) - bouton « Optimiseur » sous le cadre « Statistiques du build » :
+   * ouvre la FORGE directement sur l'optimiseur d'ARMURES (mods/pièces). / EN: "Optimizer" button under the
+   * stats frame: opens the FORGE on the armor optimizer.
    */
   onOuvrirOptimiseur?: () => void;
   /**
-   * FR : ⚠️ AJOUT (29/10/2026, chantier) - même rôle côté test : bouton « Optimiseur » sous le cadre « Statistiques du build ». / EN: same role on the test side.
+   * FR : ⚠️ AJOUT (23/10/2026, branche draft-optimiseur, merge v0.6.0) - bouton « ⚙️ Optimiser le build »
+   * (sous le titre de « Mon Build », à côté de « ✕ Réinitialiser ») : ouvre la PAGE DÉDIÉE de l'optimiseur de build v2
+   * (vue « optimiseur »). DISTINCT de `onOuvrirOptimiseur` (bouton Forge) pour que les deux boutons coexistent.
+   * L'optimiseur de build ne modifie JAMAIS le build courant : sa seule écriture est son propre bouton
+   * « Enregistrer comme build simulé ». / EN: the "Optimize build" button: opens the dedicated build
+   * optimizer v2 page. The optimizer NEVER modifies the current build.
    */
+  onOuvrirOptimiseurBuild?: () => void;
   /**
    * FR : ⚠️ AJOUT (30/10/2026) - clic du bouton « Lire le Lore » de la fenêtre Détails de Mon Build (fenêtre UNIQUE) : aiguille vers le Legendarium. / EN: ⚠️ ADDED - "Read the Lore" click from My Build's details window.
    */
@@ -136,7 +139,7 @@ function calculerSetsActifsResume(build: BuildDraft, db: Database) {
   return [...parSet.values()];
 }
 
-export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge, onChangerAjustement, onOuvrirOptimiseur, onLireLore }: Props) {   // ⚠️ union merge draft-optimiseur + test
+export default function ResumeBuild({ build, membership, personnages, db = null, onReinitialiser, contexte, onChangerContexte, onOuvrirForge, onChangerAjustement, onOuvrirOptimiseur, onOuvrirOptimiseurBuild, onLireLore }: Props) {   // ⚠️ union merge draft-optimiseur + test
   const setsAvecBonusActif = useMemo(() => db ? calculerSetsActifsResume(build, db) : [], [build, db]);
   const [personnageCible, setPersonnageCible] = useState<string>(personnages[0]?.characterId ?? "");
   const [enCours, setEnCours] = useState<string | null>(null);
@@ -613,15 +616,15 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
         bouton « Enregistrer comme build simulé » (flux de sauvegarde des Load-outs).
         EN: the "Optimize" button: opens the DEDICATED build optimizer v2 page (tier-based armor
         sets, outside scoring). The optimizer does NOT touch the current build. */}
-        {onOuvrirOptimiseur && (
+        {onOuvrirOptimiseurBuild && (
           <button
             type="button"
-            data-bouton-optimiseur=""
-            onClick={onOuvrirOptimiseur}
+            data-bouton-optimiseur-build=""
+            onClick={onOuvrirOptimiseurBuild}
             style={{ fontSize: "0.8rem" }}
-            title="Proposer les meilleurs ensembles d'armures (coffre + personnages) pour des minimums de stats — hors scoring, le build courant n'est pas modifié"
+            title="Proposer les meilleurs ensembles d'armures (coffre + personnages) pour des minimums de stats — page dédiée hors scoring, le build courant n'est pas modifié"
           >
-            ⚙️ Optimiser
+            ⚙️ Optimiser le build
           </button>
         )}
       </div>
