@@ -13,7 +13,7 @@ passages retirés ou condensés lors du nettoyage du 06/10/2026 dans
 `documentation/todo/ARCHIVE-TODO-2026-10-06.md`. Conception du scoring :
 section « Le scoring » de `NOTES-CONCEPTION.md`. Tests en cours :
 `A-TESTER-<version>.pdf` (le numéro de version de l'appli est dans le nom ;
-version courante : 0.5.7).
+version courante : 0.6.0).
 
 ---
 
@@ -138,8 +138,10 @@ développement (3e étape de l'ordre du 30/09/2026).
   `plugsInsertablesParColonne` et `energie` ; deux défauts Mon Build corrigés
   (`LignePieceStable` : la fenêtre Détails ne se refermait plus à chaque clic ;
   les armures simulées mémorisent leurs mods/stats réels comme les armes).
-- Rien n'est écrit chez Bungie ; enregistrement/partage/export/équipement
-  gardent les mods réels.
+- ⚠️ **CHANGÉ (04/11/2026, niveau 2 livré)** : la SIMULATION n'écrit
+  toujours rien chez Bungie (enregistrement/partage/export/équipement
+  gardent les mods réels) ; l'écriture n'a lieu QUE par le bouton
+  « Appliquer en jeu », derrière confirmation explicite.
 
 ✅ **Niveau 2 (en jeu) : FAIT le 03/11/2026** (validation en jeu par l'utilisateur) — ✅ **CODÉ le
 03/11/2026 (branche `draft-mods-phase-2`, PR #27, variante A : mods
@@ -151,12 +153,17 @@ l'inventaire après succès. Objets du Coffre inclus (décision du 03/11).
 ✅ Validation en jeu obtenue le 03/11/2026 (« Parfait ça fonctionne ! »).
 ✅ **Variante B FAITE et VALIDÉE EN JEU le 04/11/2026** (« OK ça
 fonctionne ») : les perks d'armes s'écrivent aussi réellement en jeu,
-dans la fenêtre Détails et par l'icône des cartes (boutons de la
-charte intégrés le 04/11). PR #27 prête pour revue puis fusion,
-puis **bump v0.6.0** (débloqué).
-✅ **Bouton stylisé dédié FOURNI et INTÉGRÉ le 04/11/2026** (archive
-`forge-armory-app-assets`) : bouton plaque dans les pop-up Détails,
-icône seule dans les cartes d'Armes et d'Armures.
+dans la fenêtre Détails et par l'icône des cartes.
+✅ **Bouton stylisé dédié FOURNI et INTÉGRÉ le 04/11/2026** (pack v12
+`forge-armory-app-assets`, intégré COMPLÈTEMENT le 04/11) : bouton
+plaque dans les pop-up Détails, icône seule dans les cartes d'Armes
+et d'Armures.
+
+✅ **CHANTIER MODS-PHASE-2 CLOS le 04/11/2026** : PR #27 **fusionnée**,
+**v0.6.0 livrée et taguée** (`v0.6.0`), **pack v12 intégralement intégré**
+et **propagée aux 14 autres branches** (CI verte partout). Le TODO §2
+(perks et mods, simulation ET écriture en jeu) est TERMINÉ de bout en
+bout. Spécification complète : `documentation/specs/SPEC-MODS-PHASE-2-2026-11-03.md`.
 
 **Reste à faire — niveau 1 (évolutions)** :
 - **Collection des armures** (toutes les armures du jeu) et **ensembles et
@@ -243,6 +250,15 @@ Chez l'utilisateur, `npm install` fonctionne désormais : à lancer une fois
 pour vérifier qu'il passe, et en faire un contrôle régulier avant chaque
 version.
 
+✅ **Correctif livré le 05/11/2026 (branche `vibe/fix-fixtures-node-700253`)** :
+le script plantait sous Node (`ERR_MODULE_NOT_FOUND` sur `sql.js` — import
+Vite `?url` — puis imports TS sans extension). Il est désormais un LANCEUR
+esbuild + Node (même mécanisme que la batterie logique `lancer.mjs`) qui
+empaquette le corps (`scripts/fixtures-corps.mjs`) avant de l'exécuter.
+Vérifié : exit 0, tous les « Attendu » conformes, tsc 0, batterie 60/60
+(1244/1244), build OK. **Reste à faire** : exécution et validation côté
+utilisateur, puis contrôle régulier avant chaque version.
+
 ---
 
 ## 🟢 Confort / plus tard
@@ -293,9 +309,11 @@ nom d'armature (au survol) et le champion affiché en jeu.
 Les 12 archétypes et leurs paires de stats sont confirmés en jeu (tableau
 complet FR/EN dans `knowledge-base/08_GAME_MECHANICS.md`, section « Armor
 3.0 »). Pas utilisés pour NOTER (le pilier Statistiques note déjà les stats
-réelles) ; **conservés pour une future RECOMMANDATION** (décision de
-l'utilisateur), du type « pour ce build grenade, cherchez plutôt du bon
-archétype ».
+réelles) ; **UTILISÉS depuis la v0.6.1 (PR #29, 05/11/2026) par le bouton « Recommandation »**
+de « Mon Build » (sous les stats, uniquement quand une simulation de stats est active) : il
+recommande l'archétype (primaire +30 / secondaire +25 par pièce) à chercher pour atteindre
+les stats visées — module `src/data/recommandationArchetype.ts`, 24 tests. Exemple :
+« pour ce build grenade, cherchez plutôt du bon archétype ».
 
 
 ### 9. Vitrine « Solo sans mourir » — ajouter les exotiques de raid obtenues
@@ -624,6 +642,13 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 À prévoir ensuite : libellé du lien, test du lien dans l'appli installée (ouverture du navigateur ou de la messagerie), et une phrase dans le guide de démarrage pour les invités.
 
 
+### 25. Test `icones.test.tsx` en échec en local — batterie 53/54 (noté le 01/11/2026)
+
+La batterie locale affiche **53/54 suites, 1103/1104 contrôles** : seule la suite `tests/logique/icones.test.tsx` échoue (contrôle `element:officielle`), alors qu'elle **passe en CI**. L'échec est déjà signalé comme « connu » dans le DEVLOG (entrées du 31/10) et noté « pré-existant » depuis la branche `draft-deps` (DEVLOG, voir « element:officielle »). Il est désormais toléré **explicitement** par la Constitution (Article III, décision du 01/11/2026), à titre transitoire.
+- **À faire** : comprendre pourquoi le résultat local diffère de la CI (environnement, ordre des fichiers, instantané `tests/logique/instantanes/` ?), corriger le test ou son instantané, puis retirer l'exception de l'Article III et revenir à « N/N ».
+- **À mettre à jour en même temps** : les commentaires de `.github/workflows/ci.yml` annoncent encore « 38 suites, 761 contrôles » (le nom de l'étape dit « 38 suites ») alors que la batterie compte 54 suites, 1104 contrôles.
+- Aucune décision de l'utilisateur n'est attendue avant de commencer l'enquête.
+
 ---
 
 **Items retirés le 23/10/2026 (livraison PR #17)** — documentés dans `DEVLOG.md` :
@@ -641,6 +666,23 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 - ~~22. Logo de fond et mode diagnostic~~ → ✅ validés le 06/10/2026 (DEVLOG v0.3.2)
 - ~~24. Auteur des builds~~ → ✅ fait et validé le 06/10/2026, v0.3.3 (DEVLOG)
 
+
+### 23. Simulation des stats dans « Mon Build » + optimiseur de build v2 — ✅ LIVRÉ v0.6.1 (PR #29, 05/11/2026, validé par l'utilisateur)
+
+- **Ajustements manuels des stats** : boutons −/+ par barre dans « Mon Build » UNIQUEMENT (pas de 5,
+  total clampé à [0, 200]) ; le Bloc 5 « Statistiques » du scoring reste en LECTURE SEULE. Badge « 🔨 simulé »
+  (barres ajustées, titre du pilier 5, score global), sauvegarde marquée « simulé » (`Loadout.estSimulation`),
+  badge 🔨 dans l'infographie PNG/PDF (`FicheBuild.estSimulation`).
+- **« Recommandation » d'archétype** sous les stats de Mon Build, si simulation active — voir §8.
+- **Optimiseur de build v2** : page dédiée « ⚙️ Optimiser le build » (bouton dans Mon Build, prop
+  `onOuvrirOptimiseurBuild` — distincte du bouton « Optimiseur » → Forge de la v0.5.7) ; module pur
+  `src/data/buildOptimizer.ts` (paliers de 10, mixes de stats, pruning, boucle exotique, masterwork
+  hypothétique avec rappel visible) + page `PageOptimiseur.tsx` ; résultats en T par groupe d'exotique ;
+  « Enregistrer comme build simulé ». Le build courant n'est JAMAIS modifié (test de câblage à liste
+  fermée sur `buildEffectif`). Tests : build-optimiseur 35, optimiseur-ui 28, recommandation-archetype 24,
+  fiche-infographie-simule 5, ajustements-stats 23, cablage-forge 37.
+- **Reste ouvert** : worker dédié si le calcul bloque l'UI (> 500 ms) en conditions réelles
+  (`dureeMs` déjà exposé ; actuellement synchrone + indicateur de progression).
 
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 
