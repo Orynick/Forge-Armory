@@ -18,9 +18,9 @@ import { normaliser, positionsMotCleStrict } from "../manifest/search";
 // EN: ⚠️ ADDED - single source for pillar order.
 import { ORDRE_PILIERS } from "../../data/piliers";
 import { BuildDraft, BuildScoreResult, PillarScore } from "../../types/build";
-import { ExigenceStat, scoreStats, sommerStatsArmure, ContexteBuild } from "./stats";
+import { ExigenceStat, scoreStats, sommerStatsArmure, ContexteBuild, appliquerAjustementsStats, aDesAjustementsStats } from "./stats";
 import { scoreBonusSetsReels } from "./armorSets";
-import { detecterVerbes, extraireTextesEffetsBuild, extraireNomsPerksSimules, scoreVerbesDetectes, obtenirChampionsCouverts, detecterChainesVerbes, detecterRessourcesGenerees, enrichirAvecChaines } from "./verbes";
+import { detecterVerbes, extraireTextesEffetsBuild, extraireTextesEffetsBuildMarques, extraireNomsPerksSimules, scoreVerbesDetectes, obtenirChampionsCouverts, detecterChainesVerbes, detecterRessourcesGenerees, enrichirAvecChaines } from "./verbes";   // ⚠️ FUSION (28/10/2026) : les DEUX sont utilisés — `extraireTextesEffetsBuildMarques` (badge ajustements, branche) + `extraireNomsPerksSimules` (badge perks/mods simulés, main v0.5.6)
 import { obtenirBonusStatsDoctrine, obtenirElementArme } from "../manifest/doctrine";
 import { LIBELLES_CHAMPION } from "../../components/icones/IconeAntiChampion";
 
@@ -261,8 +261,16 @@ function scoreVerbesElement(build: BuildDraft, db?: Database, contexte: Contexte
     };
   }
 
-  const textes = extraireTextesEffetsBuild(build, db);
-  const verbesDetectes = detecterVerbes(textes);
+  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - version MARQUÉE de l'extraction :
+  // chaque texte sait s'il vient d'un perk SIMULÉ (Forge), pour le badge « simulé » dans le
+  // pilier « Effets du Build ». `textes` (texte seul) alimente les chaînes/ressources, inchangé.
+  // EN: MARKED version of the extraction: each text knows if it comes from a SIMULATED perk
+  // (Forge), for the "simulated" badge in the "Effects of the Build" pillar. `textes` (text
+  // only) feeds chains/resources, unchanged.
+  const textesMarques = extraireTextesEffetsBuildMarques(build, db);
+  const textes = textesMarques.map((t) => t.texte);
+  const textesSimules = textesMarques.map((t) => t.simule);
+  const verbesDetectes = detecterVerbes(textes, undefined, textesSimules);
 
   // FR : ⚠️ CHANGÉ (26/08/2026) - les chaînes sont désormais calculées AVANT
   // le score (pas seulement en affichage informatif après-coup), pour
@@ -274,7 +282,12 @@ function scoreVerbesElement(build: BuildDraft, db?: Database, contexte: Contexte
   // now settled - see the full reasoning on `enrichirAvecChaines`.
   const maillons = detecterChainesVerbes(verbesDetectes, textes);
   const verbesEnrichis = enrichirAvecChaines(verbesDetectes, maillons);
-  const { score: scoreBoucles, details } = scoreVerbesDetectes(verbesEnrichis, extraireNomsPerksSimules(build, db));   // ⚠️ 27/10/2026 : l'origine d'un verbe qui est un perk SIMULÉ porte le badge « simulé »
+  // ⚠️ FUSION (28/10/2026, propagation v0.5.6) : les DEUX mécanismes coexistent —
+  // `detailsMarques` (badge « simulé » des ajustements de stats, branche draft-optimiseur)
+  // + `extraireNomsPerksSimules` (marqueur MARQUE_SIMULE des perks/mods simulés, main v0.5.6).
+  // `scoreVerbesDetectes` fusionnée accepte les DEUX paramètres (voir verbes.ts).
+  const nomsSimules = extraireNomsPerksSimules(build, db);
+  const { score: scoreBoucles, details, detailsMarques } = scoreVerbesDetectes(verbesEnrichis, nomsSimules);
 
   // FR : ⚠️ CHANGÉ (06/09/2026) - regroupées par SOURCE, plus par cible.
   // Motif : demande de l'utilisateur après test réel, où "Charge d'armure"
@@ -378,10 +391,20 @@ function scoreVerbesElement(build: BuildDraft, db?: Database, contexte: Contexte
       details.push(`✨ +${bonus} pts pour la génération active de ressources (${nbTypesDistincts} type(s) distinct(s))`);
     }
     const scoreFinal = Math.max(0, Math.min(100, scoreBoucles + bonus));
-    return { pilier: "verbes_element", score: scoreFinal, poids: poidsPilier("verbes_element", contexte), details };
+    return { pilier: "verbes_element", score: scoreFinal, poids: poidsPilier("verbes_element", contexte), details, ...marquerSiSimule(detailsMarques, details) };
   }
 
-  return { pilier: "verbes_element", score: scoreBoucles, poids: poidsPilier("verbes_element", contexte), details };
+  return { pilier: "verbes_element", score: scoreBoucles, poids: poidsPilier("verbes_element", contexte), details, ...marquerSiSimule(detailsMarques, details) };
+}
+
+/** FR : n'attache `detailsMarques` au pilier que si AU MOINS une ligne est marquée simulée ;
+ * les lignes ajoutées après (chaînes, ressources, bonus) ne sont pas marquées et sont
+ * ajoutées en fin de liste avec `simule: false`. / EN: only attach `detailsMarques` to the
+ * pillar when AT LEAST one line is flagged simulated; lines added afterwards (chains,
+ * resources, bonus) are not flagged and are appended with `simule: false`. */
+function marquerSiSimule(detailsMarques: { texte: string; simule: boolean }[], details: string[]): { detailsMarques?: { texte: string; simule: boolean }[] } {
+  const complet = details.map((texte, i) => detailsMarques[i] ?? { texte, simule: false });
+  return complet.some((l) => l.simule) ? { detailsMarques: complet } : {};
 }
 
 /**
@@ -724,7 +747,7 @@ function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: Contexte
  * Pilier 5 - Statistiques 2.0 : voir lib/scoring/stats.ts pour le détail des
  * paliers T1-T20 et des exigences d'exotiques (ex: Caresse du Ver -> T10 Grenade).
  */
-function scoreStats2(stats: ReturnType<typeof sommerStatsArmure>, exigences: ExigenceStat[], contexte: ContexteBuild = "neutre"): PillarScore {
+function scoreStats2(stats: ReturnType<typeof sommerStatsArmure>, exigences: ExigenceStat[], contexte: ContexteBuild = "neutre", simule = false): PillarScore {
   // FR : ⚠️ CORRIGÉ (24/08/2026) - le contexte n'était pas transmis à
   // `scoreStats`, qui l'accepte pourtant en paramètre : la pondération PAR
   // STAT (POIDS_STATS - Arme à 1.7 en DPS, Santé à 1.8 en PvP, etc.)
@@ -735,7 +758,17 @@ function scoreStats2(stats: ReturnType<typeof sommerStatsArmure>, exigences: Exi
   // it: PER-STAT weighting always fell back to "neutre" even once the
   // pillar's GLOBAL weight was correctly contextualised.
   const { score, details } = scoreStats(stats, exigences, contexte);
-  return { pilier: "stats_2_0", score, poids: poidsPilier("stats_2_0", contexte), details };
+  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - si le build porte des AJUSTEMENTS
+  // MANUELS de stats (boutons −/+), ce pilier est marqué du badge « simulé » : le score reflète
+  // une hypothèse (mods/masterwork simulés), pas l'équipement réel. Chaque ligne de détail est
+  // marquée ; le texte porte le suffixe « · • simulé » pour la fiche/export (le badge visuel est
+  // rendu par PilierCarte via `detailsMarques`).
+  // EN: if the build carries MANUAL stat adjustments (−/+ buttons), this pillar is flagged with the
+  // "simulated" badge: the score reflects a hypothesis (simulated mods/masterwork), not the real loadout.
+  if (!simule) return { pilier: "stats_2_0", score, poids: poidsPilier("stats_2_0", contexte), details };
+  const S = String.fromCodePoint(0x1F528); // évite d'écrire l'emoji en dur (surrogate pairs)
+  const detailsMarques = details.map((texte) => ({ texte: `${texte} · ${S} simulé`, simule: true }));
+  return { pilier: "stats_2_0", score, poids: poidsPilier("stats_2_0", contexte), details: detailsMarques.map((d) => d.texte), detailsMarques };
 }
 
 /**
@@ -872,6 +905,15 @@ export function evaluerBuild(
     }
   }
 
+  // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - les AJUSTEMENTS MANUELS
+  // (`build.ajustementsStats`, boutons −/+ des barres) s'appliquent APRÈS les bonus de fragments :
+  // ils simulent des mods/masterwork EN PLUS de l'équipement réel. `statsTotales` (retourné à l'UI)
+  // reflète alors le total ajusté, clampé à [0, 200] par stat. Sans ajustement, le même objet.
+  // EN: MANUAL adjustments apply AFTER fragment bonuses (they simulate mods/masterwork ON TOP of the
+  // real gear). `statsTotales` (returned to the UI) then reflects the adjusted total.
+  const statsAjustees = appliquerAjustementsStats(statsTotales, build.ajustementsStats);
+  const statsSimulees = aDesAjustementsStats(build.ajustementsStats);
+
   // FR : ⚠️ RÉORGANISÉ (06/09/2026) - l'ordre de ce tableau détermine
   // l'ordre d'affichage des cartes de piliers. Il suit désormais
   // `ORDRE_PILIERS` (`data/piliers.ts`), la source unique partagée avec le
@@ -894,7 +936,7 @@ export function evaluerBuild(
     scoreLootCoherence(build, db, contexte),
     scorePerksArtefact(build, db, contexte),
     scoreVerbesElement(build, db, contexte),
-    scoreStats2(statsTotales, exigencesExotiques, contexte),
+    scoreStats2(statsAjustees, exigencesExotiques, contexte, statsSimulees),
   ];
 
   // FR : ⚠️ AJOUT (06/09/2026) - garde-fou contre la désynchronisation qui
@@ -931,7 +973,7 @@ export function evaluerBuild(
     buildId: build.id,
     scoreGlobal,
     piliers: piliersPonderes,
-    statsTotales,
+    statsTotales: statsAjustees,
     completion: calculerCompletion(build, db),
   };
 }
