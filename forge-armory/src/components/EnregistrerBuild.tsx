@@ -7,6 +7,9 @@
 import { useState } from "react";
 import { BuildDraft } from "../types/build";
 import { enregistrerLoadout } from "../lib/loadouts/stockage";
+// FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - détection d'une simulation pour l'enregistrement marqué.
+// EN: simulation detection for the marked save.
+import { aDesAjustementsStats } from "../lib/scoring/stats";
 import { doctrineManquante, messageDoctrineIncomplete } from "../lib/loadouts/doctrineIncomplete";
 import ModifierLoadout from "./ModifierLoadout";
 
@@ -18,15 +21,29 @@ interface Props {
   nomInitial?: string;
   onEnregistre: (nom: string) => void;
   onAnnuler: () => void;
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - vrai si le build en cours porte des perks
+   * SIMULÉS (Forge) : l'enregistrement est marqué « simulation ». Le `build` reçu peut être le build
+   * réel (sans simulation appliquée), d'où ce paramètre explicite (défaut : détection sur le build reçu).
+   * EN: true if the current build carries SIMULATED perks (Forge).
+   */
+  avecPerksSimules?: boolean;
 }
 
-export default function EnregistrerBuild({ build, auteur, nomInitial = "", onEnregistre, onAnnuler }: Props) {
+export default function EnregistrerBuild({ build, auteur, nomInitial = "", onEnregistre, onAnnuler, avecPerksSimules = false }: Props) {
   const [erreur, setErreur] = useState<string | null>(null);
 
   function valider(infos: { nom: string; description: string; icone: string }) {
     const manquants = doctrineManquante(build);
     if (manquants.length > 0 && !window.confirm(messageDoctrineIncomplete(manquants))) return;
-    const resultat = enregistrerLoadout(infos.nom, build, infos.description, infos.icone, auteur ?? "");
+    // FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - enregistrement marqué « simulation »
+    // quand le build porte des ajustements de stats ou des perks simulés (build reçu = build avec
+    // simulation appliquée depuis le Dashboard). Les ajustements sont conservés, le badge apparaît
+    // dans la liste des loadouts. / EN: marked "simulation" save when the build carries stat adjustments
+    // or simulated perks.
+    const estSimulation =
+      avecPerksSimules || build.armes.some((a) => a.perksSimules === true) || aDesAjustementsStats(build.ajustementsStats);
+    const resultat = enregistrerLoadout(infos.nom, build, infos.description, infos.icone, auteur ?? "", estSimulation || undefined);
     if (!resultat.ok) {
       setErreur(resultat.erreur ?? "Enregistrement impossible.");
       return;
