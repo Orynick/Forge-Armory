@@ -38,12 +38,19 @@ interface Props {
   auteur?: string | null;
   /** FR : ⚠️ AJOUT (07/10/2026, v0.3.8) - ouvre l'onglet Load-outs (proposé après un enregistrement). Absent = pas de bouton. / EN: ⚠️ ADDED - opens the Load-outs tab (offered after a save). */
   onVoirLoadouts?: () => void;
+  /**
+   * FR : ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) - vrai si le build en cours porte des perks
+   * SIMULÉS (Forge) : l'enregistrement depuis ce bloc est alors marqué « simulation ». Le build
+   * reçu ici est le build RÉEL (sans simulation appliquée), d'où ce paramètre explicite.
+   * EN: true if the current build carries SIMULATED perks (Forge): saving from this block is then marked.
+   */
+  avecPerksSimules?: boolean;
 }
 
 /** FR : nom utilisé si le champ est laissé vide. / EN: name used when the field is left empty. */
 const NOM_PAR_DEFAUT = "Mon build";
 
-export default function BlocPartage({ build, db, auteur = null, onVoirLoadouts }: Props) {
+export default function BlocPartage({ build, db, auteur = null, onVoirLoadouts, avecPerksSimules = false }: Props) {
   // FR : nom propre à ce bloc. Le nom interne du build en cours n'est pas
   // fiable (il reste celui du build de démonstration tant qu'on ne charge
   // pas de loadout), d'où un champ explicite.
@@ -115,6 +122,7 @@ export default function BlocPartage({ build, db, auteur = null, onVoirLoadouts }
         <EnregistrerBuild
           build={build}
           auteur={auteur}
+          avecPerksSimules={avecPerksSimules}
           nomInitial={nom.trim()}
           onEnregistre={(nomEnregistre) => {
             setSaisieOuverte(false);
