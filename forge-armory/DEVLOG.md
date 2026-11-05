@@ -4,6 +4,19 @@
 
 ---
 
+## 05/11/2026 — v0.6.1 : livraison de la PR #29 + doc à jour + ménage des branches
+
+- **Bump 0.6.0 → 0.6.1** (package.json/lock) ; entrée CHANGELOG utilisateur ; TODO §8 (archétypes utilisés
+  par la « Recommandation ») et nouveau TODO §23 (simulation des stats + optimiseur de build v2) ; README.
+- **Contenu livré** (PR #29, merge `69d6a3c`, CI 60/60 suites / 1244 contrôles) : ajustements manuels des
+  stats (−/+ dans « Mon Build » uniquement, badge « simulé », sauvegarde marquée + badge 🔨 infographie),
+  bouton « Recommandation » d'archétype, badge « simulé » sur verbes de perks simulés (union `MARQUE_SIMULE`),
+  optimiseur de build v2 en page dédiée (bouton « ⚙️ Optimiser le build », prop `onOuvrirOptimiseurBuild`).
+- **Ménage** : `draft-optimiseur` et `Import-optimiseur` supprimées après tags `archive/*` ; branches
+  doc-only (`draft-legendarium`, `draft-sec`, `draft-update-triomphes`, `draft-netlify`, `test`) archivées
+  de la même façon. Conservées : chantiers actifs avec contenu unique (`ccr-18c636a2-6p3cz9`,
+  `draft-armure-score`) ou PR ouverte (`draft-podcast` #26, `vibe/point-avancement-05-11-700253` #28).
+
 ## 03/11/2026 — MODS-PHASE-2, correctifs du premier test réel : champ `itemId` (cause du 1663) + bouton « Appliquer en jeu » dans la carte et la fenêtre Détails
 
 **Retour utilisateur après test en jeu** : (1) le bouton apparaissait À CÔTÉ de la carte — il doit être DANS la carte ET dans la pop-up Détails, peu importe d'où elle est ouverte ; (2) refus Bungie : `Prise 2 refusée — HTTP 500, ErrorCode 1663 (DestinyItemActionForbidden) : This action can only be done in-game.`

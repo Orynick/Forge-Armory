@@ -293,9 +293,11 @@ nom d'armature (au survol) et le champion affiché en jeu.
 Les 12 archétypes et leurs paires de stats sont confirmés en jeu (tableau
 complet FR/EN dans `knowledge-base/08_GAME_MECHANICS.md`, section « Armor
 3.0 »). Pas utilisés pour NOTER (le pilier Statistiques note déjà les stats
-réelles) ; **conservés pour une future RECOMMANDATION** (décision de
-l'utilisateur), du type « pour ce build grenade, cherchez plutôt du bon
-archétype ».
+réelles) ; **UTILISÉS depuis la v0.6.1 (PR #29, 05/11/2026) par le bouton « Recommandation »**
+de « Mon Build » (sous les stats, uniquement quand une simulation de stats est active) : il
+recommande l'archétype (primaire +30 / secondaire +25 par pièce) à chercher pour atteindre
+les stats visées — module `src/data/recommandationArchetype.ts`, 24 tests. Exemple :
+« pour ce build grenade, cherchez plutôt du bon archétype ».
 
 
 ### 9. Vitrine « Solo sans mourir » — ajouter les exotiques de raid obtenues
@@ -641,6 +643,23 @@ Demande de l'utilisateur : ajouter, **en pied de page**, un lien « Contact » q
 - ~~22. Logo de fond et mode diagnostic~~ → ✅ validés le 06/10/2026 (DEVLOG v0.3.2)
 - ~~24. Auteur des builds~~ → ✅ fait et validé le 06/10/2026, v0.3.3 (DEVLOG)
 
+
+### 23. Simulation des stats dans « Mon Build » + optimiseur de build v2 — ✅ LIVRÉ v0.6.1 (PR #29, 05/11/2026, validé par l'utilisateur)
+
+- **Ajustements manuels des stats** : boutons −/+ par barre dans « Mon Build » UNIQUEMENT (pas de 5,
+  total clampé à [0, 200]) ; le Bloc 5 « Statistiques » du scoring reste en LECTURE SEULE. Badge « ������ simulé »
+  (barres ajustées, titre du pilier 5, score global), sauvegarde marquée « simulé » (`Loadout.estSimulation`),
+  badge ������ dans l'infographie PNG/PDF (`FicheBuild.estSimulation`).
+- **« Recommandation » d'archétype** sous les stats de Mon Build, si simulation active — voir §8.
+- **Optimiseur de build v2** : page dédiée « ⚙️ Optimiser le build » (bouton dans Mon Build, prop
+  `onOuvrirOptimiseurBuild` — distincte du bouton « Optimiseur » → Forge de la v0.5.7) ; module pur
+  `src/data/buildOptimizer.ts` (paliers de 10, mixes de stats, pruning, boucle exotique, masterwork
+  hypothétique avec rappel visible) + page `PageOptimiseur.tsx` ; résultats en T par groupe d'exotique ;
+  « Enregistrer comme build simulé ». Le build courant n'est JAMAIS modifié (test de câblage à liste
+  fermée sur `buildEffectif`). Tests : build-optimiseur 35, optimiseur-ui 28, recommandation-archetype 24,
+  fiche-infographie-simule 5, ajustements-stats 23, cablage-forge 37.
+- **Reste ouvert** : worker dédié si le calcul bloque l'UI (> 500 ms) en conditions réelles
+  (`dureeMs` déjà exposé ; actuellement synchrone + indicateur de progression).
 
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 
