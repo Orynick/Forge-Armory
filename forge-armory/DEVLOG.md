@@ -19,6 +19,19 @@
 
 ---
 
+## 05/11/2026 (suite) — CORRECTIF : `scripts/tester-avec-fixtures.mjs` réparé sous Node (TODO §4) — lanceur esbuild + Node
+
+**Problème (retour utilisateur du 05/11, exécution depuis un ZIP `draft-optimiseur`)** : `node scripts/tester-avec-fixtures.mjs` plantait avec `ERR_MODULE_NOT_FOUND` (« Cannot find package 'a' » importé depuis `sql-wasm.wasm`). **Causes racines** : (1) `src/lib/manifest/download.ts` importe `sql.js/dist/sql-wasm.wasm?url` — suffixe **Vite** inconnu de Node, qui tentait de charger le `.wasm` comme module ESM ; (2) les imports internes du `src/` sont **sans extension** (convention bundler), non résolus par Node ESM nu. Le script n'avait jamais tourné depuis l'ajout de l'import `?url` ; la batterie logique, elle, passe déjà par esbuild (`tests/logique/lancer.mjs`).
+
+**Réalise** (aucun changement de code applicatif — `download.ts` est retourné à l'identique de `main`, périmètre strictement `scripts/`) :
+- `scripts/tester-avec-fixtures.mjs` devient un **LANCEUR** esbuild + Node, sur le modèle exact de `lancer.mjs` : bundle (imports TS sans extension, `?url`, `define import.meta.env`, modules factices `sql.js`/`fflate`/`idb`), exécution Node, nettoyage du bundle ;
+- le corps du test est déplacé tel quel dans `scripts/fixtures-corps.mjs` (seul l'en-tête documente le nouveau rôle) ;
+- le bundle est écrit **dans `scripts/`** (`_fixtures.bundle.mjs`, supprimé après exécution) pour que la résolution des fixtures par `import.meta.url` dans `fausse-db.mjs` (`../test-fixtures/`) reste correcte.
+
+**Vérifié** : `node scripts/tester-avec-fixtures.mjs` exit 0, sortie conforme (maillons `Ralentissement -> Gel`, `Gel -> Brisure` ; ressources grenade/Brèche abyssale ; +24 pts après `enrichirAvecChaines` — tous les « Attendu » respectés) ; `npx tsc -b` 0 erreur ; `npm run test:logique` 60/60 suites, 1244/1244 contrôles ; `npm run build` OK. **Reste** : validation côté utilisateur (TODO §4), puis contrôle régulier avant chaque version.
+
+---
+
 ## 05/11/2026 — v0.6.1 : livraison de la PR #29 + doc à jour + ménage des branches
 
 - **Bump 0.6.0 → 0.6.1** (package.json/lock) ; entrée CHANGELOG utilisateur ; TODO §8 (archétypes utilisés
@@ -57,6 +70,23 @@ Instantané du projet au 05/11/2026, premier point depuis la livraison de la **v
 **Périmètre** : mise à jour de la SPEC (§2.1 emplacement du bouton verrouillé, §3.1/3.2 la fenêtre Détails entre dans le périmètre — décision utilisateur, §4 correctif `itemId`) et du PLAN (table des fichiers). `InventaireArmes.tsx` toujours non touché (variante A).
 
 **Vérifié** : `npx tsc -b` 0 erreur ; `npm run test:logique` 55/55 suites, 1114/1114 contrôles ; `npm run build` OK. ✅ **VALIDATION UTILISATEUR EN JEU (03/11/2026)** : « Parfait ça fonctionne ! » — l'insertion réelle des mods d'armure via `InsertSocketPlugFree` fonctionne sur le compte de l'utilisateur avec le champ corrigé `itemId`. Critère 5 de la SPEC validé : le changement est réellement appliqué en jeu. **Le niveau 2 du TODO §2 (première écriture de mods chez Bungie) est FAIT.** Reste hors périmètre : les perks d'armes (variante A).
+
+---
+
+## 04/11/2026 — CLÔTURE du chantier MODS-PHASE-2 (TODO §2 : perks et mods, simulation ET écriture en jeu)
+
+**Le chantier est clos de bout en bout.** Chronologie complète :
+
+- **03/11** — SPEC de cadrage rédigée sans code (méthode spec-kit), 3 décisions verrouillées par l'utilisateur (variante A : mods d'armure d'abord ; objets du Coffre modifiables ; scope OAuth `MoveEquipDestinyItems` déjà actif) ; PLAN puis codage (`ecartsApplicables`, `insererPlug`, composant `AppliquerEnJeu`) ;
+- **03/11** — premier test réel en jeu : refus ErrorCode 1663 « This action can only be done in-game » → **cause racine** : l'endpoint GRATUIT attend le champ `itemId`, pas `itemInstanceId` (preuve : implémentation de DIM) ; correctif + bouton déplacé DANS la carte et dans la fenêtre Détails (retour utilisateur) ;
+- **03/11** — ✅ **validation en jeu des mods d'armure** (« Parfait ça fonctionne ! ») ;
+- **03/11** — variante B : le chantier s'étend aux **perks d'armes** (décision utilisateur, ordre 3 → 1 → 2) ; le vieux diagnostic `diagnostiquerInsertionPlug` reçoit le même correctif `itemId` ;
+- **04/11** — boutons de la charte FOURNIS par l'utilisateur et intégrés (plaque dans les pop-up, icône seule dans les cartes d'Armes et d'Armures) ; ✅ **validation en jeu des perks d'armes** (« OK ça fonctionne ») ;
+- **04/11** — **livraison v0.6.0** (passage de palier justifié : première fonctionnalité d'ÉCRITURE chez Bungie), PR #27 fusionnée, **tag `v0.6.0`** posé ;
+- **04/11** — **intégration complète du pack v12** `forge-armory-app-assets` (nouvel app-assets ; archives rangées : v11 → `archives-precedentes/app-assets-v11`, ancien catalogue de travail → `archives-precedentes/app-assets-v7-optimisation`) ;
+- **04/11** — **propagation aux 14 autres branches** (fusions propres sauf `.gitignore` résolu par union), tsc 0 et batterie au vert localement sur chacune, **CI verte partout**.
+
+**Bilan** : TODO §2 TERMINÉ (simulation en v0.5.6/v0.5.7, écriture réelle en v0.6.0) ; SPEC `SPEC-MODS-PHASE-2-2026-11-03.md` checklist 7/7 ; 55/55 suites (1118/1118 contrôles, dont la suite `ecarts-simulation`) ; reproductibilité des visuels 7/7 depuis le pack v12. **Restent hors périmètre** (pistes futures, pas des engagements) : câbler dans l'UI les visuels du pack v12 non encore utilisés (ex. `marques.appliquer-en-jeu`, états « sélectionné » des boutons d'action) ; tri des branches de sauvegarde.
 
 ---
 
