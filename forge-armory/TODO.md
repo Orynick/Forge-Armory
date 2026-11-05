@@ -51,12 +51,10 @@ Le renommage « Forge Armory » est lui aussi validé (06/10/2026, section 12).
    - **Reste de la liste du 12/10** : ~~logos « Arme » et « Armure » dans l'export~~ ✅ intégrés en 0.4.1 (archive de visuels v3) ; ~~bug du Filobscur~~ ✅ cause établie (les objets du Filobscur réutilisent les fichiers d'icône de la Stase dans les données de Bungie) et corrigé en 0.4.1 par recoloration, ✅ validé le 12/10/2026 (tous les tests cochés, sans demande de réglage de la teinte).
 3. **Sécurité, avant toute ouverture à des tiers** : ~~Vite, React Router~~ ✅
    (faits en v0.5.1, voir section 1), ~~politique de sécurité de contenu (CSP)~~ ✅
-   (livrée en v0.5.4, voir section 1) — ~~fusionner proprement la branche
-   `draft-sec`~~ ✅ (constat du 06/11/2026 : le durcissement — chiffrement des
-   jetons `safeStorage`, liste blanche réseau, permissions refusées — est déjà
-   dans `main` depuis la PR #6 ; la branche rouverte `draft-sec` lui a ajouté
-   sa couverture de tests : 3 suites / 47 contrôles). Reste : Node.js >=24.22.1
-   exigé depuis le 24/10/2026 (correctifs CVE octobre 2026).
+   (livrée en v0.5.4, voir section 1) — reste : fusionner proprement la branche
+   `draft-sec` (chiffrement des jetons `safeStorage`, liste blanche réseau,
+   permissions refusées), et Node.js >=24.22.1 exigé depuis le 24/10/2026
+   (correctifs CVE octobre 2026).
 
 ⏸️ **En attente d'une décision** : l'agent IA (section 3). **À décider** :
 le canal du lien « Contact » (section 23).
@@ -91,13 +89,8 @@ et revue des changements incompatibles : `DEVLOG.md`.
   `frame-ancestors 'none'`, `connect-src` limité à la liste blanche (Bungie, DIM, GitHub),
   `script-src 'self' 'wasm-unsafe-eval'` (pas de `'unsafe-eval'` ni `'unsafe-inline'`).
   Test : `tests/logique/cablage-csp-wasm.test.ts` (15 contrôles). **Validée par l'utilisateur**
-  (chargement du Manifest réparé dans le logiciel installé). ~~Branche `draft-sec` à fusionner
-  proprement~~ ✅ : le durcissement (chiffrement des jetons `safeStorage`, liste blanche réseau,
-  permissions refusées) est déjà dans `main` depuis la PR #6 ; la branche rouverte `draft-sec`
-  (06/11/2026) a ajouté sa couverture de tests : `tests/logique/stockage-securise.test.ts` (13
-  contrôles), `tests/logique/stockage-securite-repli.test.ts` (7) et
-  `tests/logique/cablage-durcissement-sec.test.ts` (27) — comportement du stockage chiffré
-  (nominal + repli) et câblage Electron/preload/consommateurs.
+  (chargement du Manifest réparé dans le logiciel installé). Branche `draft-sec` à fusionner
+  proprement (chiffrement des jetons `safeStorage`, liste blanche réseau, permissions refusées).
 
 **Rappels utiles :**
 - sous PowerShell, utiliser `npm.cmd` : la commande `npm` seule est bloquée par la politique d'exécution des
