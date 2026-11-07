@@ -166,7 +166,14 @@ export default defineConfig({
   // chargerait. Sans effet négatif pour la version navigateur.
   // EN: ⚠️ ADDED - RELATIVE asset paths. The installed app opens the build
   // from a local file, where absolute paths would point at the drive root.
-  base: "./",
+  // FR : ⚠️ AJOUT (06/11/2026, branche draft-netlify) - sur Netlify (variable
+  // NETLIFY definie par le systeme de build lui-meme), les chemins doivent
+  // etre ABSOLUS : avec "./", la page /auth/callback cherche ses assets dans
+  // /auth/assets/... (404 remplacee par index.html = page blanche). Le build
+  // Electron garde les chemins relatifs (ouverture depuis un fichier local).
+  // EN: on Netlify (NETLIFY env var set by its build system) asset paths must
+  // be ABSOLUTE; the Electron build keeps relative paths.
+  base: process.env.NETLIFY ? "/" : "./",
   plugins: [
     react(),
     mkcert({ hosts: ["127.0.0.1"] }),
