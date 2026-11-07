@@ -14,6 +14,7 @@ import type { CategorieLore, GroupeClassePages, LivreLore, PageLore, ProvenanceO
 import { urlIcone } from "../lib/manifest/search";   // ⚠️ AJOUT (21/10/2026, suite 10) : URL complète des couvertures de livres (chemin relatif Bungie → https://www.bungie.net…)
 import IconeClasse, { LIBELLES as LIBELLES_CLASSE } from "./icones/IconeClasse";   // ⚠️ AJOUT (22/10/2026, suite 13) : icône locale de classe (repli si le Manifest n'en porte pas)
 import { rendreExportLore, telechargerExport } from "../lib/legendarium/exportImage";   // ⚠️ AJOUT (22/10/2026, bonus Legendarium) : export infographique (JPEG/PNG) de la page de Lore
+import { publierPagePodcast } from "../lib/legendarium/podcast";   // ⚠️ AJOUT (23/10/2026, vibe/draft-podcast-840f64) : le Legendarium PUBLIE la page courante au lecteur podcast flottant (bus en mémoire, App.tsx)
 
 interface Props {
   db: Database | null;
@@ -23,6 +24,8 @@ interface Props {
   provenance?: ProvenanceObjet;
   /** FR : action du bouton de retour vers l'objet (même mécanique que le bouton « Forge »). / EN: back-to-item action (same mechanics as the "Forge" button). */
   onRetourObjet?: () => void;
+  /** FR : ⚠️ AJOUT (23/10/2026, vibe/draft-podcast-840f64) - la page cible a été CONSOMMÉE (résolue et affichée) : le parent (DashboardPage) peut effacer sa page podcast en attente. / EN: ADDED (draft-podcast) - the target page has been CONSUMED (resolved and shown): the parent (DashboardPage) can clear its pending podcast page. */
+  onPagePodcastConsommee?: () => void;
 }
 
 /** FR : bandeau supérieur (spécification §4 zone 1) : titre, recherche par mots-clés (toujours accessible), indicateur de cache. / EN: top banner (spec §4 zone 1): title, keyword search (always available), cache indicator. */
@@ -555,7 +558,7 @@ export function ResultatsRecherche({ motCle, resultats, onOuvrir }: { motCle: st
   );
 }
 
-export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet }: Props) {
+export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet, onPagePodcastConsommee }: Props) {
   // FR : état EN MÉMOIRE UNIQUEMENT (lecture passive, aucune persistance) : section, page, mot-clé de recherche, livres du Grimoire D1 (chargés une fois à l'ouverture), diagnostic dev.
   const [section, setSection] = useState<SectionLegendarium>("grimoire");
   const [pageId, setPageId] = useState<string | null>(null);
@@ -606,6 +609,7 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
   const livresParSection = useMemo(() => ({ grimoire: livresGrimoire ?? [], ...livresD2 }), [livresGrimoire, livresD2]);
   const livresSection = useMemo(() => (livresParSection[section] ?? []).filter((l) => l.pages.length > 0), [livresParSection, section]);
 
+  // FR : ⚠️ AJOUT (23/10/2026, vibe/draft-podcast-840f64) : une fois la page résolue, on prévient le parent (DashboardPage) que sa « page podcast en attente » est consommée (elle venait du lecteur flottant : enchaînement page suivante ou retour page courante).
   // FR : lien profond (étape 5) : `pageCible` résolu dès que les livres sont prêts.
   useEffect(() => {
     if (!pageCible) return;
@@ -614,6 +618,7 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
       setSection(trouve.section);
       setPageId(trouve.page.id);
       setMotCle("");
+      onPagePodcastConsommee?.();
     }
   }, [pageCible, livresParSection, db]);
 
@@ -651,6 +656,16 @@ export default function Bibliotheque({ db, pageCible, provenance, onRetourObjet 
   const ouvrirResultat = (r: ResultatRechercheLore) => { setMotCle(""); setSection(r.section); setPageId(r.page.id); };
 
   const rechercheActive = motCle.trim() !== "";
+
+  // FR : ⚠️ AJOUT (23/10/2026, vibe/draft-podcast-840f64) - le Legendarium PUBLIE la page courante au lecteur podcast flottant (monté dans App.tsx, toujours visible). À chaque changement de page affichée (hors recherche), on publie `{ id, titre, livre, idSuivante }`. Au démontage (changement de vue), on publie `null` : le lecteur redevient invisible hors Legendarium (sauf lecture en cours — géré côté lecteur). MÉMOIRE UNIQUEMENT (bus module), aucune persistance.
+  // EN: ADDED (draft-podcast) - the Legendarium PUBLISHES the current page to the floating podcast player (mounted in App.tsx, always visible). On every displayed-page change (outside search), we publish `{ id, titre, livre, idSuivante }`. On unmount (view switch), we publish `null`: the player becomes invisible outside the Legendarium (except during playback — handled player-side). MEMORY ONLY (module bus), no persistence.
+  useEffect(() => {
+    if (rechercheActive || !pageActive || !livreActif) return;
+    publierPagePodcast({ id: pageActive.id, titre: pageActive.titre, livre: livreActif.titre, idSuivante });
+  }, [rechercheActive, pageActive, livreActif, idSuivante]);
+  useEffect(() => {
+    return () => { publierPagePodcast(null); };
+  }, []);
 
   return (
     <div className="pilier-carte" data-vue-legendarium="">

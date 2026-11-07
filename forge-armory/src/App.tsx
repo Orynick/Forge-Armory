@@ -10,6 +10,7 @@ import DashboardPage from "./pages/DashboardPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import { verifierConfig } from "./lib/bungie/config";
 import FondLogo from "./components/FondLogo";
+import LecteurPodcast from "./components/LecteurPodcast";   // ⚠️ AJOUT (23/10/2026, vibe/draft-podcast-840f64) : lecteur podcast flottant du Legendarium (toujours visible, au-dessus du routeur)
 
 export default function App() {
   try {
@@ -65,6 +66,8 @@ export default function App() {
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
         </Routes>
       </div>
+      {/* FR : ⚠️ AJOUT (23/10/2026, vibe/draft-podcast-840f64) - lecteur podcast flottant, monté AU-DESSUS des vues : visible où que l'on soit dans l'appli quand une page du Legendarium est publiée. Les demandes page suivante / retour page courante passent par le bus en mémoire (`lib/legendarium/podcast.ts`) : DashboardPage bascule la vue, Bibliotheque consomme la demande. / EN: floating podcast player, mounted ABOVE the views: visible anywhere in the app while a Legendarium page is published. Next-page / back-to-page requests go through the in-memory bus. */}
+      <LecteurPodcast />
     </>
   );
 }

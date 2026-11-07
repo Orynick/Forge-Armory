@@ -224,6 +224,14 @@ HEAD
 - **Nouvel Article XI** : la constitution ne change que sur décision explicite de l'utilisateur ; l'assistant propose, n'applique pas ; modification, entrée DEVLOG et annexe dans le même commit.
 
 **Vérifié** : liens relatifs des nouveaux fichiers contrôlés ; aucun fichier hors `documentation/methode/`, `TODO.md` et `DEVLOG.md` modifié (hors merge de la branche `vibe/methode-spec-kit-70789e`). Pas de `tsc`/`build` à relancer (documentation seule).
+
+---
+
+## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `vibe/draft-podcast-840f64`
+
+**Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6`) a été répercutée sur la branche `vibe/draft-podcast-840f64` pour limiter les conflits futurs.
+
+**Conflit** : un seul, dans `package-lock.json` (les deux côtés avaient fait avancer la version : 0.5.5 branche / 0.5.6 main) — résolu par régénération (`npm install --package-lock-only`) : version **0.5.6**, 415 packages identiques, aucune dépendance ajoutée ni retirée par le chantier podcast. `package.json` et `DashboardPage.tsx` ont fusionné proprement (les 3 scripts `podcast:*` de la branche + les évolutions v0.5.6 de main coexistent).
 ## 28/10/2026 — PROPAGATION : v0.5.6 (PR #19, draft-mod-armures) répercutée sur `draft-optimiseur`
 
 **Propagation** : la livraison v0.5.6 (merge PR #19 dans `main`, tag `v0.5.6`) a été répercutée sur la branche `draft-optimiseur` pour limiter les conflits futurs.
