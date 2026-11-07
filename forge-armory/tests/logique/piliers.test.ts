@@ -38,7 +38,9 @@ const rVide = evaluerBuild(buildVide(SLOTS_ARMURE.map(pieceVide)));
 ok("S2c : build vide → statsTotales à zéro (le graphique n'affiche pas 370 pts fantômes)", ["sante", "melee", "grenade", "super", "classe", "arme"].every((c) => (rVide.statsTotales as Record<string, number>)[c] === 0), rVide.statsTotales);
 const lootVide = pilier(rVide, "loot_coherence");
 ok("S2d : build vide → le Pilier 3 ne compte AUCUNE armure exotique (pas de « 1 armure exotique équipée » fantôme)", !lootVide.details.some((d) => /1 armure exotique/i.test(d)), lootVide.details);
-ok("S2e : build vide → pénalisé pour l'absence d'exotique, pas crédité d'un exotique fictif", lootVide.details.some((d) => /Aucune armure exotique/i.test(d)), lootVide.details);
+ok("S2e : build ABSOLUMENT vide → 0/100, pas de score résiduel artifact du calcul (l'ancien 41 venait du socle 100 − pénalités partielles + sets « non évalué » à 50)", lootVide.score === 0, { score: lootVide.score, details: lootVide.details });
+ok("S2f : build ABSOLUMENT vide → le Pilier 4 « Effets du Build » aussi à 0/100 (l'ancien plancher 20 venait du « Aucun verbe détecté » de scoreVerbesDetectes)", pilier(rVide, "verbes_element").score === 0, pilier(rVide, "verbes_element"));
+ok("S2g : build ABSOLUMENT vide → la ligne de détail dit « Build vide », pas « Aucune armure exotique » (un build inexistant n'est pas un build évalué et mauvais)", lootVide.details.some((d) => /Build vide/i.test(d)), lootVide.details);
 
 // ---------- S1 : sans exigence passée, pas de plafonnement ni de ligne « démonstration » ----------
 const rSansExigence = evaluerBuild(buildVide([pieceReelle("casque", { melee: 100, sante: 100, grenade: 100, super: 100, classe: 100, arme: 100 }), pieceReelle("gants", { melee: 100, sante: 100, grenade: 100, super: 100, classe: 100, arme: 100 }), pieceReelle("torse", { melee: 100, sante: 100, grenade: 100, super: 100, classe: 100, arme: 100 }), pieceReelle("jambes", { melee: 100, sante: 100, grenade: 100, super: 100, classe: 100, arme: 100 }), pieceReelle("marque", { melee: 100, sante: 100, grenade: 100, super: 100, classe: 100, arme: 100 })]));
@@ -54,7 +56,7 @@ const rSansArme = evaluerBuild(buildVide(SLOTS_ARMURE.map(pieceVide)));
 const lootSansArme = pilier(rSansArme, "loot_coherence");
 // FR : sans Manifest, le Pilier 3 combine : score de base (100 - 20 exotique - 15 × armes manquantes) à 60 % + composante « sets » (Manifest non chargé → neutre 50, poids 0.35) à 40 %.
 const SCORE_S3 = (armesManquantes: number) => Math.round((100 - 20 - 15 * armesManquantes) * 0.6 + 50 * 0.4);
-ok("S3a : 3 placeholders (itemHash: 0) → pénalité de 3 × 15 = 45 et la ligne « 0/3 emplacements d'armes remplis »", lootSansArme.details.some((d) => /0\/3 emplacements d'armes remplis/.test(d)) && lootSansArme.score === SCORE_S3(3), { score: lootSansArme.score, attendu: SCORE_S3(3), details: lootSansArme.details });
+ok("S3a : 3 placeholders (itemHash: 0) → le build est ABSOLUMENT vide, le pilier rend 0/100 sans ligne de pénalité partielle (comportement changé : avant, socle 100 − 45 + sets 50 → 41)", lootSansArme.score === 0 && !lootSansArme.details.some((d) => /0\/3 emplacements d'armes remplis/.test(d)), { score: lootSansArme.score, details: lootSansArme.details });
 const rUneArme = evaluerBuild(buildVide(SLOTS_ARMURE.map(pieceVide), [{ itemHash: 1111, slot: "cinetique", stats: {}, perkHashes: [], isExotic: false }, { itemHash: 0, slot: "energie", stats: {}, perkHashes: [], isExotic: false }, { itemHash: 0, slot: "lourde", stats: {}, perkHashes: [], isExotic: false }]));
 const lootUneArme = pilier(rUneArme, "loot_coherence");
 ok("S3b : 1 arme réelle + 2 placeholders → pénalité de 2 × 15 = 30 et la ligne « 1/3 »", lootUneArme.details.some((d) => /1\/3 emplacements d'armes remplis/.test(d)) && lootUneArme.score === SCORE_S3(2), { score: lootUneArme.score, attendu: SCORE_S3(2), details: lootUneArme.details });
