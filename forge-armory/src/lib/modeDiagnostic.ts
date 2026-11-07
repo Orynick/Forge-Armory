@@ -6,17 +6,21 @@
 // EN: ⚠️ ADDED - DIAGNOSTIC MODE that can also be switched on in the INSTALLED app, via a discreet footer link; always on in `run dev`. Only the currently active diagnostic tools use it.
 
 import { useEffect, useState } from "react";
+import { estProprietaire } from "./proprietaire";
 
 export const CLE_MODE_DIAGNOSTIC = "d2ba.modeDiagnostic";
 const EVENEMENT = "d2ba:mode-diagnostic";
 
 /** FR : le mode diagnostic est-il actif ? Toujours en développement ; sinon selon le réglage mémorisé. Jamais d'erreur si le stockage est indisponible. / EN: is diagnostic mode on? */
 export function modeDiagnosticActif(): boolean {
-  // FR : ⚠️ AJOUT (06/11/2026, chantier Netlify) - jamais actif sur le site WEB
-  // public, même si un réglage ancien subsiste dans le stockage du navigateur.
-  // / EN: never active on the public WEB site, even if an old setting lingers.
-  if (__WEB__) return false;
+  // FR : ⚠️ CHANGÉ (06/11/2026, spec draft-netlify) - le mode n'est actif QUE
+  // pour le compte du PROPRIÉTAIRE (voir lib/proprietaire.ts), sur le site
+  // comme dans l'appli. Le garde-fou `__WEB__` est retiré : le test
+  // propriétaire couvre déjà le site public.
+  // / EN: the mode is only active for the OWNER's account (see
+  // lib/proprietaire.ts), on the site and in the app alike.
   if (import.meta.env.DEV) return true;
+  if (!estProprietaire()) return false;
   try {
     return window.localStorage.getItem(CLE_MODE_DIAGNOSTIC) === "1";
   } catch {

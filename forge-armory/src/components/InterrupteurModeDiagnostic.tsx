@@ -3,17 +3,28 @@
 // EN: ⚠️ ADDED - discreet footer switch for the diagnostic mode (also usable in the installed app); always on in `npm run dev`.
 
 import { definirModeDiagnostic, useModeDiagnostic } from "../lib/modeDiagnostic";
+import { estProprietaire } from "../lib/proprietaire";
+import { lireTokens } from "../lib/bungie/oauth";
 
 export default function InterrupteurModeDiagnostic() {
-  // FR : ⚠️ AJOUT (06/11/2026, chantier Netlify) - rien sur le site WEB public :
-  // les diagnostics restent réservés au développeur (dev local) et à l'appli
-  // Electron installée. / EN: nothing on the public WEB site.
-  if (__WEB__) return null;
+  // FR : ⚠️ CHANGÉ (06/11/2026, spec draft-netlify) - l'interrupteur n'est plus
+  // masqué seulement sur le web : il n'est visible QUE pour le compte du
+  // PROPRIÉTAIRE (Orynick), connecté - sur le site comme dans l'appli. En mode
+  // développement (`npm run dev`), il reste affiché en permanence et montre
+  // aussi l'ID du compte Bungie connecté, pour renseigner la constante.
+  // EN: the switch is now visible ONLY for the signed-in owner's account,
+  // on the website and in the installed app alike; in dev it always shows and
+  // also displays the signed-in Bungie account ID.
+  const proprietaire = estProprietaire();
+  if (!import.meta.env.DEV && !proprietaire) return null;
   const actif = useModeDiagnostic();
+  const idBungie = lireTokens()?.membership_id ?? "(non connecté)";
   return (
     <p style={{ margin: "0.2rem 0 0", fontSize: "0.7rem", color: "#5a5f6b", textAlign: "center" }} data-pied-diagnostic="">
       {import.meta.env.DEV ? (
-        "🔧 Outils de diagnostic : toujours actifs en développement"
+        <>
+          🔧 Outils de diagnostic : toujours actifs en développement — ID compte Bungie : {idBungie}
+        </>
       ) : (
         <button
           type="button"
