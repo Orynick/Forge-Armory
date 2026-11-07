@@ -22,7 +22,7 @@ Aucun code n'est écrit avant qu'une **spécification de chantier** ait été va
 6. **Vérifications** — cocher [`templates/CHECKLIST-livraison.md`](templates/CHECKLIST-livraison.md) : `npx tsc -b` 0 erreur, batterie logique N/N, `npm run build`, CI verte, **diff vs `main` limité au périmètre déclaré**, aucune régression hors périmètre.
 7. **PR** — ouvrir la PR depuis `draft-<slug>` avec la checklist cochée en description.
 8. **Validation utilisateur** — retour chiffré (ex. 8/8) consigné dans le DEVLOG.
-9. **Livraison** — merge dans `main` **depuis l'interface GitHub** (Article XII : CI verte requise, pas de merge par push local), puis **vérification post-merge** : contenu de la PR réellement présent dans `main`, `tsc -b` 0 erreur, batterie N/N, `npm run build` OK, diff limité au périmètre (Article XII.3 et XII.4). Tag de version, entrée DEVLOG, branche supprimée, propagation de `main` sur les branches de chantier actives.
+9. **Livraison** — merge dans `main` **depuis l'interface GitHub** (voie par défaut ; Article XII : CI verte et tests passés sur le draft requis). Si l'utilisateur le demande explicitement, l'assistant peut faire le merge lui-même (push du commit de merge), uniquement après CI verte et tests sur le draft, puis **vérification post-merge** : contenu de la PR réellement présent dans `main`, `tsc -b` 0 erreur, batterie N/N, `npm run build` OK, diff limité au périmètre (Article XII.3 et XII.4). Tag de version, entrée DEVLOG, branche supprimée, propagation de `main` sur les branches de chantier actives.
 
 ## 3. Rôles des documents
 

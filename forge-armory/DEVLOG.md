@@ -9,7 +9,7 @@
 **Décision de l'utilisateur** (06/11/2026) : « C'est le moment de durcir le workflow : sur la branche main, il faut uniquement du code validé et vérifier scrupuleusement l'absence de régression. »
 
 **Nouvel Article XII** (documentation seule, aucun code) :
-1. **Merge par PR uniquement** — CI verte requise, merge depuis l'interface GitHub (le dépôt interdit le merge CLI) ; les chantiers triviaux (README §5) restent l'exception en push direct sous checklist ;
+1. **Merge par PR uniquement** — CI verte et tests passés sur le draft requis ; merge depuis l'interface GitHub par défaut, **ou merge délégué par l'utilisateur explicite** (l'assistant pousse alors le commit de merge, jamais de sa propre initiative, après vérification CI + tests sur le draft) ; les chantiers triviaux (README §5) restent l'exception en push direct sous checklist ;
 2. **vérification de la branche courante** (`git branch --show-current`) avant toute opération git de fusion — leçon de l'incident du 05/11 : un merge de propagation committé sur `main` par erreur a fusionné une PR non validée ;
 3. **vérification post-merge du contenu réel** — un merge peut être « MERGED » sans que le contenu survive (cas PR #31 : le revert du 05/11 a fait perdre ses fichiers au moment du merge ; réintégrés le 06/11 par revert du revert) ;
 4. **vérification d'absence de régression** après chaque merge : tsc, batterie, build, diff limité au périmètre (Article V) ;
