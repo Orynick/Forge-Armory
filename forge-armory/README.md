@@ -1,6 +1,10 @@
 # Forge Armory
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/5ecc7eb8-1913-42c5-8a65-91dd0bd8472b/deploy-status)](https://app.netlify.com/projects/forge-armory/deploys)
+
 **Destiny 2 Build Analyzer** — par Orynick/Orygamer
+
+Version en ligne : [`https://forge-armory.orynick.fr`](https://forge-armory.orynick.fr)
 
 Application pour étudier et scorer des builds Destiny 2 selon 5 piliers pondérés (les poids varient selon le contexte : Neutre, PvE Roaming, PvE DPS, PvP), alignée sur le système Armor 3.0. Elle se connecte à votre compte Bungie.net pour lire votre inventaire et équiper vos builds en jeu. Elle fonctionne dans le navigateur ou comme logiciel Windows installable.
 
