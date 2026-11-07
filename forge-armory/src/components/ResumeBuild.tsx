@@ -274,9 +274,13 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
       ? `\n\n⚠️ Attention : ce build contient ${avertissementExotiques} — en jeu, une seule arme exotique et une seule armure exotique peuvent être équipées à la fois. Les dernières équipées remplaceront les précédentes.`
       : "";
     // FR : ⚠️ AJOUT (14/10/2026, v0.4.9) - avertissement : des perks SIMULÉS ne sont pas appliqués en jeu. / EN: ⚠️ ADDED - simulated perks are not applied in the game.
-    const nbSimulees = piecesEquipables.filter((p) => p.perksSimules).length;
-    const noteSimulation = nbSimulees > 0
-      ? `\n\n🔨 ${nbSimulees} arme${nbSimulees > 1 ? "s" : ""} de ce build ${nbSimulees > 1 ? "ont" : "a"} des perks SIMULÉS dans la Forge : ils ne sont PAS appliqués en jeu. Ces armes seront équipées telles qu'elles sont réellement (avec leurs perks réels).`
+    const nbArmesSim = piecesEquipables.filter((p) => p.perksSimules).length;
+    const nbArmuresSim = piecesEquipables.filter((p) => p.modsSimules).length;
+    const parties: string[] = [];
+    if (nbArmesSim > 0) parties.push(`${nbArmesSim} arme${nbArmesSim > 1 ? "s" : ""} avec des perks SIMULÉS`);
+    if (nbArmuresSim > 0) parties.push(`${nbArmuresSim} armure${nbArmuresSim > 1 ? "s" : ""} avec des mods SIMULÉS`);
+    const noteSimulation = parties.length > 0
+      ? `\n\n🔨 Ce build contient ${parties.join(" et ")} dans la Forge : ils ne sont PAS appliqués en jeu. Ces pièces seront équipées telles qu'elles sont réellement.`
       : "";
     const confirme = window.confirm(
       `Équiper les ${piecesEquipables.length} pièces possédées de ce build sur votre personnage en jeu maintenant ? Cette action est réelle et immédiate.${messageAvertissement}${noteSimulation}`
