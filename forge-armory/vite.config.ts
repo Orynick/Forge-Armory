@@ -159,7 +159,15 @@ const CSP_PRODUCTION = [
 ].join("; ");
 
 export default defineConfig({
-  define: { __VERSION_APP__: JSON.stringify(version) },
+  define: {
+    __VERSION_APP__: JSON.stringify(version),
+    // FR : ⚠️ AJOUT (06/11/2026, chantier Netlify) - vrai uniquement dans le build
+    // WEB (Netlify) : sert à masquer les outils de diagnostic sur le site public
+    // (l'interrupteur du pied de page reste disponible dans l'appli Electron).
+    // EN: true only in the WEB (Netlify) build - hides diagnostic tools on the
+    // public site; the Electron app keeps its footer switch.
+    __WEB__: JSON.stringify(Boolean(process.env.NETLIFY)),
+  },
   // FR : ⚠️ AJOUT (24/09/2026) - chemins RELATIFS dans le build. Le logiciel
   // installé ouvre l'appli depuis un fichier local : des chemins absolus
   // (/assets/...) y pointeraient sur la racine du disque et rien ne se

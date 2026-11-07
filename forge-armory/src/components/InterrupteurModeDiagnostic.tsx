@@ -5,6 +5,10 @@
 import { definirModeDiagnostic, useModeDiagnostic } from "../lib/modeDiagnostic";
 
 export default function InterrupteurModeDiagnostic() {
+  // FR : ⚠️ AJOUT (06/11/2026, chantier Netlify) - rien sur le site WEB public :
+  // les diagnostics restent réservés au développeur (dev local) et à l'appli
+  // Electron installée. / EN: nothing on the public WEB site.
+  if (__WEB__) return null;
   const actif = useModeDiagnostic();
   return (
     <p style={{ margin: "0.2rem 0 0", fontSize: "0.7rem", color: "#5a5f6b", textAlign: "center" }} data-pied-diagnostic="">

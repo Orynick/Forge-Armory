@@ -12,6 +12,10 @@ const EVENEMENT = "d2ba:mode-diagnostic";
 
 /** FR : le mode diagnostic est-il actif ? Toujours en développement ; sinon selon le réglage mémorisé. Jamais d'erreur si le stockage est indisponible. / EN: is diagnostic mode on? */
 export function modeDiagnosticActif(): boolean {
+  // FR : ⚠️ AJOUT (06/11/2026, chantier Netlify) - jamais actif sur le site WEB
+  // public, même si un réglage ancien subsiste dans le stockage du navigateur.
+  // / EN: never active on the public WEB site, even if an old setting lingers.
+  if (__WEB__) return false;
   if (import.meta.env.DEV) return true;
   try {
     return window.localStorage.getItem(CLE_MODE_DIAGNOSTIC) === "1";
