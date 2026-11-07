@@ -51,6 +51,24 @@ function poidsPilier(cle: CleP, contexte: ContexteBuild): number {
   return POIDS_PILIERS[contexte][cle];
 }
 
+/** FR : ⚠️ AJOUT (05/11/2026) - un build ABSOLUMENT vide (aucune arme, aucune armure,
+ * aucune doctrine, aucun artefact : l'état du premier lancement) n'est pas un build
+ * « évalué et mauvais » mais un build INEXISTANT. Les piliers concernés (« 2. Armes et
+ * Armures », « 4. Effets du Build ») lui donnent alors 0/100 au lieu d'un score
+ * résiduel artifact du calcul (41 et 20 avant ce correctif, constatés par
+ * l'utilisateur juste après connexion). / EN: ⚠️ ADDED - an ABSOLUTELY empty build
+ * (no weapon, no armor, no doctrine, no artifact: the first-launch state) is not
+ * a "bad scored" build but a NON-EXISTENT one. The affected pillars score it 0/100
+ * instead of a residual artifact of the formula (41 and 20 before this fix). */
+function buildAbsolumentVide(build: BuildDraft): boolean {
+  const armesEquipees = build.armes.some((a) => a.itemHash !== 0);
+  const armuresEquipees = build.armure.some((a) => a.itemHash !== 0);
+  const s = build.subclass;
+  const doctrineEquipee = !!s.element || !!(s.aspectHashes ?? []).some((h) => h !== 0) || !!(s.fragmentHashes ?? []).some((h) => h !== 0) || !!s.superHash || !!s.meleeHash || !!s.grenadeHash || !!s.classeHash || !!s.sautHash;
+  const artefactEquipe = !!build.artifact.artifactId;
+  return !armesEquipees && !armuresEquipees && !doctrineEquipee && !artefactEquipe;
+}
+
 /**
  * Pilier 1 - Élément et Doctrine : cohérence entre l'élément choisi et les
  * aspects/fragments/super de la sous-classe (ex: fragments qui exigent un
@@ -252,6 +270,14 @@ function scoreElementDoctrine(build: BuildDraft, db?: Database, contexte: Contex
  * of 50), so nothing breaks.
  */
 function scoreVerbesElement(build: BuildDraft, db?: Database, contexte: ContexteBuild = "neutre"): PillarScore {
+  if (buildAbsolumentVide(build)) {
+    return {
+      pilier: "verbes_element",
+      score: 0,
+      poids: poidsPilier("verbes_element", contexte),
+      details: ["Build vide — aucun effet à évaluer, équipez au moins une pièce ou une doctrine"],
+    };
+  }
   if (!db) {
     return {
       pilier: "verbes_element",
@@ -562,6 +588,10 @@ function scorePerksArtefact(build: BuildDraft, db?: Database, contexte: Contexte
 function scoreLootCoherence(build: BuildDraft, db?: Database, contexte: ContexteBuild = "neutre"): PillarScore {
   const details: string[] = [];
   let score = 100;
+
+  if (buildAbsolumentVide(build)) {
+    return { pilier: "loot_coherence", score: 0, poids: poidsPilier("loot_coherence", contexte), details: ["Build vide — aucune arme ni armure équipée, rien à évaluer"] };
+  }
 
   // FR : ⚠️ CORRIGÉ (23/10/2026, audit) - les emplacements VIDES (`itemHash: 0`,
   // placeholders) ne comptent PAS comme exotiques : sinon l'état « vide » du
