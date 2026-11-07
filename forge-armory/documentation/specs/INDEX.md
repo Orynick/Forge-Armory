@@ -7,6 +7,7 @@ Une ligne par spec, tenue à jour à chaque changement de statut (modèle : [`..
 | Spec | Chantier | Date | Statut | Version | Branche / PR | Validation utilisateur | DEVLOG |
 |---|---|---|---|---|---|---|---|
 | [`SPEC-LEGENDARIUM-2026-10-19.md`](SPEC-LEGENDARIUM-2026-10-19.md) | Legendarium (bibliothèque de Lore en lecture passive) | 19/10/2026 | livrée | 0.5.0 (22/10/2026) | `draft-legendarium`, mergée dans `main` par fast-forward (`821a785`), sans PR | 9 critères d'acceptation vérifiés (`legendarium-acceptation` 34/34) ; retour utilisateur chiffré non retrouvé dans le DEVLOG (spec antérieure à la méthode) | 22/10/2026 « LIVRAISON : branche `draft-legendarium` » et « Passage en version 0.5.0 » |
+| [`SPEC-MODS-PHASE-2-2026-11-03.md`](SPEC-MODS-PHASE-2-2026-11-03.md) | Mods-phase-2 (écriture réelle des perks/mods chez Bungie via `InsertSocketPlugFree`, variante A puis B) | 03/11/2026 | livrée | 0.6.0 (04/11/2026) | `draft-mods-phase-2`, PR #27 (mergée le 04/11) ; branche supprimée après livraison | « Parfait ça fonctionne ! » (03/11, mods d'armure) puis « OK ça fonctionne » (04/11, perks d'armes — variante B) | 03-04/11/2026 « MODS-PHASE-2 » (correctifs du premier test réel, clôture du chantier) |
 
 ## Règles
 

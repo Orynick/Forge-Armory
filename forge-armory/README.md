@@ -20,7 +20,7 @@ Application pour étudier et scorer des builds Destiny 2 selon 5 piliers pondér
 - **Fiche du build et partage** : fichier JSON, texte, image (JPEG/PNG) et PDF.
 - **Artefact** : sélecteur des perks avec leurs contraintes de tiers.
 - **Legendarium** : bibliothèque de Lore en lecture passive (Grimoire D1, Légendes D2, armes, armures, cosmétiques), avec export infographique PNG.
-- **Forge** : collection et inventaire des armes et armures, simulation locale des perks et mods (le score en tient compte).
+- **Forge** : collection et inventaire des armes et armures, simulation locale des perks et mods (le score en tient compte) — et **« Appliquer en jeu »** : écriture réelle des mods d'armure et perks d'armes sur votre compte Bungie, prise par prise, derrière un écran de confirmation (v0.6.0).
 - **Mon Build** : simulation des statistiques (−/+), recommandation d'archétype et optimiseur de build (page « ⚙️ Optimiser le build »), sauvegardes marquées « 🔨 simulé » (badge aussi dans l'infographie exportée).
 - **Carrière** : page dédiée aux statistiques du compte (temps de jeu, 74+ stats traduites en français).
 - **Accomplissements** : page dédiée aux Triomphes du compte, groupés par sceau (obtenus et à obtenir), avec recherche avancée.

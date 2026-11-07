@@ -4,6 +4,25 @@
 
 ---
 
+## 07/11/2026 — AUDIT DOCUMENTAIRE post-v0.6.1 (branche `vibe/audit-doc-post-v061-700253`)
+
+**Contexte** : demande utilisateur de vérifier et mettre à jour toute la documentation après l'enchaînement v0.6.0/v0.6.1 + clôtures de chantiers. Balayage systématique : CHANGELOG, TODO, README (appli + racine du dépôt), NOTICE, GUIDE, LISEZ-MOI, INDEX des specs, MAJ-DEPENDANCES, ci.yml, constitution/méthode (à jour suite à l'Article XII).
+
+**Corrigé (7 fichiers)** :
+- `CHANGELOG.md` — **réparation d'encodage** : 2 emoji 🔨 corrompus en CESU-8 (fichier non décodable en UTF-8, même défaut que TODO.md le 05/11) réencodés correctement ;
+- `TODO.md` — « version courante » 0.6.0 → **0.6.1** ; **item 1 (audit externe) marqué TERMINÉ** (les 3 suites de tests du durcissement sont dans `main` depuis le 06/11 ; ne restent que les rappels de précaution, documentation permanente) ;
+- `.github/workflows/ci.yml` — commentaires périmés « 41 suites / 801 contrôles » → **63 suites / 1293 contrôles** ;
+- `README.md` (appli) — bullet Forge complété : **« Appliquer en jeu »** (écriture réelle des mods d'armure et perks d'armes, v0.6.0) ;
+- `NOTICE.md` — **ligne « Appliquer en jeu » ajoutée** à la table des fonctionnalités (la fonctionnalité d'écriture n'était pas documentée dans le mode d'emploi) ;
+- `documentation/specs/INDEX.md` — **ligne SPEC-MODS-PHASE-2** ajoutée (livrée, v0.6.0, PR #27, validations en jeu des 03-04/11) ;
+- `README.md` (racine du dépôt) — description complétée (Forge + écriture en jeu, optimiseur, Legendarium).
+
+**Vérifié sans changement** : GUIDE-DEMARRAGE-INVITE (Node 24.22.1 à jour), documentation/LISEZ-MOI (structure à jour), MAJ-DEPENDANCES (historique), CONSTITUTION/README méthode (mis à jour avec l'Article XII le 06/11), points d'avancement (instantanés historiques, non modifiés par principe).
+
+**Vérifications** : `npx tsc -b` 0 erreur ; batterie 63/63 (1293/1293) ; `npm run build` OK ; diff limité à la documentation + commentaires de `ci.yml` (aucun comportement touché).
+
+---
+
 ## 07/11/2026 — Netlify : filet de sécurité anti-consommation de crédits (correctif mineur, README §5)
 
 **Contexte** : l'utilisateur approche de la fin de ses crédits Netlify. Cause probable : des builds déclenchés sur chaque push de branche (propagations) et les previews de PR. La CI GitHub Actions (gratuite) vérifie déjà chaque branche — seul `main` a besoin d'un déploiement.

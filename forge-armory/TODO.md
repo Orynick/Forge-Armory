@@ -13,7 +13,7 @@ passages retirés ou condensés lors du nettoyage du 06/10/2026 dans
 `documentation/todo/ARCHIVE-TODO-2026-10-06.md`. Conception du scoring :
 section « Le scoring » de `NOTES-CONCEPTION.md`. Tests en cours :
 `A-TESTER-<version>.pdf` (le numéro de version de l'appli est dans le nom ;
-version courante : 0.6.0).
+version courante : 0.6.1).
 
 ---
 
@@ -98,6 +98,13 @@ et revue des changements incompatibles : `DEVLOG.md`.
   contrôles), `tests/logique/stockage-securite-repli.test.ts` (7) et
   `tests/logique/cablage-durcissement-sec.test.ts` (27) — comportement du stockage chiffré
   (nominal + repli) et câblage Electron/preload/consommateurs.
+
+✅ **ITEM 1 TERMINÉ le 06/11/2026** : les 3 suites de tests du durcissement sont livrées dans
+`main` (PR #31 + réintégration le 06/11 après correction de la régression causée par un revert
+d'incident — voir DEVLOG 05-06/11). L'audit externe du 26/09 est **clos de bout en bout** :
+Electron à niveau, 0 vulnérabilité, CSP livrée et validée, durcissement livré et **protégé par
+des tests** (63/63 suites, 1293/1293 contrôles). Ne restent que les rappels de précaution
+ci-dessous (documentation permanente, pas des travaux).
 
 **Rappels utiles :**
 - sous PowerShell, utiliser `npm.cmd` : la commande `npm` seule est bloquée par la politique d'exécution des

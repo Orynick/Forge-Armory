@@ -4,7 +4,7 @@
 
 *Destiny 2 Build Analyzer / Analyseur de Build*
 
-Appli locale (React + Vite + TypeScript) pour étudier et scorer des builds Destiny 2 selon 5 piliers pondérés, avec gestion et partage des Loadouts.
+Appli locale (React + Vite + TypeScript) pour étudier et scorer des builds Destiny 2 selon 5 piliers pondérés — avec Forge (simulation des perks/mods et **écriture en jeu**), optimiseur de build, Legendarium, gestion et partage des Loadouts.
 
 Version en ligne : [`https://forge-armory.orynick.fr`](https://forge-armory.orynick.fr)
 
