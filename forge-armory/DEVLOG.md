@@ -4,6 +4,22 @@
 
 ---
 
+## 06/11/2026 — CONSTITUTION : Article XII — `main` ne reçoit que du code validé et vérifié (décision explicite de l'utilisateur)
+
+**Décision de l'utilisateur** (06/11/2026) : « C'est le moment de durcir le workflow : sur la branche main, il faut uniquement du code validé et vérifier scrupuleusement l'absence de régression. »
+
+**Nouvel Article XII** (documentation seule, aucun code) :
+1. **Merge par PR uniquement** — CI verte requise, merge depuis l'interface GitHub (le dépôt interdit le merge CLI) ; les chantiers triviaux (README §5) restent l'exception en push direct sous checklist ;
+2. **vérification de la branche courante** (`git branch --show-current`) avant toute opération git de fusion — leçon de l'incident du 05/11 : un merge de propagation committé sur `main` par erreur a fusionné une PR non validée ;
+3. **vérification post-merge du contenu réel** — un merge peut être « MERGED » sans que le contenu survive (cas PR #31 : le revert du 05/11 a fait perdre ses fichiers au moment du merge ; réintégrés le 06/11 par revert du revert) ;
+4. **vérification d'absence de régression** après chaque merge : tsc, batterie, build, diff limité au périmètre (Article V) ;
+5. **hygiène des reverts** : tout revert de merge est consigné au DEVLOG avec son plan de réintégration ;
+6. **protection GitHub recommandée** (réglage côté utilisateur, Settings → Branches) : PR requise + contrôle de statut « tsc + build + batterie logique » + interdiction des force-push.
+
+Annexe enrichie des deux leçons du 05/11 ; README méthode §2 (étape 9) et §5 durcis ; date de la constitution mise à jour.
+
+---
+
 ## 06/11/2026 — branche `draft-sec` rouverte : couverture de tests du durcissement (safeStorage, liste blanche réseau, permissions refusées)
 
 **Constat de départ** : la TODO et les points d'avancement disaient encore « branche `draft-sec` à fusionner proprement (chiffrement des jetons `safeStorage`, liste blanche réseau, permissions refusées) ». Vérification faite (git, `merge-base --is-ancestor c9218ed main`) : ce durcissement est **déjà livré dans `main`** — commit `c9218ed`, merge PR #6 — et toujours présent à l'identique dans `electron/main.cjs` (canaux `securite:*`, `HOTES_AUTORISES`, `setPermissionRequestHandler`/`setPermissionCheckHandler` à false), `electron/preload.cjs` (pont `stockageSecurise`), `src/lib/stockageSecurise.ts` (migration du clair vers le coffre chiffré, repli localStorage documenté) et ses consommateurs (`oauth.ts`, `dim/apiKey.ts`, `main.tsx`). Ce qui manquait réellement : **aucune suite de test ne protégeait ce chantier**.

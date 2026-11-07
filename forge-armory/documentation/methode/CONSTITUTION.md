@@ -1,6 +1,6 @@
 # Constitution — Forge Armory
 
-**Date :** 31 octobre 2026 (mise à jour le 1er novembre 2026)
+**Date :** 31 octobre 2026 (mises à jour : 1er novembre 2026, 6 novembre 2026)
 **Statut :** actif. Seul l'utilisateur peut la modifier (voir Article XI) : toute modification nécessite sa décision explicite, consignée dans le DEVLOG avec sa justification.
 
 Ces règles sont les principes non négociables du projet. Toute spec de chantier doit s'y conformer ; toute exception doit être justifiée par écrit dans la spec.
@@ -70,6 +70,17 @@ La constitution ne change **que sur décision explicite de l'utilisateur**. L'as
 
 Toute modification décidée est consignée dans le **même commit** que son entrée DEVLOG (date, décision de l'utilisateur, justification) ; s'il s'agit d'une leçon, elle est aussi ajoutée à l'annexe ci-dessous, et la date en tête de ce document est mise à jour.
 
+## Article XII — `main` ne reçoit que du code validé et vérifié (décision du 06/11/2026)
+
+`main` est la branche de référence : ce qui s'y trouve est **supposé livré, validé et sans régression**. En conséquence :
+
+1. **Merge par PR uniquement.** Toute livraison de chantier passe par une PR (workflow README §2) dont la CI est **verte** avant merge. Le merge se fait depuis l'interface GitHub (le dépôt interdit de toute façon le merge par CLI). Les chantiers triviaux (README §5) restent l'exception en push direct, sous leur checklist dédiée.
+2. **Vérification de la branche courante avant toute opération git de fusion.** Aucun `git merge` / `git revert` / `git cherry-pick` n'est lancé sans avoir contrôlé **`git branch --show-current`** : le 05/11/2026, un merge de propagation a été committé sur `main` par erreur (l'agent était resté sur `main`), fusionnant une PR non validée — corrigé par revert, puis le revert a fait perdre le contenu de la PR #31 au moment de son merge (réintégré le 06/11 par revert du revert).
+3. **Vérification post-merge du contenu réel.** Après chaque merge sur `main`, on vérifie que le contenu livré est **réellement présent** (ex. `git show origin/main:<fichier>` pour les fichiers clés) : un merge peut être marqué « MERGED » par GitHub sans que le contenu survive (cas PR #31 ci-dessus).
+4. **Vérification d'absence de régression.** Après chaque merge sur `main` : `npx tsc -b` 0 erreur, `npm run test:logique` N/N (exception Article III), `npm run build` OK, et **diff du contenu de la PR vs `main` limité au périmètre déclaré** (Article V). Toute divergence inattendue est une régression : blocage et correction avant tout autre chantier.
+5. **Hygiène des reverts.** Un revert de merge sur `main` crée une dette : le contenu reverté ne reviendra PAS lors d'un futur merge de la même branche. Tout revert de merge est donc consigné au DEVLOG **avec son plan de réintégration**, et la réintégration (revert du revert) est suivie jusqu'à exécution.
+6. **Protection GitHub recommandée (réglage côté utilisateur).** Règle de branche sur `main` : exiger une PR avant merge + le contrôle de statut « tsc + build + batterie logique » requis + interdiction des force-push. L'agent n'a pas les droits : ce réglage se pose dans Settings → Branches.
+
 ---
 
 ## Annexe — Leçons du DEVLOG (références)
@@ -85,3 +96,5 @@ Toute modification décidée est consignée dans le **même commit** que son ent
 | 28/10 | `git stash pop` non résolu = fichiers hors périmètre embarqués | Article V |
 | 23/10 (v0.5.4) | CSP bloque WebAssembly : vérifier en conditions réelles (installateur), pas seulement en dev | Article IV + checklist |
 | 01/11/2026 | Échec local connu (`icones.test.tsx`) : l'exigence « N/N » n'était pas tenable telle quelle | Article III (exception documentée) |
+| 05/11/2026 | Merge de propagation committé sur `main` par erreur (branche courante non vérifiée) : PR non validée fusionnée, corrigée par revert | Article XII.2 |
+| 05/11/2026 | Revert de merge non suivi : le merge ultérieur de la PR #31 n'a pas ramené son contenu (fichiers « supprimés » pour git) | Article XII.3 et XII.5 |

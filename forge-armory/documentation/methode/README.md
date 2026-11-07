@@ -1,6 +1,6 @@
 # Méthode de travail — Forge Armory
 
-**Date :** 31 octobre 2026 (mise à jour le 1er novembre 2026)
+**Date :** 31 octobre 2026 (mises à jour : 1er novembre 2026, 6 novembre 2026)
 **Statut :** actif — toute évolution livrée sur `main` suit cette méthode.
 **Inspiration :** [github/spec-kit](https://github.com/github/spec-kit) (Spec-Driven Development), adapté au rythme du projet (un développeur + assistant IA, livraisons fréquentes).
 
@@ -22,7 +22,7 @@ Aucun code n'est écrit avant qu'une **spécification de chantier** ait été va
 6. **Vérifications** — cocher [`templates/CHECKLIST-livraison.md`](templates/CHECKLIST-livraison.md) : `npx tsc -b` 0 erreur, batterie logique N/N, `npm run build`, CI verte, **diff vs `main` limité au périmètre déclaré**, aucune régression hors périmètre.
 7. **PR** — ouvrir la PR depuis `draft-<slug>` avec la checklist cochée en description.
 8. **Validation utilisateur** — retour chiffré (ex. 8/8) consigné dans le DEVLOG.
-9. **Livraison** — merge dans `main`, tag de version, entrée DEVLOG, branche supprimée, propagation de `main` sur les branches de chantier actives.
+9. **Livraison** — merge dans `main` **depuis l'interface GitHub** (Article XII : CI verte requise, pas de merge par push local), puis **vérification post-merge** : contenu de la PR réellement présent dans `main`, `tsc -b` 0 erreur, batterie N/N, `npm run build` OK, diff limité au périmètre (Article XII.3 et XII.4). Tag de version, entrée DEVLOG, branche supprimée, propagation de `main` sur les branches de chantier actives.
 
 ## 3. Rôles des documents
 
@@ -53,7 +53,9 @@ Ils vont **directement sur `main`**, sans spec, sans branche `draft-<slug>` ni P
 - ne déplace ni ne modifie une UI déjà validée par l'utilisateur sans son accord explicite (Article VI) ;
 - exemples : faute de texte, correction de style ou d'alignement, commentaire, doc, test cassé, correctif d'une régression signalée.
 
-**En cas de doute, ou si une seule condition n'est pas remplie, le workflow complet (§2) s'applique.** L'assistant propose la qualification « trivial », l'utilisateur confirme.
+**En cas de doute, ou si une seule condition n'est pas remplie, le workflow complet (§2) s'applique.**
+
+**Durcissement (Article XII, décision du 06/11/2026) :** même pour un push direct trivial, la branche courante est vérifiée avant toute opération git (`git branch --show-current`), et la CI du push doit être verte — sinon correctif immédiat ou revert consigné au DEVLOG avec son plan de réintégration. L'assistant propose la qualification « trivial », l'utilisateur confirme.
 
 **Reste obligatoire** (Constitution, Articles III, IV, V, VII) :
 1. `npx tsc -b` 0 erreur, `npm run build` OK, batterie logique verte (exception connue : Article III) ;
