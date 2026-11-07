@@ -4,6 +4,18 @@
 
 ---
 
+## 07/11/2026 — Netlify : filet de sécurité anti-consommation de crédits (correctif mineur, README §5)
+
+**Contexte** : l'utilisateur approche de la fin de ses crédits Netlify. Cause probable : des builds déclenchés sur chaque push de branche (propagations) et les previews de PR. La CI GitHub Actions (gratuite) vérifie déjà chaque branche — seul `main` a besoin d'un déploiement.
+
+**Réalisé** (`netlify.toml`, aucun code applicatif) : ajout des contextes `[context.branch-deploy]` et `[context.deploy-preview]` avec commande `echo` (build neutralisé, publication de `.`) — les builds hors production deviennent quasi gratuits **même si l'interface Netlify reste sur « all branches »**. Le contexte production (`main`) est inchangé.
+
+**Recommandé côté utilisateur (interface Netlify)** : « Only the production branch » + deploy previews désactivés (guide fourni dans la conversation).
+
+**Vérifié** : branche courante `main` contrôlée avant commit (Article XII.2) ; `npx tsc -b` 0 erreur ; batterie 63/63 (1293/1293) ; `npm run build` OK ; diff limité à `netlify.toml` + cette entrée DEVLOG.
+
+---
+
 ## 06/11/2026 — CONSTITUTION : Article XII — `main` ne reçoit que du code validé et vérifié (décision explicite de l'utilisateur)
 
 **Décision de l'utilisateur** (06/11/2026) : « C'est le moment de durcir le workflow : sur la branche main, il faut uniquement du code validé et vérifier scrupuleusement l'absence de régression. »
