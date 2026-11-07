@@ -7,6 +7,7 @@ Une ligne par spec, tenue à jour à chaque changement de statut (modèle : [`..
 | Spec | Chantier | Date | Statut | Version | Branche / PR | Validation utilisateur | DEVLOG |
 |---|---|---|---|---|---|---|---|
 | [`SPEC-LEGENDARIUM-2026-10-19.md`](SPEC-LEGENDARIUM-2026-10-19.md) | Legendarium (bibliothèque de Lore en lecture passive) | 19/10/2026 | livrée | 0.5.0 (22/10/2026) | `draft-legendarium`, mergée dans `main` par fast-forward (`821a785`), sans PR | 9 critères d'acceptation vérifiés (`legendarium-acceptation` 34/34) ; retour utilisateur chiffré non retrouvé dans le DEVLOG (spec antérieure à la méthode) | 22/10/2026 « LIVRAISON : branche `draft-legendarium` » et « Passage en version 0.5.0 » |
+| [`SPEC-MOBILE-PHASE-0-2026-11-05.md`](SPEC-MOBILE-PHASE-0-2026-11-05.md) | mobile-phase-0 (prototype de mesure : site Netlify, Manifest français seul sur Android, diagnostic mobile) | 05/11/2026 | brouillon | 0.6.2 visée | `draft-pwa` | — | — |
 
 ## Règles
 
