@@ -4,6 +4,72 @@
 
 ---
 
+## 08/11/2026 — NOUVEL app-assets : visuels « Télécharger l'application » (branche `draft-téléchargement-web`)
+
+**Contexte (demande et décisions de l'utilisateur)** : une fonction de téléchargement de l'appli sera ajoutée (bouton dans la carte Connexion à Bungie) ; l'utilisateur livre les visuels de la charte : le bouton plaque « Télécharger » (deux états) et l'icône seule. L'ancien app-assets (pack v12) devient `archives-precedentes/app-assets-v12/` ; les nouveaux assets vivent directement dans le nouveau dossier `app-assets/` (structure `assets/`, `manifest.json`, `forgeAssets.ts` — celle des packs v3 à v11, que `generer-icones.py`, `generer-titre-svg.py` et les tests UI python attendent).
+
+**Intégration** :
+- `git mv` du pack v12 vers `archives-precedentes/app-assets-v12/` (déplacement tracé, zéro conflit) ;
+- nouveau pack `app-assets/` = pack v12 + **3 fichiers nouveaux** (`assets/actions/bouton-telecharger.svg`, `bouton-telecharger-selectionne.svg`, `assets/icones/icone-telecharger.svg`) + `manifest.json` de l'utilisateur (105 actifs : 102 identiques, 0 modifiés, 0 retirés — comparé par script au manifest v12) ; `forgeAssets.ts` régénéré depuis ce manifest (générateur validé : il redonne octet pour octet le `forgeAssets.ts` du pack v12 depuis le manifest v12) ;
+- `public/assets/` : les 3 fichiers copiés (aucune retouche à rejouer — `retoucher-visuels.mjs` : 0 retouche) ; `src/data/forge/forgeAssets.ts` = catalogue du pack (105 actifs) ;
+- chemins repointés vers `app-assets/assets` : `tests/logique/reproductibilite-visuels.test.ts`, `tests/logique/carriere-large.test.ts`, `scripts/generer-propositions-solo-forge.mjs` (les outils python `generer-icones.py`, `generer-titre-svg.py`, `tests/ui/titre-svg.py`, `tests/ui/identite-visuels.py` pointaient déjà vers `app-assets/assets/` — cassés depuis la restructuration v12, réparés par ce retour à la structure plates) ;
+- `VISUELS-ARCHIVES.md` : référence actuelle mise à jour.
+
+**Conformité charte vérifiée par `visuels.test.ts`** : ids internes préfixés `fa-<famille>-<fichier>-` (ex. `fa-actions-bouton-telecharger-`), uniques d'un fichier à l'autre ; viewBox conformes au catalogue (6496 × 1024 et 1024 × 1024) ; aucun texte-police, script ni ressource externe.
+
+**Vérifications** : `npx tsc -b` 0 erreur ; batterie 63/63 (1293/1293) — dont `reproductibilite-visuels` 7/7 (reconstruction depuis le NOUVEAU pack, octet pour octet) et `visuels` 20/20 ; `npm run build` OK.
+
+**Reste à faire (chantier « téléchargement web »)** : brancher le bouton `actions.telecharger.repos`/`.selectionne` dans la carte Connexion à Bungie (code à venir de l'utilisateur).
+
+---
+
+## 07/11/2026 — AUDIT DOCUMENTAIRE post-v0.6.1 (branche `vibe/audit-doc-post-v061-700253`)
+
+**Contexte** : demande utilisateur de vérifier et mettre à jour toute la documentation après l'enchaînement v0.6.0/v0.6.1 + clôtures de chantiers. Balayage systématique : CHANGELOG, TODO, README (appli + racine du dépôt), NOTICE, GUIDE, LISEZ-MOI, INDEX des specs, MAJ-DEPENDANCES, ci.yml, constitution/méthode (à jour suite à l'Article XII).
+
+**Corrigé (7 fichiers)** :
+- `CHANGELOG.md` — **réparation d'encodage** : 2 emoji 🔨 corrompus en CESU-8 (fichier non décodable en UTF-8, même défaut que TODO.md le 05/11) réencodés correctement ;
+- `TODO.md` — « version courante » 0.6.0 → **0.6.1** ; **item 1 (audit externe) marqué TERMINÉ** (les 3 suites de tests du durcissement sont dans `main` depuis le 06/11 ; ne restent que les rappels de précaution, documentation permanente) ;
+- `.github/workflows/ci.yml` — commentaires périmés « 41 suites / 801 contrôles » → **63 suites / 1293 contrôles** ;
+- `README.md` (appli) — bullet Forge complété : **« Appliquer en jeu »** (écriture réelle des mods d'armure et perks d'armes, v0.6.0) ;
+- `NOTICE.md` — **ligne « Appliquer en jeu » ajoutée** à la table des fonctionnalités (la fonctionnalité d'écriture n'était pas documentée dans le mode d'emploi) ;
+- `documentation/specs/INDEX.md` — **ligne SPEC-MODS-PHASE-2** ajoutée (livrée, v0.6.0, PR #27, validations en jeu des 03-04/11) ;
+- `README.md` (racine du dépôt) — description complétée (Forge + écriture en jeu, optimiseur, Legendarium).
+
+**Vérifié sans changement** : GUIDE-DEMARRAGE-INVITE (Node 24.22.1 à jour), documentation/LISEZ-MOI (structure à jour), MAJ-DEPENDANCES (historique), CONSTITUTION/README méthode (mis à jour avec l'Article XII le 06/11), points d'avancement (instantanés historiques, non modifiés par principe).
+
+**Vérifications** : `npx tsc -b` 0 erreur ; batterie 63/63 (1293/1293) ; `npm run build` OK ; diff limité à la documentation + commentaires de `ci.yml` (aucun comportement touché).
+
+---
+
+## 07/11/2026 — Netlify : filet de sécurité anti-consommation de crédits (correctif mineur, README §5)
+
+**Contexte** : l'utilisateur approche de la fin de ses crédits Netlify. Cause probable : des builds déclenchés sur chaque push de branche (propagations) et les previews de PR. La CI GitHub Actions (gratuite) vérifie déjà chaque branche — seul `main` a besoin d'un déploiement.
+
+**Réalisé** (`netlify.toml`, aucun code applicatif) : ajout des contextes `[context.branch-deploy]` et `[context.deploy-preview]` avec commande `echo` (build neutralisé, publication de `.`) — les builds hors production deviennent quasi gratuits **même si l'interface Netlify reste sur « all branches »**. Le contexte production (`main`) est inchangé.
+
+**Recommandé côté utilisateur (interface Netlify)** : « Only the production branch » + deploy previews désactivés (guide fourni dans la conversation).
+
+**Vérifié** : branche courante `main` contrôlée avant commit (Article XII.2) ; `npx tsc -b` 0 erreur ; batterie 63/63 (1293/1293) ; `npm run build` OK ; diff limité à `netlify.toml` + cette entrée DEVLOG.
+
+---
+
+## 06/11/2026 — CONSTITUTION : Article XII — `main` ne reçoit que du code validé et vérifié (décision explicite de l'utilisateur)
+
+**Décision de l'utilisateur** (06/11/2026) : « C'est le moment de durcir le workflow : sur la branche main, il faut uniquement du code validé et vérifier scrupuleusement l'absence de régression. »
+
+**Nouvel Article XII** (documentation seule, aucun code) :
+1. **Merge par PR uniquement** — CI verte et tests passés sur le draft requis ; merge depuis l'interface GitHub par défaut, **ou merge délégué par l'utilisateur explicite** (l'assistant pousse alors le commit de merge, jamais de sa propre initiative, après vérification CI + tests sur le draft) ; les chantiers triviaux (README §5) restent l'exception en push direct sous checklist ;
+2. **vérification de la branche courante** (`git branch --show-current`) avant toute opération git de fusion — leçon de l'incident du 05/11 : un merge de propagation committé sur `main` par erreur a fusionné une PR non validée ;
+3. **vérification post-merge du contenu réel** — un merge peut être « MERGED » sans que le contenu survive (cas PR #31 : le revert du 05/11 a fait perdre ses fichiers au moment du merge ; réintégrés le 06/11 par revert du revert) ;
+4. **vérification d'absence de régression** après chaque merge : tsc, batterie, build, diff limité au périmètre (Article V) ;
+5. **hygiène des reverts** : tout revert de merge est consigné au DEVLOG avec son plan de réintégration ;
+6. **protection GitHub recommandée** (réglage côté utilisateur, Settings → Branches) : PR requise + contrôle de statut « tsc + build + batterie logique » + interdiction des force-push.
+
+Annexe enrichie des deux leçons du 05/11 ; README méthode §2 (étape 9) et §5 durcis ; date de la constitution mise à jour.
+
+---
+
 ## 06/11/2026 — branche `draft-sec` rouverte : couverture de tests du durcissement (safeStorage, liste blanche réseau, permissions refusées)
 
 **Constat de départ** : la TODO et les points d'avancement disaient encore « branche `draft-sec` à fusionner proprement (chiffrement des jetons `safeStorage`, liste blanche réseau, permissions refusées) ». Vérification faite (git, `merge-base --is-ancestor c9218ed main`) : ce durcissement est **déjà livré dans `main`** — commit `c9218ed`, merge PR #6 — et toujours présent à l'identique dans `electron/main.cjs` (canaux `securite:*`, `HOTES_AUTORISES`, `setPermissionRequestHandler`/`setPermissionCheckHandler` à false), `electron/preload.cjs` (pont `stockageSecurise`), `src/lib/stockageSecurise.ts` (migration du clair vers le coffre chiffré, repli localStorage documenté) et ses consommateurs (`oauth.ts`, `dim/apiKey.ts`, `main.tsx`). Ce qui manquait réellement : **aucune suite de test ne protégeait ce chantier**.
