@@ -15,9 +15,14 @@ def existe(*chemins): return all(os.path.exists(c) for c in chemins)
 # ---------- 1. sources ----------
 import hashlib
 sha = lambda chemin: hashlib.sha1(open(chemin, "rb").read()).hexdigest()
-KIT = f"{RES}/app-assets/forge-armory-app-assets-v12/assets/marque/logo-forge-armory.png"   # pack v12 = app-assets de référence depuis le 04/11/2026
+def _kit_marque(nom):   # deux layouts selon la branche : app-assets plat (pack récent) ou pack versionné (v12...)
+    for base in ("app-assets/assets/marque", "app-assets/forge-armory-app-assets-v12/assets/marque"):
+        p = f"{RES}/{base}/{nom}"
+        if os.path.exists(p): return p
+    return f"{RES}/app-assets/assets/marque/{nom}"
+KIT = _kit_marque("logo-forge-armory.png")
 src = Image.open(KIT)
-ok("SOURCE : le générateur part du logo du KIT de visuels (1092 × 1092), identique octet pour octet à la copie livrée dans `public/assets/marque/` : AUCUN doublon ; l'ancienne image d'identité (01/10/2026) n'existe plus à son ancien emplacement (archives-precedentes retiré du dépôt ; l'historique Git conserve tout) ; la planche de déclinaisons est dans le kit", src.size == (1092, 1092) and sha(KIT) == sha(f"{racine}/public/assets/marque/logo-forge-armory.png") and existe(f"{RES}/app-assets/forge-armory-app-assets-v12/assets/marque/forge-armory-declinaisons.png") and not os.path.exists(f"{RES}/identite-forge-armory-source.png"), [src.size, os.path.exists(f"{RES}/identite-forge-armory-source.png")])
+ok("SOURCE : le générateur part du logo du KIT de visuels (1092 × 1092), identique octet pour octet à la copie livrée dans `public/assets/marque/` : AUCUN doublon ; l'ancienne image d'identité (01/10/2026) n'existe plus à son ancien emplacement (archives-precedentes retiré du dépôt ; l'historique Git conserve tout) ; la planche de déclinaisons est dans le kit", src.size == (1092, 1092) and sha(KIT) == sha(f"{racine}/public/assets/marque/logo-forge-armory.png") and existe(_kit_marque("forge-armory-declinaisons.png")) and not os.path.exists(f"{RES}/identite-forge-armory-source.png"), [src.size, os.path.exists(f"{RES}/identite-forge-armory-source.png")])
 # ---------- 2. images de l'en-tête ----------
 emb = charger(f"{racine}/public/logo-forge-armory-embleme.png"); txt = charger(f"{racine}/public/logo-forge-armory-texte.png")
 ok("EN-TÊTE : les images gardent EXACTEMENT leurs dimensions (emblème 304 × 342, titre 803 × 158), à fond transparent : `EnTeteApp` et `geometrieIdentite.ts` n'ont rien à changer", emb.size == (304, 342) and txt.size == (803, 158) and emb.getpixel((0, 0))[3] == 0 and txt.getpixel((0, 0))[3] == 0, [emb.size, txt.size])
