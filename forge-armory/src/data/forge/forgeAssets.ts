@@ -340,6 +340,30 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "hauteurMinPx": 40
  },
  {
+  "format": "svg",
+  "id": "actions.telecharger.repos",
+  "famille": "actions",
+  "label": "Télécharger l’application (Windows, .exe)",
+  "etat": "repos",
+  "fichier": "assets/actions/bouton-telecharger.svg",
+  "largeur": 6496,
+  "hauteur": 1024,
+  "ratio": 6.3438,
+  "hauteurMinPx": 40
+ },
+ {
+  "format": "svg",
+  "id": "actions.telecharger.selectionne",
+  "famille": "actions",
+  "label": "Télécharger l’application (Windows, .exe) (survol)",
+  "etat": "selectionne",
+  "fichier": "assets/actions/bouton-telecharger-selectionne.svg",
+  "largeur": 6496,
+  "hauteur": 1024,
+  "ratio": 6.3438,
+  "hauteurMinPx": 40
+ },
+ {
   "id": "icones.carriere",
   "famille": "icones",
   "label": "Carrière",
@@ -1134,6 +1158,18 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "label": "Appliquer en jeu (sélectionné)",
   "etat": "selectionne",
   "fichier": "assets/icones/icone-appliquer-en-jeu-selectionne.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24
+ },
+ {
+  "format": "svg",
+  "id": "icones.telecharger",
+  "famille": "icones",
+  "label": "Télécharger l’application (Windows, .exe)",
+  "etat": null,
+  "fichier": "assets/icones/icone-telecharger.svg",
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,

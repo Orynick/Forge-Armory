@@ -19,9 +19,14 @@
     The OLD favicon is kept in ressources-installateur/forge-armory/archives-precedentes/ancien-logo/. -->
     <!-- FR : ⚠️ CHANGÉ (23/10/2026, demande de l'utilisateur : « il faut utiliser le nouveau logo ») - le favicon n'est PLUS le papillon seul : c'est l'ICÔNE D'APPLICATION de la planche de déclinaisons (tuile sombre arrondie portant l'emblème complet), la même que l'icône Windows, en PNG de 16, 32 et 48 px, régénérée par ressources-installateur/forge-armory/generer-icones.py depuis le nouveau logo du kit. Le papillon seul reste disponible (ressources-installateur/forge-armory/declinaisons/papillon-seul-256.png) si le 16 px est jugé illisible.
     EN: ⚠️ CHANGED - the favicon is now the application icon (dark rounded tile with the full emblem), same as the Windows icon, regenerated from the new logo. -->
-    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
-    <link rel="icon" type="image/png" sizes="48x48" href="./favicon-48.png" />
+    <!-- FR : ⚠️ CORRIGÉ (06/11/2026, branche draft-netlify) - chemins de favicon via
+         %BASE_URL% : relatif pour Electron ("./"), absolu sur Netlify ("/") - un chemin
+         relatif figé cassait l'icône d'onglet sur les sous-pages web (/auth/callback).
+         EN: favicon paths via %BASE_URL%: relative for Electron, absolute on Netlify -
+         a fixed relative path broke the tab icon on web sub-pages. -->
+    <link rel="icon" type="image/png" sizes="16x16" href="%BASE_URL%favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="%BASE_URL%favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="%BASE_URL%favicon-48.png" />
     <title>Forge Armory — Destiny 2 Build Analyzer</title>
   </head>
   <body>

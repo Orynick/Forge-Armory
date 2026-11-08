@@ -13,7 +13,7 @@ passages retirés ou condensés lors du nettoyage du 06/10/2026 dans
 `documentation/todo/ARCHIVE-TODO-2026-10-06.md`. Conception du scoring :
 section « Le scoring » de `NOTES-CONCEPTION.md`. Tests en cours :
 `A-TESTER-<version>.pdf` (le numéro de version de l'appli est dans le nom ;
-version courante : 0.6.0).
+version courante : 0.6.1).
 
 ---
 
@@ -51,10 +51,12 @@ Le renommage « Forge Armory » est lui aussi validé (06/10/2026, section 12).
    - **Reste de la liste du 12/10** : ~~logos « Arme » et « Armure » dans l'export~~ ✅ intégrés en 0.4.1 (archive de visuels v3) ; ~~bug du Filobscur~~ ✅ cause établie (les objets du Filobscur réutilisent les fichiers d'icône de la Stase dans les données de Bungie) et corrigé en 0.4.1 par recoloration, ✅ validé le 12/10/2026 (tous les tests cochés, sans demande de réglage de la teinte).
 3. **Sécurité, avant toute ouverture à des tiers** : ~~Vite, React Router~~ ✅
    (faits en v0.5.1, voir section 1), ~~politique de sécurité de contenu (CSP)~~ ✅
-   (livrée en v0.5.4, voir section 1) — reste : fusionner proprement la branche
-   `draft-sec` (chiffrement des jetons `safeStorage`, liste blanche réseau,
-   permissions refusées), et Node.js >=24.22.1 exigé depuis le 24/10/2026
-   (correctifs CVE octobre 2026).
+   (livrée en v0.5.4, voir section 1) — ~~fusionner proprement la branche
+   `draft-sec`~~ ✅ (constat du 06/11/2026 : le durcissement — chiffrement des
+   jetons `safeStorage`, liste blanche réseau, permissions refusées — est déjà
+   dans `main` depuis la PR #6 ; la branche rouverte `draft-sec` lui a ajouté
+   sa couverture de tests : 3 suites / 47 contrôles). Reste : Node.js >=24.22.1
+   exigé depuis le 24/10/2026 (correctifs CVE octobre 2026).
 
 ⏸️ **En attente d'une décision** : l'agent IA (section 3). **À décider** :
 le canal du lien « Contact » (section 23).
@@ -89,8 +91,20 @@ et revue des changements incompatibles : `DEVLOG.md`.
   `frame-ancestors 'none'`, `connect-src` limité à la liste blanche (Bungie, DIM, GitHub),
   `script-src 'self' 'wasm-unsafe-eval'` (pas de `'unsafe-eval'` ni `'unsafe-inline'`).
   Test : `tests/logique/cablage-csp-wasm.test.ts` (15 contrôles). **Validée par l'utilisateur**
-  (chargement du Manifest réparé dans le logiciel installé). Branche `draft-sec` à fusionner
-  proprement (chiffrement des jetons `safeStorage`, liste blanche réseau, permissions refusées).
+  (chargement du Manifest réparé dans le logiciel installé). ~~Branche `draft-sec` à fusionner
+  proprement~~ ✅ : le durcissement (chiffrement des jetons `safeStorage`, liste blanche réseau,
+  permissions refusées) est déjà dans `main` depuis la PR #6 ; la branche rouverte `draft-sec`
+  (06/11/2026) a ajouté sa couverture de tests : `tests/logique/stockage-securise.test.ts` (13
+  contrôles), `tests/logique/stockage-securite-repli.test.ts` (7) et
+  `tests/logique/cablage-durcissement-sec.test.ts` (27) — comportement du stockage chiffré
+  (nominal + repli) et câblage Electron/preload/consommateurs.
+
+✅ **ITEM 1 TERMINÉ le 06/11/2026** : les 3 suites de tests du durcissement sont livrées dans
+`main` (PR #31 + réintégration le 06/11 après correction de la régression causée par un revert
+d'incident — voir DEVLOG 05-06/11). L'audit externe du 26/09 est **clos de bout en bout** :
+Electron à niveau, 0 vulnérabilité, CSP livrée et validée, durcissement livré et **protégé par
+des tests** (63/63 suites, 1293/1293 contrôles). Ne restent que les rappels de précaution
+ci-dessous (documentation permanente, pas des travaux).
 
 **Rappels utiles :**
 - sous PowerShell, utiliser `npm.cmd` : la commande `npm` seule est bloquée par la politique d'exécution des
@@ -683,6 +697,17 @@ La batterie locale affiche **53/54 suites, 1103/1104 contrôles** : seule la sui
   fiche-infographie-simule 5, ajustements-stats 23, cablage-forge 37.
 - **Reste ouvert** : worker dédié si le calcul bloque l'UI (> 500 ms) en conditions réelles
   (`dureeMs` déjà exposé ; actuellement synchrone + indicateur de progression).
+
+### 26. Téléchargement de l'application — branchement du bouton (08/11/2026, branche `draft-téléchargement-web`)
+
+Les visuels de la charte sont LIVRÉS (nouvel `app-assets/` : bouton plaque
+« Télécharger » deux états + icône seule, ids `actions.telecharger.repos`/
+`.selectionne` et `icones.telecharger`, catalogue 105 actifs ; commit `707b605`).
+
+**Reste à faire** : brancher le bouton dans la carte Connexion à Bungie
+(composant `BoutonAction` comme « Appliquer en jeu », cible de téléchargement
+du `.exe` Windows à définir) — le code viendra de l'utilisateur. Décision du
+08/11/2026 : **on attend**.
 
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 

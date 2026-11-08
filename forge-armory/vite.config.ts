@@ -159,14 +159,29 @@ const CSP_PRODUCTION = [
 ].join("; ");
 
 export default defineConfig({
-  define: { __VERSION_APP__: JSON.stringify(version) },
+  define: {
+    __VERSION_APP__: JSON.stringify(version),
+    // FR : ⚠️ AJOUT (06/11/2026, chantier Netlify) - vrai uniquement dans le build
+    // WEB (Netlify) : sert à masquer les outils de diagnostic sur le site public
+    // (l'interrupteur du pied de page reste disponible dans l'appli Electron).
+    // EN: true only in the WEB (Netlify) build - hides diagnostic tools on the
+    // public site; the Electron app keeps its footer switch.
+    __WEB__: JSON.stringify(Boolean(process.env.NETLIFY)),
+  },
   // FR : ⚠️ AJOUT (24/09/2026) - chemins RELATIFS dans le build. Le logiciel
   // installé ouvre l'appli depuis un fichier local : des chemins absolus
   // (/assets/...) y pointeraient sur la racine du disque et rien ne se
   // chargerait. Sans effet négatif pour la version navigateur.
   // EN: ⚠️ ADDED - RELATIVE asset paths. The installed app opens the build
   // from a local file, where absolute paths would point at the drive root.
-  base: "./",
+  // FR : ⚠️ AJOUT (06/11/2026, branche draft-netlify) - sur Netlify (variable
+  // NETLIFY definie par le systeme de build lui-meme), les chemins doivent
+  // etre ABSOLUS : avec "./", la page /auth/callback cherche ses assets dans
+  // /auth/assets/... (404 remplacee par index.html = page blanche). Le build
+  // Electron garde les chemins relatifs (ouverture depuis un fichier local).
+  // EN: on Netlify (NETLIFY env var set by its build system) asset paths must
+  // be ABSOLUTE; the Electron build keeps relative paths.
+  base: process.env.NETLIFY ? "/" : "./",
   plugins: [
     react(),
     mkcert({ hosts: ["127.0.0.1"] }),

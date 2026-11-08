@@ -15,3 +15,6 @@ interface ImportMeta {
 
 /** FR : version du projet (lue dans package.json par vite.config.ts), affichée en pied de page pour identifier la version installée. / EN: project version, displayed in the footer to identify which build is installed. */
 declare const __VERSION_APP__: string;
+
+/** FR : vrai uniquement dans le build WEB (Netlify) — masque les outils de diagnostic du site public. / EN: true only in the WEB (Netlify) build — hides diagnostic tools from the public site. */
+declare const __WEB__: boolean;
