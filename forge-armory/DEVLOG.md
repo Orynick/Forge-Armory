@@ -16,6 +16,25 @@
 
 ---
 
+## 08/11/2026 — NOUVEL app-assets : visuels « Télécharger l'application » (branche `draft-téléchargement-web`)
+
+**Contexte (demande et décisions de l'utilisateur)** : une fonction de téléchargement de l'appli sera ajoutée (bouton dans la carte Connexion à Bungie) ; l'utilisateur livre les visuels de la charte : le bouton plaque « Télécharger » (deux états) et l'icône seule. L'ancien app-assets (pack v12) devient `archives-precedentes/app-assets-v12/` ; les nouveaux assets vivent directement dans le nouveau dossier `app-assets/` (structure `assets/`, `manifest.json`, `forgeAssets.ts` — celle des packs v3 à v11, que `generer-icones.py`, `generer-titre-svg.py` et les tests UI python attendent).
+
+**Intégration** :
+- `git mv` du pack v12 vers `archives-precedentes/app-assets-v12/` (déplacement tracé, zéro conflit) ;
+- nouveau pack `app-assets/` = pack v12 + **3 fichiers nouveaux** (`assets/actions/bouton-telecharger.svg`, `bouton-telecharger-selectionne.svg`, `assets/icones/icone-telecharger.svg`) + `manifest.json` de l'utilisateur (105 actifs : 102 identiques, 0 modifiés, 0 retirés — comparé par script au manifest v12) ; `forgeAssets.ts` régénéré depuis ce manifest (générateur validé : il redonne octet pour octet le `forgeAssets.ts` du pack v12 depuis le manifest v12) ;
+- `public/assets/` : les 3 fichiers copiés (aucune retouche à rejouer — `retoucher-visuels.mjs` : 0 retouche) ; `src/data/forge/forgeAssets.ts` = catalogue du pack (105 actifs) ;
+- chemins repointés vers `app-assets/assets` : `tests/logique/reproductibilite-visuels.test.ts`, `tests/logique/carriere-large.test.ts`, `scripts/generer-propositions-solo-forge.mjs` (les outils python `generer-icones.py`, `generer-titre-svg.py`, `tests/ui/titre-svg.py`, `tests/ui/identite-visuels.py` pointaient déjà vers `app-assets/assets/` — cassés depuis la restructuration v12, réparés par ce retour à la structure plates) ;
+- `VISUELS-ARCHIVES.md` : référence actuelle mise à jour.
+
+**Conformité charte vérifiée par `visuels.test.ts`** : ids internes préfixés `fa-<famille>-<fichier>-` (ex. `fa-actions-bouton-telecharger-`), uniques d'un fichier à l'autre ; viewBox conformes au catalogue (6496 × 1024 et 1024 × 1024) ; aucun texte-police, script ni ressource externe.
+
+**Vérifications** : `npx tsc -b` 0 erreur ; batterie 63/63 (1293/1293) — dont `reproductibilite-visuels` 7/7 (reconstruction depuis le NOUVEAU pack, octet pour octet) et `visuels` 20/20 ; `npm run build` OK.
+
+**Reste à faire (chantier « téléchargement web »)** : brancher le bouton `actions.telecharger.repos`/`.selectionne` dans la carte Connexion à Bungie (code à venir de l'utilisateur).
+
+---
+
 ## 07/11/2026 — AUDIT DOCUMENTAIRE post-v0.6.1 (branche `vibe/audit-doc-post-v061-700253`)
 
 **Contexte** : demande utilisateur de vérifier et mettre à jour toute la documentation après l'enchaînement v0.6.0/v0.6.1 + clôtures de chantiers. Balayage systématique : CHANGELOG, TODO, README (appli + racine du dépôt), NOTICE, GUIDE, LISEZ-MOI, INDEX des specs, MAJ-DEPENDANCES, ci.yml, constitution/méthode (à jour suite à l'Article XII).

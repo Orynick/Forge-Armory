@@ -698,6 +698,17 @@ La batterie locale affiche **53/54 suites, 1103/1104 contrôles** : seule la sui
 - **Reste ouvert** : worker dédié si le calcul bloque l'UI (> 500 ms) en conditions réelles
   (`dureeMs` déjà exposé ; actuellement synchrone + indicateur de progression).
 
+### 26. Téléchargement de l'application — branchement du bouton (08/11/2026, branche `draft-téléchargement-web`)
+
+Les visuels de la charte sont LIVRÉS (nouvel `app-assets/` : bouton plaque
+« Télécharger » deux états + icône seule, ids `actions.telecharger.repos`/
+`.selectionne` et `icones.telecharger`, catalogue 105 actifs ; commit `707b605`).
+
+**Reste à faire** : brancher le bouton dans la carte Connexion à Bungie
+(composant `BoutonAction` comme « Appliquer en jeu », cible de téléchargement
+du `.exe` Windows à définir) — le code viendra de l'utilisateur. Décision du
+08/11/2026 : **on attend**.
+
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 
 
