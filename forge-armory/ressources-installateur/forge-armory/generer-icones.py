@@ -1,6 +1,6 @@
 """
 FR : régénère TOUS les fichiers dérivés de l'IDENTITÉ VISUELLE Forge Armory à
-partir du logo du kit de visuels `app-assets/assets/marque/logo-forge-armory.png` (aussi présent dans `public/assets/marque/`), fourni par
+partir du logo du kit de visuels `app-assets/assets/marque/logo-forge-armory.png` — ou `app-assets/forge-armory-app-assets-v12/assets/marque/logo-forge-armory.png` selon le pack présent (aussi dans `public/assets/marque/`), fourni par
 l'utilisateur le 19/10/2026 (1092 x 1092 : le logo AVEC les cristaux cyan dans
 les DEUX « O » de « FORGE ARMORY »), et de la planche de déclinaisons du même
 jour (icône d'application, monochromes, favicons, tailles).
@@ -43,7 +43,14 @@ from scipy import ndimage
 RACINE = pathlib.Path(__file__).resolve().parents[2]
 DOSSIER = pathlib.Path(__file__).resolve().parent
 DECLINAISONS = DOSSIER / "declinaisons"
-SOURCE_LOGO = DOSSIER / "app-assets" / "assets" / "marque" / "logo-forge-armory.png"   # le logo du KIT (copie intacte de l'archive de visuels) : aucune copie supplémentaire
+# le logo du KIT (copie intacte du pack de visuels) : aucune copie supplémentaire.
+# Deux layouts selon la branche : app-assets plat (pack récent) ou pack versionné (v12...).
+_CANDIDATS_LOGO = [
+    DOSSIER / "app-assets" / "assets" / "marque" / "logo-forge-armory.png",
+    DOSSIER / "app-assets" / "forge-armory-app-assets-v12" / "assets" / "marque" / "logo-forge-armory.png",
+]
+SOURCE_LOGO = next((p for p in _CANDIDATS_LOGO if p.exists()), _CANDIDATS_LOGO[0])
+assert SOURCE_LOGO.exists(), f"logo du kit introuvable : {SOURCE_LOGO}"
 source = Image.open(SOURCE_LOGO).convert("RGB")
 assert source.size == (1092, 1092), f"image source de 1092 x 1092 attendue, {source.size} trouvée"
 a = np.array(source).astype(float)
