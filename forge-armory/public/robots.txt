@@ -1,0 +1,6 @@
+# FR : robots.txt — indique aux robots d'indexation (Google, Bing, etc.)
+# qu'ils peuvent parcourir tout le site. Ajouté le 06/11/2026 (chantier Netlify).
+# EN: robots.txt — tells indexing robots they may crawl the whole site.
+
+User-agent: *
+Allow: /
