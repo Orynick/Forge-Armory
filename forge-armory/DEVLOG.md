@@ -16,6 +16,24 @@
 
 ---
 
+## 14/11/2026 — BRANCHEMENT du bouton « Télécharger l'application » (TODO §26, branche `draft-téléchargement-web`) + correctifs d'intégration
+
+**Contexte** : commit utilisateur `9dca3c9` (« Bouton Téléchargement ») — composant `RappelAppliPC.tsx` + logique pure `lib/rappelAppliPC.ts` + 3 SVG du bouton de la charte (concept 3, « telechargement-concept-3 »). **Cinq manques relevés par l'audit et corrigés dans la foulée** (aucune régression) :
+
+1. **CI rouge** : `reproductibilite-visuels` 6/7 et `visuels` 19/20 — les 3 nouveaux SVG (`actions/bouton-telecharger-application.svg`, `actions/bouton-telecharger-application-survol.svg`, `icones/icone-telecharger-application.svg`) étaient dans `public/assets` **sans être ni dans l'archive `app-assets` ni déclarés au catalogue**. Corrigé : copie des 3 fichiers dans l'archive de référence (jamais modifiée par ailleurs), 3 entrées ajoutées au `manifest.json` (108 actifs) et au catalogue `forgeAssets.ts` (ids `actions.telecharger-application.repos`/`.selectionne`, `icones.telecharger-application`) — la reproductibilité octet pour octet est rétablie ;
+2. **bouton non branché** : `RappelAppliPC` n'était importé nulle part. Corrigé : rendu en BAS de la carte « Connexion à Bungie » de `DashboardPage` (au même endroit connecté ou non — demande du 08/11 : « il faut qu'il soit visible aussi en étant connecté, au même endroit ») ;
+3. **CSS absent** : les règles `.lien-telecharger-appli` référencées par le composant n'existaient pas. Ajoutées dans `index.css` : empilement des deux images (repos visible, survol lumineux au `:hover` et `:focus-visible`), hauteur 3,5 rem (56 px, bas de la fourchette charte 56-80 px), focus clavier visible, pleine largeur dans la grille de la carte connectée ;
+4. **ids du composant inexistants** : le composant appelle `urlVisuel("actions.telecharger-application.repos")` — ids désormais livrés au catalogue (point 1) ;
+5. le test `rappel-appli-pc.test.ts` (9 contrôles, dont les 16 combinaisons des 4 conditions et la sécurité des liens) était fourni par le commit et **passe**.
+
+**Comportement livré** (décisions des 08-12/11) : la ligne « Vous préférez l'application PC ? » + bouton de la charte s'affiche UNIQUEMENT sur le site web (`__WEB__`, build Netlify), hors appli installée (`estBureau()`), hors petit écran/tactile (max-width 899 px ou pointer coarse), et quand `VITE_LIEN_TELECHARGEMENT_PC` contient un lien `https://` complet (tout autre schéma refusé) ; lien absent → ligne cachée (pas de bouton « bientôt »). Le lien s'ouvre dans un nouvel onglet.
+
+**RESTE (TODO §26)** : **héberger l'installable** — `VITE_LIEN_TELECHARGEMENT_PC` n'est pas encore renseignée ; il faut décider comment rendre le `.exe` téléchargeable (piste : GitHub Releases du dépôt ; sinon fichier servi par Netlify). Tant que la variable est vide, la ligne reste cachée (voulu).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie **64/64 suites, 1302/1302 contrôles** (dont `reproductibilite-visuels` 7/7 — 112 fichiers reconstruits octet pour octet — et `visuels` 20/20) ; `npm run build` OK. Diff limité au chantier (carte Connexion, CSS, catalogue/manifest/archive, TODO/DEVLOG).
+
+---
+
 ## 08/11/2026 — NOUVEL app-assets : visuels « Télécharger l'application » (branche `draft-téléchargement-web`)
 
 **Contexte (demande et décisions de l'utilisateur)** : une fonction de téléchargement de l'appli sera ajoutée (bouton dans la carte Connexion à Bungie) ; l'utilisateur livre les visuels de la charte : le bouton plaque « Télécharger » (deux états) et l'icône seule. L'ancien app-assets (pack v12) devient `archives-precedentes/app-assets-v12/` ; les nouveaux assets vivent directement dans le nouveau dossier `app-assets/` (structure `assets/`, `manifest.json`, `forgeAssets.ts` — celle des packs v3 à v11, que `generer-icones.py`, `generer-titre-svg.py` et les tests UI python attendent).
