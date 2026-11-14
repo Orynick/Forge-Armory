@@ -16,6 +16,49 @@
 
 ---
 
+## 14/11/2026 (suite 3) — LIVRAISON : avertissement « cache du navigateur » (version Web) — chantier `draft-avertissement-cache-web`
+
+**Demande de l'utilisateur** : en version Web, avertir à la sauvegarde d'un build qu'il vit dans le cache du navigateur, parler des exports, et proposer un export JSON compatible avec la version installable. **Constat préalable** : l'export/import JSON existe déjà (`stockage.ts`) et le format est le même dans les deux versions — un build du site s'importe dans l'appli installée et inversement ; le chantier se réduit donc à l'avertissement + raccourci.
+
+**Décisions de l'utilisateur** (spec validée, `SPEC-AVERTISSEMENT-CACHE-WEB-2026-11-14.md`) : bandeau visible (aperçu validé) à chaque sauvegarde, coche « Ne plus afficher » (pas de ✕), raccourci « ⬇ Exporter en JSON » direct, bandeau dans l'onglet Load-outs ET le tiroir latéral (même composant `PanneauLoadouts` → automatique).
+
+**Réalisé** :
+- `src/lib/avertissementCacheWeb.ts` — logique pure : lecture/écriture de la coche (clé `forge-armory-avertissement-cache-web`, `'1'` masque, `'0'` réaffiche, valeur parasite = affiché), conditions d'affichage (web ET pas cochée), textes ;
+- `src/components/AvertissementCacheWeb.tsx` — bandeau (styles du bandeau « session expirée »), coche, raccourci masqué sans loadout ;
+- `PanneauLoadouts.tsx` — bandeau en haut du panneau (les deux présentations le portent) ; le raccourci ouvre la fenêtre « Exporter... » existante du dernier build sauvegardé ;
+- `tests/logique/lancer.mjs` — define `__VERSION_APP__` ajouté (parité avec le define de `vite.config.ts` ; sans lui, tout test important un module qui lit `__VERSION_APP__` au niveau du module plantait) ;
+- `tests/logique/avertissement-cache-web.test.ts` — 11 contrôles (matrice d'affichage, coche, stockage refusé, textes) ;
+- NOTICE (section « Où sont conservés mes builds sauvegardés ? »), README (bullet Loadouts), INDEX des specs.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie **65/65 suites, 1313/1313 contrôles** ; `npm run build` OK. Diff limité au périmètre de la spec (Article V).
+
+---
+
+## 14/11/2026 (suite 2) — DÉCISION : bannière « nouvelle version » dans l'appli (TODO §27) + constat crédits Netlify
+
+**Constat de l'utilisateur** (14/11/2026) : l'appli installée ne propose pas de mise à jour quand sa version ne correspond pas à la dernière release. Vérifié : aucun `electron-updater`, aucune vérification de version au démarrage dans `electron/main.cjs` ; seule la version des **données** d2-additional-info est contrôlée.
+
+**Décision de l'utilisateur** : ajouter l'**option 2** — bannière au démarrage (nouveau TODO §27) : requête sur `https://api.github.com/repos/Orynick/Forge-Armory/releases/latest` (hôte déjà autorisé par la liste blanche), comparaison du tag à `__VERSION_APP__`, bandeau « 🆕 Nouvelle version disponible → Télécharger » vers `releases/latest`, **sans installation automatique** (l'utilisateur installe le nouveau `.exe` par-dessus). L'option « `electron-updater` complet » est écartée (signature de code, lourdeur) ; l'option « ne rien faire » aussi. La release GitHub devient la source unique de vérité (bouton du site §26 + bannière de l'appli).
+
+**Constat Netlify** : plus de crédits de build — le déploiement qui activera `VITE_LIEN_TELECHARGEMENT_PC` (et donc le bouton du §26 sur le site) attend la recharge mensuelle ; noté au TODO §26. Le site en ligne reste servi sur son dernier build.
+
+**Documentation** : TODO §27 créé (design de la décision consigné), §26 complété (déploiement différé). README (appli et racine du dépôt) vérifiés : **rien à changer** — la bannière n'est pas encore livrée (le README ne décrit que les fonctionnalités existantes ; l'item sera documenté à sa livraison).
+
+---
+
+## 14/11/2026 (suite) — DÉCISION : hébergement de l'installable — GitHub Releases (dépôt public)
+
+**Décision de l'utilisateur** (14/11/2026, après comparatif des options) : le dépôt reste **public** et l'installable Windows est hébergé par **GitHub Releases** (gratuit, versionné, URL stable `releases/latest`, cohérent avec les tags ; l'alternative « fichier servi par Netlify » était pénalisée par le poids du `.exe` dans le dépôt et la bande passante ; le stockage objet, surdimensionné).
+
+**Réalisé** :
+- `netlify.toml` → `[build.environment]` : `VITE_LIEN_TELECHARGEMENT_PC = "https://github.com/Orynick/Forge-Armory/releases/latest"` (le bouton « Télécharger l'application » apparaîtra au prochain déploiement Netlify ; jusqu'ici la variable absente maintenait la ligne cachée) ;
+- tag `v0.6.1` + **release GitHub `v0.6.1`** créée (notes : CHANGELOG v0.6.0 + v0.6.1 — première release du dépôt) ;
+- TODO §26 : hébergement ✅ décidé ; reste à joindre le `.exe` à chaque release (upload utilisateur).
+
+**Reste** : joindre `Forge-Armory-Setup-0.6.1.exe` à la release v0.6.1 (glisser-déposer sur la page de la release ou `gh release upload`), puis vérifier le bouton sur le site après le redéploiement Netlify. Rituel à chaque version : tag + release + `.exe`.
+
+---
+
 ## 14/11/2026 — BRANCHEMENT du bouton « Télécharger l'application » (TODO §26, branche `draft-téléchargement-web`) + correctifs d'intégration
 
 **Contexte** : commit utilisateur `9dca3c9` (« Bouton Téléchargement ») — composant `RappelAppliPC.tsx` + logique pure `lib/rappelAppliPC.ts` + 3 SVG du bouton de la charte (concept 3, « telechargement-concept-3 »). **Cinq manques relevés par l'audit et corrigés dans la foulée** (aucune régression) :

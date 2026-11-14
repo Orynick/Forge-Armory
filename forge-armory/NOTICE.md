@@ -246,6 +246,11 @@ npm run electron:dev   (fenêtre 2)
 
 ---
 
+## Où sont conservés mes builds sauvegardés ?
+
+- **Version en ligne (site web)** : dans le **cache de votre navigateur**. Ils ne suivent pas votre compte Bungie : vider les données du site ou changer de navigateur les effacerait. Un bandeau vous le rappelle en haut du panneau « Loadouts » (cochable « Ne plus afficher »). **Pensez à l'export** : le **JSON** se réimporte ici OU dans l'application installée (bouton « Importer ») ; les exports texte, infographie (JPEG/PNG) et PDF gardent aussi une copie.
+- **Application installée (Windows)** : dans le **dossier de données persistant** de l'application (`%APPDATA%`) — vos builds survivent aux mises à jour et au vidage du navigateur. Les exports JSON fonctionnent dans les deux sens avec la version en ligne.
+
 ## Fonctionnalités
 
 | Bloc | État |
