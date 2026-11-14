@@ -78,11 +78,14 @@ export function appliquerSimulationArmure(piece: GearPiece, simulation: Simulati
 /** FR : ⚠️ CHANGÉ (branche draft-mod-armures) - le build avec la simulation appliquée à ses ARMES et à ses ARMURES ; le même objet si rien n'est simulé. `db` sert au recalcul des statistiques des armures simulées (Manifest ; sans lui, seules les perks des armures sont remplacées). / EN: the build with the simulation applied to its weapons AND armor; the same object if none is simulated. */
 export function appliquerSimulations(build: BuildDraft, simulations: Simulations, db: Database | null = null): BuildDraft {
   let change = false;
-  const armes = build.armes.map((a) => {
-    const copie = appliquerSimulationPiece(a, a.itemInstanceId ? simulations.armes[a.itemInstanceId] : undefined);
-    if (copie !== a) change = true;
-    return copie;
-  });
+  let armes = build.armes;
+  if (build.armes.some((a) => a.itemInstanceId && simulations.armes[a.itemInstanceId] && Object.keys(simulations.armes[a.itemInstanceId]).length > 0)) {
+    armes = build.armes.map((a) => {
+      const copie = appliquerSimulationPiece(a, a.itemInstanceId ? simulations.armes[a.itemInstanceId] : undefined);
+      if (copie !== a) change = true;
+      return copie;
+    });
+  }
   // ⚠️ AJOUT (branche draft-mod-armures) - seule une armure RÉELLEMENT simulée (copie) force la copie du tableau : sinon le tableau d'origine est réutilisé tel quel (mêmes objets, pas de recopie inutile).
   let armure = build.armure;
   for (let i = 0; i < build.armure.length; i++) {
