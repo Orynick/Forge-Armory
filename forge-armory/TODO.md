@@ -715,12 +715,17 @@ intégrés à l'archive `app-assets` + manifest + catalogue (reproductibilité
 octet pour octet rétablie) ; tests `rappel-appli-pc.test.ts` 9/9 ; batterie
 64/64 (1302/1302).
 
-**Reste à faire — HÉBERGER l'installable** : le bouton pointe vers
-`VITE_LIEN_TELECHARGEMENT_PC`, encore non renseignée — **il faut décider comment
-rendre le `.exe` Windows téléchargeable** (piste naturelle : les GitHub Releases
-du dépôt — `https://github.com/Orynick/Forge-Armory/releases/latest` ; sinon un
-fichier hébergé par Netlify). À régler avec l'utilisateur ; tant que la variable
-est vide, la ligne reste cachée (comportement voulu).
+✅ **HÉBERGEMENT DÉCIDIÉ le 14/11/2026** : dépôt **public** + **GitHub Releases**
+(décision utilisateur, comparatif des options discuté : Releases vs fichier
+Netlify vs stockage objet). `VITE_LIEN_TELECHARGEMENT_PC` réglée dans
+`netlify.toml` → `https://github.com/Orynick/Forge-Armory/releases/latest` ;
+release `v0.6.1` créée.
+
+**Reste à faire** : joindre l'installable `Forge-Armory-Setup-0.6.1.exe` à la
+release (upload par l'utilisateur : glisser-déposer sur la page de la release, ou
+`gh release upload v0.6.1 <chemin>/Forge-Armory-Setup-0.6.1.exe`), puis laisser
+Netlify redéployer (le bouton apparaîtra sur le site). À répéter à chaque
+version : tag + release + `.exe` joint.
 
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 

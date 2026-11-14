@@ -25,6 +25,12 @@
   # Doit correspondre au .nvmrc et au engines.node de package.json
   NODE_VERSION = "24.22.1"
 
+  # FR : ⚠️f AJOUT (14/11/2026, TODO §26) - lien du bouton « Télécharger l'application »
+  # (RappelAppliPC) : la page GitHub Releases du dépôt (PUBLIC), qui liste toujours
+  # la dernière version. L'installable (.exe) est livré en pièce jointe de chaque
+  # release. Sans cette variable, le bouton reste caché (lib/rappelAppliPC.ts).
+  VITE_LIEN_TELECHARGEMENT_PC = "https://github.com/Orynick/Forge-Armory/releases/latest"
+
   # Version de npm utilisée pour le build
   NPM_VERSION = "12.2.1"
 

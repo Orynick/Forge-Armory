@@ -4,6 +4,19 @@
 
 ---
 
+## 14/11/2026 (suite) — DÉCISION : hébergement de l'installable — GitHub Releases (dépôt public)
+
+**Décision de l'utilisateur** (14/11/2026, après comparatif des options) : le dépôt reste **public** et l'installable Windows est hébergé par **GitHub Releases** (gratuit, versionné, URL stable `releases/latest`, cohérent avec les tags ; l'alternative « fichier servi par Netlify » était pénalisée par le poids du `.exe` dans le dépôt et la bande passante ; le stockage objet, surdimensionné).
+
+**Réalisé** :
+- `netlify.toml` → `[build.environment]` : `VITE_LIEN_TELECHARGEMENT_PC = "https://github.com/Orynick/Forge-Armory/releases/latest"` (le bouton « Télécharger l'application » apparaîtra au prochain déploiement Netlify ; jusqu'ici la variable absente maintenait la ligne cachée) ;
+- tag `v0.6.1` + **release GitHub `v0.6.1`** créée (notes : CHANGELOG v0.6.0 + v0.6.1 — première release du dépôt) ;
+- TODO §26 : hébergement ✅ décidé ; reste à joindre le `.exe` à chaque release (upload utilisateur).
+
+**Reste** : joindre `Forge-Armory-Setup-0.6.1.exe` à la release v0.6.1 (glisser-déposer sur la page de la release ou `gh release upload`), puis vérifier le bouton sur le site après le redéploiement Netlify. Rituel à chaque version : tag + release + `.exe`.
+
+---
+
 ## 14/11/2026 — BRANCHEMENT du bouton « Télécharger l'application » (TODO §26, branche `draft-téléchargement-web`) + correctifs d'intégration
 
 **Contexte** : commit utilisateur `9dca3c9` (« Bouton Téléchargement ») — composant `RappelAppliPC.tsx` + logique pure `lib/rappelAppliPC.ts` + 3 SVG du bouton de la charte (concept 3, « telechargement-concept-3 »). **Cinq manques relevés par l'audit et corrigés dans la foulée** (aucune régression) :
