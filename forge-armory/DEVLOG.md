@@ -2,6 +2,18 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 08/11/2026 — RÉCUPÉRATION de draft-armure-score (branche `vibe/recup-armure-score-e7d066`)
+
+**Contexte** : tri de la branche exploratoire `draft-armure-score` (chantier §2.1 « lien armure → score », 15 commits de retard sur `main`, sans PR). Le cœur du chantier était déjà livré dans `main` par la PR #19 (`draft-mod-armures`, v0.5.6) avec son propre test (`armure-simulation-score.test.ts`). Seuls les éléments non couverts par `main` sont récupérés ; le reste de la branche (propagations, bundle `_fixtures.bundle.mjs` artéfact de build) est abandonné.
+
+**Récupéré (4 éléments)** :
+- `ResumeBuild.tsx` — l'avertissement du bouton « Équiper tout » compte AUSSI les armures simulées (« N armes avec des perks SIMULÉS et M armures avec des mods SIMULÉS ») ; avant : seules les armes étaient comptées ;
+- `appliquerSimulation.ts` — garde d'identité : le tableau `armes` n'est pas recopié si aucune arme n'est simulée (une simulation d'armure seule ne remplace plus le tableau d'armes) ;
+- `tests/logique/armure-score.test.ts` — complément du test existant : réaction du SCORE en contexte DPS (le delta −10 santé/+10 classe ne dépasse l'arrondi qu'en DPS), `pieceReelle`, indépendances armes/armures, build enregistré jamais modifié (11 contrôles) ;
+- `documentation/tests/LISTE-TESTS-armure-score.md` — checklist manuelle de 9 contrôles de la boucle Forge → score → badge → avertissement → retour au réel.
+
+**Vérifié** : tsc 0, batterie 64/64 suites (1304/1304 contrôles, +1 suite/+11 contrôles), build OK.
+
 ---
 
 ## 14/11/2026 — BRANCHEMENT du bouton « Télécharger l'application » (TODO §26, branche `draft-téléchargement-web`) + correctifs d'intégration
