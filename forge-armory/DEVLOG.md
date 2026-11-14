@@ -16,6 +16,12 @@
 
 ---
 
+## 14/11/2026 (suite 5) — DÉCISION workflow : `main` reste `main` (pas de `prod`/`dev`)
+
+**Décision de l'utilisateur** (14/11/2026, après discussion comparatif) : le renommage de `main` en `prod` et l'ajout d'une branche de transition permanente sont **écartés** — la garantie « `main` ne contient que du validé » est déjà portée par l'Article XII ; le renommage n'apporterait que de la fragilité (conventions GitHub/CI/Netlify). Une branche `staging` (préproduction web) reste une option documentée si le besoin de tester le web avant production émerge. Consigné dans la section « Pistes mises de côté » de la TODO (à ne pas reproposer sans raison).
+
+---
+
 ## 14/11/2026 (suite 4) — PASSAGE EN VERSION 0.7.0
 
 **Décision de l'utilisateur** (14/11/2026, après discussion) : la prochaine version est **0.7.0** — jalon « version web publique + téléchargement » (site Netlify en ligne, bouton « Télécharger l'application », avertissement cache navigateur, correctifs scoring/équipement). Le passage en **1.0** attendra : validation de la version web en conditions réelles (bandeau et bouton visibles après redéploiement Netlify), release avec l'installable publiée et testée, items « Important » de la TODO clos ou tranchés, ribambelle de tests en conditions réelles — critères consignés à cette date.

@@ -759,6 +759,15 @@ ligne silencieux, test logique de la comparaison de versions).
 
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 
+- **Renommage `main` → `prod` + branche de transition (`dev`)** — écarté (14/11/2026,
+  décision de l'utilisateur après discussion) : le renommage casserait les
+  conventions (GitHub, CI, Netlify, habitudes) sans protection supplémentaire ;
+  la garantie « `main` = validé uniquement » est déjà portée par l'Article XII
+  (PR + CI verte + merge délégué sur demande + vérifications post-merge). Une
+  éventuelle branche `staging` (préproduction web déployée par Netlify) reste
+  possible **si le besoin de tester le web avant production se fait sentir** —
+  à reproposer seulement dans ce cas (et selon les crédits de build).
+
 
 - **Police personnalisée « D2 Build Analyzer Vector »** — abandonnée (06/10/2026) :
   retirée de la TODO §21 (Confort) lors du nettoyage du 22/10/2026. Voir DEVLOG pour l'historique.
