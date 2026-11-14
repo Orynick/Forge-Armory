@@ -27,7 +27,7 @@ await esbuild.build({
   entryPoints: [entree], bundle: true, platform: "node", format: "esm", outfile: fichier, jsx: "automatic", logLevel: "error",
   nodePaths: [path.join(racine, "node_modules"), ...GLOBAUX.filter((p) => !p.includes("tsx"))],
   // FR : ⚠️ CHANGÉ (12/10/2026) - TOUT `import.meta.env` est défini (et non trois clés) : certains modules lisent d'autres variables (clé et identifiant Bungie), absentes sous Node, qui valent alors `undefined`, comme sans fichier .env.local. EN: the whole import.meta.env is defined.
-  define: { "import.meta.env": JSON.stringify({ BASE_URL: "./", DEV: false, MODE: "test" }) },
+  define: { "import.meta.env": JSON.stringify({ BASE_URL: "./", DEV: false, MODE: "test" }), "__VERSION_APP__": JSON.stringify(JSON.parse(fs.readFileSync(path.join(racine, "package.json"), "utf8")).version ?? "0.0.0") },
   banner: { js: "import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);" },
 });
 const r = spawnSync("node", [fichier, ...process.argv.slice(3)], { stdio: "inherit", cwd: racine });
