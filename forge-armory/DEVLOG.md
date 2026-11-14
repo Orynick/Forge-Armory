@@ -4,6 +4,104 @@
 
 ---
 
+## 14/11/2026 — BRANCHEMENT du bouton « Télécharger l'application » (TODO §26, branche `draft-téléchargement-web`) + correctifs d'intégration
+
+**Contexte** : commit utilisateur `9dca3c9` (« Bouton Téléchargement ») — composant `RappelAppliPC.tsx` + logique pure `lib/rappelAppliPC.ts` + 3 SVG du bouton de la charte (concept 3, « telechargement-concept-3 »). **Cinq manques relevés par l'audit et corrigés dans la foulée** (aucune régression) :
+
+1. **CI rouge** : `reproductibilite-visuels` 6/7 et `visuels` 19/20 — les 3 nouveaux SVG (`actions/bouton-telecharger-application.svg`, `actions/bouton-telecharger-application-survol.svg`, `icones/icone-telecharger-application.svg`) étaient dans `public/assets` **sans être ni dans l'archive `app-assets` ni déclarés au catalogue**. Corrigé : copie des 3 fichiers dans l'archive de référence (jamais modifiée par ailleurs), 3 entrées ajoutées au `manifest.json` (108 actifs) et au catalogue `forgeAssets.ts` (ids `actions.telecharger-application.repos`/`.selectionne`, `icones.telecharger-application`) — la reproductibilité octet pour octet est rétablie ;
+2. **bouton non branché** : `RappelAppliPC` n'était importé nulle part. Corrigé : rendu en BAS de la carte « Connexion à Bungie » de `DashboardPage` (au même endroit connecté ou non — demande du 08/11 : « il faut qu'il soit visible aussi en étant connecté, au même endroit ») ;
+3. **CSS absent** : les règles `.lien-telecharger-appli` référencées par le composant n'existaient pas. Ajoutées dans `index.css` : empilement des deux images (repos visible, survol lumineux au `:hover` et `:focus-visible`), hauteur 3,5 rem (56 px, bas de la fourchette charte 56-80 px), focus clavier visible, pleine largeur dans la grille de la carte connectée ;
+4. **ids du composant inexistants** : le composant appelle `urlVisuel("actions.telecharger-application.repos")` — ids désormais livrés au catalogue (point 1) ;
+5. le test `rappel-appli-pc.test.ts` (9 contrôles, dont les 16 combinaisons des 4 conditions et la sécurité des liens) était fourni par le commit et **passe**.
+
+**Comportement livré** (décisions des 08-12/11) : la ligne « Vous préférez l'application PC ? » + bouton de la charte s'affiche UNIQUEMENT sur le site web (`__WEB__`, build Netlify), hors appli installée (`estBureau()`), hors petit écran/tactile (max-width 899 px ou pointer coarse), et quand `VITE_LIEN_TELECHARGEMENT_PC` contient un lien `https://` complet (tout autre schéma refusé) ; lien absent → ligne cachée (pas de bouton « bientôt »). Le lien s'ouvre dans un nouvel onglet.
+
+**RESTE (TODO §26)** : **héberger l'installable** — `VITE_LIEN_TELECHARGEMENT_PC` n'est pas encore renseignée ; il faut décider comment rendre le `.exe` téléchargeable (piste : GitHub Releases du dépôt ; sinon fichier servi par Netlify). Tant que la variable est vide, la ligne reste cachée (voulu).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie **64/64 suites, 1302/1302 contrôles** (dont `reproductibilite-visuels` 7/7 — 112 fichiers reconstruits octet pour octet — et `visuels` 20/20) ; `npm run build` OK. Diff limité au chantier (carte Connexion, CSS, catalogue/manifest/archive, TODO/DEVLOG).
+
+---
+
+## 08/11/2026 — NOUVEL app-assets : visuels « Télécharger l'application » (branche `draft-téléchargement-web`)
+
+**Contexte (demande et décisions de l'utilisateur)** : une fonction de téléchargement de l'appli sera ajoutée (bouton dans la carte Connexion à Bungie) ; l'utilisateur livre les visuels de la charte : le bouton plaque « Télécharger » (deux états) et l'icône seule. L'ancien app-assets (pack v12) devient `archives-precedentes/app-assets-v12/` ; les nouveaux assets vivent directement dans le nouveau dossier `app-assets/` (structure `assets/`, `manifest.json`, `forgeAssets.ts` — celle des packs v3 à v11, que `generer-icones.py`, `generer-titre-svg.py` et les tests UI python attendent).
+
+**Intégration** :
+- `git mv` du pack v12 vers `archives-precedentes/app-assets-v12/` (déplacement tracé, zéro conflit) ;
+- nouveau pack `app-assets/` = pack v12 + **3 fichiers nouveaux** (`assets/actions/bouton-telecharger.svg`, `bouton-telecharger-selectionne.svg`, `assets/icones/icone-telecharger.svg`) + `manifest.json` de l'utilisateur (105 actifs : 102 identiques, 0 modifiés, 0 retirés — comparé par script au manifest v12) ; `forgeAssets.ts` régénéré depuis ce manifest (générateur validé : il redonne octet pour octet le `forgeAssets.ts` du pack v12 depuis le manifest v12) ;
+- `public/assets/` : les 3 fichiers copiés (aucune retouche à rejouer — `retoucher-visuels.mjs` : 0 retouche) ; `src/data/forge/forgeAssets.ts` = catalogue du pack (105 actifs) ;
+- chemins repointés vers `app-assets/assets` : `tests/logique/reproductibilite-visuels.test.ts`, `tests/logique/carriere-large.test.ts`, `scripts/generer-propositions-solo-forge.mjs` (les outils python `generer-icones.py`, `generer-titre-svg.py`, `tests/ui/titre-svg.py`, `tests/ui/identite-visuels.py` pointaient déjà vers `app-assets/assets/` — cassés depuis la restructuration v12, réparés par ce retour à la structure plates) ;
+- `VISUELS-ARCHIVES.md` : référence actuelle mise à jour.
+
+**Conformité charte vérifiée par `visuels.test.ts`** : ids internes préfixés `fa-<famille>-<fichier>-` (ex. `fa-actions-bouton-telecharger-`), uniques d'un fichier à l'autre ; viewBox conformes au catalogue (6496 × 1024 et 1024 × 1024) ; aucun texte-police, script ni ressource externe.
+
+**Vérifications** : `npx tsc -b` 0 erreur ; batterie 63/63 (1293/1293) — dont `reproductibilite-visuels` 7/7 (reconstruction depuis le NOUVEAU pack, octet pour octet) et `visuels` 20/20 ; `npm run build` OK.
+
+**Reste à faire (chantier « téléchargement web »)** : brancher le bouton `actions.telecharger.repos`/`.selectionne` dans la carte Connexion à Bungie (code à venir de l'utilisateur).
+
+---
+
+## 07/11/2026 — AUDIT DOCUMENTAIRE post-v0.6.1 (branche `vibe/audit-doc-post-v061-700253`)
+
+**Contexte** : demande utilisateur de vérifier et mettre à jour toute la documentation après l'enchaînement v0.6.0/v0.6.1 + clôtures de chantiers. Balayage systématique : CHANGELOG, TODO, README (appli + racine du dépôt), NOTICE, GUIDE, LISEZ-MOI, INDEX des specs, MAJ-DEPENDANCES, ci.yml, constitution/méthode (à jour suite à l'Article XII).
+
+**Corrigé (7 fichiers)** :
+- `CHANGELOG.md` — **réparation d'encodage** : 2 emoji 🔨 corrompus en CESU-8 (fichier non décodable en UTF-8, même défaut que TODO.md le 05/11) réencodés correctement ;
+- `TODO.md` — « version courante » 0.6.0 → **0.6.1** ; **item 1 (audit externe) marqué TERMINÉ** (les 3 suites de tests du durcissement sont dans `main` depuis le 06/11 ; ne restent que les rappels de précaution, documentation permanente) ;
+- `.github/workflows/ci.yml` — commentaires périmés « 41 suites / 801 contrôles » → **63 suites / 1293 contrôles** ;
+- `README.md` (appli) — bullet Forge complété : **« Appliquer en jeu »** (écriture réelle des mods d'armure et perks d'armes, v0.6.0) ;
+- `NOTICE.md` — **ligne « Appliquer en jeu » ajoutée** à la table des fonctionnalités (la fonctionnalité d'écriture n'était pas documentée dans le mode d'emploi) ;
+- `documentation/specs/INDEX.md` — **ligne SPEC-MODS-PHASE-2** ajoutée (livrée, v0.6.0, PR #27, validations en jeu des 03-04/11) ;
+- `README.md` (racine du dépôt) — description complétée (Forge + écriture en jeu, optimiseur, Legendarium).
+
+**Vérifié sans changement** : GUIDE-DEMARRAGE-INVITE (Node 24.22.1 à jour), documentation/LISEZ-MOI (structure à jour), MAJ-DEPENDANCES (historique), CONSTITUTION/README méthode (mis à jour avec l'Article XII le 06/11), points d'avancement (instantanés historiques, non modifiés par principe).
+
+**Vérifications** : `npx tsc -b` 0 erreur ; batterie 63/63 (1293/1293) ; `npm run build` OK ; diff limité à la documentation + commentaires de `ci.yml` (aucun comportement touché).
+
+---
+
+## 07/11/2026 — Netlify : filet de sécurité anti-consommation de crédits (correctif mineur, README §5)
+
+**Contexte** : l'utilisateur approche de la fin de ses crédits Netlify. Cause probable : des builds déclenchés sur chaque push de branche (propagations) et les previews de PR. La CI GitHub Actions (gratuite) vérifie déjà chaque branche — seul `main` a besoin d'un déploiement.
+
+**Réalisé** (`netlify.toml`, aucun code applicatif) : ajout des contextes `[context.branch-deploy]` et `[context.deploy-preview]` avec commande `echo` (build neutralisé, publication de `.`) — les builds hors production deviennent quasi gratuits **même si l'interface Netlify reste sur « all branches »**. Le contexte production (`main`) est inchangé.
+
+**Recommandé côté utilisateur (interface Netlify)** : « Only the production branch » + deploy previews désactivés (guide fourni dans la conversation).
+
+**Vérifié** : branche courante `main` contrôlée avant commit (Article XII.2) ; `npx tsc -b` 0 erreur ; batterie 63/63 (1293/1293) ; `npm run build` OK ; diff limité à `netlify.toml` + cette entrée DEVLOG.
+
+---
+
+## 06/11/2026 — CONSTITUTION : Article XII — `main` ne reçoit que du code validé et vérifié (décision explicite de l'utilisateur)
+
+**Décision de l'utilisateur** (06/11/2026) : « C'est le moment de durcir le workflow : sur la branche main, il faut uniquement du code validé et vérifier scrupuleusement l'absence de régression. »
+
+**Nouvel Article XII** (documentation seule, aucun code) :
+1. **Merge par PR uniquement** — CI verte et tests passés sur le draft requis ; merge depuis l'interface GitHub par défaut, **ou merge délégué par l'utilisateur explicite** (l'assistant pousse alors le commit de merge, jamais de sa propre initiative, après vérification CI + tests sur le draft) ; les chantiers triviaux (README §5) restent l'exception en push direct sous checklist ;
+2. **vérification de la branche courante** (`git branch --show-current`) avant toute opération git de fusion — leçon de l'incident du 05/11 : un merge de propagation committé sur `main` par erreur a fusionné une PR non validée ;
+3. **vérification post-merge du contenu réel** — un merge peut être « MERGED » sans que le contenu survive (cas PR #31 : le revert du 05/11 a fait perdre ses fichiers au moment du merge ; réintégrés le 06/11 par revert du revert) ;
+4. **vérification d'absence de régression** après chaque merge : tsc, batterie, build, diff limité au périmètre (Article V) ;
+5. **hygiène des reverts** : tout revert de merge est consigné au DEVLOG avec son plan de réintégration ;
+6. **protection GitHub recommandée** (réglage côté utilisateur, Settings → Branches) : PR requise + contrôle de statut « tsc + build + batterie logique » + interdiction des force-push.
+
+Annexe enrichie des deux leçons du 05/11 ; README méthode §2 (étape 9) et §5 durcis ; date de la constitution mise à jour.
+
+---
+
+## 06/11/2026 — branche `draft-sec` rouverte : couverture de tests du durcissement (safeStorage, liste blanche réseau, permissions refusées)
+
+**Constat de départ** : la TODO et les points d'avancement disaient encore « branche `draft-sec` à fusionner proprement (chiffrement des jetons `safeStorage`, liste blanche réseau, permissions refusées) ». Vérification faite (git, `merge-base --is-ancestor c9218ed main`) : ce durcissement est **déjà livré dans `main`** — commit `c9218ed`, merge PR #6 — et toujours présent à l'identique dans `electron/main.cjs` (canaux `securite:*`, `HOTES_AUTORISES`, `setPermissionRequestHandler`/`setPermissionCheckHandler` à false), `electron/preload.cjs` (pont `stockageSecurise`), `src/lib/stockageSecurise.ts` (migration du clair vers le coffre chiffré, repli localStorage documenté) et ses consommateurs (`oauth.ts`, `dim/apiKey.ts`, `main.tsx`). Ce qui manquait réellement : **aucune suite de test ne protégeait ce chantier**.
+
+**Réalisé (branche `draft-sec` rouverte depuis `main`, aucun changement de code applicatif)** :
+
+- `tests/logique/stockage-securise.test.ts` (13 contrôles) — test de COMPORTEMENT du cas nominal : pont factice (coffre safeStorage simulé) + localStorage factice ; repli localStorage avant l'init, cache peuplé depuis le coffre, **migration** d'une valeur encore en clair (écrite dans le coffre sous la clé préfixée `sec:`, supprimée de localStorage), écriture sans copie en clair, effacement des deux stockages + du cache ;
+- `tests/logique/stockage-securite-repli.test.ts` (7 contrôles) — cas de REPLI (chiffrement OS indisponible) : avertissement console, aucune migration, aucune écriture coffre, écriture/lecture/effacement via localStorage ;
+- `tests/logique/cablage-durcissement-sec.test.ts` (27 contrôles) — test de CÂBLAGE (lecture du texte du code, comme `cablage-csp-wasm` / `cablage-connexion-bungie`) : les quatre canaux IPC `securite:*` réservés à la fenêtre principale, `safeStorage.encryptString`/`decryptString` en base64, validations clé/valeur, liste blanche **exactement** trois hôtes (Bungie, DIM, GitHub), annulation de toute requête hors liste uniquement dans le logiciel installé, refus total des permissions sur les sessions principale ET de connexion, pont preload à quatre fonctions, consommateurs sans écriture directe des jetons dans localStorage, init avant le premier rendu, cohérence des clés avec `CLES_SECRETS` ;
+- `TODO.md` : les deux mentions « branche `draft-sec` à fusionner » rayées et corrigées (le code est dans `main` depuis la PR #6 ; la branche rouverte apporte les tests). Reste de la section : Node.js >=24.22.1.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `node tests/lancer-tout.mjs` : **logique 63/63 suites** (dont les 3 nouvelles, 47/47 contrôles) ; les 27 suites d'interface échouent dans l'environnement de travail (Playwright absent), sans lien avec ce changement. Aucun changement de code applicatif, aucune version bumpée.
+
+---
 ## 05/11/2026 (suite) — CORRECTIF : `scripts/tester-avec-fixtures.mjs` réparé sous Node (TODO §4) — lanceur esbuild + Node
 
 **Problème (retour utilisateur du 05/11, exécution depuis un ZIP `draft-optimiseur`)** : `node scripts/tester-avec-fixtures.mjs` plantait avec `ERR_MODULE_NOT_FOUND` (« Cannot find package 'a' » importé depuis `sql-wasm.wasm`). **Causes racines** : (1) `src/lib/manifest/download.ts` importe `sql.js/dist/sql-wasm.wasm?url` — suffixe **Vite** inconnu de Node, qui tentait de charger le `.wasm` comme module ESM ; (2) les imports internes du `src/` sont **sans extension** (convention bundler), non résolus par Node ESM nu. Le script n'avait jamais tourné depuis l'ajout de l'import `?url` ; la batterie logique, elle, passe déjà par esbuild (`tests/logique/lancer.mjs`).

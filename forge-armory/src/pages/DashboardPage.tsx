@@ -59,7 +59,8 @@ import SelecteurVues, { VueApp } from "../components/SelecteurVues";
 import PageForge from "../components/PageForge";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : onglet Forge
 import { defilerVers } from "../lib/defilerVers";
 import TitreCategorie from "../components/TitreCategorie";
-import BoutonsVuesCompte from "../components/BoutonsVuesCompte";   // ⚠️ CHANGÉ (21/10/2026) : les deux boutons du bloc Connexion (remplace l'import direct de la fonction des visuels)
+import BoutonsVuesCompte from "../components/BoutonsVuesCompte";
+import RappelAppliPC from "../components/RappelAppliPC";   // FR : ⚠️f AJOUT (14/11/2026) - rappel « Télécharger l'application » en bas de la carte Connexion (site web seulement, conditions dans lib/rappelAppliPC.ts).   // ⚠️ CHANGÉ (21/10/2026) : les deux boutons du bloc Connexion (remplace l'import direct de la fonction des visuels)
 import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic";
 import Bibliotheque from "../components/Bibliotheque";
 import type { ProvenanceObjet } from "../lib/legendarium/types";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : provenance transitoire (fiche Détails → page de Lore)
@@ -583,6 +584,9 @@ export default function DashboardPage() {
             {memberships[0].displayName}).
           </p>
         )}
+
+        {/* FR : ⚠️f AJOUT (14/11/2026) - rappel « Télécharger l'application » EN BAS de la carte Connexion, au même endroit connecté ou non (le composant décide seul de l'afficher : site web seulement, hors appli installée, hors petit écran, lien https réglé). / EN: "Download the app" reminder at the bottom of the connection card; the component decides visibility. */}
+        <RappelAppliPC />
       </div>
 
       {/* FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - sélecteur de vue, demande de
