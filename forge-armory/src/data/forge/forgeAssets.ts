@@ -363,6 +363,30 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "ratio": 6.3438,
   "hauteurMinPx": 40
  },
+{
+  "format": "svg",
+  "id": "actions.telecharger-application.repos",
+  "famille": "actions",
+  "label": "Télécharger l’application (charte, concept 3)",
+  "etat": "repos",
+  "fichier": "assets/actions/bouton-telecharger-application.svg",
+  "largeur": 6496,
+  "hauteur": 1024,
+  "ratio": 6.3438,
+  "hauteurMinPx": 40
+ },
+{
+  "format": "svg",
+  "id": "actions.telecharger-application.selectionne",
+  "famille": "actions",
+  "label": "Télécharger l’application (charte, concept 3) (survol)",
+  "etat": "selectionne",
+  "fichier": "assets/actions/bouton-telecharger-application-survol.svg",
+  "largeur": 6496,
+  "hauteur": 1024,
+  "ratio": 6.3438,
+  "hauteurMinPx": 40
+ },
  {
   "id": "icones.carriere",
   "famille": "icones",
@@ -1170,6 +1194,18 @@ export const FORGE_ASSETS: readonly ForgeAsset[] = [
   "label": "Télécharger l’application (Windows, .exe)",
   "etat": null,
   "fichier": "assets/icones/icone-telecharger.svg",
+  "largeur": 1024,
+  "hauteur": 1024,
+  "ratio": 1.0,
+  "hauteurMinPx": 24
+ },
+{
+  "format": "svg",
+  "id": "icones.telecharger-application",
+  "famille": "icones",
+  "label": "Télécharger l’application (icône, concept 3)",
+  "etat": null,
+  "fichier": "assets/icones/icone-telecharger-application.svg",
   "largeur": 1024,
   "hauteur": 1024,
   "ratio": 1.0,

@@ -294,6 +294,15 @@ summary > span {
 /* ⚠️ AJOUT (21/10/2026, demande de l'utilisateur, capture d'écran annotée) - bloc Connexion, une fois CONNECTÉ : les boutons « Carrière » (au-dessus) et « Accomplissements » forment une colonne CENTRÉE dans la place libre entre le titre et le statut « connecté », à la hauteur du titre et du compte (deux lignes de la grille). Le titre et le statut restent sur la même ligne, le compte sous le titre. Hors connexion, la classe n'est pas posée : mise en page inchangée (et les boutons n'existent pas). Sur une fenêtre étroite, retour à la mise en page empilée (la colonne passe sous le compte). / EN: once connected, the two buttons sit in a column centred in the free space between the title and the status. */
 .pilier-carte--connexion { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; column-gap: 0.75rem; row-gap: 0.5rem; align-items: start; }
 .pilier-carte--connexion > h3 { display: contents; }
+
+/* FR : ⚠️f AJOUT (14/11/2026, chantier draft-téléchargement-web) - rappel « Télécharger l'application » en bas de la carte Connexion. Dans la carte CONNECTÉE (grille 3 colonnes), le rappel prend toute la largeur (dernière ligne) ; hors connexion, bloc normal. Le LIEN est le bouton de la charte : image de repos, image lumineuse au survol et au focus clavier ; 3,5 rem (56 px) de haut. / EN: "Download the app" reminder at the bottom of the connection card; charter button with hover image. */
+.connexion-rappel-appli-pc { grid-column: 1 / -1; }
+.lien-telecharger-appli { display: inline-grid; text-decoration: none; line-height: 0; }
+.lien-telecharger-appli img { grid-area: 1 / 1; height: 3.5rem; width: auto; max-width: 100%; }
+.lien-telecharger-appli__survol { opacity: 0; transition: opacity 0.12s ease; }
+.lien-telecharger-appli:hover .lien-telecharger-appli__survol,
+.lien-telecharger-appli:focus-visible .lien-telecharger-appli__survol { opacity: 1; }
+.lien-telecharger-appli:focus-visible { outline: 2px solid #7aa2f7; outline-offset: 3px; border-radius: 4px; }
 .pilier-carte--connexion > h3 > .titre-categorie { grid-column: 1; grid-row: 1; }
 .pilier-carte--connexion > h3 > span { grid-column: 3; grid-row: 1; align-self: center; justify-self: end; }
 .pilier-carte--connexion > .connexion-compte { grid-column: 1; grid-row: 2; }

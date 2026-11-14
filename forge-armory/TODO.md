@@ -701,13 +701,26 @@ La batterie locale affiche **53/54 suites, 1103/1104 contrôles** : seule la sui
 ### 26. Téléchargement de l'application — branchement du bouton (08/11/2026, branche `draft-téléchargement-web`)
 
 Les visuels de la charte sont LIVRÉS (nouvel `app-assets/` : bouton plaque
-« Télécharger » deux états + icône seule, ids `actions.telecharger.repos`/
-`.selectionne` et `icones.telecharger`, catalogue 105 actifs ; commit `707b605`).
+« Télécharger » DEUX états + icône seule — concept 3 « papillon + pastille »,
+ids `actions.telecharger-application.repos`/`.selectionne` et
+`icones.telecharger-application`, catalogue 108 actifs ; commit `707b605`).
 
-**Reste à faire** : brancher le bouton dans la carte Connexion à Bungie
-(composant `BoutonAction` comme « Appliquer en jeu », cible de téléchargement
-du `.exe` Windows à définir) — le code viendra de l'utilisateur. Décision du
-08/11/2026 : **on attend**.
+✅ **BRANCHEMENT LIVRÉ le 14/11/2026** (commit de l'utilisateur `9dca3c9` +
+correctifs) : composant `RappelAppliPC` rendu en BAS de la carte « Connexion à
+Bungie », au même endroit connecté ou non ; affiché UNIQUEMENT sur le site web
+(`__WEB__`), hors appli installée, hors petit écran/tactile, et quand un lien
+`https://` valide est réglé dans `VITE_LIEN_TELECHARGEMENT_PC` (Netlify) ;
+CSS `.lien-telecharger-appli` (survol + focus clavier, 56 px) ; les 3 SVG
+intégrés à l'archive `app-assets` + manifest + catalogue (reproductibilité
+octet pour octet rétablie) ; tests `rappel-appli-pc.test.ts` 9/9 ; batterie
+64/64 (1302/1302).
+
+**Reste à faire — HÉBERGER l'installable** : le bouton pointe vers
+`VITE_LIEN_TELECHARGEMENT_PC`, encore non renseignée — **il faut décider comment
+rendre le `.exe` Windows téléchargeable** (piste naturelle : les GitHub Releases
+du dépôt — `https://github.com/Orynick/Forge-Armory/releases/latest` ; sinon un
+fichier hébergé par Netlify). À régler avec l'utilisateur ; tant que la variable
+est vide, la ligne reste cachée (comportement voulu).
 
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 
