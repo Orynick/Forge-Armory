@@ -4,6 +4,18 @@
 
 ---
 
+## 14/11/2026 (suite 2) — DÉCISION : bannière « nouvelle version » dans l'appli (TODO §27) + constat crédits Netlify
+
+**Constat de l'utilisateur** (14/11/2026) : l'appli installée ne propose pas de mise à jour quand sa version ne correspond pas à la dernière release. Vérifié : aucun `electron-updater`, aucune vérification de version au démarrage dans `electron/main.cjs` ; seule la version des **données** d2-additional-info est contrôlée.
+
+**Décision de l'utilisateur** : ajouter l'**option 2** — bannière au démarrage (nouveau TODO §27) : requête sur `https://api.github.com/repos/Orynick/Forge-Armory/releases/latest` (hôte déjà autorisé par la liste blanche), comparaison du tag à `__VERSION_APP__`, bandeau « 🆕 Nouvelle version disponible → Télécharger » vers `releases/latest`, **sans installation automatique** (l'utilisateur installe le nouveau `.exe` par-dessus). L'option « `electron-updater` complet » est écartée (signature de code, lourdeur) ; l'option « ne rien faire » aussi. La release GitHub devient la source unique de vérité (bouton du site §26 + bannière de l'appli).
+
+**Constat Netlify** : plus de crédits de build — le déploiement qui activera `VITE_LIEN_TELECHARGEMENT_PC` (et donc le bouton du §26 sur le site) attend la recharge mensuelle ; noté au TODO §26. Le site en ligne reste servi sur son dernier build.
+
+**Documentation** : TODO §27 créé (design de la décision consigné), §26 complété (déploiement différé). README (appli et racine du dépôt) vérifiés : **rien à changer** — la bannière n'est pas encore livrée (le README ne décrit que les fonctionnalités existantes ; l'item sera documenté à sa livraison).
+
+---
+
 ## 14/11/2026 (suite) — DÉCISION : hébergement de l'installable — GitHub Releases (dépôt public)
 
 **Décision de l'utilisateur** (14/11/2026, après comparatif des options) : le dépôt reste **public** et l'installable Windows est hébergé par **GitHub Releases** (gratuit, versionné, URL stable `releases/latest`, cohérent avec les tags ; l'alternative « fichier servi par Netlify » était pénalisée par le poids du `.exe` dans le dépôt et la bande passante ; le stockage objet, surdimensionné).
