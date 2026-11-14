@@ -4,6 +4,24 @@
 
 ---
 
+## 14/11/2026 (suite 3) — LIVRAISON : avertissement « cache du navigateur » (version Web) — chantier `draft-avertissement-cache-web`
+
+**Demande de l'utilisateur** : en version Web, avertir à la sauvegarde d'un build qu'il vit dans le cache du navigateur, parler des exports, et proposer un export JSON compatible avec la version installable. **Constat préalable** : l'export/import JSON existe déjà (`stockage.ts`) et le format est le même dans les deux versions — un build du site s'importe dans l'appli installée et inversement ; le chantier se réduit donc à l'avertissement + raccourci.
+
+**Décisions de l'utilisateur** (spec validée, `SPEC-AVERTISSEMENT-CACHE-WEB-2026-11-14.md`) : bandeau visible (aperçu validé) à chaque sauvegarde, coche « Ne plus afficher » (pas de ✕), raccourci « ⬇ Exporter en JSON » direct, bandeau dans l'onglet Load-outs ET le tiroir latéral (même composant `PanneauLoadouts` → automatique).
+
+**Réalisé** :
+- `src/lib/avertissementCacheWeb.ts` — logique pure : lecture/écriture de la coche (clé `forge-armory-avertissement-cache-web`, `'1'` masque, `'0'` réaffiche, valeur parasite = affiché), conditions d'affichage (web ET pas cochée), textes ;
+- `src/components/AvertissementCacheWeb.tsx` — bandeau (styles du bandeau « session expirée »), coche, raccourci masqué sans loadout ;
+- `PanneauLoadouts.tsx` — bandeau en haut du panneau (les deux présentations le portent) ; le raccourci ouvre la fenêtre « Exporter... » existante du dernier build sauvegardé ;
+- `tests/logique/lancer.mjs` — define `__VERSION_APP__` ajouté (parité avec le define de `vite.config.ts` ; sans lui, tout test important un module qui lit `__VERSION_APP__` au niveau du module plantait) ;
+- `tests/logique/avertissement-cache-web.test.ts` — 11 contrôles (matrice d'affichage, coche, stockage refusé, textes) ;
+- NOTICE (section « Où sont conservés mes builds sauvegardés ? »), README (bullet Loadouts), INDEX des specs.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie **65/65 suites, 1313/1313 contrôles** ; `npm run build` OK. Diff limité au périmètre de la spec (Article V).
+
+---
+
 ## 14/11/2026 (suite 2) — DÉCISION : bannière « nouvelle version » dans l'appli (TODO §27) + constat crédits Netlify
 
 **Constat de l'utilisateur** (14/11/2026) : l'appli installée ne propose pas de mise à jour quand sa version ne correspond pas à la dernière release. Vérifié : aucun `electron-updater`, aucune vérification de version au démarrage dans `electron/main.cjs` ; seule la version des **données** d2-additional-info est contrôlée.
