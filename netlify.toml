@@ -58,3 +58,23 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     # Active la protection XSS du navigateur
     X-XSS-Protection = "1; mode=block"
+
+# ============================================================
+#  CONTEXTES — économie des crédits de build (décision du 07/11/2026)
+# ============================================================
+# FR : Filet de sécurité. Les builds de branches (hors production) et
+# les previews de PR sont neutralisés CÔTÉ DÉPÔT, même si l'interface
+# Netlify reste réglée sur « all branches ». La CI GitHub Actions
+# (gratuite) vérifie déjà chaque branche ; seul `main` a besoin d'un
+# déploiement. Réglage recommandé en parallèle dans l'interface
+# Netlify : « Only the production branch » + deploy previews off.
+# EN: Safety net — branch deploys and PR previews are neutralized at
+# the repo level; only main gets a real build.
+
+[context.branch-deploy]
+  command = "echo 'Build neutralisé : déploiement réservé à main (économie de crédits Netlify)'"
+  publish = "."
+
+[context.deploy-preview]
+  command = "echo 'Preview neutralisée : vérification par la CI GitHub (économie de crédits Netlify)'"
+  publish = "."

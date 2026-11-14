@@ -1,4 +1,4 @@
-# FR : ⚠️ AJOUT (19/10/2026, v0.4.13), demande de l'utilisateur (« reprends simplement les visuels que j'ai envoyés ») - TEST des visuels d'identité produits par `ressources-installateur/forge-armory/generer-icones.py` depuis le logo du 19/10/2026 (1092 x 1092, cristaux cyan dans les DEUX « O ») et la planche de déclinaisons : (1) sources (nouvelle image, anciennes archivées) ; (2) images de l'en-tête (dimensions inchangées) ; (3) les DEUX cristaux cyan dans le titre, à la place de ceux de l'image d'origine ; (4) GÉOMÉTRIE de l'en-tête INCHANGÉE (cercle et texte aux mêmes proportions que `MESURES_IDENTITE`) ; (5) icône d'application, favicons, icône Windows ; (6) monochromes ; (7) déclinaisons ; (8) REPRODUCTIBILITÉ de bout en bout dans une copie jetable ; (9) plus aucun cristal dessiné à la main. Depuis la racine : python3 tests/ui/identite-visuels.py   (Pillow, numpy, scipy)
+# FR : ⚠️ AJOUT (19/10/2026, v0.4.13), demande de l'utilisateur (« reprends simplement les visuels que j'ai envoyés ») - TEST des visuels d'identité produits par `ressources-installateur/forge-armory/generer-icones.py` depuis le logo du 19/10/2026 (1092 x 1092, cristaux cyan dans les DEUX « O ») et la planche de déclinaisons : (1) sources (nouvelle image du kit ; l'ancienne image n'est plus dans le dépôt — archives-precedentes retiré, l'historique Git la conserve) ; (2) images de l'en-tête (dimensions inchangées) ; (3) les DEUX cristaux cyan dans le titre, à la place de ceux de l'image d'origine ; (4) GÉOMÉTRIE de l'en-tête INCHANGÉE (cercle et texte aux mêmes proportions que `MESURES_IDENTITE`) ; (5) icône d'application, favicons, icône Windows ; (6) monochromes ; (7) déclinaisons ; (8) REPRODUCTIBILITÉ de bout en bout dans une copie jetable ; (9) plus aucun cristal dessiné à la main. Depuis la racine : python3 tests/ui/identite-visuels.py   (Pillow, numpy, scipy)
 # EN: ⚠️ ADDED - test of the identity visuals generated from the 2026-10-19 logo (cyan crystals in both O's) and the declination sheet.
 import io, os, re, shutil, struct, subprocess, sys, tempfile
 import numpy as np
@@ -15,10 +15,14 @@ def existe(*chemins): return all(os.path.exists(c) for c in chemins)
 # ---------- 1. sources ----------
 import hashlib
 sha = lambda chemin: hashlib.sha1(open(chemin, "rb").read()).hexdigest()
-KIT = f"{RES}/app-assets/assets/marque/logo-forge-armory.png"
+def _kit_marque(nom):   # deux layouts selon la branche : app-assets plat (pack récent) ou pack versionné (v12...)
+    for base in ("app-assets/assets/marque", "app-assets/forge-armory-app-assets-v12/assets/marque"):
+        p = f"{RES}/{base}/{nom}"
+        if os.path.exists(p): return p
+    return f"{RES}/app-assets/assets/marque/{nom}"
+KIT = _kit_marque("logo-forge-armory.png")
 src = Image.open(KIT)
-ancienne = f"{RES}/archives-precedentes/identite-forge-armory-source-2026-10-01.png"
-ok("SOURCE : le générateur part du logo du KIT de visuels (1092 × 1092), identique octet pour octet à la copie livrée dans `public/assets/marque/` : AUCUN doublon ; l'ancienne image d'identité (1254 × 1254, 01/10/2026) est ARCHIVÉE et n'existe plus à son ancien emplacement ; la planche de déclinaisons est dans le kit", src.size == (1092, 1092) and sha(KIT) == sha(f"{racine}/public/assets/marque/logo-forge-armory.png") and existe(ancienne, f"{RES}/app-assets/assets/marque/forge-armory-declinaisons.png") and Image.open(ancienne).size == (1254, 1254) and not os.path.exists(f"{RES}/identite-forge-armory-source.png"), [src.size, os.path.exists(f"{RES}/identite-forge-armory-source.png")])
+ok("SOURCE : le générateur part du logo du KIT de visuels (1092 × 1092), identique octet pour octet à la copie livrée dans `public/assets/marque/` : AUCUN doublon ; l'ancienne image d'identité (01/10/2026) n'existe plus à son ancien emplacement (archives-precedentes retiré du dépôt ; l'historique Git conserve tout) ; la planche de déclinaisons est dans le kit", src.size == (1092, 1092) and sha(KIT) == sha(f"{racine}/public/assets/marque/logo-forge-armory.png") and existe(_kit_marque("forge-armory-declinaisons.png")) and not os.path.exists(f"{RES}/identite-forge-armory-source.png"), [src.size, os.path.exists(f"{RES}/identite-forge-armory-source.png")])
 # ---------- 2. images de l'en-tête ----------
 emb = charger(f"{racine}/public/logo-forge-armory-embleme.png"); txt = charger(f"{racine}/public/logo-forge-armory-texte.png")
 ok("EN-TÊTE : les images gardent EXACTEMENT leurs dimensions (emblème 304 × 342, titre 803 × 158), à fond transparent : `EnTeteApp` et `geometrieIdentite.ts` n'ont rien à changer", emb.size == (304, 342) and txt.size == (803, 158) and emb.getpixel((0, 0))[3] == 0 and txt.getpixel((0, 0))[3] == 0, [emb.size, txt.size])

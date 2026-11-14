@@ -1,4 +1,4 @@
-// FR : ⚠️ AJOUT (12/10/2026, v0.4.1) puis ⚠️ CHANGÉ (04/11/2026, pack v12 `forge-armory-app-assets-v12`, devenu l'app-assets de référence — l'ancien app-assets est rangé dans `archives-precedentes/`) - REPRODUCTIBILITÉ des visuels : en repartant de l'archive de référence de l'utilisateur (`ressources-installateur/forge-armory/app-assets/forge-armory-app-assets-v12/assets` ; les fichiers de l'archive ne sont jamais modifiés) et en rejouant `scripts/retoucher-visuels.mjs` dans un dossier TEMPORAIRE,
+// FR : ⚠️ AJOUT (12/10/2026, v0.4.1) puis ⚠️ CHANGÉ (04/11/2026, pack v12) puis ⚠️ CHANGÉ (nouvel app-assets : le pack v12, devenu `archives-precedentes/app-assets-v12`, est remplacé par le nouveau pack livré directement dans `app-assets/`) - REPRODUCTIBILITÉ des visuels : en repartant de l'archive de référence de l'utilisateur (`ressources-installateur/forge-armory/app-assets/assets` ; les fichiers de l'archive ne sont jamais modifiés) et en rejouant `scripts/retoucher-visuels.mjs` dans un dossier TEMPORAIRE,
 // on doit retrouver, OCTET POUR OCTET, tout ce que contient `public/assets/` : les seuls fichiers de `public/assets/` qui ne viennent pas de l'archive sont ceux de l'onglet Forge (fichiers produits par `scripts/generer-propositions-solo-forge.mjs`). Le script doit aussi être idempotent (une seconde exécution ne change rien).
 // Ce test remplace la vérification que j'avais faite à la main le 12/10/2026 lors de l'arrivée de l'archive v3. EN: ⚠️ ADDED - rebuilding public/assets from the pristine archive must reproduce the shipped files byte for byte.
 import fs from "node:fs";
@@ -16,7 +16,7 @@ const lister = (base: string): string[] => { const out: string[] = []; const rec
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "forge-visuels-"));
 fs.mkdirSync(path.join(tmp, "public"), { recursive: true }); fs.mkdirSync(path.join(tmp, "ressources-installateur/forge-armory"), { recursive: true });
-fs.cpSync(path.join(racine, "ressources-installateur/forge-armory/app-assets/forge-armory-app-assets-v12/assets"), path.join(tmp, "public/assets"), { recursive: true });
+fs.cpSync(path.join(racine, "ressources-installateur/forge-armory/app-assets/assets"), path.join(tmp, "public/assets"), { recursive: true });
 fs.cpSync(path.join(racine, "ressources-installateur/forge-armory/titres-complets"), path.join(tmp, "ressources-installateur/forge-armory/titres-complets"), { recursive: true });
 fs.cpSync(path.join(racine, "scripts"), path.join(tmp, "scripts"), { recursive: true });
 const r1 = spawnSync("node", ["scripts/retoucher-visuels.mjs"], { cwd: tmp, encoding: "utf-8" });

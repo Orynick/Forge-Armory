@@ -1,8 +1,12 @@
 # Forge Armory
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/5ecc7eb8-1913-42c5-8a65-91dd0bd8472b/deploy-status)](https://app.netlify.com/projects/forge-armory/deploys)
+
 *Destiny 2 Build Analyzer / Analyseur de Build*
 
-Appli locale (React + Vite + TypeScript) pour étudier et scorer des builds Destiny 2 selon 5 piliers pondérés, avec gestion et partage des Loadouts.
+Appli locale (React + Vite + TypeScript) pour étudier et scorer des builds Destiny 2 selon 5 piliers pondérés — avec Forge (simulation des perks/mods et **écriture en jeu**), optimiseur de build, Legendarium, gestion et partage des Loadouts.
+
+Version en ligne : [`https://forge-armory.orynick.fr`](https://forge-armory.orynick.fr)
 
 Par Orynick/Orygamer.
 
