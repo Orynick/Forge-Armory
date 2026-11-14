@@ -16,6 +16,16 @@
 
 ---
 
+## 14/11/2026 (suite 4) — PASSAGE EN VERSION 0.7.0
+
+**Décision de l'utilisateur** (14/11/2026, après discussion) : la prochaine version est **0.7.0** — jalon « version web publique + téléchargement » (site Netlify en ligne, bouton « Télécharger l'application », avertissement cache navigateur, correctifs scoring/équipement). Le passage en **1.0** attendra : validation de la version web en conditions réelles (bandeau et bouton visibles après redéploiement Netlify), release avec l'installable publiée et testée, items « Important » de la TODO clos ou tranchés, ribambelle de tests en conditions réelles — critères consignés à cette date.
+
+**Réalisé** : bump `package.json`/`package-lock.json` 0.6.1 → **0.7.0** (3 champs version du lock vérifiés : racine, `packages[""]` et dépendance `forge-armory` — aucun autre paquet touché) ; entrée CHANGELOG v0.7.0 (orientée utilisateur) ; TODO « version courante » ; tag `v0.7.0`.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie N/N ; `npm run build` OK ; CI verte.
+
+---
+
 ## 14/11/2026 (suite 3) — LIVRAISON : avertissement « cache du navigateur » (version Web) — chantier `draft-avertissement-cache-web`
 
 **Demande de l'utilisateur** : en version Web, avertir à la sauvegarde d'un build qu'il vit dans le cache du navigateur, parler des exports, et proposer un export JSON compatible avec la version installable. **Constat préalable** : l'export/import JSON existe déjà (`stockage.ts`) et le format est le même dans les deux versions — un build du site s'importe dans l'appli installée et inversement ; le chantier se réduit donc à l'avertissement + raccourci.
