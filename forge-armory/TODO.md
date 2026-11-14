@@ -715,12 +715,47 @@ intégrés à l'archive `app-assets` + manifest + catalogue (reproductibilité
 octet pour octet rétablie) ; tests `rappel-appli-pc.test.ts` 9/9 ; batterie
 64/64 (1302/1302).
 
-**Reste à faire — HÉBERGER l'installable** : le bouton pointe vers
-`VITE_LIEN_TELECHARGEMENT_PC`, encore non renseignée — **il faut décider comment
-rendre le `.exe` Windows téléchargeable** (piste naturelle : les GitHub Releases
-du dépôt — `https://github.com/Orynick/Forge-Armory/releases/latest` ; sinon un
-fichier hébergé par Netlify). À régler avec l'utilisateur ; tant que la variable
-est vide, la ligne reste cachée (comportement voulu).
+✅ **HÉBERGEMENT DÉCIDIÉ le 14/11/2026** : dépôt **public** + **GitHub Releases**
+(décision utilisateur, comparatif des options discuté : Releases vs fichier
+Netlify vs stockage objet). `VITE_LIEN_TELECHARGEMENT_PC` réglée dans
+`netlify.toml` → `https://github.com/Orynick/Forge-Armory/releases/latest` ;
+release `v0.6.1` créée.
+
+**Reste à faire** : joindre l'installable `Forge-Armory-Setup-0.6.1.exe` à la
+release (upload par l'utilisateur : glisser-déposer sur la page de la release, ou
+`gh release upload v0.6.1 <chemin>/Forge-Armory-Setup-0.6.1.exe`), puis laisser
+Netlify redéployer (le bouton apparaîtra sur le site). À répéter à chaque
+version : tag + release + `.exe` joint.
+
+⚠️ **Déploiement Netlify différé** (constat du 14/11/2026) : plus de crédits de
+build Netlify — le déploiement qui prendra en compte `VITE_LIEN_TELECHARGEMENT_PC`
+attendra la recharge mensuelle. Le site en ligne reste servi (dernier build) ;
+le bouton apparaîtra au premier déploiement suivant.
+
+### 27. Bannière « nouvelle version disponible » dans l'appli installée (décision du 14/11/2026)
+
+**Constat** : l'appli installée ne propose AUCUNE mise à jour — aucun
+`electron-updater`, aucune vérification de version au démarrage (vérifié le
+14/11/2026). Un utilisateur avec une vieille version ne le saura jamais.
+
+**Décision** (option 2 retenue sur 3, après discussion : ne rien faire / bannière /
+`electron-updater` — ce dernier écarté : signature de code et lourdeur
+disproportionnées) : au démarrage de l'appli installée, interroger
+`https://api.github.com/repos/Orynick/Forge-Armory/releases/latest` (**hôte déjà
+autorisé** par la liste blanche `HOTES_AUTORISES` pour d2-additional-info — aucun
+changement de sécurité), comparer le tag de la release à `__VERSION_APP__`
+(version du `package.json` injectée au build), et si différent : bandeau discret
+« 🆕 Nouvelle version disponible → Télécharger » pointant vers
+`https://github.com/Orynick/Forge-Armory/releases/latest`. **Pas d'installation
+automatique** : l'utilisateur télécharge le nouveau `.exe` et installe par-dessus
+(l'installateur gère déjà la mise à jour par-dessus, cf. NOTICE « Renommage »).
+
+**Complément naturel** : la release GitHub devient la source unique de vérité —
+bouton du site (§26) ET bannière de l'appli lisent la même URL. Rituel inchangé :
+tag + release + `.exe` joint à chaque version.
+
+**Chantier léger** (spec courte attendue : conditions d'affichage, repli hors
+ligne silencieux, test logique de la comparaison de versions).
 
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 

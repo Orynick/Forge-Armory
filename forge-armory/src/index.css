@@ -295,6 +295,13 @@ summary > span {
 .pilier-carte--connexion { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; column-gap: 0.75rem; row-gap: 0.5rem; align-items: start; }
 .pilier-carte--connexion > h3 { display: contents; }
 
+/* FR : ⚠️f AJOUT (14/11/2026, chantier draft-avertissement-cache-web) - bandeau « Builds conservés dans le cache du navigateur » (web uniquement) : mêmes couleurs que le bandeau « session expirée » (fond #2a2418, bordure or sombre #6b5a2a), titre or clair #e0c080, texte gris chaud. / EN: web-only "browser cache" banner, same palette as the session-expiry banner. */
+.avertissement-cache-web { background: #2a2418; border: 1px solid #6b5a2a; border-radius: 6px; padding: 0.6rem 0.7rem; margin: 0 0 0.6rem; }
+.avertissement-cache-web__titre { margin: 0 0 0.3rem; font-size: 0.9rem; color: #e0c080; font-weight: 600; }
+.avertissement-cache-web__texte { margin: 0 0 0.5rem; font-size: 0.8rem; color: #b7b3a8; line-height: 1.45; }
+.avertissement-cache-web__actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.avertissement-cache-web__coche { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; color: #9a968a; cursor: pointer; }
+
 /* FR : ⚠️f AJOUT (14/11/2026, chantier draft-téléchargement-web) - rappel « Télécharger l'application » en bas de la carte Connexion. Dans la carte CONNECTÉE (grille 3 colonnes), le rappel prend toute la largeur (dernière ligne) ; hors connexion, bloc normal. Le LIEN est le bouton de la charte : image de repos, image lumineuse au survol et au focus clavier ; 3,5 rem (56 px) de haut. / EN: "Download the app" reminder at the bottom of the connection card; charter button with hover image. */
 .connexion-rappel-appli-pc { grid-column: 1 / -1; }
 .lien-telecharger-appli { display: inline-grid; text-decoration: none; line-height: 0; }

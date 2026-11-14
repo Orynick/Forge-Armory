@@ -16,7 +16,7 @@ Application pour étudier et scorer des builds Destiny 2 selon 5 piliers pondér
 - **Mon Inventaire et Coffre** : filtres, recherche, doublons, détails.
 - **Manifest bilingue (FR/EN)** : recherche dans toutes les données du jeu.
 - **Score en 5 piliers**, pondération par contexte ou personnalisée.
-- **Loadouts** : sauvegarde, export/import, équipement en jeu.
+- **Loadouts** : sauvegarde, export/import (JSON réimportable entre le site et l'application installée), équipement en jeu — en ligne, un bandeau rappelle que les sauvegardes vivent dans le cache du navigateur.
 - **Fiche du build et partage** : fichier JSON, texte, image (JPEG/PNG) et PDF.
 - **Artefact** : sélecteur des perks avec leurs contraintes de tiers.
 - **Legendarium** : bibliothèque de Lore en lecture passive (Grimoire D1, Légendes D2, armes, armures, cosmétiques), avec export infographique PNG.

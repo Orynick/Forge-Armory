@@ -15,6 +15,7 @@ import IconeAntiChampion, { TypeChampion } from "./icones/IconeAntiChampion";
 import IconeLoadout, { CleIconeLoadout } from "./icones/IconeLoadout";
 import ModifierLoadout from "./ModifierLoadout";
 import ExporterLoadout from "./ExporterLoadout";
+import AvertissementCacheWeb from "./AvertissementCacheWeb";   // FR : ⚠️f AJOUT (14/11/2026) - bandeau « cache du navigateur » (web uniquement), en haut du panneau : les DEUX présentations (tiroir + onglet) le portent.
 import ChoixPersonnageEquipement from "./ChoixPersonnageEquipement";
 import { CibleEquipement, PersonnageCompte, determinerCible } from "../lib/loadouts/classePersonnage";
 import IconeElement from "./icones/IconeElement";
@@ -393,6 +394,11 @@ export default function PanneauLoadouts({ objetsPossedes, onChargerLoadout, memb
           </button>
         )}
       </div>
+
+      {/* FR : ⚠️f AJOUT (14/11/2026, chantier draft-avertissement-cache-web, demande de l'utilisateur) - bandeau « Builds conservés dans le cache de ce navigateur », VERSION WEB UNIQUEMENT (le composant décide seul : `__WEB__` + coche « Ne plus afficher » mémorisée). Raccourci « ⬇ Exporter en JSON » : ouvre la fenêtre « Exporter... » existante du DERNIER build sauvegardé (premier de la liste). Les deux présentations du panneau (tiroir latéral et onglet « Load-outs ») le portent automatiquement. / EN: web-only "browser cache" banner with a JSON-export shortcut; both panel presentations carry it. */}
+      <AvertissementCacheWeb
+        onExporterJson={loadouts.length > 0 ? () => setExportEn(loadouts[0]) : undefined}
+      />
 
       <p style={{ fontSize: "0.7rem", color: "#7d7a70", margin: "0 0 0.6rem" }}>
         Enregistrés dans ce navigateur uniquement (pas sur votre compte Bungie) : ils ne suivent pas
