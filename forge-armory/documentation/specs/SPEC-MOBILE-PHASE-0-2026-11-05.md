@@ -1,11 +1,13 @@
 # SPEC — mobile-phase-0
 
-**Date :** 2026-11-05 (révisée trois fois le 05/11/2026 avec les réponses de l'utilisateur)
-**Statut :** brouillon — en attente de validation par l'utilisateur. Tous les points à clarifier sont tranchés (§8). Aucun code tant qu'elle n'est pas validée (Constitution, Article VI ; consigne de l'utilisateur du 05/11/2026 : « pas de code pour le moment, on peaufine la SPEC »).
-**Branche de travail :** `draft-pwa` (préparation uniquement — aucun code tant que la spec n'est pas validée)
+**Date :** 2026-11-05 (révisée trois fois le 05/11/2026 ; corrections du 14/11/2026 : version 0.7.0, adresse du site, tests sous Firefox)
+**Statut :** validée par l'utilisateur le 14/11/2026 (« le reste de la SPEC m'a l'air bien ») — codage autorisé (Constitution, Article VI).
+**Branche de travail :** `draft-pwa`
 **Branche publiée sur le site :** `draft-pwa` (tranché par l'utilisateur le 05/11/2026)
-**Version de l'appli à la rédaction :** 0.6.1
-**Version visée :** 0.6.2 (à confirmer à la livraison, justification dans le DEVLOG)
+**Adresse du site :** `https://forge-armory.orynick.fr` (fournie par l'utilisateur le 14/11/2026)
+**Version de l'appli à la rédaction :** 0.7.0
+**Version visée :** 0.7.1 (à confirmer à la livraison, justification dans le DEVLOG)
+**Navigateur de test :** Chrome sur Android (visé) ; Firefox sur Android accepté (remarque de l'utilisateur du 14/11/2026 : la mémoire annoncée n'y est pas fournie — le diagnostic affiche « inconnue »)
 
 ---
 
@@ -15,7 +17,7 @@ Ouvrir Forge Armory sur un téléphone **Android**, depuis un site hébergé sur
 
 > Contexte : plan de mise en ligne du 05/10/2026 (GitHub → hébergement → compatibilité smartphone via PWA). Étude de faisabilité du 05/11/2026 (conversation) : chantier faisable sans réécriture, découpé en 5 phases (0 : prototype de mesure ; 1 : mise en ligne propre ; 2 : adaptation de l'affichage ; 3 : couche PWA ; 4 : Manifest allégé si les mesures l'exigent).
 >
-> Décisions de l'utilisateur du 05/11/2026 : téléphone de test **Android** ; hébergeur **Netlify** ; phase 0 sur l'**adresse gratuite de Netlify** (`orynick.fr` plus tard) ; sur téléphone, **Manifest français seul, sans option pour l'anglais** ; diagnostic mobile **uniquement en mode diagnostic, réservé à l'utilisateur**, par **liaison à son identifiant Bungie**, sur le site **et** dans le logiciel installé ; clé API **gérée comme DIM** (clé côté navigateur, restreinte par l'origine, une application Bungie par environnement) ; site construit depuis une **branche dédiée** : `draft-pwa`.
+> Décisions de l'utilisateur du 05/11/2026 : téléphone de test **Android** ; hébergeur **Netlify** ; site en ligne à l'adresse **`https://forge-armory.orynick.fr`** (14/11/2026) ; sur téléphone, **Manifest français seul, sans option pour l'anglais** ; diagnostic mobile **uniquement en mode diagnostic, réservé à l'utilisateur**, par **liaison à son identifiant Bungie**, sur le site **et** dans le logiciel installé ; clé API **gérée comme DIM** (clé côté navigateur, restreinte par l'origine, une application Bungie par environnement) ; site construit depuis une **branche dédiée** : `draft-pwa`.
 >
 > Pourquoi une phase 0 : le seul vrai risque technique du chantier est la mémoire. Aujourd'hui l'appli garde **les deux Manifest (FR + EN, environ 100 Mo chacun) entièrement en mémoire**, plus un pic au premier téléchargement (archive + fichier décompressé + copie). On mesure avant d'investir dans l'adaptation de l'affichage.
 >
@@ -25,7 +27,7 @@ Ouvrir Forge Armory sur un téléphone **Android**, depuis un site hébergé sur
 
 ### 2.1 Le site
 
-- Forge Armory est accessible dans le navigateur d'un téléphone à l'**adresse gratuite de Netlify** (de la forme `https://<nom choisi>.netlify.app`).
+- Forge Armory est accessible dans le navigateur d'un téléphone à l'adresse **`https://forge-armory.orynick.fr`**.
 - Le site est construit automatiquement par Netlify à partir du dépôt GitHub, sur la **branche dédiée `draft-pwa`** (tranché par l'utilisateur, §8 n°6). Chaque push sur cette branche met le site à jour. `main` et le logiciel installé ne sont pas concernés.
 - On peut **recharger la page** ou arriver directement sur n'importe quelle adresse du site (dont `/auth/callback`, au retour de Bungie) **sans page blanche**. Correction en cause : la version web est construite avec des chemins absolus (`/`) ; le logiciel installé garde ses chemins relatifs (`./`).
 
@@ -57,7 +59,7 @@ Ouvrir Forge Armory sur un téléphone **Android**, depuis un site hébergé sur
 Un diagnostic, visible **uniquement quand le mode diagnostic est activé** (et donc, sur le site, uniquement pour l'utilisateur : §2.6), affiche dans le bloc Manifest :
 
 - « téléphone détecté : oui/non » et la largeur d'écran ;
-- la mémoire annoncée par le téléphone (arrondie par Chrome, par exemple « 8 Go ») ;
+- la mémoire annoncée par le téléphone (arrondie par Chrome, par exemple « 8 Go » ; sous Firefox, qui ne la fournit pas : « inconnue ») ;
 - l'espace de stockage utilisé et disponible pour le site, et si ce stockage est protégé contre l'effacement automatique (« persistant : oui/non ») ;
 - la **durée de chaque étape** du dernier chargement du Manifest : téléchargement, décompression, ouverture, indexation ;
 - un bouton **« Copier »** qui copie le tout en texte, pour le coller dans la conversation.
@@ -86,18 +88,17 @@ Aujourd'hui, dans l'appli construite (logiciel installé), **n'importe qui** peu
 
 ### 3.1 Dans le périmètre (fichiers / fonctionnalités concernés)
 
-- `vite.config.ts` : chemins absolus pour la version web (variable `FORGE_CIBLE=web`), relatifs sinon (inchangé pour le logiciel installé).
-- `netlify.toml` (nouveau, dans `forge-armory/`) : commande de construction, Node 24, variable `FORGE_CIBLE=web`, règle « toute adresse inconnue renvoie l'appli » (nécessaire au retour de connexion et au rechargement).
+- `vite.config.ts` : chemins absolus pour la version web — LIVRÉ (variable `NETLIFY` de l'environnement de build, `base: process.env.NETLIFY ? "/" : "./"`), relatifs sinon (inchangé pour le logiciel installé).
+- `netlify.toml` (à la RACINE du dépôt) : LIVRÉ — commande de construction, Node 24, règle « toute adresse inconnue renvoie l'appli » (retour de connexion et rechargement), déploiements de branches neutralisés (économie de crédits, TODO §26).
 - `src/lib/bungie/oauth.ts` : `validerEtatOAuth` refuse un code absent, aussi dans le navigateur (§2.3).
 - `src/lib/appareil.ts` (nouveau, quelques lignes) : `estTelephone()` (§2.4). Fichier séparé justifié : la détection sert au Manifest et au diagnostic, et doit être testable seule.
 - `src/lib/manifest/demarrage.ts` : décision de démarrage en mode « français seul » (§2.4, points 2 à 4).
 - `src/lib/manifest/download.ts` : relevé des durées d'étapes du chargement (§2.5), sans changer ce qui est téléchargé ni la façon de le stocker.
 - `src/components/RechercheManifest.tsx` : langues chargées selon l'appareil, message « environ 100 Mo », affichage du diagnostic mobile.
-- `src/lib/modeDiagnostic.ts` et `src/components/InterrupteurModeDiagnostic.tsx` : réservation du mode diagnostic sur le site (§2.6).
-- `src/vite-env.d.ts` : déclaration de la variable `VITE_ID_BUNGIE_PROPRIETAIRE`.
+- `src/lib/modeDiagnostic.ts` et `src/components/InterrupteurModeDiagnostic.tsx` : réservation du mode diagnostic sur le site (§2.6) — LIVRÉ (06/11/2026, branche draft-netlify) : l'identifiant du propriétaire est la constante `ID_COMPTE_BUNGIE_PROPRIETAIRE` de `src/lib/proprietaire.ts` (information publique, déjà dans l'adresse du profil bungie.net), et non une variable d'environnement.
 - `src/lib/diagnosticsArchives.ts` : inscription du diagnostic mobile.
 - Tests (Article III) : `tests/logique/demarrage-manifest.test.ts` (complété : mode français seul), nouveau `tests/logique/appareil.test.ts`, nouveau `tests/logique/oauth-etat.test.ts` (code absent refusé dans les deux modes), nouveau `tests/logique/mode-diagnostic-reserve.test.ts` (compte propriétaire / autre compte / non connecté / variable absente / réglage mémorisé ignoré), contrôle de câblage de la version web (`base` selon `FORGE_CIBLE`, `netlify.toml` présent et cohérent).
-- Documentation : `documentation/GUIDE-MISE-EN-LIGNE.md` (nouveau, pas-à-pas Bungie + Netlify de l'annexe A, détaillé), `.env.example` (la nouvelle variable, commentée : à remplir avant de fabriquer l'installateur), `CHANGELOG.md`, `DEVLOG.md`, `TODO.md`, `README.md` (une ligne : le site existe), `documentation/specs/INDEX.md`, `A-TESTER-0.6.2.pdf` (+ source dans `documentation/sources/`).
+- Documentation : `documentation/GUIDE-MISE-EN-LIGNE.md` (nouveau, état réel du site déjà en ligne + pas-à-pas de l'annexe A), `CHANGELOG.md`, `DEVLOG.md`, `TODO.md`, `README.md`, `documentation/specs/INDEX.md`, `A-TESTER-0.7.1` (source dans `documentation/sources/`, PDF par `outil-a-tester-pdf.py`).
 
 ### 3.2 Hors périmètre (explicite — règle anti-régression, Article V)
 
@@ -151,7 +152,7 @@ Automatisés :
 - [ ] `npm run build` : OK, **et** construction web (`FORGE_CIBLE=web`) : OK, chemins absolus vérifiés dans `dist/index.html`
 - [ ] CI GitHub Actions verte sur la PR
 - [ ] Diff vs `main` limité au périmètre 3.1 (Article V)
-- [ ] Déploiement Netlify réussi depuis la branche dédiée
+- [ ] Déploiement Netlify réussi — DIFFÉRÉ : plus de crédits de build (recharge mensuelle, TODO §26) ; le déploiement se fera depuis `main` après fusion
 - [ ] Validation utilisateur : X/X (à consigner dans le DEVLOG)
 - [ ] Entrée DEVLOG rédigée
 
@@ -176,7 +177,9 @@ Tranchés le 05/11/2026 : n°1 Netlify ✅ ; n°2 adresse gratuite de Netlify d'
 
 ## Annexe A — Étapes à faire par l'utilisateur (résumé)
 
-Le détail, écran par écran, sera dans `documentation/GUIDE-MISE-EN-LIGNE.md` livré avec le chantier. L'ordre compte, car Bungie a besoin de l'adresse du site, et le site a besoin des codes Bungie.
+Le détail, écran par écran, sera dans `documentation/GUIDE-MISE-EN-LIGNE.md` livré avec le chantier.
+
+> **État au 14/11/2026 : ces étapes sont DÉJÀ FAITES** — le site est en ligne à `https://forge-armory.orynick.fr` (version 0.7.0). Elles sont conservées pour la reproductibilité (changement d'adresse, nouvelle application Bungie). L'ordre compte, car Bungie a besoin de l'adresse du site, et le site a besoin des codes Bungie.
 
 1. **Netlify** : créer un compte (connexion avec GitHub), « Importer un projet existant », choisir le dépôt `Orynick/Forge-Armory`, **la branche dédiée `draft-pwa`**, **dossier de base `forge-armory`**. Choisir le nom du site : il donne l'adresse (ex. `https://forge-armory.netlify.app`). Le premier déploiement échouera ou affichera une erreur de clé : normal, les codes Bungie manquent encore.
 2. **Bungie** (bungie.net → Paramètres → Applications → Créer une application) : nom (ex. « Forge Armory Web »), type OAuth **Public**, adresse de retour `https://<adresse du site>/auth/callback`, mêmes autorisations que la première application, champ **Origin Header** = `https://<adresse du site>`. Noter la clé API et l'identifiant client (OAuth client_id).

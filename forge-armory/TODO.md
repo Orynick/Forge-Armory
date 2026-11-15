@@ -757,6 +757,23 @@ tag + release + `.exe` joint à chaque version.
 **Chantier léger** (spec courte attendue : conditions d'affichage, repli hors
 ligne silencieux, test logique de la comparaison de versions).
 
+### 28. Chantier mobile — phase 0 : déploiement et validation Android (spéc `SPEC-MOBILE-PHASE-0-2026-11-05`, livrée le 14/11/2026 sur `draft-pwa`)
+
+**Livré** (code prêt, tsc 0, batterie 68/68) : Manifest **français seul sur
+téléphone** (détection `lib/appareil.ts`, démarrage `demarrage.ts`, bouton dédié
+~100 Mo), **diagnostic mobile** (mémoire, stockage, durées de chargement,
+« Copier » — mode diagnostic uniquement), **connexion durcie** dans le
+navigateur (état OAuth introuvable = refus).
+
+**Reste** :
+- ⚠️ **Déploiement Netlify DIFFÉRÉ** : plus de crédits de build (cf. §26) —
+  fusionner `draft-pwa` vers `main`, puis déployer à la recharge mensuelle ;
+- **Validation utilisateur** sur Android (`documentation/sources/A-TESTER-0.7.1.md`) :
+  critères d'acceptation §5 de la spec + relevé d'affichage (alimentera la spec
+  de la phase 2) ; consigner le résultat dans le DEVLOG ;
+- Phase 4 (Manifest allégé) remonte AVANT la phase 2 si l'onglet ne tient pas
+  la charge même en français seul (spec §7).
+
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 
 - **Renommage `main` → `prod` + branche de transition (`dev`)** — écarté (14/11/2026,

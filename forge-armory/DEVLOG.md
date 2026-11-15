@@ -2,6 +2,24 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 14/11/2026 (suite 6) — LIVRAISON : mobile-phase-0 — Manifest français seul sur téléphone, diagnostic mobile, connexion durcie (spec `SPEC-MOBILE-PHASE-0-2026-11-05`, branche `draft-pwa`)
+
+**Contexte** : spec mobile-phase-0 validée par l'utilisateur le 14/11/2026 (corrections acceptées : version 0.7.0, adresse `https://forge-armory.orynick.fr`, tests possibles sous Firefox). Constat de l'utilisateur : le site en ligne proposait encore le téléchargement FR + EN sur Android. Ce qui suit complète la phase 0 ; le site (v0.7.0), le mode diagnostic réservé (`proprietaire.ts`), `netlify.toml` et les chemins absolus (`NETLIFY`) étaient déjà livrés dans `main`.
+
+**Livré** :
+- `src/lib/appareil.ts` (nouveau) — détection « téléphone » : navigateur qui se déclare mobile (userAgentData de Chrome, « Mobile » de l'userAgent pour Firefox), à défaut pointeur tactile principal ET largeur ≤ 900 px ; logique pure `estTelephoneDepuis` testable seule (spec §2.4) ;
+- `src/lib/manifest/demarrage.ts` — mode « français seul » : `decider(etat, telephone)` — FR à jour (même EN absent) : chargement automatique du français seul (sans ce changement, le téléphone redemandait un clic à chaque visite) ; FR périmé : retéléchargement automatique du français seul ; FR absent/état inconnu : rien ; l'anglais est ignoré sur téléphone, jamais téléchargé « en douce » ; PC inchangé (FR + EN) ;
+- `src/components/RechercheManifest.tsx` — sur téléphone : bouton « Charger le Manifest (français, environ 100 Mo) », texte dédié (~100 Mo), démarrage passé le drapeau téléphone ; sur PC : textes inchangés ;
+- `src/lib/manifest/download.ts` — relevé des DURÉES de chaque étape du dernier chargement (téléchargement, décompression, ouverture ; indexation relevée par RechercheManifest), sans changer ce qui est téléchargé ni la façon de le stocker (spec §2.5) ;
+- diagnostic mobile (spec §2.5) : bloc dans RechercheManifest, visible uniquement en mode diagnostic (réservé au propriétaire) — téléphone détecté + largeur, mémoire annoncée (Chrome ; « inconnue » sous Firefox), stockage utilisé/disponible + persistance, durées, bouton « Copier » ; inscrit au registre `diagnosticsArchives.ts` (`diagnosticMobile: true`, à archiver en fin de chantier) ;
+- `src/lib/bungie/oauth.ts` — durcissement §2.3 : un état anti-CSRF introuvable REFUSE la connexion AUSSI dans le navigateur (avant : laissé passer ; le logiciel installé refusait déjà) ; effet de bord assumé : connexion terminée dans un autre onglet = échec (relancer).
+
+**Tests** : nouveau `tests/logique/appareil.test.ts` (14 contrôles : décision pure, repli tactile, Chrome/Firefox Android, PC, matchMedia absente), nouveau `tests/logique/oauth-etat.test.ts` (9 contrôles : code absent/différent/introuvable refusé dans les deux modes, état one-shot), `tests/logique/demarrage-manifest.test.ts` complété (+8 contrôles téléphone : FR à jour/périmé/absent/inconnu, anglais ignoré, enchaînement complet, PC inchangé).
+
+**Vérifié** : `tsc -b` 0 erreur ; batterie 68/68 suites (1354/1354 contrôles, +2 suites/+30 contrôles) ; `npm run build` OK ; construction web (`NETLIFY=1`) OK, chemins absolus vérifiés dans `dist/index.html`.
+
+**Reste** : déploiement Netlify DIFFÉRÉ (plus de crédits de build, recharge mensuelle — TODO §26) ; validation utilisateur des critères d'acceptation (§5) à consigner ici après déploiement et tests sur Android.
+
 ## 08/11/2026 — RÉCUPÉRATION de draft-armure-score (branche `vibe/recup-armure-score-e7d066`)
 
 **Contexte** : tri de la branche exploratoire `draft-armure-score` (chantier §2.1 « lien armure → score », 15 commits de retard sur `main`, sans PR). Le cœur du chantier était déjà livré dans `main` par la PR #19 (`draft-mod-armures`, v0.5.6) avec son propre test (`armure-simulation-score.test.ts`). Seuls les éléments non couverts par `main` sont récupérés ; le reste de la branche (propagations, bundle `_fixtures.bundle.mjs` artéfact de build) est abandonné.

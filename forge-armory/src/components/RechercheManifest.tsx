@@ -28,7 +28,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { obtenirElementFiltre, ELEMENTS_FILTRE, ElementFiltre } from "../lib/manifest/doctrine";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : filtre d'élément
 import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
 import { Database } from "sql.js";
-import { assurerManifestAJour, etatCachesManifests, simulerManifestPerime, telechargerManifestsEnFichiers } from "../lib/manifest/download";
+import { assurerManifestAJour, etatCachesManifests, simulerManifestPerime, telechargerManifestsEnFichiers, DUREES_DERNIER_CHARGEMENT, enregistrerDureeEtape, maintenantMs } from "../lib/manifest/download";
+// FR : ⚠️ AJOUT (05/11/2026, spec mobile-phase-0 §2.4) - sur un TÉLÉPHONE, le Manifest est chargé en FRANÇAIS SEUL (l'anglais n'y est jamais téléchargé ni proposé) ; la détection vit dans lib/appareil.ts (testable seule). / EN: on a phone the Manifest loads in French only.
+import { estTelephone, largeurEcran } from "../lib/appareil";
 import { demarrerManifests, LangueManifest } from "../lib/manifest/demarrage";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : mise à jour automatique d'un Manifest PÉRIMÉ
 import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance } from "../lib/manifest/search";
 // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la catégorie de SOURCE d'un objet (d2-additional-info, MIT) affichée à côté de la chaîne brute, et le filtre `source:`.
@@ -92,6 +94,8 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
   // FR : ⚠️ AJOUT (06/10/2026) - résultats MASQUÉS par défaut, listés à part (voir ListeResultatsMasques). / EN: ⚠️ ADDED - results hidden by default, listed separately.
   const [resultatsMasques, setResultatsMasques] = useState<ResultatRechercheBilingue[]>([]);
   const modeDiagnostic = useModeDiagnostic();
+  // FR : ⚠️ AJOUT (05/11/2026, spec mobile-phase-0 §2.4) - détection « téléphone » : lue UNE fois au montage (elle ne change pas pendant une visite). / EN: phone detection, read once.
+  const [telephone] = useState(() => estTelephone());
   const [telechargementEnCours, setTelechargementEnCours] = useState(false);
   const [messageTelechargement, setMessageTelechargement] = useState<string | null>(null);
 
@@ -161,7 +165,10 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
       const baseFr = resultatFr.db;
       setEtapeChargement("Indexation (français)...");
       await new Promise((r) => setTimeout(r, 0)); // laisse React afficher le message avant le travail bloquant
+      // FR : ⚠️ durée d'indexation (spec mobile-phase-0 §2.5), relevée avec les autres étapes (lib/manifest/download.ts). / EN: indexing duration.
+      const debutIndexationFr = maintenantMs();
       await indexerManifest(baseFr, "fr", resultatFr.version);
+      enregistrerDureeEtape("indexation (FR)", debutIndexationFr);
       // FR : ⚠️ AJOUT (03/08/2026) - construit l'index inversé perk ->
       // équipements ici, une seule fois, pour savoir sur quel objet se
       // trouve une perk trouvée en recherche (demande utilisateur :
@@ -171,7 +178,9 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
       // (user request: "I find Visage of Dread but no link to the item").
       setEtapeChargement("Indexation des sources de perks...");
       await new Promise((r) => setTimeout(r, 0));
+      const debutIndexationPerks = maintenantMs();
       await construireIndexInversePerks(baseFr, "fr", resultatFr.version);
+      enregistrerDureeEtape("indexation des perks (FR)", debutIndexationPerks);
       setDbFr(baseFr);
       onManifestCharge?.(baseFr);
 
@@ -180,7 +189,9 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
         const baseEn = resultatEn.db;
         setEtapeChargement("Indexation (anglais)...");
         await new Promise((r) => setTimeout(r, 0));
+        const debutIndexationEn = maintenantMs();
         await indexerManifest(baseEn, "en", resultatEn.version);
+        enregistrerDureeEtape("indexation (EN)", debutIndexationEn);
         setDbEn(baseEn);
       }
 
@@ -194,7 +205,8 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
   }
 
   async function chargerManifests() {
-    await chargerLangues(["fr", "en"]);
+    // FR : ⚠️ CHANGÉ (05/11/2026, spec mobile-phase-0 §2.4) - sur TÉLÉPHONE, le bouton « Charger le Manifest » télécharge le FRANÇAIS SEUL (~100 Mo) ; l'anglais n'y est jamais proposé. Sur PC : inchangé, FR + EN. / EN: on a phone the button loads French only.
+    await chargerLangues(telephone ? ["fr"] : ["fr", "en"]);
     // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la passe de vérification de péremption couvre AUSSI les tables de sources : `node data/rebuild-source-filters.ts --check` compare le source-filters.json EMBARQUÉ à l'état actuel de d2-additional-info ; s'il est périmé, un AVERTISSEMENT s'affiche (comme l'alerte de péremption du Manifest), jamais un blocage — la régénération se fait côté développement. / EN: the staleness pass also checks the shipped source tables; a warning, never a blocker.
     try {
       const r = await fetch("https://api.github.com/repos/DestinyItemManager/d2-additional-info/commits?per_page=1").then((re) => re.ok ? re.json() : null);
@@ -351,7 +363,7 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
         lireEtat: () => etatCachesManifests(["fr", "en"]),
         charger: (langues) => chargerLangues(langues),
         annoncer: setMessageMiseAJourAuto,
-      });
+      }, telephone);   // FR : ⚠️ spec mobile-phase-0 §2.4 : sur téléphone, le chargement automatique n'exige que le FRANÇAIS à jour. / EN: on a phone only French needs to be current.
       if (decision.action === "rien") setEtapeChargement(null);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -421,19 +433,39 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
       {!dbFr && (
         <>
           <p>
-            Charge la base d'objets Bungie en français ET en anglais (armes, armures, aspects,
-            fragments, perks d'artefact...) — environ 200 Mo au total la première fois. Ensuite, il est
-            rechargé automatiquement depuis le cache à chaque démarrage ; si Bungie publie une nouvelle
-            version, elle est téléchargée automatiquement (environ 100 Mo par langue). Permet de rechercher
-            dans les deux langues ; l'appli reste toujours affichée en français.
+            {telephone ? (
+              <>
+                Charge la base d'objets Bungie en français (armes, armures, aspects,
+                fragments, perks d'artefact...) — environ 100 Mo la première fois. Ensuite, il est
+                rechargé automatiquement depuis le cache à chaque démarrage ; si Bungie publie une nouvelle
+                version, elle est téléchargée automatiquement. Sur téléphone, seule la recherche en
+                français est disponible (l'anglais n'y est pas chargé).
+              </>
+            ) : (
+              <>
+                Charge la base d'objets Bungie en français ET en anglais (armes, armures, aspects,
+                fragments, perks d'artefact...) — environ 200 Mo au total la première fois. Ensuite, il est
+                rechargé automatiquement depuis le cache à chaque démarrage ; si Bungie publie une nouvelle
+                version, elle est téléchargée automatiquement (environ 100 Mo par langue). Permet de rechercher
+                dans les deux langues ; l'appli reste toujours affichée en français.
+              </>
+            )}
           </p>
           <button onClick={chargerManifests} disabled={!!etapeChargement}>
             {etapeChargement && <span className="indicateur-chargement" />}
-            {etapeChargement ?? "Charger le Manifest (FR + EN)"}
+            {etapeChargement ?? (telephone ? "Charger le Manifest (français, environ 100 Mo)" : "Charger le Manifest (FR + EN)")}
           </button>
           {erreurChargement && <p style={{ color: "#e08080" }}>⚠️ {erreurChargement}</p>}
         </>
       )}
+
+      {/* FR : ⚠️ AJOUT (05/11/2026, spec mobile-phase-0 §2.5) - DIAGNOSTIC MOBILE,
+          visible uniquement en MODE DIAGNOSTIC (réservé au propriétaire, voir
+          lib/proprietaire.ts) : mémoire, stockage, largeur d'écran et durées de
+          chaque étape du dernier chargement du Manifest, avec un bouton
+          « Copier » pour coller le relevé dans la conversation. / EN: mobile
+          diagnostic, diagnostic mode only. */}
+      {modeDiagnostic && DIAGNOSTICS_ACTIFS.diagnosticMobile && <DiagnosticMobile telephone={telephone} />}
 
       {dbFr && (
         <>
@@ -721,6 +753,79 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
           )}
         </>
       )}
+    </div>
+  );
+}
+
+// FR : ⚠️ AJOUT (05/11/2026, spec mobile-phase-0 §2.5) - DIAGNOSTIC MOBILE
+// (provisoire, chantier de mise en ligne) : mesure si le téléphone tient la
+// charge du Manifest. Affiché uniquement en MODE DIAGNOSTIC (lui-même
+// réservé au compte du propriétaire, lib/proprietaire.ts) dans le bloc
+// Manifest. Relevé : détection téléphone + largeur d'écran, mémoire annoncée
+// par le navigateur (deviceMemory, Chrome ; « inconnue » sous Firefox qui ne
+// la fournit pas), stockage utilisé/disponible et persistance, durées de
+// chaque étape du dernier chargement (lib/manifest/download.ts), et un
+// bouton « Copier » qui met tout en texte pour le coller dans la conversation.
+// EN: ⚠️ ADDED - mobile diagnostic (diagnostic mode only): memory, storage,
+// screen width and per-step load durations, with a Copy button.
+function DiagnosticMobile({ telephone }: { telephone: boolean }) {
+  const [stockage, setStockage] = useState<{ usageMo: number | null; quotaMo: number | null; persistant: boolean | null } | null>(null);
+  const [copie, setCopie] = useState<string | null>(null);
+
+  useEffect(() => {
+    let annule = false;
+    (async () => {
+      try {
+        const nav = navigator as Navigator & { storage?: { estimate: () => Promise<{ usage?: number; quota?: number }>; persisted: () => Promise<boolean> } };
+        const estimation = await nav.storage?.estimate?.();
+        const persistant = await nav.storage?.persisted?.().catch(() => null);
+        if (!annule) {
+          setStockage({
+            usageMo: typeof estimation?.usage === "number" ? Math.round(estimation.usage / 1048576) : null,
+            quotaMo: typeof estimation?.quota === "number" ? Math.round(estimation.quota / 1048576) : null,
+            persistant: persistant ?? null,
+          });
+        }
+      } catch {
+        if (!annule) setStockage({ usageMo: null, quotaMo: null, persistant: null });
+      }
+    })();
+    return () => { annule = true; };
+  }, []);
+
+  const memoireGo = typeof navigator !== "undefined" ? (navigator as Navigator & { deviceMemory?: number }).deviceMemory : undefined;
+  const durees = Object.entries(DUREES_DERNIER_CHARGEMENT);
+  const lignes: string[] = [
+    `téléphone détecté : ${telephone ? "oui" : "non"} (largeur d'écran : ${largeurEcran()} px)`,
+    `mémoire annoncée : ${typeof memoireGo === "number" ? `${memoireGo} Go` : "inconnue (non fournie par ce navigateur)"}`,
+    stockage
+      ? `stockage du site : ${stockage.usageMo !== null ? `${stockage.usageMo} Mo utilisés` : "usage inconnu"} / ${stockage.quotaMo !== null ? `${stockage.quotaMo} Mo disponibles` : "quota inconnu"} — persistant : ${stockage.persistant === null ? "inconnu" : stockage.persistant ? "oui" : "non"}`
+      : "stockage du site : indisponible",
+    ...durees.map(([etape, ms]) => `durée « ${etape} » : ${(ms / 1000).toFixed(1)} s`),
+  ];
+  const texte = `Diagnostic mobile Forge Armory — ${new Date().toISOString()}\n${lignes.join("\n")}`;
+
+  return (
+    <div data-diagnostic-mobile="" style={{ fontSize: "0.75rem", color: "#b7b3a8", background: "#1c2029", border: "1px solid #2a2e38", borderRadius: 6, padding: "0.5rem 0.75rem", margin: "0.5rem 0" }}>
+      <strong>Diagnostic mobile (relevé de mesure, phase 0)</strong>
+      <ul style={{ margin: "0.25rem 0", paddingLeft: "1.1rem" }}>
+        {lignes.map((l) => (<li key={l}>{l}</li>))}
+      </ul>
+      <button
+        type="button"
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(texte);
+            setCopie("✅ Relevé copié — collez-le dans la conversation.");
+          } catch {
+            setCopie("⚠️ Copie impossible : sélectionnez le texte ci-dessus manuellement.");
+          }
+        }}
+        style={{ fontSize: "0.75rem" }}
+      >
+        Copier le relevé
+      </button>
+      {copie && <span style={{ marginLeft: "0.5rem" }}>{copie}</span>}
     </div>
   );
 }

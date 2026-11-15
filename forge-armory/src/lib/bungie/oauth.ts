@@ -180,17 +180,14 @@ export async function connecterViaBureau(): Promise<void> {
 }
 
 /**
- * FR : ⚠️ CHANGÉ (06/09/2026) - ne bloque plus la connexion quand AUCUN état
- * n'a pu être stocké au départ (voir `genererEtatOAuth`). On ne peut alors
- * rien vérifier : on laisse passer, exactement comme avant l'audit, plutôt
- * que de refuser une connexion parfaitement légitime. En revanche, si un
- * état a bien été stocké, il DOIT correspondre — c'est là que la protection
- * opère réellement.
- * EN: ⚠️ CHANGED - no longer blocks login when NO state could be stored in
- * the first place: nothing can be verified, so we allow it through exactly
- * as before the audit rather than rejecting a perfectly legitimate login.
- * When a state WAS stored, it must match - that's where the protection
- * actually applies.
+ * FR : ⚠️ CHANGÉ (05/11/2026, spec mobile-phase-0 §2.3) - un état introuvable
+ * REFUSE maintenant la connexion AUSSI DANS LE NAVIGATEUR (site public et
+ * `npm run dev`), pas seulement dans le logiciel installé : sur un site
+ * public, accepter une connexion sans vérification anti-usurpation ne
+ * convient pas. Effet de bord assumé : commencer la connexion dans un onglet
+ * et la terminer dans un autre échoue (il suffit de relancer la connexion).
+ * / EN: ⚠️ CHANGED - a missing state now REFUSES the login in the browser
+ * too (public website and npm run dev), not only in the installed app.
  */
 export function validerEtatOAuth(stateRetour: string | null): boolean {
   let attendu: string | null = etatEnMemoire;
@@ -202,14 +199,15 @@ export function validerEtatOAuth(stateRetour: string | null): boolean {
   }
   etatEnMemoire = null;
 
-  // FR : ⚠️ DURCI (26/09/2026, audit externe) - dans le logiciel installé, la
-  // page n'est jamais rechargée pendant la connexion : un état a donc
-  // forcément été conservé en mémoire. Son absence est anormale, et la
-  // vérification échoue franchement au lieu de laisser passer.
-  // EN: ⚠️ HARDENED (external audit) - in the installed app the page is never
-  // reloaded during login, so a state must exist; its absence is abnormal and
-  // now fails closed instead of passing.
-  if (!attendu) return !estBureau();
+  // FR : ⚠️ DURCI (26/09/2026, audit externe ; étendu au navigateur le
+  // 05/11/2026, spec mobile-phase-0 §2.3) - un état introuvable est ANORMAL :
+  // dans le logiciel installé la page n'est jamais rechargée pendant la
+  // connexion, et dans le navigateur l'état est posé au départ de la
+  // redirection. Son absence fait échouer franchement la vérification,
+  // au lieu de laisser passer.
+  // EN: ⚠️ HARDENED - a missing state is abnormal and now fails closed,
+  // in the installed app AND in the browser alike.
+  if (!attendu) return false;
   return Boolean(stateRetour && attendu === stateRetour);
 }
 
