@@ -3,6 +3,15 @@
 > **Ce fichier est désormais un changelog orienté utilisateur.**
 > L'historique complet et détaillé du développement (DEVLOG) se trouve dans [`DEVLOG.md`](DEVLOG.md).
 
+## v0.7.0 — 14/11/2026
+
+- **Version en ligne publique** : [forge-armory.orynick.fr](https://forge-armory.orynick.fr) — même application que le logiciel installable, dans le navigateur.
+- **Bouton « Télécharger l'application »** (version en ligne uniquement) : en bas de la carte « Connexion à Bungie », il mène à la page des versions de l'application Windows. Il n'apparaît que sur le site — jamais dans le logiciel installé.
+- **Avertissement « cache du navigateur »** (version en ligne uniquement) : un bandeau en haut du panneau « Loadouts » rappelle que les builds sauvegardés vivent dans le cache du navigateur et ne suivent pas votre compte Bungie — avec un raccourci « ⬇ Exporter en JSON » (réimportable ici ou dans l'application installée) et une coche « Ne plus afficher ».
+- **Scoring** : un build absolument vide affiche désormais 0/100 sur les piliers « Armes et Armures » et « Effets du Build » (au lieu de scores résiduels).
+- **Équipement en jeu** : la confirmation « Équiper tout » distingue désormais les armes à perks simulées ET les armures à mods simulés (avant : seules les armes étaient signalées).
+- Outils de diagnostic réservés au compte du propriétaire (site et application) ; correctifs de robustesse (simulation : le tableau des armes n'est recopié que si une simulation existe).
+
 ## v0.6.1 — 05/11/2026
 
 - **Simulation des statistiques dans « Mon Build »** : boutons −/+ sur chaque barre de stats (pas de 5, total plafonné à 200) pour simuler des mods ou un masterwork EN PLUS de votre équipement réel. Le bloc « Statistiques » du scoring reste en lecture seule. Badge « 🔨 simulé » sur les barres ajustées et à côté du score global quand une simulation est active ; les sauvegardes concernées sont marquées « simulé » (badge 🔨 dans la liste Load-outs ET dans l'infographie PNG/PDF exportée).
