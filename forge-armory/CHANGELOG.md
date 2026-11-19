@@ -3,6 +3,13 @@
 > **Ce fichier est désormais un changelog orienté utilisateur.**
 > L'historique complet et détaillé du développement (DEVLOG) se trouve dans [`DEVLOG.md`](DEVLOG.md).
 
+## v0.7.1 — 19/11/2026 — correctifs de sécurité
+
+- **Mise à jour de sécurité du moteur embarqué** : Chromium/V8/Skia mis à jour via Electron 45.0.0 → 45.3.4 (correctifs d'octobre-novembre, dont une faille critique CVE-2026-76024 et le correctif « Brotli » de Node2Shell/CVE-2026-111497). Aucun changement visible — **le logiciel n'avait pas d'auto-update : désinstallez l'ancienne version puis installez celle-ci** pour ne plus tourner sur un Chromium non corrigé.
+- Aucune autre nouveauté : ni fonctionnalité, ni réglage, ni données. Seule la coquille (Electron/Chromium) et trois dépendances discrètes (routeur, SQL côté Web, outil de fabrication) changent.
+
+→ Détails complets : [DEVLOG.md](DEVLOG.md)
+
 ## v0.7.0 — 14/11/2026
 
 - **Version en ligne publique** : [forge-armory.orynick.fr](https://forge-armory.orynick.fr) — même application que le logiciel installable, dans le navigateur.
