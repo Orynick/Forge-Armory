@@ -2,6 +2,19 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 14/11/2026 (suite 7) — RETOUR DE TEST MOBILE : « l'indexation tourne dans le vide » — progression affichée et onglet gardé réactif
+
+**Constat de l'utilisateur** (site en ligne, encore en v0.6.1 — le déploiement différé n'a pas encore pris en compte le français seul) : sur Android, une fois le Manifest téléchargé, le message « Indexation des sources de perks... » reste figé indéfiniment, onglet vivant.
+
+**Diagnostic** : l'index inverse perk → objet (`construireIndexEnMemoire`, perkSource.ts) est l'étape la PLUS LOURDE du chargement — parcours de ~100 000 définitions en SQL bloquant. Sur PC : quelques secondes. Sur téléphone : potentiellement plusieurs minutes de calcul SANS AUCUN signe de vie (un seul `setTimeout(0)` avant le bloc). Rien ne plantait : l'étape est simplement longue et opaque. Rappels : ce travail n'arrive qu'une fois par version du Manifest (persisté en IndexedDB), sauf si le quota de stockage du téléphone refuse l'écriture (le diagnostic mobile indique « persistant : oui/non »).
+
+**Corrigé (sans changer la durée du travail)** :
+- `perkSource.ts` — le parcours rend la main toutes les 2 000 lignes (`setTimeout 0`) et rapporte `{ fait, total }` (le total vient d'un `SELECT COUNT(*)`) : le navigateur peut rafraîchir le message ET rester réactif pendant la boucle ;
+- `search.ts` (`indexerManifest`) — progression par table et rendu de main entre les tables : « Indexation (français) : 12/25 tables (Destiny...Definition)... » ;
+- `RechercheManifest.tsx` — messages de progression branchés : « Indexation des sources de perks... 43 % (43 210/100 300) ».
+
+**Vérifié** : tsc 0, batterie 68/68 suites (1354/1354), build OK, build web OK. À revalider sur téléphone après déploiement (A-TESTER-0.7.1, critères 5-7).
+
 ## 14/11/2026 (suite 6) — LIVRAISON : mobile-phase-0 — Manifest français seul sur téléphone, diagnostic mobile, connexion durcie (spec `SPEC-MOBILE-PHASE-0-2026-11-05`, branche `draft-pwa`)
 
 **Contexte** : spec mobile-phase-0 validée par l'utilisateur le 14/11/2026 (corrections acceptées : version 0.7.0, adresse `https://forge-armory.orynick.fr`, tests possibles sous Firefox). Constat de l'utilisateur : le site en ligne proposait encore le téléchargement FR + EN sur Android. Ce qui suit complète la phase 0 ; le site (v0.7.0), le mode diagnostic réservé (`proprietaire.ts`), `netlify.toml` et les chemins absolus (`NETLIFY`) étaient déjà livrés dans `main`.
