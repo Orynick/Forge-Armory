@@ -2,6 +2,23 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 08/11/2026 — MISE À JOUR DE SÉCURITÉ (branche `draft-deps-electron-sec`) : Electron 45.3.4 (correctifs Chromium/V8 d'octobre-novembre) + correctifs mineurs
+
+**Motif (contrôle sécurité demandé par l'utilisateur)** : `npm audit` restait à 0 vulnérabilité et l'exigence Node.js >=24.22.1 couvrait bien CVE-2026-111497 (Node2Shell, KEV CISA), MAIS le logiciel embarquait Electron 45.0.0, antérieur aux mises à jour de sécurité Electron 45.2.0/45.2.1 (30/10) et 45.2.2 (03/11) : Chromium/V8/Skia non corrigés, dont la critique CVE-2026-76024 (MediaStream) et le correctif Brotli de Node2Shell — la liste blanche réseau limite l'exposition, pas le risque zéro (pages distantes Bungie + sortie le 11/11 de correctifs Node HIGH attendus).
+
+**Réalisé** :
+- `electron` 45.0.0 → **45.3.4** (dernière corrective de la ligne 45 : Chromium 156 backports sécurité) ;
+- `react-router-dom` 7.18.4 → **7.18.6** ; `sql.js` 1.15.1/1.15.2 → **1.16.0** ; `electron-builder` 26.15.3 → **26.18.0** (exactes, `package.json` + lock) ;
+- Aucune montée majeure : `vite` 8 / `@vitejs/plugin-react` 6 / `typescript` 7 restent hors périmètre (chantier séparé).
+
+**Constat `npm audit`** : `--omit=dev` = **0 vulnérabilité** en production. 6 modérées remontent dans les OUTILS de build via `minimatch` (advisory GHSA-g3hv-75wg-m249, DoS glob, transitif de `electron-builder`) ; l'advisory est NOUVEAU (identique avec electron-builder 26.15.3, vérifié) et son « fix » proposé est un downgrade cassant (24.13.3) — refusé, conformément à la règle « jamais `npm audit fix --force` ».
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run build` OK ; batterie **logique 66/66 suites** (0 échec ; suites d'interface non exécutables dans l'environnement de travail, Playwright absent). Pas de bump applicatif.
+
+**⏳ Suivi** : versions de sécurité Node.js annoncées pour le **11/11/2026** (HIGH, lignes 22/24/26) → rehausser `engines.node` dès la sortie de la 24.x corrective (contrôle avant chaque version).
+
+---
+
 ## 08/11/2026 — RÉCUPÉRATION de draft-armure-score (branche `vibe/recup-armure-score-e7d066`)
 
 **Contexte** : tri de la branche exploratoire `draft-armure-score` (chantier §2.1 « lien armure → score », 15 commits de retard sur `main`, sans PR). Le cœur du chantier était déjà livré dans `main` par la PR #19 (`draft-mod-armures`, v0.5.6) avec son propre test (`armure-simulation-score.test.ts`). Seuls les éléments non couverts par `main` sont récupérés ; le reste de la branche (propagations, bundle `_fixtures.bundle.mjs` artéfact de build) est abandonné.
@@ -13,6 +30,19 @@
 - `documentation/tests/LISTE-TESTS-armure-score.md` — checklist manuelle de 9 contrôles de la boucle Forge → score → badge → avertissement → retour au réel.
 
 **Vérifié** : tsc 0, batterie 64/64 suites (1304/1304 contrôles, +1 suite/+11 contrôles), build OK.
+
+---
+
+## 18/11/2026 — FIXTURES DU SCORING : exécutées et validées (TODO §4 TERMINÉ)
+
+**Contexte** : l'item TODO §4 attendait l'exécution de `node scripts/tester-avec-fixtures.mjs` (test de bout en bout du Pilier 2 : extraction → détection → chaînes), le script ayant été corrigé le 05/11 (lanceur esbuild + Node) mais jamais encore joué en entier.
+
+**Réalisé** : exécution dans l'environnement de l'assistant (le script est 100 % hors ligne : fixtures locales, fausse base `fausse-db.mjs`, modules factices — aucun réseau, aucune clé). **Résultat : exit 0, zéro échec, 170 lignes de sorties toutes conformes aux « Attendu »**, dont :
+- `detecterChainesVerbes` : Ralentissement → Gel ET Gel → Brisure (ricochet à 2 sauts) ✓ ;
+- `detecterRessourcesGenerees` : grenade (Dévoration) et classe (Brèche abyssale) ✓ ;
+- `enrichirAvecChaines` (correction du 26/08) : Gel et Brisure passent « absent » → « source_seule » (+12 pts chacun), score 48 → 72 (+24) ✓.
+
+**Conséquence** : TODO §4 est **TERMINÉ**. Le lancement du script devient un rituel de contrôle avant chaque version.
 
 ---
 

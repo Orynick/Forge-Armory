@@ -51,3 +51,5 @@ public/podcast/originaux/
 # FR : dossier d'assemblage du générateur (scripts/generer-propositions-solo-forge.mjs), ne pas versionner
 # EN: generator staging folder, must not be committed
 propositions/
+# FR : artefact du lanceur des fixtures (scripts/tester-avec-fixtures.mjs le réécrit à chaque exécution)
+scripts/_fixtures.bundle.mjs

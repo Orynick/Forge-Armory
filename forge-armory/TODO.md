@@ -55,8 +55,17 @@ Le renommage « Forge Armory » est lui aussi validé (06/10/2026, section 12).
    `draft-sec`~~ ✅ (constat du 06/11/2026 : le durcissement — chiffrement des
    jetons `safeStorage`, liste blanche réseau, permissions refusées — est déjà
    dans `main` depuis la PR #6 ; la branche rouverte `draft-sec` lui a ajouté
-   sa couverture de tests : 3 suites / 47 contrôles). Reste : Node.js >=24.22.1
-   exigé depuis le 24/10/2026 (correctifs CVE octobre 2026).
+   sa couverture de tests : 3 suites / 47 contrôles). Node.js >=24.22.1 exigé
+   depuis le 24/10/2026 (correctifs CVE octobre 2026). ✅ **Mise à jour de
+   sécurité du 08/11/2026 (branche `draft-deps-electron-sec`)** : Electron
+   45.0.0 → **45.3.4** (correctifs Chromium/V8/Skia d'octobre-novembre :
+   CVE-2026-76024 critique + correctif Brotli de Node2Shell/CVE-2026-111497),
+   `react-router-dom` 7.18.6, `sql.js` 1.16.0, `electron-builder` 26.18.0 ;
+   `npm audit --omit=dev` : 0 vulnérabilité (6 modérées restent dans les
+   outils de build via `minimatch`, advisory GHSA-g3hv-75wg-m249, sans impact
+   runtime — « fix » = downgrade cassant, refusé). ⏳ **À venir : versions de
+   sécurité Node.js le 11/11/2026** (sévérité max HIGH, lignes 22/24/26) —
+   rehausser `engines.node` dès la sortie de la 24.x corrective.
 
 ⏸️ **En attente d'une décision** : l'agent IA (section 3). **À décider** :
 le canal du lien « Contact » (section 23).
@@ -270,8 +279,16 @@ Vite `?url` — puis imports TS sans extension). Il est désormais un LANCEUR
 esbuild + Node (même mécanisme que la batterie logique `lancer.mjs`) qui
 empaquette le corps (`scripts/fixtures-corps.mjs`) avant de l'exécuter.
 Vérifié : exit 0, tous les « Attendu » conformes, tsc 0, batterie 60/60
-(1244/1244), build OK. **Reste à faire** : exécution et validation côté
-utilisateur, puis contrôle régulier avant chaque version.
+(1244/1244), build OK.
+
+✅ **EXÉCUTÉ ET VALIDÉ le 18/11/2026 (côté assistant)** : le script tourne
+dorénavant dans l'environnement de l'assistant (Node + `node_modules`
+présents). Sortie : **exit 0, zéro échec**, tous les affichages conformes aux
+« Attendu » — dont la détection des chaînes de verbes (Ralentissement → Gel →
+Brisure, ricochet à 2 sauts), des ressources générées (grenade par Dévoration,
+classe par Brèche abyssale), et l'enrichissement des chaînes du 26/08 (+24 pts :
+Gel et Brisure « absent » → « source_seule », score 48 → 72). **L'item est
+TERMINÉ** ; le lancer avant chaque version devient le rituel (contrôle régulier).
 
 ---
 
