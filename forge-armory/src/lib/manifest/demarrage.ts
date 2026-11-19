@@ -5,6 +5,13 @@
 //   - FR ET EN à jour : chargement automatique depuis le cache, sans rien annoncer (comme depuis la 0.2.2) ;
 //   - état inconnu (hors ligne, Bungie indisponible) : rien, le bouton manuel reste affiché.
 // EN: ⚠️ ADDED - startup decision for the Manifest: an OUTDATED cached language is re-downloaded automatically; an ABSENT one never is; French is mandatory; unknown state does nothing.
+// FR : ⚠️ AJOUT (05/11/2026, spec mobile-phase-0 §2.4) - MODE « FRANÇAIS SEUL » SUR TÉLÉPHONE : l'anglais
+// n'est JAMAIS téléchargé ni chargé sur un appareil détecté comme téléphone
+// (src/lib/appareil.ts) ; le chargement automatique n'exige plus FR ET EN à jour,
+// mais seulement le FRANÇAIS (sinon le téléphone redemanderait un clic à chaque
+// visite). Sur PC : comportement inchangé, FR + EN. / EN: ⚠️ ADDED - "French
+// only" mode on phones: English is never downloaded or loaded there; the
+// automatic startup load only requires French to be current.
 
 export type LangueManifest = "fr" | "en";
 export type EtatCaches = Partial<Record<LangueManifest, "a-jour" | "perime" | "absent">>;
@@ -12,9 +19,18 @@ export type Decision = { action: "rien" } | { action: "charger"; langues: Langue
 
 const LANGUES: LangueManifest[] = ["fr", "en"];
 
-export function decider(etat: EtatCaches | null | undefined): Decision {
+export function decider(etat: EtatCaches | null | undefined, telephone = false): Decision {
   if (!etat) return { action: "rien" };
   if (!etat.fr || etat.fr === "absent") return { action: "rien" };
+  // FR : ⚠️ TÉLÉPHONE (spec mobile-phase-0 §2.4) : seul le FRANÇAIS compte — à
+  // jour : chargement automatique depuis le cache ; périmé : retéléchargement
+  // automatique ; l'anglais (absent, périmé ou à jour) est IGNORÉ, jamais
+  // téléchargé « en douce ». / EN: phone: only French matters; English is ignored.
+  if (telephone) {
+    if (etat.fr === "perime") return { action: "charger", langues: ["fr"], raison: "perime" };
+    if (etat.fr === "a-jour") return { action: "charger", langues: ["fr"], raison: "a-jour" };
+    return { action: "rien" };
+  }
   const presentes = LANGUES.filter((l) => etat[l] && etat[l] !== "absent");
   if (presentes.some((l) => etat[l] === "perime")) return { action: "charger", langues: presentes, raison: "perime" };
   if (etat.fr === "a-jour" && etat.en === "a-jour") return { action: "charger", langues: ["fr", "en"], raison: "a-jour" };
@@ -29,8 +45,8 @@ export interface DependancesDemarrage {
   annoncer: (message: string | null) => void;
 }
 
-export async function demarrerManifests(dep: DependancesDemarrage): Promise<Decision & { reussi?: boolean }> {
-  const decision = decider(await dep.lireEtat());
+export async function demarrerManifests(dep: DependancesDemarrage, telephone = false): Promise<Decision & { reussi?: boolean }> {
+  const decision = decider(await dep.lireEtat(), telephone);
   if (decision.action === "rien") return decision;
   if (decision.raison === "a-jour") {
     dep.annoncer(null);

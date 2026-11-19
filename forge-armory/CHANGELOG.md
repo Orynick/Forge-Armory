@@ -8,6 +8,12 @@
 - **Mise à jour de sécurité du moteur embarqué** : Chromium/V8/Skia mis à jour via Electron 45.0.0 → 45.3.4 (correctifs d'octobre-novembre, dont une faille critique CVE-2026-76024 et le correctif « Brotli » de Node2Shell/CVE-2026-111497). Aucun changement visible — pas d'auto-update : **installez cette version par-dessus l'ancienne** (même dossier d'installation, remplacement automatique). Seul cas où une désinstallation manuelle d'abord est utile : si vous aviez changé le dossier d'installation lors d'une précédente installation (sinon deux copies cohabiteraient).
 - Aucune autre nouveauté : ni fonctionnalité, ni réglage, ni données. Seule la coquille (Electron/Chromium) et trois dépendances discrètes (routeur, SQL côté Web, outil de fabrication) changent.
 
+## v0.7.2 — à paraître (chantier mobile-phase-0)
+
+- **Manifest en français seul sur téléphone** : sur un appareil détecté comme téléphone (Chrome ou Firefox sur Android), le bouton « Charger le Manifest » télécharge **uniquement le français** (environ 100 Mo, au lieu de 200). Au démarrage suivant, le français est rechargé automatiquement depuis le cache, sans exiger l'anglais ; une nouvelle version publiée par Bungie est retéléchargée automatiquement, comme sur PC. L'anglais n'est plus jamais téléchargé ni proposé sur téléphone (la recherche y reste en français) ; **sur PC, rien ne change** (FR + EN).
+- **Connexion durcie dans le navigateur** : un code de vérification introuvable au retour de Bungie **refuse** désormais la connexion dans le navigateur (site et `npm run dev`), comme il le refusait déjà dans le logiciel installé. Effet de bord : terminer une connexion commencée dans un autre onglet échoue (relancez la connexion).
+- **Diagnostic mobile (mode diagnostic uniquement)** : dans le bloc Manifest, un relevé de mesure affiche la détection téléphone, la largeur d'écran, la mémoire annoncée, le stockage utilisé/disponible et sa persistance, la durée de chaque étape du dernier chargement (téléchargement, décompression, ouverture, indexation), et un bouton « Copier » pour coller le relevé dans la conversation.
+
 → Détails complets : [DEVLOG.md](DEVLOG.md)
 
 ## v0.7.0 — 14/11/2026

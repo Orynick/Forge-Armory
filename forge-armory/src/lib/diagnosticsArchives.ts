@@ -15,6 +15,8 @@
 // HERE, without touching the component. Flip back to `true` to reactivate -
 // the button's code stays intact, ready to be used again.
 export const DIAGNOSTICS_ACTIFS = {
+  // FR : ⚠️ AJOUT (05/11/2026, spec mobile-phase-0 §2.5) - DIAGNOSTIC MOBILE (chantier de mise en ligne, phase 0) : relevé de mesure dans le bloc Manifest (téléphone détecté, largeur d'écran, mémoire annoncée, stockage utilisé/disponible et persistant, durées de chaque étape du dernier chargement, bouton « Copier »). Visible en MODE DIAGNOSTIC uniquement. À archiver (false) à la fin du chantier mobile, comme les diagnostics précédents. / EN: ⚠️ ADDED - mobile diagnostic (phase 0), to be archived at the end of the mobile chantier.
+  diagnosticMobile: true,
   // FR : ⚠️ AJOUT (24/10/2026, demande de l'utilisateur) - bouton « Diagnostic : coûts d'énergie des mods » de l'inventaire des armures (mode développement) : coût de chaque mod (Manifest) et énergie de chaque pièce (exemplaire), croisés. Sert à vérifier le budget d'énergie (10, 11 avec Artifice) avant de le brancher dans la simulation des mods. / EN: ⚠️ ADDED - energy-cost diagnostic button of the armor inventory (dev mode).
   coutsEnergieMods: true,
   // FR : ⚠️ AJOUT (24/10/2026, « Diag d'abord ») - bouton « Diagnostic : mods en double » de l'inventaire des armures (mode développement) : les noms de mods qui existent en DEUX versions de coûts différents (107 sur le compte de l'utilisateur), avec la comparaison brute de leurs définitions du Manifest. À archiver (false) une fois la bonne version identifiée et branchée. / EN: ⚠️ ADDED - duplicate-mod diagnostic button (dev mode).

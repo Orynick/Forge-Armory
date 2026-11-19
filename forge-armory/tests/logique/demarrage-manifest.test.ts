@@ -32,6 +32,17 @@ appels.length = 0; await demarrerManifests(fabrique({ fr: "a-jour", en: "a-jour"
 ok("tout à jour : message effacé puis chargement des deux ; AUCUNE annonce de mise à jour", appels.join("|") === "etat|msg:null|charger:fr+en", appels);
 appels.length = 0; await demarrerManifests(fabrique({ fr: "absent", en: "absent" })); await demarrerManifests(fabrique(null)); await demarrerManifests(fabrique({ fr: "a-jour", en: "absent" }));
 ok("premier lancement, état inconnu, ou rien de périmé : AUCUN chargement et AUCUN message (trois démarrages de suite)", !appels.some((a) => a.startsWith("charger") || a.startsWith("msg")) && appels.filter((a) => a === "etat").length === 3, appels);
+// ---------- ⚠️ TÉLÉPHONE : mode « français seul » (spec mobile-phase-0 §2.4) ----------
+const t = (fr?: E, en?: E) => decider({ fr, en } as EtatCaches, true);
+ok("⚠️ téléphone, FR à jour (même EN absent) : chargement AUTOMATIQUE du français seul depuis le cache — sans ce changement, le téléphone redemanderait un clic à chaque visite", charge(t("a-jour", "absent")) === "fr/a-jour");
+ok("⚠️ téléphone, FR à jour et EN à jour : le français SEUL est chargé (l'anglais n'est jamais chargé sur téléphone)", charge(t("a-jour", "a-jour")) === "fr/a-jour");
+ok("⚠️ téléphone, FR périmé (quel que soit l'anglais) : seul le français est retéléchargé automatiquement", charge(t("perime", "absent")) === "fr/perime" && charge(t("perime", "a-jour")) === "fr/perime" && charge(t("perime", "perime")) === "fr/perime");
+ok("⚠️ téléphone, FR ABSENT (premier lancement) ou état inconnu : rien ne se lance seul (le tout premier téléchargement reste un clic)", [t("absent", "absent"), t("absent", "a-jour"), t(undefined, "perime")].every((x) => charge(x) === "rien") && charge(decider(null, true)) === "rien");
+ok("PC (sans le drapeau téléphone) : les décisions ci-dessus restent celles d'avant — FR à jour + EN absent ne charge RIEN (l'anglais ne se télécharge pas « en douce »)", charge(d("a-jour", "absent")) === "rien");
+appels.length = 0; await demarrerManifests(fabrique({ fr: "a-jour", en: "absent" }), true);
+ok("⚠️ téléphone : l'enchaînement complet ne charge QUE le français (pas d'annonce de mise à jour, message effacé)", appels.join("|") === "etat|msg:null|charger:fr", appels);
+appels.length = 0; await demarrerManifests(fabrique({ fr: "perime", en: "absent" }), true);
+ok("⚠️ téléphone, FR périmé : annonce 🔄 qui ne nomme QUE le français, puis téléchargement du français seul", appels.join("|") === "etat|msg:🔄|charger:fr|msg:✅", appels);
 // ---------- la lecture de l'état des caches (fausse base qui refuse toute écriture) ----------
 const stockage = (meta: Record<string, unknown>, manifest: Record<string, unknown>, versionBungie = "V2", pannes: { meta?: boolean; db?: boolean } = {}): DependancesCacheManifest & { ecritures: string[] } => {
   const ecritures: string[] = [];

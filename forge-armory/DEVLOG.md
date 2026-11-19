@@ -29,6 +29,43 @@
 
 ---
 
+---
+
+## 14/11/2026 (suite 7) — RETOUR DE TEST MOBILE : « l'indexation tourne dans le vide » — progression affichée et onglet gardé réactif
+
+**Constat de l'utilisateur** (site en ligne, encore en v0.6.1 — le déploiement différé n'a pas encore pris en compte le français seul) : sur Android, une fois le Manifest téléchargé, le message « Indexation des sources de perks... » reste figé indéfiniment, onglet vivant.
+
+**Diagnostic** : l'index inverse perk → objet (`construireIndexEnMemoire`, perkSource.ts) est l'étape la PLUS LOURDE du chargement — parcours de ~100 000 définitions en SQL bloquant. Sur PC : quelques secondes. Sur téléphone : potentiellement plusieurs minutes de calcul SANS AUCUN signe de vie (un seul `setTimeout(0)` avant le bloc). Rien ne plantait : l'étape est simplement longue et opaque. Rappels : ce travail n'arrive qu'une fois par version du Manifest (persisté en IndexedDB), sauf si le quota de stockage du téléphone refuse l'écriture (le diagnostic mobile indique « persistant : oui/non »).
+
+**Corrigé (sans changer la durée du travail)** :
+- `perkSource.ts` — le parcours rend la main toutes les 2 000 lignes (`setTimeout 0`) et rapporte `{ fait, total }` (le total vient d'un `SELECT COUNT(*)`) : le navigateur peut rafraîchir le message ET rester réactif pendant la boucle ;
+- `search.ts` (`indexerManifest`) — progression par table et rendu de main entre les tables : « Indexation (français) : 12/25 tables (Destiny...Definition)... » ;
+- `RechercheManifest.tsx` — messages de progression branchés : « Indexation des sources de perks... 43 % (43 210/100 300) ».
+
+**Vérifié** : tsc 0, batterie 68/68 suites (1354/1354), build OK, build web OK. À revalider sur téléphone après déploiement (A-TESTER-0.7.2, critères 5-7).
+## 14/11/2026 (suite 6) — LIVRAISON : mobile-phase-0 — Manifest français seul sur téléphone, diagnostic mobile, connexion durcie (spec `SPEC-MOBILE-PHASE-0-2026-11-05`, branche `draft-pwa`)
+
+**Contexte** : spec mobile-phase-0 validée par l'utilisateur le 14/11/2026 (corrections acceptées : version 0.7.0, adresse `https://forge-armory.orynick.fr`, tests possibles sous Firefox). Constat de l'utilisateur : le site en ligne proposait encore le téléchargement FR + EN sur Android. Ce qui suit complète la phase 0 ; le site (v0.7.0), le mode diagnostic réservé (`proprietaire.ts`), `netlify.toml` et les chemins absolus (`NETLIFY`) étaient déjà livrés dans `main`.
+
+**Livré** :
+- `src/lib/appareil.ts` (nouveau) — détection « téléphone » : navigateur qui se déclare mobile (userAgentData de Chrome, « Mobile » de l'userAgent pour Firefox), à défaut pointeur tactile principal ET largeur ≤ 900 px ; logique pure `estTelephoneDepuis` testable seule (spec §2.4) ;
+- `src/lib/manifest/demarrage.ts` — mode « français seul » : `decider(etat, telephone)` — FR à jour (même EN absent) : chargement automatique du français seul (sans ce changement, le téléphone redemandait un clic à chaque visite) ; FR périmé : retéléchargement automatique du français seul ; FR absent/état inconnu : rien ; l'anglais est ignoré sur téléphone, jamais téléchargé « en douce » ; PC inchangé (FR + EN) ;
+- `src/components/RechercheManifest.tsx` — sur téléphone : bouton « Charger le Manifest (français, environ 100 Mo) », texte dédié (~100 Mo), démarrage passé le drapeau téléphone ; sur PC : textes inchangés ;
+- `src/lib/manifest/download.ts` — relevé des DURÉES de chaque étape du dernier chargement (téléchargement, décompression, ouverture ; indexation relevée par RechercheManifest), sans changer ce qui est téléchargé ni la façon de le stocker (spec §2.5) ;
+- diagnostic mobile (spec §2.5) : bloc dans RechercheManifest, visible uniquement en mode diagnostic (réservé au propriétaire) — téléphone détecté + largeur, mémoire annoncée (Chrome ; « inconnue » sous Firefox), stockage utilisé/disponible + persistance, durées, bouton « Copier » ; inscrit au registre `diagnosticsArchives.ts` (`diagnosticMobile: true`, à archiver en fin de chantier) ;
+- `src/lib/bungie/oauth.ts` — durcissement §2.3 : un état anti-CSRF introuvable REFUSE la connexion AUSSI dans le navigateur (avant : laissé passer ; le logiciel installé refusait déjà) ; effet de bord assumé : connexion terminée dans un autre onglet = échec (relancer).
+
+**Tests** : nouveau `tests/logique/appareil.test.ts` (14 contrôles : décision pure, repli tactile, Chrome/Firefox Android, PC, matchMedia absente), nouveau `tests/logique/oauth-etat.test.ts` (9 contrôles : code absent/différent/introuvable refusé dans les deux modes, état one-shot), `tests/logique/demarrage-manifest.test.ts` complété (+8 contrôles téléphone : FR à jour/périmé/absent/inconnu, anglais ignoré, enchaînement complet, PC inchangé).
+
+**Vérifié** : `tsc -b` 0 erreur ; batterie 68/68 suites (1354/1354 contrôles, +2 suites/+30 contrôles) ; `npm run build` OK ; construction web (`NETLIFY=1`) OK, chemins absolus vérifiés dans `dist/index.html`.
+
+**Reste** : déploiement Netlify DIFFÉRÉ (plus de crédits de build, recharge mensuelle — TODO §26) ; validation utilisateur des critères d'acceptation (§5) à consigner ici après déploiement et tests sur Android.
+
+---
+
+
+---
+
 ## 08/11/2026 — MISE À JOUR DE SÉCURITÉ (branche `draft-deps-electron-sec`) : Electron 45.3.4 (correctifs Chromium/V8 d'octobre-novembre) + correctifs mineurs
 
 **Motif (contrôle sécurité demandé par l'utilisateur)** : `npm audit` restait à 0 vulnérabilité et l'exigence Node.js >=24.22.1 couvrait bien CVE-2026-111497 (Node2Shell, KEV CISA), MAIS le logiciel embarquait Electron 45.0.0, antérieur aux mises à jour de sécurité Electron 45.2.0/45.2.1 (30/10) et 45.2.2 (03/11) : Chromium/V8/Skia non corrigés, dont la critique CVE-2026-76024 (MediaStream) et le correctif Brotli de Node2Shell — la liste blanche réseau limite l'exposition, pas le risque zéro (pages distantes Bungie + sortie le 11/11 de correctifs Node HIGH attendus).
