@@ -6,7 +6,7 @@
 **Branche publiée sur le site :** `draft-pwa` (tranché par l'utilisateur le 05/11/2026)
 **Adresse du site :** `https://forge-armory.orynick.fr` (fournie par l'utilisateur le 14/11/2026)
 **Version de l'appli à la rédaction :** 0.7.0
-**Version visée :** 0.7.1 (à confirmer à la livraison, justification dans le DEVLOG)
+**Version visée :** 0.7.2 (à confirmer à la livraison, justification dans le DEVLOG)
 **Navigateur de test :** Chrome sur Android (visé) ; Firefox sur Android accepté (remarque de l'utilisateur du 14/11/2026 : la mémoire annoncée n'y est pas fournie — le diagnostic affiche « inconnue »)
 
 ---
@@ -98,7 +98,7 @@ Aujourd'hui, dans l'appli construite (logiciel installé), **n'importe qui** peu
 - `src/lib/modeDiagnostic.ts` et `src/components/InterrupteurModeDiagnostic.tsx` : réservation du mode diagnostic sur le site (§2.6) — LIVRÉ (06/11/2026, branche draft-netlify) : l'identifiant du propriétaire est la constante `ID_COMPTE_BUNGIE_PROPRIETAIRE` de `src/lib/proprietaire.ts` (information publique, déjà dans l'adresse du profil bungie.net), et non une variable d'environnement.
 - `src/lib/diagnosticsArchives.ts` : inscription du diagnostic mobile.
 - Tests (Article III) : `tests/logique/demarrage-manifest.test.ts` (complété : mode français seul), nouveau `tests/logique/appareil.test.ts`, nouveau `tests/logique/oauth-etat.test.ts` (code absent refusé dans les deux modes), nouveau `tests/logique/mode-diagnostic-reserve.test.ts` (compte propriétaire / autre compte / non connecté / variable absente / réglage mémorisé ignoré), contrôle de câblage de la version web (`base` selon `FORGE_CIBLE`, `netlify.toml` présent et cohérent).
-- Documentation : `documentation/GUIDE-MISE-EN-LIGNE.md` (nouveau, état réel du site déjà en ligne + pas-à-pas de l'annexe A), `CHANGELOG.md`, `DEVLOG.md`, `TODO.md`, `README.md`, `documentation/specs/INDEX.md`, `A-TESTER-0.7.1` (source dans `documentation/sources/`, PDF par `outil-a-tester-pdf.py`).
+- Documentation : `documentation/GUIDE-MISE-EN-LIGNE.md` (nouveau, état réel du site déjà en ligne + pas-à-pas de l'annexe A), `CHANGELOG.md`, `DEVLOG.md`, `TODO.md`, `README.md`, `documentation/specs/INDEX.md`, `A-TESTER-0.7.2` (source dans `documentation/sources/`, PDF par `outil-a-tester-pdf.py`).
 
 ### 3.2 Hors périmètre (explicite — règle anti-régression, Article V)
 
