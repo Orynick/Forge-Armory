@@ -65,7 +65,11 @@ Le renommage « Forge Armory » est lui aussi validé (06/10/2026, section 12).
    outils de build via `minimatch`, advisory GHSA-g3hv-75wg-m249, sans impact
    runtime — « fix » = downgrade cassant, refusé). ⏳ **À venir : versions de
    sécurité Node.js le 11/11/2026** (sévérité max HIGH, lignes 22/24/26) —
-   rehausser `engines.node` dès la sortie de la 24.x corrective.
+   ✅ **FAIT le 19/11/2026, branche `draft-node-24-22-3`** : `engines.node`
+   >=24.22.1 → **>=24.22.3** (24.22.3 = ligne 24.x corrigée, 16 CVE dont 7
+   HIGH, surtout serveur HTTP/2/TLS — impact direct nul pour ce client
+   desktop) ; workflows CI et Release Windows re-épinglés de 24.22.1 vers
+   24.22.3.
 
 ⏸️ **En attente d'une décision** : l'agent IA (section 3). **À décider** :
 le canal du lien « Contact » (section 23).
