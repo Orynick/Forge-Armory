@@ -5,7 +5,7 @@
 
 ## v0.7.1 — 19/11/2026 — correctifs de sécurité
 
-- **Mise à jour de sécurité du moteur embarqué** : Chromium/V8/Skia mis à jour via Electron 45.0.0 → 45.3.4 (correctifs d'octobre-novembre, dont une faille critique CVE-2026-76024 et le correctif « Brotli » de Node2Shell/CVE-2026-111497). Aucun changement visible — **le logiciel n'avait pas d'auto-update : désinstallez l'ancienne version puis installez celle-ci** pour ne plus tourner sur un Chromium non corrigé.
+- **Mise à jour de sécurité du moteur embarqué** : Chromium/V8/Skia mis à jour via Electron 45.0.0 → 45.3.4 (correctifs d'octobre-novembre, dont une faille critique CVE-2026-76024 et le correctif « Brotli » de Node2Shell/CVE-2026-111497). Aucun changement visible — pas d'auto-update : **installez cette version par-dessus l'ancienne** (même dossier d'installation, remplacement automatique). Seul cas où une désinstallation manuelle d'abord est utile : si vous aviez changé le dossier d'installation lors d'une précédente installation (sinon deux copies cohabiteraient).
 - Aucune autre nouveauté : ni fonctionnalité, ni réglage, ni données. Seule la coquille (Electron/Chromium) et trois dépendances discrètes (routeur, SQL côté Web, outil de fabrication) changent.
 
 ## v0.7.2 — à paraître (chantier mobile-phase-0)
