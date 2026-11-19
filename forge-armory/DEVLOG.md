@@ -2,6 +2,20 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 19/11/2026 (suite) — Correctifs Node.js du 11/11/2026 appliqués au socle (24.22.1 → 24.22.3 exigé)
+
+**Contexte** : versions de sécurité Node.js du **11/11/2026** — 16 CVE (7 HIGH, surtout HTTP/2/TLS/HTTPS **serveur** : CVE-2026-123864 fuite mémoire HTTPS, CVE-2026-123863 abort distant HTTP/2, CVE-2026-123872 contournement TLS 1.2…). Lignes corrigées : 22.23.5, **24.22.3**, 26.13.1. **Impact direct nul pour Forge Armory** : client desktop, aucun serveur Node exposé ; l'exigence se justifie par l'hygiène du socle (outils de dev, CI, build de l'installateur) — suivi ⏳ consigné dans la TODO depuis le 08/11.
+
+**Réalisé (branche `draft-node-24-22-3`)** :
+- `forge-armory/package.json` : `engines.node` >=24.22.1 → **>=24.22.3** (épine dorsale du suivi) ;
+- `.github/workflows/ci.yml` : `node-version: 24.22.1` → `24.22.3` ;
+- `.github/workflows/release.yml` : Node du runner de fabrication de l'installateur 24.22.1 → **24.22.3** (l'exe embarque le Node d'ELECTRON, indépendant et déjà corrigé via 45.3.4 — aucun nouveau build d'installateur nécessaire pour ce seul changement) ;
+- TODO : suivi ⏳ soldé (FAIT le 19/11).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run build` OK ; batterie logique OK ; CI sur la branche (Node 24.22.3, la version du runner change aussi — validée par un run vert).
+
+---
+
 ## 19/11/2026 — LIVRAISON v0.7.1 : installateur Windows avec les correctifs de sécurité (bump 0.7.0 → 0.7.1)
 
 **Décision utilisateur (« On envoie maintenant », 19/11/2026)** : livrer immédiatement un installateur tenant compte de la PR #40 (Electron 45.3.4), sans attendre les versions de sécurité Node.js du 11/11 (suivi ⏳ inchangé : rehausser `engines.node` à la sortie de la 24.x corrective).
