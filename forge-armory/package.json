@@ -6,7 +6,7 @@
   "author": "Orynick/Orygamer",
   "type": "module",
   "engines": {
-    "node": ">=24.22.1"
+    "node": ">=24.22.3"
   },
   "scripts": {
     "dev": "vite",
