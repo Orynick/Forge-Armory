@@ -2,6 +2,19 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 19/11/2026 — LIVRAISON v0.7.1 : installateur Windows avec les correctifs de sécurité (bump 0.7.0 → 0.7.1)
+
+**Décision utilisateur (« On envoie maintenant », 19/11/2026)** : livrer immédiatement un installateur tenant compte de la PR #40 (Electron 45.3.4), sans attendre les versions de sécurité Node.js du 11/11 (suivi ⏳ inchangé : rehausser `engines.node` à la sortie de la 24.x corrective).
+
+**Réalisé** :
+- Bump **0.7.0 → 0.7.1** (`package.json` + lock, symétrique du tag `v0.7.1` à venir) — numéro NEUF obligatoire : le 0.7.0 a déjà été tagué/distribué (site), un exe de contenu différent sous le même numéro créerait une ambiguïté ;
+- Entrée CHANGELOG utilisateur « correctifs de sécurité » (sans nouveauté visible : la coquille Electron change, pas l'appli) avec rappel « **pas d'auto-update : désinstaller l'ancienne version puis installer celle-ci** » ;
+- L'installateur NSIS est fabriqué par le workflow `release.yml` (runner `windows-latest`, `npm ci` reproductible depuis le lock, `tsc -b && vite build`, `electron-builder --win`) et attaché à la release GitHub du tag — **aucun build manuel, aucun upload manuel**.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run build` OK ; batterie logique 66/66 suites (0 échec logique). CI vérifiée sur le tag.
+
+---
+
 ## 08/11/2026 — MISE À JOUR DE SÉCURITÉ (branche `draft-deps-electron-sec`) : Electron 45.3.4 (correctifs Chromium/V8 d'octobre-novembre) + correctifs mineurs
 
 **Motif (contrôle sécurité demandé par l'utilisateur)** : `npm audit` restait à 0 vulnérabilité et l'exigence Node.js >=24.22.1 couvrait bien CVE-2026-111497 (Node2Shell, KEV CISA), MAIS le logiciel embarquait Electron 45.0.0, antérieur aux mises à jour de sécurité Electron 45.2.0/45.2.1 (30/10) et 45.2.2 (03/11) : Chromium/V8/Skia non corrigés, dont la critique CVE-2026-76024 (MediaStream) et le correctif Brotli de Node2Shell — la liste blanche réseau limite l'exposition, pas le risque zéro (pages distantes Bungie + sortie le 11/11 de correctifs Node HIGH attendus).
