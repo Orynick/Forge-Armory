@@ -1,0 +1,95 @@
+# ============================================================
+#  RELEASE — installateur Windows attaché automatiquement à la release
+# ============================================================
+# FR : à chaque tag v*.*.* poussé (git push origin vX.Y.Z), ce workflow
+#      build l'installateur NSIS sur un runner windows-latest (pas besoin
+#      de wine) et l'attache à la release GitHub du tag. La release est
+#      créée si elle n'existe pas (notes reprises de la section du tag dans
+#      forge-armory/CHANGELOG.md) ; si elle existe déjà (notes rédigées à la
+#      main), seules les pièces jointes sont uploadées. Plus d'upload manuel.
+#      Test manuel possible depuis l'onglet Actions (workflow_dispatch sur
+#      un tag v*).
+# EN: on every pushed v*.*.* tag, build the Windows NSIS installer on a
+#     windows-latest runner and attach it to the tag's GitHub release.
+#     The release is created if missing (notes from the tag's CHANGELOG
+#     section); if it already exists (hand-written notes), only assets are
+#     uploaded. No more manual upload.
+# ============================================================
+
+name: Release Windows
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch: # test manuel depuis l'onglet Actions (ref = tag v*)
+
+permissions:
+  contents: write # créer/éditer la release + uploader les assets
+
+jobs:
+  build-release:
+    if: startsWith(github.ref_name, 'v') # ne tourne que sur un tag v*
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: forge-armory
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 24.22.1 (comme .nvmrc / engines)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.22.1"
+          cache: npm
+          cache-dependency-path: forge-armory/package-lock.json
+
+      - name: npm ci (reproductible, depuis le lockfile)
+        run: npm ci
+
+      - name: Build web strict (tsc -b && vite build)
+        run: npm run build
+
+      - name: Build installateur NSIS (win x64, non signé)
+        run: npx electron-builder --win --publish never
+
+      - name: Archive de secours (artifact téléchargeable depuis le run)
+        uses: actions/upload-artifact@v4
+        with:
+          name: installateur-windows-${{ github.ref_name }}
+          path: forge-armory/installateur/*.exe*
+          retention-days: 30
+
+      - name: Notes de release depuis le CHANGELOG
+        shell: bash
+        run: |
+          tag="${{ github.ref_name }}"
+          ver="${tag#v}"
+          {
+            echo "# Forge Armory ${tag}"
+            echo
+            echo "## ⬇️ Téléchargement Windows (pièces jointes de cette release)"
+            echo
+            echo "- **\`Forge-Armory-Setup-${ver}.exe\`** — installateur NSIS (double-clic, raccourci bureau + menu Démarrer). Non signé : SmartScreen peut avertir au premier lancement → « Informations complémentaires » → « Exécuter quand même »."
+            echo "- \`Forge-Armory-Setup-${ver}.exe.blockmap\` — manifeste de blocs (réservé à l'auto-update electron-updater, non utilisé pour l'instant)."
+            echo
+            echo "## Contenu"
+            echo
+            awk -v v="$tag" '$0 ~ "^## " {p=($0 ~ v)} p' CHANGELOG.md
+          } > "$RUNNER_TEMP/release-notes.md"
+          echo "notes: $(wc -l < "$RUNNER_TEMP/release-notes.md") lignes"
+
+      - name: Release GitHub — créée si absente, assets uploadés (--clobber)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${{ github.ref_name }}"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "La release $tag existe déjà : notes conservées, upload des assets seulement."
+          else
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --title "Forge Armory ${tag}" --notes-file "$RUNNER_TEMP/release-notes.md"
+          fi
+          gh release upload "$tag" installateur/*.exe* --clobber --repo "$GITHUB_REPOSITORY"
+          echo "--- assets de la release ---"
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '[.assets[] | {name, size}]'
