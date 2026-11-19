@@ -2,6 +2,36 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 19/11/2026 (suite 2) — REPRISE DU CHANTIER PODCAST (branche `draft-podcast`, PR #26)
+
+**Contexte** : l'utilisateur reprend le chantier « essai — lecteur podcast flottant du
+Legendarium » après une pause. L'ancienne PR #22 (branche `vibe/draft-podcast-840f64`)
+avait été fermée le 02/11/2026 ; le chantier vit sur la branche `draft-podcast` (PR #26,
+draft), propagée à jour de `main` (dernier commit `b41a48b` = propagation de la PR #43).
+
+**Vérifié en local sur `draft-podcast` @ `b41a48b`** : `npx tsc -b` 0 erreur ;
+`npm run test:logique` **69/69 suites, 1383/1383 contrôles** (dont les 3 suites podcast :
+`podcast-cablage` 29, `podcast-associer` 16, `podcast-optimiser` 14 — la suite connue
+`icones.test.tsx` passe aussi en local ici) ; `npm run build` OK ; CI de la PR #26 verte
+(2 runs « tsc + build + batterie logique »).
+
+**Réalisé (documentation seule, aucun code changé)** : ajout de la **§6c** dans
+`documentation/specs/SPEC-PODCAST-ESSAI-2026-10-23.md` — comparaison des hébergeurs à
+flux RSS privé (Buzzsprout / Transistor / Podbean / Castos / RSS.com), niveaux de
+confidentialité d'un « podcast privé » (lien secret < flux par abonné < mot de passe),
+prix indicatifs 2026, et analyse de sécurité (réponse : **aucun hébergeur n'ajoute de
+vulnérabilité à l'appli en soi** — seule une origine CSP serait ouverte vers l'hôte du
+RSS si la piste est activée un jour ; le lecteur `<audio>` reste le nôtre, pas d'iframe).
+Les décisions verrouillées de la spec (essai 100 % local, pas d'embed Spotify, §6b)
+sont inchangées. Corps de la PR #26 rafraîchi (chiffres de vérification à jour).
+
+**Reste côté utilisateur pour l'essai** : déposer `ffmpeg.exe` dans `public/podcast/`,
+lancer `npm run podcast:optimiser -- --appliquer` sur ses MP3 (45 min ≈ 460 Mo → ~22 Mo
+en mono 64 kbps CBR), éventuellement `npm run podcast:associer -- --appliquer`, puis
+`npm run podcast:index`, et écouter en `npm run dev`.
+
+---
+
 ## 19/11/2026 (suite) — Correctifs Node.js du 11/11/2026 appliqués au socle (24.22.1 → 24.22.3 exigé)
 
 **Contexte** : versions de sécurité Node.js du **11/11/2026** — 16 CVE (7 HIGH, surtout HTTP/2/TLS/HTTPS **serveur** : CVE-2026-123864 fuite mémoire HTTPS, CVE-2026-123863 abort distant HTTP/2, CVE-2026-123872 contournement TLS 1.2…). Lignes corrigées : 22.23.5, **24.22.3**, 26.13.1. **Impact direct nul pour Forge Armory** : client desktop, aucun serveur Node exposé ; l'exigence se justifie par l'hygiène du socle (outils de dev, CI, build de l'installateur) — suivi ⏳ consigné dans la TODO depuis le 08/11.
