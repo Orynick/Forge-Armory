@@ -10,6 +10,7 @@ Une ligne par spec, tenue à jour à chaque changement de statut (modèle : [`..
 | [`SPEC-AVERTISSEMENT-CACHE-WEB-2026-11-14.md`](SPEC-AVERTISSEMENT-CACHE-WEB-2026-11-14.md) | Avertissement « cache du navigateur » (version Web) — bandeau dans le panneau Load-outs + raccourci export JSON | 14/11/2026 | validée | — | `draft-avertissement-cache-web` | (en cours) | (en cours) |
 | [`SPEC-MODS-PHASE-2-2026-11-03.md`](SPEC-MODS-PHASE-2-2026-11-03.md) | Mods-phase-2 (écriture réelle des perks/mods chez Bungie via `InsertSocketPlugFree`, variante A puis B) | 03/11/2026 | livrée | 0.6.0 (04/11/2026) | `draft-mods-phase-2`, PR #27 (mergée le 04/11) ; branche supprimée après livraison | « Parfait ça fonctionne ! » (03/11, mods d'armure) puis « OK ça fonctionne » (04/11, perks d'armes — variante B) | 03-04/11/2026 « MODS-PHASE-2 » (correctifs du premier test réel, clôture du chantier) |
 | [`SPEC-MOBILE-PHASE-0-2026-11-05.md`](SPEC-MOBILE-PHASE-0-2026-11-05.md) | mobile-phase-0 (prototype de mesure : site Netlify, Manifest français seul sur Android, diagnostic mobile) | 05/11/2026 (validée le 14/11/2026) | validée | 0.7.2 visée | `draft-pwa` | corrections du 14/11/2026 acceptées (« le reste de la SPEC m'a l'air bien ») | — |
+| [`SPEC-MOBILE-PHASE-2-2026-11-19.md`](SPEC-MOBILE-PHASE-2-2026-11-19.md) | mobile-phase-2 (adaptation de l'affichage sur téléphone) | 19/11/2026 | brouillon | à décider (0.7.3/0.8.0) | branche à décider | — (en attente du relevé d'affichage du A-TESTER-0.7.2) | — |
 
 ## Règles
 
