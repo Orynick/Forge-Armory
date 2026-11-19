@@ -16,6 +16,19 @@
 
 ---
 
+## 18/11/2026 — FIXTURES DU SCORING : exécutées et validées (TODO §4 TERMINÉ)
+
+**Contexte** : l'item TODO §4 attendait l'exécution de `node scripts/tester-avec-fixtures.mjs` (test de bout en bout du Pilier 2 : extraction → détection → chaînes), le script ayant été corrigé le 05/11 (lanceur esbuild + Node) mais jamais encore joué en entier.
+
+**Réalisé** : exécution dans l'environnement de l'assistant (le script est 100 % hors ligne : fixtures locales, fausse base `fausse-db.mjs`, modules factices — aucun réseau, aucune clé). **Résultat : exit 0, zéro échec, 170 lignes de sorties toutes conformes aux « Attendu »**, dont :
+- `detecterChainesVerbes` : Ralentissement → Gel ET Gel → Brisure (ricochet à 2 sauts) ✓ ;
+- `detecterRessourcesGenerees` : grenade (Dévoration) et classe (Brèche abyssale) ✓ ;
+- `enrichirAvecChaines` (correction du 26/08) : Gel et Brisure passent « absent » → « source_seule » (+12 pts chacun), score 48 → 72 (+24) ✓.
+
+**Conséquence** : TODO §4 est **TERMINÉ**. Le lancement du script devient un rituel de contrôle avant chaque version.
+
+---
+
 ## 14/11/2026 (suite 5) — DÉCISION workflow : `main` reste `main` (pas de `prod`/`dev`)
 
 **Décision de l'utilisateur** (14/11/2026, après discussion comparatif) : le renommage de `main` en `prod` et l'ajout d'une branche de transition permanente sont **écartés** — la garantie « `main` ne contient que du validé » est déjà portée par l'Article XII ; le renommage n'apporterait que de la fragilité (conventions GitHub/CI/Netlify). Une branche `staging` (préproduction web) reste une option documentée si le besoin de tester le web avant production émerge. Consigné dans la section « Pistes mises de côté » de la TODO (à ne pas reproposer sans raison).

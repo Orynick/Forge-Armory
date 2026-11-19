@@ -270,8 +270,16 @@ Vite `?url` — puis imports TS sans extension). Il est désormais un LANCEUR
 esbuild + Node (même mécanisme que la batterie logique `lancer.mjs`) qui
 empaquette le corps (`scripts/fixtures-corps.mjs`) avant de l'exécuter.
 Vérifié : exit 0, tous les « Attendu » conformes, tsc 0, batterie 60/60
-(1244/1244), build OK. **Reste à faire** : exécution et validation côté
-utilisateur, puis contrôle régulier avant chaque version.
+(1244/1244), build OK.
+
+✅ **EXÉCUTÉ ET VALIDÉ le 18/11/2026 (côté assistant)** : le script tourne
+dorénavant dans l'environnement de l'assistant (Node + `node_modules`
+présents). Sortie : **exit 0, zéro échec**, tous les affichages conformes aux
+« Attendu » — dont la détection des chaînes de verbes (Ralentissement → Gel →
+Brisure, ricochet à 2 sauts), des ressources générées (grenade par Dévoration,
+classe par Brèche abyssale), et l'enrichissement des chaînes du 26/08 (+24 pts :
+Gel et Brisure « absent » → « source_seule », score 48 → 72). **L'item est
+TERMINÉ** ; le lancer avant chaque version devient le rituel (contrôle régulier).
 
 ---
 
