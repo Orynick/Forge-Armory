@@ -2,6 +2,19 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 19/11/2026 — LIVRAISON v0.7.1 : installateur Windows avec les correctifs de sécurité (bump 0.7.0 → 0.7.1)
+
+**Décision utilisateur (« On envoie maintenant », 19/11/2026)** : livrer immédiatement un installateur tenant compte de la PR #40 (Electron 45.3.4), sans attendre les versions de sécurité Node.js du 11/11 (suivi ⏳ inchangé : rehausser `engines.node` à la sortie de la 24.x corrective).
+
+**Réalisé** :
+- Bump **0.7.0 → 0.7.1** (`package.json` + lock, symétrique du tag `v0.7.1` à venir) — numéro NEUF obligatoire : le 0.7.0 a déjà été tagué/distribué (site), un exe de contenu différent sous le même numéro créerait une ambiguïté ;
+- Entrée CHANGELOG utilisateur « correctifs de sécurité » (sans nouveauté visible : la coquille Electron change, pas l'appli) avec rappel « **pas d'auto-update : désinstaller l'ancienne version puis installer celle-ci** » ;
+- L'installateur NSIS est fabriqué par le workflow `release.yml` (runner `windows-latest`, `npm ci` reproductible depuis le lock, `tsc -b && vite build`, `electron-builder --win`) et attaché à la release GitHub du tag — **aucun build manuel, aucun upload manuel**.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run build` OK ; batterie logique 66/66 suites (0 échec logique). CI vérifiée sur le tag.
+
+---
+
 ## 14/11/2026 (suite 6) — LIVRAISON : mobile-phase-0 — Manifest français seul sur téléphone, diagnostic mobile, connexion durcie (spec `SPEC-MOBILE-PHASE-0-2026-11-05`, branche `draft-pwa`)
 
 **Contexte** : spec mobile-phase-0 validée par l'utilisateur le 14/11/2026 (corrections acceptées : version 0.7.0, adresse `https://forge-armory.orynick.fr`, tests possibles sous Firefox). Constat de l'utilisateur : le site en ligne proposait encore le téléchargement FR + EN sur Android. Ce qui suit complète la phase 0 ; le site (v0.7.0), le mode diagnostic réservé (`proprietaire.ts`), `netlify.toml` et les chemins absolus (`NETLIFY`) étaient déjà livrés dans `main`.
@@ -19,6 +32,9 @@
 **Vérifié** : `tsc -b` 0 erreur ; batterie 68/68 suites (1354/1354 contrôles, +2 suites/+30 contrôles) ; `npm run build` OK ; construction web (`NETLIFY=1`) OK, chemins absolus vérifiés dans `dist/index.html`.
 
 **Reste** : déploiement Netlify DIFFÉRÉ (plus de crédits de build, recharge mensuelle — TODO §26) ; validation utilisateur des critères d'acceptation (§5) à consigner ici après déploiement et tests sur Android.
+
+---
+
 
 ---
 
