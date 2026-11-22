@@ -31,7 +31,7 @@ Par Orynick/Orygamer.
 
 - La connexion se fait sur la **page officielle de Bungie.net** : Forge Armory ne voit jamais votre mot de passe.
 - Vos jetons de connexion et vos builds restent **sur votre appareil** (chiffrés par Windows dans l'appli installée, dans le stockage du navigateur pour la version en ligne).
-- Forge Armory n'a **aucun serveur à lui** : l'appli échange directement avec Bungie.net, avec DIM uniquement si vous utilisez « Exporter vers DIM », et avec GitHub uniquement pour vérifier la version de données de jeu publiques (rien de personnel n'y est envoyé).
+- Forge Armory n'a **aucun serveur à lui** : l'appli échange directement avec Bungie.net, et avec GitHub uniquement pour vérifier la version de données de jeu publiques (rien de personnel n'y est envoyé).
 
 ## Documentation
 
