@@ -20,8 +20,10 @@ Elle se connecte à votre compte **Bungie.net** (OAuth) pour lire votre inventai
 - **Legendarium** : bibliothèque de Lore en lecture passive (Grimoire D1, Légendes D2, armes, armures, cosmétiques) — **fonction secondaire**, avec export infographique PNG.
 - **Et aussi** : manifest et recherche bilingues **FR/EN** (français seul sur mobile), **Carrière** (statistiques du compte), **Accomplissements** (Triomphes groupés par sceau).
 
-- **Version en ligne** : [`https://forge-armory.orynick.fr`](https://forge-armory.orynick.fr)
-- **Installable Windows** : [télécharger la dernière version](https://github.com/Orynick/Forge-Armory/releases/latest) — nouveautés de chaque version dans le [CHANGELOG](forge-armory/CHANGELOG.md).
+**Version en ligne** : [`https://forge-armory.orynick.fr`](https://forge-armory.orynick.fr)
+**Installable Windows** : [télécharger la dernière version](https://github.com/Orynick/Forge-Armory/releases/latest)
+
+Nouveautés de chaque version : [CHANGELOG](forge-armory/CHANGELOG.md).
 
 > **Avertissement Windows au premier lancement** : l'installateur n'est pas signé, Windows affiche donc « Windows a protégé votre ordinateur ». Cliquez sur **Informations complémentaires** puis **Exécuter quand même** (détails dans la [notice](forge-armory/NOTICE.md#à-savoir)).
 
