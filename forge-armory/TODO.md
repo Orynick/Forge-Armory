@@ -827,6 +827,40 @@ mot, français).
 
 **Pré-requis** : spec courte validée avant tout code (Article VI).
 
+### 30. Bot Discord compagnon de Forge Armory (demande du 22/11/2026)
+
+**Demande** : « une appli Discord qui permette d'agir sur et avec Forge
+Armory, un peu comme Charlemagne » — l'utilisateur a demandé à l'assistant
+d'abord de regarder comment fonctionne Charlemagne avant de rédiger.
+
+**État** : recherche faite le 22/11/2026 (architecture de Charlemagne :
+bot + portail web warmind.io, liaison Discord ↔ Bungie par OAuth serveur
+avec lien signé à usage unique, tokens chiffrés côté serveur, ~250
+commandes, révocation via bungie.net) ; **spec brouillon rédigée** :
+[`documentation/specs/SPEC-BOT-DISCORD-2026-11-22.md`](documentation/specs/SPEC-BOT-DISCORD-2026-11-22.md),
+branche `draft-bot-discord`, **documentation seule — aucun code tant que
+la spec n'est pas validée** (Article VI).
+
+**Pistes de conception (à affiner/valider en spec)** :
+- composant séparé `bot-discord/` à la racine du dépôt (hors appli web),
+  Node + TypeScript + discord.js, mini-serveur HTTP pour le callback OAuth ;
+- **réutilisation par import** des modules `src/lib/` (scoring, forge,
+  bungie, loadouts) — jamais de copie ; injection de la couche
+  stockage/tokens (modification minimale et listée de l'appli) ;
+- commandes v1 proposées : `/lier /délier /profil /build /loadouts
+  /partager /objet` ; **Phase 2 déclarée (Article II)** : `/appliquer`
+  en jeu via `TransferItem` → `EquipItem` → `InsertSocketPlugFree`, avec
+  confirmation listée, un appel à la fois, arrêt au premier échec (mêmes
+  garde-fous que mods-phase-2) — chantier séparé recommandé ;
+- sécurité (Article X) : client Bungie confidentiel (secret serveur),
+  tokens chiffrés au repos, `state` signé à usage unique, réponses
+  éphémères, `/délier` = suppression effective ;
+- hébergement sur un VPS de l'utilisateur (hors bac à sable) — à trancher.
+
+**Pré-requis** : spec validée par l'utilisateur avant tout code (Article VI) ;
+points à trancher listés en §8 de la spec (nom, flux de liaison,
+hébergement, stack, périmètre des commandes, rétention, rendu image).
+
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 
 - **Renommage `main` → `prod` + branche de transition (`dev`)** — écarté (14/11/2026,

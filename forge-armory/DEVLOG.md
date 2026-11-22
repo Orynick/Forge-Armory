@@ -2,6 +2,37 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 22/11/2026 (suite) — SPEC bot-discord (brouillon) : bot Discord compagnon, modèle Charlemagne — documentation seule
+
+**Contexte** : demande de l'utilisateur du 22/11/2026 (« une appli Discord
+qui permette d'agir sur et avec Forge Armory, un peu comme Charlemagne ? »),
+avec consigne préalable : regarder d'abord comment fonctionne Charlemagne.
+
+**Recherche faite (sources publiques : warmind.io, annonces Bungie/Reddit,
+forums)** : Charlemagne = bot Discord + portail web warmind.io ; liaison
+Discord ↔ Bungie par `!register` → lien signé en MP → OAuth Bungie sur le
+site (client confidentiel, secret serveur), ou depuis 2021
+`warmind.io/auth/discord` (OAuth Discord d'abord) ; tokens stockés chiffrés
+côté serveur ; ~250 commandes (stats, leaderboards, LFG, notifications,
+autorôles) ; > 12 000 serveurs ; révocation via bungie.net ; API officielle
+uniquement (ToS OK, comme DIM).
+
+**Réalisé (branche `draft-bot-discord`, documentation seule — aucun code,
+Article VI)** :
+- `documentation/specs/SPEC-BOT-DISCORD-2026-11-22.md` : spec brouillon
+  (objectif, référence Charlemagne, comportement attendu des commandes
+  `/lier /délier /profil /build /loadouts /partager /objet`, Phase 2
+  déclarée `/appliquer` en chantier séparé, périmètre `bot-discord/` +
+  import des modules `src/lib/` sans copie, règles Article II/X, critères
+  d'acceptation, points à trancher §8) ;
+- `documentation/specs/INDEX.md` : ligne ajoutée (statut `brouillon`) ;
+- `TODO.md` : item 30 (Confort / plus tard).
+
+**Vérifié** : aucun fichier de code touché (`git diff --stat` vs `main` :
+documentation seule) ; `tsc -b` et batterie non impactés (pas de code).
+
+---
+
 ## 22/11/2026 — Intégration du pack v14 de l'archive (lettre « A » épaissie + encarts à équerres)
 
 **Contexte** : commit `405729f` (« MàJ assets visuels ») livrait le pack v14 UNIQUEMENT dans l'archive de référence `ressources-installateur/forge-armory/app-assets/` (37 visuels au « A » stylisé (Λ) épaissi : titres, sélecteur, profils, actions, blocs repliables, logo et planche PNG ; nouveau composant d'encart `composants/BlocRepliable.tsx/.css` + `ENCARTS-BLOCS.md` + maquettes `docs/encart-*.png` ; retrait des 3 fichiers « concept 3 » `telecharger-application`). La CI rouge (66/68 suites) venait de ce que `public/assets/`, le catalogue applicatif et les visuels dérivés n'avaient pas suivi.
