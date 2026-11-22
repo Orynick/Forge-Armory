@@ -2,6 +2,21 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 22/11/2026 — Intégration du pack v14 de l'archive (lettre « A » épaissie + encarts à équerres)
+
+**Contexte** : commit `405729f` (« MàJ assets visuels ») livrait le pack v14 UNIQUEMENT dans l'archive de référence `ressources-installateur/forge-armory/app-assets/` (37 visuels au « A » stylisé (Λ) épaissi : titres, sélecteur, profils, actions, blocs repliables, logo et planche PNG ; nouveau composant d'encart `composants/BlocRepliable.tsx/.css` + `ENCARTS-BLOCS.md` + maquettes `docs/encart-*.png` ; retrait des 3 fichiers « concept 3 » `telecharger-application`). La CI rouge (66/68 suites) venait de ce que `public/assets/`, le catalogue applicatif et les visuels dérivés n'avaient pas suivi.
+
+**Réalisé (intégration complète, octet pour octet depuis l'archive)** :
+- `public/assets/` reconstruit depuis l'archive v14 + `scripts/retoucher-visuels.mjs` (37 retouches réappliquées : soulignage, carte Doctrine, versions fixes Connexion/Manifest, renumérotation des cartes, bouton Carrière élargi) + `scripts/generer-propositions-solo-forge.mjs` (les 5 fichiers fabriqués Forge/Inventaire régénérés) ; les 3 fichiers « concept 3 » retirés de `public/assets/` (117 → 114 fichiers). `retoucher --verifier` : 0 manquante ; générateur reproductible octet pour octet.
+- `src/data/forge/forgeAssets.ts` resynchronisé sur le catalogue de l'archive (identique octet pour octet ; les 3 entrées `*.telecharger-application.*` disparaissent avec leurs fichiers).
+- `src/components/RappelAppliPC.tsx` : le lien « Télécharger l'application » utilise désormais le bouton de la charte conservé `actions.telecharger.repos/.selectionne` (même dessin 6496 × 1024, « A » épaissi) à la place du concept 3 retiré ; test UI manuel `tests/ui/rappel-appli-pc.py` mis à jour en conséquence.
+- `generer-icones.py` relancé depuis le nouveau logo du kit : seuls les fichiers porteurs du lettrage changent (`public/logo-forge-armory-texte.png`, `declinaisons/logo-complet.png/.webp`) ; emblème, favicons et `icon.ico` inchangés (le « A » n'y est pas lisible) — régénérateur toujours idempotent.
+- L'encart à équerres (`BlocRepliable.tsx/.css`) reste dans l'archive « prêt à l'emploi » : AUCUN câblage dans l'appli pour l'instant (les blocs gardent leur cadre actuel).
+
+**Vérifié** : batterie logique **68/68 suites, 1354/1354 contrôles** (dont `reproductibilite-visuels` 7/7, `visuels` 20/20, `carriere-large` 19/19, `rappel-appli-pc` 9/9) ; `identite-visuels.py` **14/14** ; `tsc -b` 0 erreur ; `npm run build` OK. CI verte attendue.
+
+---
+
 ## 19/11/2026 (suite) — Correctifs Node.js du 11/11/2026 appliqués au socle (24.22.1 → 24.22.3 exigé)
 
 **Contexte** : versions de sécurité Node.js du **11/11/2026** — 16 CVE (7 HIGH, surtout HTTP/2/TLS/HTTPS **serveur** : CVE-2026-123864 fuite mémoire HTTPS, CVE-2026-123863 abort distant HTTP/2, CVE-2026-123872 contournement TLS 1.2…). Lignes corrigées : 22.23.5, **24.22.3**, 26.13.1. **Impact direct nul pour Forge Armory** : client desktop, aucun serveur Node exposé ; l'exigence se justifie par l'hygiène du socle (outils de dev, CI, build de l'installateur) — suivi ⏳ consigné dans la TODO depuis le 08/11.

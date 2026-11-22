@@ -1,6 +1,6 @@
 # Forge Armory — visuels à intégrer dans l'appli (Destiny 2 Build Analyzer)
 
-102 fichiers (100 SVG + 2 images PNG du logo), SVG au fond transparent, aucune police à charger. Détails, dimensions et catalogue : `docs/charte-graphique.html`.
+105 fichiers (103 SVG + 2 images PNG du logo), SVG au fond transparent, aucune police à charger. Détails, dimensions et catalogue : `docs/charte-graphique.html`.
 
 ## Structure
 ```
@@ -9,15 +9,18 @@ assets/
                          (viewBox 4316 × 1024 ; Accomplissements : 4897 × 1024, plaque élargie au titre)
   profils/            8  Neutre, PvE Roaming, PvE DPS, PVP × repos / sélectionné            viewBox 3781 × 1024
   blocs-repliables/  14  7 blocs × replié / déplié (losange + / −)                          viewBox 7805 × 1024
-  actions/           10  9 boutons d'action (menus et pop-up) dont « Appliquer en jeu » × repos / sélectionné — hauteur 1024 (comme le sélecteur), largeur variable selon le texte
+  actions/           12  boutons d'action (menus, pop-up et version Web) dont « Appliquer en jeu » et « Télécharger » × repos / sélectionné — hauteur 1024 (comme le sélecteur), largeur variable selon le texte
   titres/             8  contexte (0. + ligne), cartes 1 à 5, score global — repos          viewBox 7505 × 1024
-  icones/            36  cercle + symbole seuls (barres réduites, onglets, export infographique)  viewBox 1024 × 1024
+  icones/            37  cercle + symbole seuls (barres réduites, onglets, export infographique)  viewBox 1024 × 1024
   symboles/           4  symboles des profils vectorisés, sans cercle
   marque/             3  emblème Forge Armory (SVG), logo avec titre (PNG), planche des déclinaisons (PNG)
   marques/            1  pictogramme « applicable en jeu » (losange doré en pointillés → cristal cyan), seul, sans cercle
 manifest.json         catalogue de tous les actifs (id, libellé, état, fichier, dimensions, ratio)
 forgeAssets.ts        même catalogue typé pour le code de l'appli
+ENCARTS-BLOCS.md      spécifications des encarts à équerres des blocs repliables (CSS, états, alignements)
+composants/           BlocRepliable.tsx + BlocRepliable.css : encart prêt à l'emploi (hors catalogue)
 docs/charte-graphique.html
+docs/encart-*.png     maquettes de référence des encarts
 ```
 
 ## Boutons d'action (`assets/actions/`, menus et pop-up)
@@ -27,6 +30,7 @@ docs/charte-graphique.html
 - `actions.modifier` (mods, dans les Détails) et `actions.fermer` : « Fermer » s'affiche à la place de « Modifier » quand on édite un mod ; même plaque et même hauteur.
 - `actions.appliquer-en-jeu.repos` / `actions.appliquer-en-jeu.selectionne` : « Appliquer en jeu » (capitales du lettrage de la charte), 4902 × 1024 ; sélectionné avec la lueur habituelle. Logo : losange doré en pointillés → flèche → cristal cyan. Cadre de 1024 de haut, donc même hauteur d'affichage que les autres boutons.
 - Les logos ronds seuls sont dans `icones/` (`icones.<même nom>`, y compris `icones.appliquer-en-jeu` et sa version sélectionnée).
+- `actions.telecharger.repos` / `actions.telecharger.selectionne` : « Télécharger l’application » pour la **version Web** (télécharge la version Windows .exe de Forge Armory). Logo : papillon Forge Armory + pastille cyan « télécharger », avec les deux cristaux cyan du sélecteur ; 6496 × 1024. L'état « sélectionné » (lueur) est à utiliser **au survol**. Hauteur d'affichage conseillée sur le Web : 56 à 80 px (même hauteur CSS que les autres boutons Forge pour garder la même taille de cercle). `aria-label` conseillé : « Télécharger Forge Armory pour Windows (.exe) ».
 - `marques.appliquer-en-jeu` (`assets/marques/`) : le pictogramme « Applicable en jeu » seul, à utiliser comme repère dans les listes (fond transparent, viewBox 668 × 456, hauteur minimale conseillée 16 px).
 
 ## Boutons du sélecteur et des menus
@@ -81,3 +85,8 @@ Adapter le chemin (`/${a.fichier}`) à la façon dont l'appli sert ses fichiers 
 - Textes en français uniquement (versions anglaises non prévues pour l'instant).
 - « Artefact » reprend un SVG fourni par Ory (shield-artifact, SVG Repo) : vérifier sa licence avant une diffusion publique.
 - Le losange +/− n'est prévu que sur les 7 blocs repliables.
+
+## Version 14 — lisibilité du « A » stylisé (Λ)
+- La jambe gauche du Λ était trop fine (lisibilité faible en petit). Elle est épaissie (largeur horizontale constante ≈ 78 % de celle de la jambe droite, la jambe gauche reste parallèle à son bord extérieur ; bord extérieur et jambe droite inchangés) dans tous les visuels contenant un « A » : titres, boutons du sélecteur / de profil / d'action, titres des blocs repliables, etc. (37 fichiers SVG).
+- Aucun identifiant, aucune dimension ni aucun nom de fichier ne change : remplacement direct des fichiers.
+- `marque/logo-forge-armory.png` et `forge-armory-declinaisons.png` (images) : retouchées au pixel pour le même « A » d'ARMORY (jambe gauche épaissie, reste du lettrage intact). Même nom, même taille. Ce ne sont pas des vectoriels ; le « A » de l'écran de chargement, minuscule, est quasi inchangé.
