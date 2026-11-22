@@ -13,7 +13,7 @@
 
 import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.10)
 import { estFaconnee } from "../lib/forge/faconnee";
-import TitreRepliable from "./TitreRepliable";
+import { BlocRepliable, useBlocRepliable } from "./BlocRepliable";   // FR : AJOUT (22/11/2026, TODO §30) - encart à équerres du pack v14.
 import PastilleContexte, { ECHELLE_CONTEXTE_RANGEE } from "./PastilleContexte";
 import { LIBELLES_CONTEXTE, ORDRE_CONTEXTES } from "./icones/BadgeContexte";
 import type { ContexteBuild } from "../lib/scoring/stats";
@@ -506,17 +506,9 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
   }
 
   return (
-    <details open className="pilier-carte bloc-repliable">
-      {/* FR : ⚠️ CHANGÉ (27/09/2026, v0.2.3) - bloc repliable, comme le Coffre
-      (demande de l'utilisateur). Ouvert par défaut : rien ne change au
-      lancement, on replie ce qu'on veut. Style dans index.css (.bloc-repliable).
-      EN: ⚠️ CHANGED - collapsible block like the Vault, open by default. */}
-
-      <summary>
-        <span className="bloc-repliable-ligne">
-        <TitreRepliable categorie="mon-build" />
-        </span>
-      </summary>
+    <BlocRepliable id="mon-build" {...useBlocRepliable("mon-build")}>
+      {/* FR : CHANGÉ (22/11/2026, chantier draft-encarts-equerres, TODO §30) - le <details>/cadre pilier-carte est remplacé par le composant BlocRepliable du pack v14 (encart à équerres, 4 états, un seul bloc actif ; design : ENCARTS-BLOCS.md fait foi) ; ouvert par défaut comme avant ; le contenu est inchangé, le titre est rendu PAR le composant.
+      EN: old <details> card replaced by the v14 pack BlocRepliable; open by default as before; content unchanged. */}
       {/* FR : ⚠️ AJOUT (07/10/2026, v0.3.17) - les quatre boutons de CONTEXTE, en partie haute du bloc, sous le titre (demande de l'utilisateur) ; même composant et même échelle que dans l'ancienne ligne. Repliés avec le bloc. / EN: ⚠️ ADDED - the four context buttons, at the top of the block. */}
       {contexte !== undefined && onChangerContexte && (
         <div data-contexte-dans-build="" style={{ display: "flex", gap: "0.4rem", alignItems: "center", marginBottom: "0.75rem", flexWrap: "wrap" }}>
@@ -1066,6 +1058,6 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
           onFermer={() => setRappelDoctrineOuvert(false)}
         />
       )}
-    </details>
+    </BlocRepliable>
   );
 }

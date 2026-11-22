@@ -802,8 +802,22 @@ design `ENCARTS-BLOCS.md` + maquettes) mais **aucun câblage** dans l'appli (DEV
 Chantier : remplacer le cadre « rectangle gris arrondi » des blocs repliables par l'encart
 à équerres. Spec d'intégration : `documentation/specs/SPEC-ENCARTS-EQUERRES-2026-11-22.md`
 (branche `draft-encarts-equerres`) — option B validée (hauteur de titre fluide, aucun
-débordement mobile ; largeur fixée par le titre, le contenu s'y conforme). [À CLARIFIER] :
-liste exacte des blocs, statut de la carte Connexion, validation de l'aperçu avant merge.
+débordement mobile ; largeur fixée par le titre, le contenu s'y conforme).
+
+✅ **CÂBLÉ le 22/11/2026** (les 7 blocs du pack — connexion, mon-build, inventaire,
+manifest, doctrine, artefact, sauvegarde ; les 5 piliers + Contexte + Score global
+restent hors périmètre, pas d'assets : « on généralisera après l'aperçu + test »).
+tsc 0, batterie 68/68 (1354/1354), build OK.
+
+**Reste** :
+- ⚠️ **APERÇU utilisateur** : `npm run dev` sur la branche `draft-encarts-equerres` →
+  comparer aux maquettes `app-assets/docs/encart-*.png`, vérifier les 4 états, le
+  « un seul actif », l'activation cyan, le non-débordement en fenêtre étroite
+  (~375 px) — validation AVANT merge ;
+- suppression de `TitreRepliable` et des règles CSS `<details>`/`.bloc-repliable-ligne`
+  devenues inutilisées (après validation de l'aperçu) ;
+- FileReader : vérifier l'onglet Inventaire (ancre « Aller à ») et le bloc Connexion
+  (devient repliable — historique v0.3.17 supersédé).
 
 ### 29. Forge : onglet « liste de souhaits » d'armes (demande du 18/11/2026)
 

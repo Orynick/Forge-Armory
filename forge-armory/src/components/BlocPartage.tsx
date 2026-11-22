@@ -29,7 +29,7 @@ import { telechargerFichierTexte } from "../lib/telechargement";
 import BarrePartage from "./BarrePartage";
 import EnregistrerBuild from "./EnregistrerBuild";
 import { BoutonVue } from "./SelecteurVues";
-import TitreRepliable from "./TitreRepliable";
+import { BlocRepliable, useBlocRepliable } from "./BlocRepliable";   // FR : AJOUT (22/11/2026) - encart à équerres du pack v14 (TitreRepliable n’est plus utilisé PAR CE BLOC).
 
 interface Props {
   build: BuildDraft;
@@ -70,14 +70,9 @@ export default function BlocPartage({ build, db, auteur = null, onVoirLoadouts, 
   }
 
   return (
-    <details open className="pilier-carte bloc-repliable">
-      {/* FR : bloc repliable comme les autres blocs principaux (v0.2.3).
-      EN: collapsible like the other main blocks. */}
-      <summary>
-        <span className="bloc-repliable-ligne">
-          <TitreRepliable categorie="sauvegarde" />
-        </span>
-      </summary>
+    <BlocRepliable id="sauvegarde" {...useBlocRepliable("sauvegarde")}>
+      {/* FR : CHANGÉ (22/11/2026, chantier draft-encarts-equerres, TODO §30) - le <details>/cadre pilier-carte est remplacé par le composant BlocRepliable du pack v14 : encart à équerres, 4 états, un seul bloc actif à la fois (spec SPEC-ENCARTS-EQUERRES-2026-11-22 ; design : ENCARTS-BLOCS.md fait foi). Le titre est rendu PAR le composant ; le contenu ci-dessous est inchangé.
+      EN: the old <details> card is replaced by the v14 pack BlocRepliable (bracket encart); content unchanged. */}
       <p style={{ fontSize: "0.75rem", color: "#b7b3a8", margin: "0 0 0.6rem" }}>
         Enregistre le build affiché dans Mon Build parmi tes Load-outs, ou partage-le sans l'enregistrer.
       </p>
@@ -131,6 +126,6 @@ export default function BlocPartage({ build, db, auteur = null, onVoirLoadouts, 
           onAnnuler={() => setSaisieOuverte(false)}
         />
       )}
-    </details>
+    </BlocRepliable>
   );
 }

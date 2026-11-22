@@ -13,7 +13,7 @@ import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 // penalising it would be confusing. Invalid selections are prevented, and the
 // reason a perk is unavailable is explained rather than silently greyed out.
 
-import TitreRepliable from "./TitreRepliable";
+import { BlocRepliable, useBlocRepliable } from "./BlocRepliable";   // FR : AJOUT (22/11/2026, TODO §30) - encart à équerres du pack v14.
 import { useState } from "react";
 import { ARTEFACTS, CONTRAINTES_ARTEFACT, PLAFOND_TIER_PAR_SLOT, Artefact, PerkArtefact } from "../data/artefacts";
 import { infobulleDePerk, texteAffichable } from "../lib/artefacts/infobulle";
@@ -306,16 +306,10 @@ export default function SelecteurArtefact({ artifact, elementBuild, onChanger, d
   }
 
   return (
-    <details open className="pilier-carte bloc-repliable">
-      {/* FR : ⚠️ CHANGÉ (27/09/2026, v0.2.3) - bloc repliable, comme le Coffre
-      (demande de l'utilisateur). Ouvert par défaut : rien ne change au
-      lancement, on replie ce qu'on veut. Style dans index.css (.bloc-repliable).
-      EN: ⚠️ CHANGED - collapsible block like the Vault, open by default. */}
-
-      <summary>
-        <span className="bloc-repliable-ligne">
-        <TitreRepliable categorie="artefact" />
-        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+    <BlocRepliable id="artefact" {...useBlocRepliable("artefact")}>
+      {/* FR : CHANGÉ (22/11/2026, chantier draft-encarts-equerres, TODO §30) - le <details>/cadre pilier-carte est remplacé par le composant BlocRepliable du pack v14 (encart à équerres, 4 états, un seul bloc actif ; design : ENCARTS-BLOCS.md fait foi) ; ouvert par défaut comme avant ; le TITRE est rendu PAR le composant — les boutons de diagnostic DEV et le compteur de perks passent DU sommaire au corps, EN PREMIÈRE LIGNE (contenu inchangé).
+      EN: the old <details> card is replaced by the v14 pack BlocRepliable; dev diagnostic buttons and perk counter move from the summary row to the top of the body. */}
+      <div data-actions-bloc="" style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", margin: "0 0 0.6rem" }}>
           {/* FR : ⚠️ AJOUT (04/08/2026) - extraction de l'artefact ACTIF pour
           récupérer les VRAIES traductions de Bungie. Idée de l'utilisateur :
           le Manifest ne contient que l'artefact équipé, mais en changer en jeu
@@ -373,9 +367,7 @@ export default function SelecteurArtefact({ artifact, elementBuild, onChanger, d
             </button>
           )}
           <span>{artefactChoisi ? `${etat.total}/${CONTRAINTES_ARTEFACT.perksMax}` : "◯ aucun"}</span>
-        </span>
-        </span>
-      </summary>
+      </div>
 
       {diagArtefact && (
         <details open style={{ fontSize: "0.75rem", color: "#b7b3a8", marginBottom: "0.6rem" }}>
@@ -681,6 +673,6 @@ export default function SelecteurArtefact({ artifact, elementBuild, onChanger, d
           )}
         </>
       )}
-    </details>
+    </BlocRepliable>
   );
 }

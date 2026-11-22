@@ -60,7 +60,8 @@ import PageForge from "../components/PageForge";   // ⚠️ AJOUT (12/10/2026, 
 import { defilerVers } from "../lib/defilerVers";
 import TitreCategorie from "../components/TitreCategorie";
 import BoutonsVuesCompte from "../components/BoutonsVuesCompte";
-import RappelAppliPC from "../components/RappelAppliPC";   // FR : ⚠️f AJOUT (14/11/2026) - rappel « Télécharger l'application » en bas de la carte Connexion (site web seulement, conditions dans lib/rappelAppliPC.ts).   // ⚠️ CHANGÉ (21/10/2026) : les deux boutons du bloc Connexion (remplace l'import direct de la fonction des visuels)
+import RappelAppliPC from "../components/RappelAppliPC";
+import { BlocRepliable, BlocsRepliablesProvider, useBlocRepliable } from "../components/BlocRepliable";   // FR : AJOUT (22/11/2026, TODO §30) - encarts à équerres du pack v14.   // FR : ⚠️f AJOUT (14/11/2026) - rappel « Télécharger l'application » en bas de la carte Connexion (site web seulement, conditions dans lib/rappelAppliPC.ts).   // ⚠️ CHANGÉ (21/10/2026) : les deux boutons du bloc Connexion (remplace l'import direct de la fonction des visuels)
 import InterrupteurModeDiagnostic from "../components/InterrupteurModeDiagnostic";
 import Bibliotheque from "../components/Bibliotheque";
 import type { ProvenanceObjet } from "../lib/legendarium/types";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : provenance transitoire (fiche Détails → page de Lore)
@@ -441,6 +442,7 @@ export default function DashboardPage() {
   }
 
   return (
+    <BlocsRepliablesProvider>
     <div>
       {/* FR : ⚠️ CHANGÉ (01/10/2026, v0.3.0) - en-tête Forge Armory à l'essai
       (titre + sous-titre, logo aligné par mesure) : voir EnTeteApp.tsx. Ancien
@@ -474,8 +476,10 @@ export default function DashboardPage() {
       still LOADED (used by Mon Build and Loadouts), just not shown here. */}
       {/* FR : ⚠️ CHANGÉ (07/10/2026, v0.3.17) - le bloc « Connexion à Bungie » n'est PAS repliable (retour de l'utilisateur sur la 0.3.16) : retour à un bloc fixe (<div> + <h3>) avec la version SANS losange + / − du titre. L'essai de la 0.3.16 (bloc repliable) est abandonné. / EN: ⚠️ CHANGED - this block is NOT collapsible (user feedback): back to a fixed block with the no-diamond title. */}
       {/* FR : ⚠️ CHANGÉ (21/10/2026, demande de l'utilisateur, capture annotée) - une fois CONNECTÉ, la carte passe en grille (classe `pilier-carte--connexion`, voir index.css) pour que les boutons « Carrière » et « Accomplissements » se placent entre le titre et le statut ; hors connexion, mise en page inchangée. / EN: ⚠️ CHANGED - once connected the card becomes a grid so the two buttons sit between the title and the status. */}
-      <div className={`pilier-carte${connecte ? " pilier-carte--connexion" : ""}`}>
-        <h3><TitreCategorie categorie="connexion" /><span>{connecte ? "✅ connecté" : "◯ non connecté"}</span></h3>
+      <BlocRepliable id="connexion" {...useBlocRepliable("connexion")}>
+        {/* FR : CHANGÉ (22/11/2026, chantier draft-encarts-equerres, TODO §30) - la carte FIXE « Connexion à Bungie » devient un BlocRepliable du pack v14 (encart à équerres, 4 états, un seul bloc actif ; design : ENCARTS-BLOCS.md fait foi — les SVG repliables du bloc Connexion existent dans le pack, et l’historique « pas repliable » de la v0.3.17 est supersédé par la décision utilisateur du 22/11 : TOUS les blocs). Ouvert par défaut, comme avant. Le TITRE est rendu PAR le composant ; le STATUT de connexion passe DU titre au corps, EN PREMIÈRE LIGNE. La grille « pilier-carte--connexion » n’existe plus pour ce bloc : le contenu s’organise dans l’encart (les éléments « Carrière/Accomplissements » suivent, inchangés).
+        EN: the fixed Connection card becomes a v14 pack BlocRepliable (open by default); the connection status moves to the top of the body. */}
+        <p data-statut-bloc="" style={{ margin: "0 0 0.6rem", fontSize: "0.8rem", color: "#b7b3a8" }}>{connecte ? "✅ connecté" : "◯ non connecté"}</p>
         {!connecte && (
           <p style={{ margin: "0 0 0.5rem" }}>Cliquez pour vous connecter — vous serez redirigé vers bungie.net.</p>
         )}
@@ -587,7 +591,7 @@ export default function DashboardPage() {
 
         {/* FR : ⚠️f AJOUT (14/11/2026) - rappel « Télécharger l'application » EN BAS de la carte Connexion, au même endroit connecté ou non (le composant décide seul de l'afficher : site web seulement, hors appli installée, hors petit écran, lien https réglé). / EN: "Download the app" reminder at the bottom of the connection card; the component decides visibility. */}
         <RappelAppliPC />
-      </div>
+      </BlocRepliable>
 
       {/* FR : ⚠️ AJOUT (28/09/2026, v0.2.8) - sélecteur de vue, demande de
       l'utilisateur : bascule entre Build Analyzer (par défaut) et la
@@ -943,5 +947,6 @@ export default function DashboardPage() {
       {/* FR : ⚠️ AJOUT (06/10/2026) - réglage du MODE DIAGNOSTIC (aussi dans l'appli installée), discret, en pied de page : voir components/InterrupteurModeDiagnostic.tsx. EN: ⚠️ ADDED - diagnostic mode switch. */}
       <InterrupteurModeDiagnostic />
     </div>
+    </BlocsRepliablesProvider>
   );
 }

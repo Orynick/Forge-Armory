@@ -1,6 +1,6 @@
 # SPEC — Intégration des encarts à équerres des blocs repliables — 2026-11-22
 
-**Statut :** brouillon (décisions d'intégration à valider par l'utilisateur avant câblage — Article VI).
+**Statut :** validée puis CÂBLÉE le 22/11/2026 — **en attente de l'APERÇU utilisateur** (`npm run dev` sur la branche, validation avant merge, cf. §6.3).
 **Branche :** `draft-encarts-equerres`
 **Spec de design de référence — FAIT FOI (aucune invention)** : `ressources-installateur/forge-armory/app-assets/ENCARTS-BLOCS.md` + `composants/BlocRepliable.tsx` + `composants/BlocRepliable.css` + maquettes `docs/encart-*.png` (livrés par l'utilisateur dans le pack v14).
 
@@ -41,11 +41,20 @@ Le pack v14 a livré le composant d'encart à équerres **prêt à l'emploi** da
 5. Les cartes non repliables (PilierCarte) et le reste de l'interface sont **inchangés** ;
 6. `npx tsc -b` 0 erreur ; `npm run test:logique` N/N ; `npm run build` OK ; CI verte.
 
-## 6. [À CLARIFIER avant câblage]
+## 6. Décisions tranchées par l'utilisateur (22/11/2026, puis « Ok, on y va comme ça »)
 
-1. **Liste exacte des blocs** : je propose de câbler TOUS les blocs qui utilisent `TitreRepliable` (à énumérer précisément sur l'aperçu) — à confirmer, ou liste à la carte ;
-2. **La carte « Connexion à Bungie »** (non repliable) : hors périmètre (garde son cadre actuel) — à confirmer :
-3. **Aperçu de validation** : câblage sur la branche, puis l'utilisateur vérifie en `npm run dev` AVANT tout merge (comme pour les visuels précédents).
+1. **TOUS les blocs repliables** ET **tous les blocs fixes du pack** → câblés : les **7 blocs du composant** (connexion, mon-build, inventaire, manifest, doctrine, artefact, sauvegarde) ;
+2. Les 5 cartes piliers + Contexte + Score global restent **hors périmètre** (aucun asset prévu au pack v14 ; « on généralisera après l'aperçu + test » si l'utilisateur livre les assets) ;
+3. **Aperçu de validation AVANT merge** : l'utilisateur vérifie en `npm run dev` sur la branche.
+
+**Notes d'historique** : les blocs Connexion et Manifest avaient été déclarés « PAS repliables » en v0.3.17 (retours utilisateurs d'alors) — décisions **supersédées** par le pack v14 (SVG repliables fournis pour les deux) et la décision du 22/11 (« on applique à tous les blocs »).
+
+**Câblage réalisé le 22/11/2026** (en attente d'aperçu) :
+- `src/components/BlocRepliable.tsx/.css` : copie ADAPTÉE du pack (urlVisuel au lieu du forgeAsset du pack, ref transmise, hauteur de titre fluide par défaut — le CSS du pack est copié INTACT puis étendu d'un bloc d'intégration option B ; l'archive reste la référence) + contexte de page (`BlocsRepliablesProvider` : tous ouverts au départ, AUCUN actif — les équerres cyan n'apparaissent qu'à l'interaction) ;
+- 7 blocs câblés : GrilleDoctrine, SelecteurArtefact, SelecteurInventaire, BlocPartage, ResumeBuild, RechercheManifest (devient repliable), carte Connexion du Dashboard (devient repliable) ;
+- le STATUT de chargement et les boutons DEV qui vivaient dans les sommaires passent EN PREMIÈRE LIGNE du corps de chaque bloc (contenu inchangé) ; la ref d'ancre Inventaire (« Aller à ») est transmise au composant ;
+- TitreRepliable et les règles CSS `details[open]…`/`.bloc-repliable-ligne` deviennent INUTILISÉS (conservés jusqu'à l'aperçu, suppression prévue après validation) ;
+- tsc 0, batterie 68/68 (1354/1354), build OK.
 
 ## 7. Décisions de l'utilisateur (consignées)
 

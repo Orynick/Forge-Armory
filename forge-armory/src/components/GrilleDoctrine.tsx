@@ -1,5 +1,5 @@
 import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
-import TitreRepliable from "./TitreRepliable";
+import { BlocRepliable, useBlocRepliable } from "./BlocRepliable";   // FR : AJOUT (22/11/2026, TODO §30) - encart à équerres du pack v14.
 import RangeeBoutonsEgaux from "./RangeeBoutonsEgaux";
 // FR : Grille visuelle facon jeu pour choisir la sous-classe (element) et
 // ses aspects/fragments/super/melee/grenade/competence de classe.
@@ -239,18 +239,12 @@ export default function GrilleDoctrine({ membership, db, classeActuelle, subclas
   }
 
   return (
-    <details open className="pilier-carte bloc-repliable">
-      {/* FR : ⚠️ CHANGÉ (27/09/2026, v0.2.3) - bloc repliable, comme le Coffre
-      (demande de l'utilisateur). Ouvert par défaut : rien ne change au
-      lancement, on replie ce qu'on veut. Style dans index.css (.bloc-repliable).
-      EN: ⚠️ CHANGED - collapsible block like the Vault, open by default. */}
-
-      <summary>
-        <span className="bloc-repliable-ligne">
-        <TitreRepliable categorie="doctrine" />
-        <span>{sousClasses ? `✅ ${sousClasses.length} sous-classe(s)` : "◯ non chargée"}</span>
-        </span>
-      </summary>
+    <BlocRepliable id="doctrine" {...useBlocRepliable("doctrine")}>
+      {/* FR : CHANGÉ (22/11/2026, chantier draft-encarts-equerres, TODO §30) - le <details>/cadre pilier-carte est remplacé par le composant BlocRepliable du pack v14 (encart à équerres, 4 états, un seul bloc actif ; design : ENCARTS-BLOCS.md fait foi) ; ouvert par défaut comme avant ; le statut de chargement passe DU titre au corps, EN PREMIÈRE LIGNE.
+      EN: old <details> card replaced by the v14 pack BlocRepliable; loading status moved from the title row to the top of the body. */}
+      <p data-statut-bloc="" style={{ margin: "0 0 0.6rem", fontSize: "0.8rem", color: "#b7b3a8" }}>
+        {sousClasses ? `✅ ${sousClasses.length} sous-classe(s)` : "◯ non chargée"}
+      </p>
 
       {/* FR : ⚠️ AJOUT (25/08/2026) - sélecteur de classe, repris tel quel
       de SelecteurPersonnage.tsx (fichier retiré après fusion, demande de
@@ -752,6 +746,6 @@ export default function GrilleDoctrine({ membership, db, classeActuelle, subclas
           })()}
         </>
       )}
-    </details>
+    </BlocRepliable>
   );
 }

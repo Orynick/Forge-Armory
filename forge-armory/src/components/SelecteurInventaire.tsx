@@ -22,7 +22,7 @@ import { estFaconnee } from "../lib/forge/faconnee";
 // display (a single class-filtered list) with a 4-column/collapsible-
 // section view, to "know what you're selecting before it's in Mon build".
 
-import TitreRepliable from "./TitreRepliable";
+import { BlocRepliable, useBlocRepliable } from "./BlocRepliable";   // FR : AJOUT (22/11/2026, TODO §30) - encart à équerres du pack v14.
 import FenetreDetailsPiece from "./FenetreDetailsPiece";   // ⚠️ AJOUT (30/10/2026) : la fenêtre de détails UNIQUE (Build Analyzer et Forge)
 import { useState, useMemo, useEffect, useRef } from "react";
 import { defilerVers } from "../lib/defilerVers";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : « Aller à »
@@ -787,22 +787,17 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
   const typesArmeDisponiblesInv = Array.from(new Set(inventaireBrut.map((o) => o.typeArme).filter(Boolean))).sort() as string[];
 
   return (
-    <details ref={refBloc} open className="pilier-carte bloc-repliable">
+    <BlocRepliable ref={refBloc} id="inventaire" {...useBlocRepliable("inventaire")}>
       {/* FR : ⚠️ CHANGÉ (27/09/2026, v0.2.3) - bloc repliable, comme le Coffre
       (demande de l'utilisateur). Ouvert par défaut : rien ne change au
       lancement, on replie ce qu'on veut. Style dans index.css (.bloc-repliable).
       EN: ⚠️ CHANGED - collapsible block like the Vault, open by default. */}
 
-      <summary>
-        <span className="bloc-repliable-ligne">
-        {/* FR : ⚠️ CHANGÉ (07/10/2026, v0.3.15) - titre illustré ; la précision « personnages + coffre » n'est pas dans l'image (la notice de l'archive le dit) : elle est gardée en sous-texte discret à côté. / EN: ⚠️ CHANGED - illustrated title; the "characters + vault" detail is kept as a muted sub-text. */}
-        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
-          <TitreRepliable categorie="inventaire" />
-          <span data-sous-titre-inventaire="" style={{ fontSize: "0.72rem", fontWeight: 400, color: "#7d7a70" }}>personnages + coffre + courrier</span>
-        </span>
-        <span>{objets ? `✅ ${objets.length} objets` : "◯ non chargé"}</span>
-        </span>
-      </summary>
+      {/* FR : CHANGÉ (22/11/2026, chantier draft-encarts-equerres, TODO §30) - le <details>/cadre pilier-carte est remplacé par le composant BlocRepliable du pack v14 (encart à équerres, 4 états, un seul bloc actif ; design : ENCARTS-BLOCS.md fait foi) ; ouvert par défaut comme avant ; la REF d’ancre (défilement « Aller à ») est transmise au composant ; le SOUS-TITRE « personnages + coffre + courrier » passe DU sommaire au corps, EN PREMIÈRE LIGNE (le titre est rendu PAR le composant).
+      EN: old <details> card replaced by the v14 pack BlocRepliable (anchor ref preserved); the sub-title moves to the top of the body. */}
+      <p data-statut-bloc="" style={{ margin: "0 0 0.6rem", fontSize: "0.8rem", color: "#b7b3a8" }}>
+        <span data-sous-titre-inventaire="" style={{ fontSize: "0.72rem", fontWeight: 400, color: "#7d7a70" }}>personnages + coffre + courrier</span>
+      </p>
 
       {/* FR : ⚠️ AJOUT (04/08/2026) - légende des repères visuels, demande
       de l'utilisateur (qui s'interrogeait aussi sur la signification de
@@ -1267,6 +1262,6 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
           </details>
         </>
       )}
-    </details>
+    </BlocRepliable>
   );
 }

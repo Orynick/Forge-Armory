@@ -2,6 +2,24 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 22/11/2026 (suite 2) — CÂBLAGE des encarts à équerres : les 7 blocs (branche `draft-encarts-equerres`)
+
+**Décisions de l'utilisateur** (22/11/2026, tranchant les [À CLARIFIER]) : **« On applique à tous les blocs repliables »** et **« à tous les blocs fixes »** → les **7 blocs du composant du pack** (connexion, mon-build, inventaire, manifest, doctrine, artefact, sauvegarde) ; les 5 piliers + Contexte + Score global **hors périmètre** (aucun asset dans le pack v14 — « on généralisera après l'aperçu + test ») ; **aperçu en `npm run dev` AVANT merge**.
+
+**Réalisé** :
+- `src/components/BlocRepliable.tsx` + `.css` : **copie adaptée du pack v14** (archives intouchées) — `urlVisuel` (catalogue appli), `ref` transmise (ancre « Aller à » Inventaire), hauteur de titre **fluide par défaut** (option B : `--titre-h: clamp(2,6rem, min(9,6vw, 6,56rem), 6,56rem)` — gabarit du pack 105 px en grand écran, plancher 2,6rem de l'appli en étroit, `max-width: 100%` : aucun débordement) ; le CSS du pack est copié **intact** puis étendu d'un bloc d'intégration documenté ;
+- **contexte de page** `BlocsRepliablesProvider` (DashboardPage) : tous ouverts au départ (parité avec l'existant), **aucun actif** — le cyan n'apparaît qu'à l'interaction (règle « un seul bloc actif », ENCARTS-BLOCS.md) ; `useBlocRepliable(id)` consommé par chaque bloc ;
+- **7 câblages** : GrilleDoctrine (doctrine), SelecteurArtefact (artefact — boutons DEV + compteur passés en tête de corps), SelecteurInventaire (inventaire — ancre `refBloc` transmise, sous-titre « personnages + coffre + courrier » en tête de corps), BlocPartage (sauvegarde), ResumeBuild (mon-build), RechercheManifest (**manifest : le bloc FIXE devient repliable** — SVG fournis par le pack, boutons DEV + statut en tête de corps), carte Connexion du Dashboard (**devient repliable** — les SVG repliables du pack existaient) ;
+- **statuts et actions migrés** : chaque statut (« ✅ N objets », « ◯ non chargé », « ✅ connecté »…) et les boutons de diagnostic qui vivaient dans les `<summary>` deviennent la **première ligne du corps** (contenu inchangé) ;
+- `TitreRepliable` et les règles `details[open]…`/`.bloc-repliable-ligne` de `index.css` deviennent **inutilisés** — conservés jusqu'à l'aperçu (retour arrière facile), suppression prévue après validation ;
+- **historique supersédé** : Connexion et Manifest « pas repliables » v0.3.17 — remplacés par la décision du jour (SVG dédiés livrés par l'utilisateur dans le pack).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; batterie **68/68 suites, 1354/1354** ; `npm run build` OK.
+
+**Reste** : **APERÇU utilisateur en `npm run dev`** (4 états, activation cyan unique, non-débordement ~375 px, comparaison aux maquettes `encart-*.png`) → validation AVANT merge, puis nettoyage (`TitreRepliable`…).
+
+---
+
 ## 22/11/2026 (suite) — MISE EN CHANTIER : encarts à équerres (branche `draft-encarts-equerres`, TODO §30)
 
 **Contexte** (signalé par l'utilisateur : « les encarts n'ont pas changé » après un run dev) : le composant d'encart à équerres du pack v14 est livré dans l'archive **sans câblage** (voulu à l'intégration du pack, cf. entrée précédente). Le chantier de câblage est lancé sur `draft-encarts-equerres`.

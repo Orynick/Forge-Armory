@@ -23,7 +23,7 @@ import { DIAGNOSTICS_ACTIFS } from "../lib/diagnosticsArchives";
 // roughly doubles the first download (~200MB instead of ~100), but each is
 // cached separately.
 
-import TitreCategorie from "./TitreCategorie";
+import { BlocRepliable, useBlocRepliable } from "./BlocRepliable";   // FR : AJOUT (22/11/2026, TODO §30) - encart à équerres du pack v14 (TitreCategorie n’est plus utilisé PAR CE BLOC).
 import { useEffect, useMemo, useRef, useState } from "react";
 import { obtenirElementFiltre, ELEMENTS_FILTRE, ElementFiltre } from "../lib/manifest/doctrine";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : filtre d'élément
 import { LIBELLES_ELEMENT_FR } from "../data/libellesElements";
@@ -382,46 +382,47 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
   return (
     // FR : ⚠️ CHANGÉ (07/10/2026, v0.3.17) - le bloc « Recherche dans le Manifest » n'est PAS repliable (retour de l'utilisateur sur la 0.3.16) : retour à un bloc fixe (<div> + <h3>) avec la version SANS losange + / − du titre. L'essai de la 0.3.16 (bloc repliable) est abandonné.
     // EN: ⚠️ CHANGED - this block is NOT collapsible (user feedback): back to a fixed block with the no-diamond title.
-    <div className="pilier-carte">
-      <h3>
-        <TitreCategorie categorie="manifest" />
+    <BlocRepliable id="manifest" {...useBlocRepliable("manifest")}>
+      {/* FR : CHANGÉ (22/11/2026, chantier draft-encarts-equerres, TODO §30) - le bloc FIXE pilier-carte devient un BlocRepliable du pack v14 (encart à équerres, titre rendu PAR le composant — les SVG repliables du Manifest existent dans le pack ; l’historique « non repliable » de la v0.3.17 est supersédé par la décision utilisateur du 22/11 : TOUS les blocs). Ouvert par défaut, comme avant. Les boutons de diagnostic DEV et le statut de chargement passent DU titre au corps, EN PREMIÈRE LIGNE.
+      EN: the fixed card becomes a v14 pack BlocRepliable (open by default as before); dev buttons and loading status move to the top of the body. */}
+      <div data-actions-bloc="" style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", margin: "0 0 0.6rem" }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
-          {/* FR : ⚠️ AJOUT (04/08/2026) - bouton de débogage réservé au
-          mode DÉVELOPPEMENT : import.meta.env.DEV vaut true avec
-          `npm run dev` et false dans un build de production, donc les
-          invités ne le verront jamais. Demande explicite de
-          l'utilisateur. */}
-          {import.meta.env.DEV && (
-            <button
-              onClick={gererTelechargementManifests}
-              disabled={telechargementEnCours}
-              title="Télécharge les Manifests FR et EN comme fichiers .sqlite (mode développement uniquement)"
-              style={{ fontSize: "0.7rem", fontWeight: 400 }}
-            >
-              {telechargementEnCours && <span className="indicateur-chargement" />}
-              {telechargementEnCours ? "Téléchargement..." : "⬇ Manifests FR+EN (dev)"}
-            </button>
-          )}
-          {/* FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - OUTIL DE TEST, mode DÉVELOPPEMENT seulement (jamais dans le logiciel installé) : marque le cache comme périmé ; au prochain démarrage (Ctrl+F5) la mise à jour automatique se déclenche pour de bon, sans attendre une vraie nouvelle version de Bungie. / EN: ⚠️ ADDED - dev-only test tool. */}
-          {import.meta.env.DEV && (
-            <button
-              onClick={async () => {
-                const marquees = await simulerManifestPerime(["fr", "en"]);
-                setMessageMiseAJourAuto(
-                  marquees.length > 0
-                    ? `🧪 Cache marqué périmé (${marquees.map((l) => l.toUpperCase()).join(" et ")}) : recharge la page (Ctrl+F5) pour voir la mise à jour automatique.`
-                    : "🧪 Aucun Manifest en cache à marquer : charge d'abord le Manifest."
-                );
-              }}
-              title="Mode développement : fait croire à l'appli que son Manifest est périmé, pour essayer la mise à jour automatique au prochain démarrage"
-              style={{ fontSize: "0.7rem", fontWeight: 400 }}
-            >
-              🧪 Manifest périmé (test)
-            </button>
-          )}
-          {dbFr ? (dbEn ? "✅ FR + EN chargés" : "✅ FR chargé") : "◯ non chargé"}
+        {/* FR : ⚠️ AJOUT (04/08/2026) - bouton de débogage réservé au
+        mode DÉVELOPPEMENT : import.meta.env.DEV vaut true avec
+        `npm run dev` et false dans un build de production, donc les
+        invités ne le verront jamais. Demande explicite de
+        l'utilisateur. */}
+        {import.meta.env.DEV && (
+          <button
+            onClick={gererTelechargementManifests}
+            disabled={telechargementEnCours}
+            title="Télécharge les Manifests FR et EN comme fichiers .sqlite (mode développement uniquement)"
+            style={{ fontSize: "0.7rem", fontWeight: 400 }}
+          >
+            {telechargementEnCours && <span className="indicateur-chargement" />}
+            {telechargementEnCours ? "Téléchargement..." : "⬇ Manifests FR+EN (dev)"}
+          </button>
+        )}
+        {/* FR : ⚠️ AJOUT (13/10/2026, v0.4.3) - OUTIL DE TEST, mode DÉVELOPPEMENT seulement (jamais dans le logiciel installé) : marque le cache comme périmé ; au prochain démarrage (Ctrl+F5) la mise à jour automatique se déclenche pour de bon, sans attendre une vraie nouvelle version de Bungie. / EN: ⚠️ ADDED - dev-only test tool. */}
+        {import.meta.env.DEV && (
+          <button
+            onClick={async () => {
+              const marquees = await simulerManifestPerime(["fr", "en"]);
+              setMessageMiseAJourAuto(
+                marquees.length > 0
+                  ? `🧪 Cache marqué périmé (${marquees.map((l) => l.toUpperCase()).join(" et ")}) : recharge la page (Ctrl+F5) pour voir la mise à jour automatique.`
+                  : "🧪 Aucun Manifest en cache à marquer : charge d'abord le Manifest."
+              );
+            }}
+            title="Mode développement : fait croire à l'appli que son Manifest est périmé, pour essayer la mise à jour automatique au prochain démarrage"
+            style={{ fontSize: "0.7rem", fontWeight: 400 }}
+          >
+            🧪 Manifest périmé (test)
+          </button>
+        )}
+        {dbFr ? (dbEn ? "✅ FR + EN chargés" : "✅ FR chargé") : "◯ non chargé"}
         </span>
-      </h3>
+      </div>
 
       {/* FR : message de suivi du téléchargement, avec l'emplacement réel
       des fichiers - le navigateur n'a pas le droit de choisir le dossier,
@@ -763,7 +764,7 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
           )}
         </>
       )}
-    </div>
+    </BlocRepliable>
   );
 }
 
