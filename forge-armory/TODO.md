@@ -816,7 +816,7 @@ tsc 0, batterie 68/68 (1354/1354), build OK.
   (~375 px) — validation AVANT merge ;
 - suppression de `TitreRepliable` et des règles CSS `<details>`/`.bloc-repliable-ligne`
   devenues inutilisées (après validation de l'aperçu) ;
-- FileReader : vérifier l'onglet Inventaire (ancre « Aller à ») et le bloc Connexion
+- à vérifier aussi sur l'aperçu : l'onglet Inventaire (ancre « Aller à ») et le bloc Connexion
   (devient repliable — historique v0.3.17 supersédé).
 
 ### 29. Forge : onglet « liste de souhaits » d'armes (demande du 18/11/2026)
