@@ -377,10 +377,14 @@ export async function indexerManifest(
   db: Database,
   langue: string,
   version: string,
-  tables: string[] = TABLES_RECHERCHE_PAR_DEFAUT
+  tables: string[] = TABLES_RECHERCHE_PAR_DEFAUT,
+  // FR : ⚠️ AJOUT (14/11/2026, retour de test mobile) - progression par table : sur un téléphone, l'indexation prend des minutes ; le message doit AVANCER au lieu de figer l'onglet. / EN: per-table progress callback.
+  onProgress?: (info: { table: string; fait: number; total: number }) => void
 ): Promise<void> {
   const idbDb = await ouvrirDB();
+  let fait = 0;
   for (const table of tables) {
+    if (onProgress) onProgress({ table, fait, total: tables.length });
     const cle = `search_${VERSION_INDEX_RECHERCHE}_${table}_${langue}_${version}`;
     try {
       const dejaEnCache = await idbDb.get("searchIndex", cle);
@@ -406,6 +410,9 @@ export async function indexerManifest(
     // SQLite data and made the IndexedDB cache unnecessarily large.
     const compact = lignes.map(({ id, jsonNormalise }) => ({ id, jsonNormalise }));
     idbDb.put("searchIndex", compact, cle).catch(() => {});
+    fait++;
+    // FR : ⚠️ (14/11/2026) rend la main ENTRE les tables : le message de progression se rafraîchit, l'onglet reste réactif. / EN: yields between tables so the progress message can update.
+    if (fait < tables.length) await new Promise((r) => setTimeout(r, 0));
   }
 }
 

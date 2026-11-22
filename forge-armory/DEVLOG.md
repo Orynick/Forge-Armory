@@ -2,6 +2,62 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 22/11/2026 — Intégration du pack v14 de l'archive (lettre « A » épaissie + encarts à équerres)
+
+**Contexte** : commit `405729f` (« MàJ assets visuels ») livrait le pack v14 UNIQUEMENT dans l'archive de référence `ressources-installateur/forge-armory/app-assets/` (37 visuels au « A » stylisé (Λ) épaissi : titres, sélecteur, profils, actions, blocs repliables, logo et planche PNG ; nouveau composant d'encart `composants/BlocRepliable.tsx/.css` + `ENCARTS-BLOCS.md` + maquettes `docs/encart-*.png` ; retrait des 3 fichiers « concept 3 » `telecharger-application`). La CI rouge (66/68 suites) venait de ce que `public/assets/`, le catalogue applicatif et les visuels dérivés n'avaient pas suivi.
+
+**Réalisé (intégration complète, octet pour octet depuis l'archive)** :
+- `public/assets/` reconstruit depuis l'archive v14 + `scripts/retoucher-visuels.mjs` (37 retouches réappliquées : soulignage, carte Doctrine, versions fixes Connexion/Manifest, renumérotation des cartes, bouton Carrière élargi) + `scripts/generer-propositions-solo-forge.mjs` (les 5 fichiers fabriqués Forge/Inventaire régénérés) ; les 3 fichiers « concept 3 » retirés de `public/assets/` (117 → 114 fichiers). `retoucher --verifier` : 0 manquante ; générateur reproductible octet pour octet.
+- `src/data/forge/forgeAssets.ts` resynchronisé sur le catalogue de l'archive (identique octet pour octet ; les 3 entrées `*.telecharger-application.*` disparaissent avec leurs fichiers).
+- `src/components/RappelAppliPC.tsx` : le lien « Télécharger l'application » utilise désormais le bouton de la charte conservé `actions.telecharger.repos/.selectionne` (même dessin 6496 × 1024, « A » épaissi) à la place du concept 3 retiré ; test UI manuel `tests/ui/rappel-appli-pc.py` mis à jour en conséquence.
+- `generer-icones.py` relancé depuis le nouveau logo du kit : seuls les fichiers porteurs du lettrage changent (`public/logo-forge-armory-texte.png`, `declinaisons/logo-complet.png/.webp`) ; emblème, favicons et `icon.ico` inchangés (le « A » n'y est pas lisible) — régénérateur toujours idempotent.
+- L'encart à équerres (`BlocRepliable.tsx/.css`) reste dans l'archive « prêt à l'emploi » : AUCUN câblage dans l'appli pour l'instant (les blocs gardent leur cadre actuel).
+
+**Vérifié** : batterie logique **68/68 suites, 1354/1354 contrôles** (dont `reproductibilite-visuels` 7/7, `visuels` 20/20, `carriere-large` 19/19, `rappel-appli-pc` 9/9) ; `identite-visuels.py` **14/14** ; `tsc -b` 0 erreur ; `npm run build` OK. CI verte attendue.
+
+---
+
+## 19/11/2026 (suite) — Correctifs Node.js du 11/11/2026 appliqués au socle (24.22.1 → 24.22.3 exigé)
+
+**Contexte** : versions de sécurité Node.js du **11/11/2026** — 16 CVE (7 HIGH, surtout HTTP/2/TLS/HTTPS **serveur** : CVE-2026-123864 fuite mémoire HTTPS, CVE-2026-123863 abort distant HTTP/2, CVE-2026-123872 contournement TLS 1.2…). Lignes corrigées : 22.23.5, **24.22.3**, 26.13.1. **Impact direct nul pour Forge Armory** : client desktop, aucun serveur Node exposé ; l'exigence se justifie par l'hygiène du socle (outils de dev, CI, build de l'installateur) — suivi ⏳ consigné dans la TODO depuis le 08/11.
+
+**Réalisé (branche `draft-node-24-22-3`)** :
+- `forge-armory/package.json` : `engines.node` >=24.22.1 → **>=24.22.3** (épine dorsale du suivi) ;
+- `.github/workflows/ci.yml` : `node-version: 24.22.1` → `24.22.3` ;
+- `.github/workflows/release.yml` : Node du runner de fabrication de l'installateur 24.22.1 → **24.22.3** (l'exe embarque le Node d'ELECTRON, indépendant et déjà corrigé via 45.3.4 — aucun nouveau build d'installateur nécessaire pour ce seul changement) ;
+- TODO : suivi ⏳ soldé (FAIT le 19/11).
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run build` OK ; batterie logique OK ; CI sur la branche (Node 24.22.3, la version du runner change aussi — validée par un run vert).
+
+---
+
+## 19/11/2026 — LIVRAISON v0.7.1 : installateur Windows avec les correctifs de sécurité (bump 0.7.0 → 0.7.1)
+
+**Décision utilisateur (« On envoie maintenant », 19/11/2026)** : livrer immédiatement un installateur tenant compte de la PR #40 (Electron 45.3.4), sans attendre les versions de sécurité Node.js du 11/11 (suivi ⏳ inchangé : rehausser `engines.node` à la sortie de la 24.x corrective).
+
+**Réalisé** :
+- Bump **0.7.0 → 0.7.1** (`package.json` + lock, symétrique du tag `v0.7.1` à venir) — numéro NEUF obligatoire : le 0.7.0 a déjà été tagué/distribué (site), un exe de contenu différent sous le même numéro créerait une ambiguïté ;
+- Entrée CHANGELOG utilisateur « correctifs de sécurité » (sans nouveauté visible : la coquille Electron change, pas l'appli) avec rappel « **pas d'auto-update : désinstaller l'ancienne version puis installer celle-ci** » ;
+- L'installateur NSIS est fabriqué par le workflow `release.yml` (runner `windows-latest`, `npm ci` reproductible depuis le lock, `tsc -b && vite build`, `electron-builder --win`) et attaché à la release GitHub du tag — **aucun build manuel, aucun upload manuel**.
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run build` OK ; batterie logique 66/66 suites (0 échec logique). CI vérifiée sur le tag.
+
+---
+
+---
+
+## 14/11/2026 (suite 7) — RETOUR DE TEST MOBILE : « l'indexation tourne dans le vide » — progression affichée et onglet gardé réactif
+
+**Constat de l'utilisateur** (site en ligne, encore en v0.6.1 — le déploiement différé n'a pas encore pris en compte le français seul) : sur Android, une fois le Manifest téléchargé, le message « Indexation des sources de perks... » reste figé indéfiniment, onglet vivant.
+
+**Diagnostic** : l'index inverse perk → objet (`construireIndexEnMemoire`, perkSource.ts) est l'étape la PLUS LOURDE du chargement — parcours de ~100 000 définitions en SQL bloquant. Sur PC : quelques secondes. Sur téléphone : potentiellement plusieurs minutes de calcul SANS AUCUN signe de vie (un seul `setTimeout(0)` avant le bloc). Rien ne plantait : l'étape est simplement longue et opaque. Rappels : ce travail n'arrive qu'une fois par version du Manifest (persisté en IndexedDB), sauf si le quota de stockage du téléphone refuse l'écriture (le diagnostic mobile indique « persistant : oui/non »).
+
+**Corrigé (sans changer la durée du travail)** :
+- `perkSource.ts` — le parcours rend la main toutes les 2 000 lignes (`setTimeout 0`) et rapporte `{ fait, total }` (le total vient d'un `SELECT COUNT(*)`) : le navigateur peut rafraîchir le message ET rester réactif pendant la boucle ;
+- `search.ts` (`indexerManifest`) — progression par table et rendu de main entre les tables : « Indexation (français) : 12/25 tables (Destiny...Definition)... » ;
+- `RechercheManifest.tsx` — messages de progression branchés : « Indexation des sources de perks... 43 % (43 210/100 300) ».
+
+**Vérifié** : tsc 0, batterie 68/68 suites (1354/1354), build OK, build web OK. À revalider sur téléphone après déploiement (A-TESTER-0.7.2, critères 5-7).
 ## 14/11/2026 (suite 6) — LIVRAISON : mobile-phase-0 — Manifest français seul sur téléphone, diagnostic mobile, connexion durcie (spec `SPEC-MOBILE-PHASE-0-2026-11-05`, branche `draft-pwa`)
 
 **Contexte** : spec mobile-phase-0 validée par l'utilisateur le 14/11/2026 (corrections acceptées : version 0.7.0, adresse `https://forge-armory.orynick.fr`, tests possibles sous Firefox). Constat de l'utilisateur : le site en ligne proposait encore le téléchargement FR + EN sur Android. Ce qui suit complète la phase 0 ; le site (v0.7.0), le mode diagnostic réservé (`proprietaire.ts`), `netlify.toml` et les chemins absolus (`NETLIFY`) étaient déjà livrés dans `main`.
@@ -20,6 +76,28 @@
 
 **Reste** : déploiement Netlify DIFFÉRÉ (plus de crédits de build, recharge mensuelle — TODO §26) ; validation utilisateur des critères d'acceptation (§5) à consigner ici après déploiement et tests sur Android.
 
+---
+
+
+---
+
+## 08/11/2026 — MISE À JOUR DE SÉCURITÉ (branche `draft-deps-electron-sec`) : Electron 45.3.4 (correctifs Chromium/V8 d'octobre-novembre) + correctifs mineurs
+
+**Motif (contrôle sécurité demandé par l'utilisateur)** : `npm audit` restait à 0 vulnérabilité et l'exigence Node.js >=24.22.1 couvrait bien CVE-2026-111497 (Node2Shell, KEV CISA), MAIS le logiciel embarquait Electron 45.0.0, antérieur aux mises à jour de sécurité Electron 45.2.0/45.2.1 (30/10) et 45.2.2 (03/11) : Chromium/V8/Skia non corrigés, dont la critique CVE-2026-76024 (MediaStream) et le correctif Brotli de Node2Shell — la liste blanche réseau limite l'exposition, pas le risque zéro (pages distantes Bungie + sortie le 11/11 de correctifs Node HIGH attendus).
+
+**Réalisé** :
+- `electron` 45.0.0 → **45.3.4** (dernière corrective de la ligne 45 : Chromium 156 backports sécurité) ;
+- `react-router-dom` 7.18.4 → **7.18.6** ; `sql.js` 1.15.1/1.15.2 → **1.16.0** ; `electron-builder` 26.15.3 → **26.18.0** (exactes, `package.json` + lock) ;
+- Aucune montée majeure : `vite` 8 / `@vitejs/plugin-react` 6 / `typescript` 7 restent hors périmètre (chantier séparé).
+
+**Constat `npm audit`** : `--omit=dev` = **0 vulnérabilité** en production. 6 modérées remontent dans les OUTILS de build via `minimatch` (advisory GHSA-g3hv-75wg-m249, DoS glob, transitif de `electron-builder`) ; l'advisory est NOUVEAU (identique avec electron-builder 26.15.3, vérifié) et son « fix » proposé est un downgrade cassant (24.13.3) — refusé, conformément à la règle « jamais `npm audit fix --force` ».
+
+**Vérifié** : `npx tsc -b` 0 erreur ; `npm run build` OK ; batterie **logique 66/66 suites** (0 échec ; suites d'interface non exécutables dans l'environnement de travail, Playwright absent). Pas de bump applicatif.
+
+**⏳ Suivi** : versions de sécurité Node.js annoncées pour le **11/11/2026** (HIGH, lignes 22/24/26) → rehausser `engines.node` dès la sortie de la 24.x corrective (contrôle avant chaque version).
+
+---
+
 ## 08/11/2026 — RÉCUPÉRATION de draft-armure-score (branche `vibe/recup-armure-score-e7d066`)
 
 **Contexte** : tri de la branche exploratoire `draft-armure-score` (chantier §2.1 « lien armure → score », 15 commits de retard sur `main`, sans PR). Le cœur du chantier était déjà livré dans `main` par la PR #19 (`draft-mod-armures`, v0.5.6) avec son propre test (`armure-simulation-score.test.ts`). Seuls les éléments non couverts par `main` sont récupérés ; le reste de la branche (propagations, bundle `_fixtures.bundle.mjs` artéfact de build) est abandonné.
@@ -31,6 +109,19 @@
 - `documentation/tests/LISTE-TESTS-armure-score.md` — checklist manuelle de 9 contrôles de la boucle Forge → score → badge → avertissement → retour au réel.
 
 **Vérifié** : tsc 0, batterie 64/64 suites (1304/1304 contrôles, +1 suite/+11 contrôles), build OK.
+
+---
+
+## 18/11/2026 — FIXTURES DU SCORING : exécutées et validées (TODO §4 TERMINÉ)
+
+**Contexte** : l'item TODO §4 attendait l'exécution de `node scripts/tester-avec-fixtures.mjs` (test de bout en bout du Pilier 2 : extraction → détection → chaînes), le script ayant été corrigé le 05/11 (lanceur esbuild + Node) mais jamais encore joué en entier.
+
+**Réalisé** : exécution dans l'environnement de l'assistant (le script est 100 % hors ligne : fixtures locales, fausse base `fausse-db.mjs`, modules factices — aucun réseau, aucune clé). **Résultat : exit 0, zéro échec, 170 lignes de sorties toutes conformes aux « Attendu »**, dont :
+- `detecterChainesVerbes` : Ralentissement → Gel ET Gel → Brisure (ricochet à 2 sauts) ✓ ;
+- `detecterRessourcesGenerees` : grenade (Dévoration) et classe (Brèche abyssale) ✓ ;
+- `enrichirAvecChaines` (correction du 26/08) : Gel et Brisure passent « absent » → « source_seule » (+12 pts chacun), score 48 → 72 (+24) ✓.
+
+**Conséquence** : TODO §4 est **TERMINÉ**. Le lancement du script devient un rituel de contrôle avant chaque version.
 
 ---
 

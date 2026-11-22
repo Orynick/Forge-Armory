@@ -37,10 +37,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Node 24.22.1 (comme .nvmrc / engines)
+      - name: Node 24.22.3 (comme engines ; versions de sécurité Node.js du 11/11/2026)
         uses: actions/setup-node@v4
         with:
-          node-version: "24.22.1"
+          node-version: "24.22.3"
           cache: npm
           cache-dependency-path: forge-armory/package-lock.json
 

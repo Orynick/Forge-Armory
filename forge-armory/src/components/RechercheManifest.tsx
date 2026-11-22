@@ -32,7 +32,7 @@ import { assurerManifestAJour, etatCachesManifests, simulerManifestPerime, telec
 // FR : ⚠️ AJOUT (05/11/2026, spec mobile-phase-0 §2.4) - sur un TÉLÉPHONE, le Manifest est chargé en FRANÇAIS SEUL (l'anglais n'y est jamais téléchargé ni proposé) ; la détection vit dans lib/appareil.ts (testable seule). / EN: on a phone the Manifest loads in French only.
 import { estTelephone, largeurEcran } from "../lib/appareil";
 import { demarrerManifests, LangueManifest } from "../lib/manifest/demarrage";   // ⚠️ AJOUT (13/10/2026, v0.4.3) : mise à jour automatique d'un Manifest PÉRIMÉ
-import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance } from "../lib/manifest/search";
+import { rechercherBilingue, indexerManifest, ModeRecherche, ResultatRechercheBilingue, CategorieResultat, diagnostiquerCorrespondances, DiagnosticCorrespondance, TABLES_RECHERCHE_PAR_DEFAUT } from "../lib/manifest/search";
 // FR : ⚠️ AJOUT (19/10/2026, chantier « saisons et sources ») - la catégorie de SOURCE d'un objet (d2-additional-info, MIT) affichée à côté de la chaîne brute, et le filtre `source:`.
 import { sourceObjetParHash, jointureSource } from "../data/sourceObjet";
 import { saisonParNumero, saisonDeLObjet } from "../data/saisons";   // ⚠️ AJOUT (19/10/2026) : saison de sortie en clair (secours du nom + dates)
@@ -167,7 +167,10 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
       await new Promise((r) => setTimeout(r, 0)); // laisse React afficher le message avant le travail bloquant
       // FR : ⚠️ durée d'indexation (spec mobile-phase-0 §2.5), relevée avec les autres étapes (lib/manifest/download.ts). / EN: indexing duration.
       const debutIndexationFr = maintenantMs();
-      await indexerManifest(baseFr, "fr", resultatFr.version);
+      // FR : ⚠️ (14/11/2026, retour de test mobile) - progression PAR TABLE : sur téléphone, l'indexation prend des minutes ; le message doit AVANCER (« 12/25 ») au lieu de figer l'onglet. / EN: per-table progress.
+      await indexerManifest(baseFr, "fr", resultatFr.version, TABLES_RECHERCHE_PAR_DEFAUT, (p) =>
+        setEtapeChargement(`Indexation (français) : ${p.fait}/${p.total} tables (${p.table})...`)
+      );
       enregistrerDureeEtape("indexation (FR)", debutIndexationFr);
       // FR : ⚠️ AJOUT (03/08/2026) - construit l'index inversé perk ->
       // équipements ici, une seule fois, pour savoir sur quel objet se
@@ -179,7 +182,14 @@ export default function RechercheManifest({ onManifestCharge, onAjouterObjet, on
       setEtapeChargement("Indexation des sources de perks...");
       await new Promise((r) => setTimeout(r, 0));
       const debutIndexationPerks = maintenantMs();
-      await construireIndexInversePerks(baseFr, "fr", resultatFr.version);
+      // FR : ⚠️ (14/11/2026) - progression de l'étape la PLUS LOURDE (parcours de ~100 000 objets) : pourcentage affiché, onglet gardé réactif par tranches. / EN: percentage progress for the heaviest step.
+      await construireIndexInversePerks(baseFr, "fr", resultatFr.version, (p) =>
+        setEtapeChargement(
+          p.total > 0
+            ? `Indexation des sources de perks... ${Math.floor((p.fait / p.total) * 100)} % (${p.fait}/${p.total})`
+            : `Indexation des sources de perks... ${p.fait} objets`
+        )
+      );
       enregistrerDureeEtape("indexation des perks (FR)", debutIndexationPerks);
       setDbFr(baseFr);
       onManifestCharge?.(baseFr);
