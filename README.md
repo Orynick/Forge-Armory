@@ -10,13 +10,17 @@ Application web (React + Vite + TypeScript) — en ligne dans le navigateur ou i
 
 Elle se connecte à votre compte **Bungie.net** (OAuth) pour lire votre inventaire et équiper vos builds en jeu.
 
-- **Build Analyzer** : score de chaque build selon 5 piliers pondérés (système Armor 3.0), pondération par contexte (Neutre, PvE Roaming, PvE DPS, PvP) ou personnalisée.
-- **Forge** : simulation locale des perks et mods (prise en compte dans le score) et **écriture en jeu** — application réelle sur votre compte Bungie, pièce par pièce, derrière un écran de confirmation.
+- **Build Analyzer** : score de chaque build selon 5 piliers pondérés (système Armor 3.0), pondération par contexte (Neutre, PvE Roaming, PvE DPS, PvP) ou personnalisée — avec la **Doctrine** (sous-classe, super, aspects et fragments, capacité réelle en fragments).
+- **Forge** : collection et inventaire des armes et armures (personnages et **Coffre**), simulation locale des perks et mods (prise en compte dans le score) et **écriture en jeu** — application réelle sur votre compte Bungie, pièce par pièce, derrière un écran de confirmation.
 - **Optimiseur** : parcourt tout le compte (coffre + personnages) et propose les meilleurs ensembles d'armures par paliers, avec minimums de stats et choix de l'exotique.
 - **Loadouts** : sauvegarde, export/import JSON (réimportable entre le site et l'appli installée), équipement en jeu — en ligne, un bandeau rappelle que les sauvegardes vivent dans le cache du navigateur.
+- **Exports et partage** : fiche du build en JSON, texte, image (JPEG/PNG) ou PDF, dont l'**infographie** du build.
+- **Liste de souhaits** : armes recherchées avec perks visés et type de pièce maîtresse, avec indication de possession (personnage / Coffre / jamais obtenue) — *à venir*.
 - **Legendarium** : bibliothèque de Lore en lecture passive (Grimoire D1, Légendes D2, armes, armures, cosmétiques) — **fonction secondaire**, avec export infographique PNG.
+- **Et aussi** : manifest et recherche bilingues **FR/EN** (français seul sur mobile), **Carrière** (statistiques du compte), **Accomplissements** (Triomphes groupés par sceau).
 
 Version en ligne : [`https://forge-armory.orynick.fr`](https://forge-armory.orynick.fr)
+Version actuelle : **v0.7.1** — [télécharger l'installable Windows](https://github.com/Orynick/Forge-Armory/releases/latest)
 
 Par Orynick/Orygamer.
 
