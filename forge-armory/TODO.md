@@ -795,6 +795,38 @@ navigateur (état OAuth introuvable = refus).
 - Phase 4 (Manifest allégé) remonte AVANT la phase 2 si l'onglet ne tient pas
   la charge même en français seul (spec §7).
 
+### 29. Forge : onglet « liste de souhaits » d'armes (demande du 18/11/2026)
+
+**Demande** : dans la Forge, ajouter un onglet SIMILAIRE à « Collection » (même
+mécanique de vue) permettant de lister les armes qu'on souhaite OBTENIR, avec
+pour chacune : les perks visées et le type de pièce maîtresse (masterwork).
+
+**But** : savoir ce qu'on cherche — et, bonus, vérifier si l'arme est
+actuellement sur un personnage ou dans le Coffre (l'app sait déjà le lire :
+vue Inventaire + instances possédées).
+
+**Nom de l'onglet — [À TRANCHER à la spec]** (propositions de l'assistant du
+18/11, recommandation en tête) : « Grailles » ⭐ / « Souhaits » / « Recherche » /
+« Traquer ». Les onglets existants sont « Collection » et « Inventaire » (un
+mot, français).
+
+**Pistes de conception (à affiner en spec, Article VI)** :
+- structure d'une entrée : référence d'arme (comme la Collection), liste de
+  perks souhaitées (barrel/mag/perk/ttrait, comme la simulation de la Forge),
+  type de pièce maîtresse ;
+- affichage de la possession : SIMILAIRE à la vue Inventaire (« sur <nom du
+  personnage> » / « dans le Coffre » / « jamais obtenue »), en réutilisant
+  l'agrégat d'inventaire existant et la détection « grisée si jamais obtenue »
+  de la Collection ;
+- boutons d'action réutilisables : « Ajouter au build », ouverture de la fiche
+  Détails du modèle d'arme ;
+- persistance : localStorage comme les loadouts (avec le même avertissement
+  cache navigateur en version Web — réutiliser le bandeau du 14/11) ;
+- export/import JSON (même mécanisme que les loadouts : conservation
+  d'une copie).
+
+**Pré-requis** : spec courte validée avant tout code (Article VI).
+
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 
 - **Renommage `main` → `prod` + branche de transition (`dev`)** — écarté (14/11/2026,

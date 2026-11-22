@@ -112,6 +112,12 @@
 
 ---
 
+## 18/11/2026 (suite) — NOUVEL ITEM TODO §29 : onglet « liste de souhaits » d'armes dans la Forge
+
+**Demande de l'utilisateur** (18/11/2026) : onglet de la Forge similaire à « Collection » listant les armes qu'on souhaite obtenir (perks visées + type de pièce maîtresse), avec indication de la possession actuelle (personnage / Coffre / jamais obtenue). Options de nom proposées (« Grailles » recommandé, « Souhaits », « Recherche », « Traquer ») — **[À TRANCHER]** au moment de la spec. Item TODO §29 créé (pistes de conception consignées, entrée JSON/loadouts et bandeau cache navigateur réutilisables) ; **aucun code** tant que la spec n'est pas validée (Article VI).
+
+---
+
 ## 18/11/2026 — FIXTURES DU SCORING : exécutées et validées (TODO §4 TERMINÉ)
 
 **Contexte** : l'item TODO §4 attendait l'exécution de `node scripts/tester-avec-fixtures.mjs` (test de bout en bout du Pilier 2 : extraction → détection → chaînes), le script ayant été corrigé le 05/11 (lanceur esbuild + Node) mais jamais encore joué en entier.
