@@ -6,6 +6,8 @@
 
 Application web (React + Vite + TypeScript) — en ligne dans le navigateur ou installable sur Windows — pour étudier et scorer des builds Destiny 2 selon 5 piliers pondérés (système Armor 3.0) — avec Forge (simulation des perks/mods et **écriture en jeu**), optimiseur de build, Legendarium, gestion et partage des Loadouts.
 
+Elle se connecte à votre compte **Bungie.net** (OAuth) pour lire votre inventaire ; la Forge peut ensuite **écrire réellement** vos perks d'armes et mods d'armure en jeu, pièce par pièce, derrière un écran de confirmation.
+
 Version en ligne : [`https://forge-armory.orynick.fr`](https://forge-armory.orynick.fr)
 
 Par Orynick/Orygamer.
