@@ -795,6 +795,16 @@ navigateur (état OAuth introuvable = refus).
 - Phase 4 (Manifest allégé) remonte AVANT la phase 2 si l'onglet ne tient pas
   la charge même en français seul (spec §7).
 
+### 30. Encarts à équerres des blocs repliables — câblage (demande du 22/11/2026)
+
+Le composant est LIVRÉ dans le pack v14 (`app-assets/composants/BlocRepliable.tsx/.css` + spec
+design `ENCARTS-BLOCS.md` + maquettes) mais **aucun câblage** dans l'appli (DEVLOG 22/11).
+Chantier : remplacer le cadre « rectangle gris arrondi » des blocs repliables par l'encart
+à équerres. Spec d'intégration : `documentation/specs/SPEC-ENCARTS-EQUERRES-2026-11-22.md`
+(branche `draft-encarts-equerres`) — option B validée (hauteur de titre fluide, aucun
+débordement mobile ; largeur fixée par le titre, le contenu s'y conforme). [À CLARIFIER] :
+liste exacte des blocs, statut de la carte Connexion, validation de l'aperçu avant merge.
+
 ### 29. Forge : onglet « liste de souhaits » d'armes (demande du 18/11/2026)
 
 **Demande** : dans la Forge, ajouter un onglet SIMILAIRE à « Collection » (même

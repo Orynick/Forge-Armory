@@ -2,6 +2,18 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 22/11/2026 (suite) — MISE EN CHANTIER : encarts à équerres (branche `draft-encarts-equerres`, TODO §30)
+
+**Contexte** (signalé par l'utilisateur : « les encarts n'ont pas changé » après un run dev) : le composant d'encart à équerres du pack v14 est livré dans l'archive **sans câblage** (voulu à l'intégration du pack, cf. entrée précédente). Le chantier de câblage est lancé sur `draft-encarts-equerres`.
+
+**Décisions de l'utilisateur (22/11/2026)** :
+- **largeur fixée par le gabarit du titre** (encart figé sur le titre, le contenu s'y conforme) — confirmé ;
+- **Option B : hauteur de titre fluide** (« aujourd'hui les encarts s'adaptent à la taille de l'écran, y compris smartphone — évitons une régression ») — l'encart suit la variable responsive existante (`--hauteur-logo-titre`), aucun débordement sur téléphone, critère de non-régression inscrit à la spec §5.3 ;
+
+**Spec d'intégration rédigée** : `SPEC-ENCARTS-EQUERRES-2026-11-22.md` — la spec design `ENCARTS-BLOCS.md` fait FOI (4 états, activation cyan « un seul bloc actif à la fois », accessibilité, `prefers-reduced-motion`) ; le CSS du pack n'est pas modifié. **[À CLARIFIER]** : liste exacte des blocs à câbler, statut de la carte Connexion (hors périmètre proposé), validation de l'aperçu en `npm run dev` avant merge. Aucun code tant que la spec n'est pas validée (Article VI).
+
+---
+
 ## 22/11/2026 — Intégration du pack v14 de l'archive (lettre « A » épaissie + encarts à équerres)
 
 **Contexte** : commit `405729f` (« MàJ assets visuels ») livrait le pack v14 UNIQUEMENT dans l'archive de référence `ressources-installateur/forge-armory/app-assets/` (37 visuels au « A » stylisé (Λ) épaissi : titres, sélecteur, profils, actions, blocs repliables, logo et planche PNG ; nouveau composant d'encart `composants/BlocRepliable.tsx/.css` + `ENCARTS-BLOCS.md` + maquettes `docs/encart-*.png` ; retrait des 3 fichiers « concept 3 » `telecharger-application`). La CI rouge (66/68 suites) venait de ce que `public/assets/`, le catalogue applicatif et les visuels dérivés n'avaient pas suivi.
