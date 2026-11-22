@@ -137,6 +137,54 @@ Transistor, Podbean, Castos — lien RSS secret) ; le lecteur lirait alors le RS
 `connect-src`/`media-src` vers l'hôte du RSS, et sortir du « hors-ligne ».
 Hors périmètre de l'essai.
 
+## 6c. Ajout du 19/11/2026 — Hébergeurs à flux RSS privé : comparaison et analyse de sécurité (documentation seule ; les décisions verrouillées de §6/§6b sont inchangées)
+
+Question de l'utilisateur : **Buzzsprout, Transistor, Podbean, Castos — c'est quoi, et
+est-ce que ça ajouterait des vulnérabilités à Forge Armory ?**
+
+**Rôle d'un hébergeur** (Buzzsprout, Transistor, Podbean, Castos, RSS.com…) : stockage
+des MP3 (CDN) + **génération du flux RSS** (titre, couverture, épisodes, URL de chaque
+audio) + distribution en un clic vers les **annuaires** (Apple Podcasts, Spotify,
+Deezer, Amazon Music… — eux ne stockent rien, ils viennent lire le RSS) + statistiques
+d'écoute (certifiées IAB 2.0 chez la plupart). **Spotify for Creators** est un cas à
+part : hébergement gratuit et illimité, mais verrouillé dans l'écosystème Spotify et
+réservé aux épisodes **publiés** (cf. §6b).
+
+**« Podcast privé »** = flux RSS à **lien secret, non listé** dans les annuaires.
+Niveaux de confidentialité, du plus faible au plus fort :
+- **lien secret** (Buzzsprout, Podbean) : sécurité par l'obscurité — si l'URL fuite
+  (log, partage, copier-coller), n'importe qui peut écouter ; **pas d'authentification** ;
+- **flux par abonné** (Transistor) : un lien RSS unique **par personne**, révocable
+  individuellement ;
+- **mot de passe** (Castos) : vrai contrôle d'accès (paiement Stripe).
+
+(Côté technique, les contenus réellement sensibles passent par des **URL signées à durée
+limitée** chez l'hébergeur — un simple blocage par en-tête `Referer` est contournable.)
+
+**Prix indicatifs 2026** : Transistor ~19 $/mois (illimité) ; Castos ~19 $/mois
+(intégration WordPress, flux privés) ; Podbean ~9–12 $/mois (offre gratuite 5 h de
+stockage) ; Buzzsprout payant ~12 $/mois (leur « gratuit » ne conserve les épisodes que
+90 jours) ; RSS.com gratuit illimité (podcasts de niche/locaux).
+
+**Analyse de sécurité — réponse directe : NON, aucun hébergeur n'ajoute de
+vulnérabilité à Forge Armory en soi.** Dans cette configuration, le lecteur garderait
+**son propre élément `<audio>`** (pas d'iframe embarqué → **pas besoin d'ouvrir
+`frame-src`**) et lirait simplement le RSS distant + les URL des épisodes. Le seul
+changement de CSP serait **une seule origine autorisée** vers l'hôte du flux
+(`connect-src` / `media-src`, ex. `https://feeds.transistor.fm`). Les vrais compromis
+ne sont pas des failles mais des **choix de confiance** :
+- **confidentialité** : l'audio quitte la machine, les statistiques d'écoute partent
+  chez l'hébergeur, et « lien secret » signifie « URL à protéger » (fuite = écoute libre,
+  sauf flux par abonné / mot de passe) ;
+- **dépendance à un tiers** : panne de l'hébergeur, changement de CGU, compte verrouillé
+  → le lecteur ne trouve plus rien ;
+- **perte du hors-ligne** : le logiciel installé (Electron, schéma `app://`) est prévu
+  pour fonctionner sans réseau, un flux distant non.
+
+**Décision (inchangée)** : l'essai reste **100 % local** (MP3 embarqués, zéro réseau).
+La piste hébergeur ne s'activerait que si l'utilisateur veut un jour un podcast
+**partageable** — avec alors une ligne de CSP en plus et notre lecteur inchangé.
+
 ## 7. Hors périmètre de l'essai (verrouillé)
 
 - Enregistrement DANS l'appli (micro) : exclu (l'utilisateur s'enregistre hors appli, voir §5b).
