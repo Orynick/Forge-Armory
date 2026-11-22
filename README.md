@@ -21,6 +21,7 @@ Elle se connecte à votre compte **Bungie.net** (OAuth) pour lire votre inventai
 - **Et aussi** : manifest et recherche bilingues **FR/EN** (français seul sur mobile), **Carrière** (statistiques du compte), **Accomplissements** (Triomphes groupés par sceau).
 
 **Version en ligne** : [`https://forge-armory.orynick.fr`](https://forge-armory.orynick.fr)
+
 **Installable Windows** : [télécharger la dernière version](https://github.com/Orynick/Forge-Armory/releases/latest)
 
 Nouveautés de chaque version : [CHANGELOG](forge-armory/CHANGELOG.md).
