@@ -1,0 +1,120 @@
+/* ==========================================================================
+   Forge Armory — encart à équerres des blocs repliables
+   Tout est proportionnel à la hauteur du titre : changer --titre-h suffit.
+   1 « unité » (--u) = 1/1024 de la hauteur du titre (unités des SVG de titre).
+   ========================================================================== */
+.bloc {
+  --titre-h: 105px;                         /* hauteur d'affichage du titre (≈ 800 px de large) */
+  --u: calc(var(--titre-h) / 1024);
+  --fond: #0d0f14;                          /* fond de l'appli (masque derrière le cercle du logo) */
+  --argent: 255 255 255;                    /* début du dégradé argent */
+  --argent-2: 217 221 226;                  /* fin du dégradé argent (#d9dde2) */
+  --cyan: 143 243 255;                      /* début du dégradé cyan (#8ff3ff) */
+  --cyan-2: 28 198 255;                     /* fin du dégradé cyan (#1cc6ff) */
+  --bras: calc(624 * var(--u));             /* longueur d'un bras d'équerre (≈ 64 px à 800 px de titre) */
+  --trait: calc(35 * var(--u));             /* épaisseur du trait (≈ 3,6 px) */
+  --duree: .35s;
+
+  position: relative;
+  width: calc(7805 * var(--u));             /* = largeur du SVG de titre */
+  margin-bottom: calc(260 * var(--u));
+  color: #cfd5de;
+}
+
+/* --- Titre (image SVG) : bouton ------------------------------------------ */
+.bloc__titre {
+  all: unset;
+  position: relative;
+  z-index: 2;
+  display: block;
+  height: var(--titre-h);
+  width: calc(7805 * var(--u));
+  cursor: pointer;
+}
+.bloc__titre img { display: block; width: 100%; height: 100%; }
+.bloc__titre:focus-visible { outline: 2px solid rgb(var(--cyan)); outline-offset: 4px; }
+/* disque de fond derrière le logo rond : évite de voir le fond de l'encart à travers le cercle */
+.bloc__titre::before {
+  content: ""; position: absolute; z-index: -1;
+  left: calc((512 - 436) * var(--u)); top: calc((512 - 436) * var(--u));
+  width: calc(872 * var(--u)); height: calc(872 * var(--u));
+  border-radius: 50%; background: var(--fond);
+}
+
+/* --- Encart ---------------------------------------------------------------
+   Gauche  : bord extérieur du cercle du logo (équerre bas-gauche alignée dessus)
+   Haut    : axe horizontal du titre + logo (équerre haut-droite alignée dessus)
+   Droite  : plaque du titre + 68 px au même gabarit (déborde du titre, c'est voulu)
+   Pas d'équerre en haut à gauche. */
+.bloc__cadre {
+  position: absolute; z-index: 0; pointer-events: none;
+  left: calc(65 * var(--u));
+  right: calc(-598 * var(--u));
+  top: calc(512 * var(--u));
+  bottom: 0;
+  opacity: 0; visibility: hidden;
+  transition: opacity var(--duree) ease, visibility 0s linear var(--duree);
+}
+.bloc--ouvert .bloc__cadre {
+  opacity: 1; visibility: visible;
+  transition: opacity var(--duree) ease, visibility 0s;
+}
+/* fond : 88 % d'opacité → le logo de l'appli en arrière-plan reste très légèrement visible */
+.bloc__cadre::before {
+  content: ""; position: absolute; inset: 0; opacity: .88;
+  background: linear-gradient(#131923, #080b11);
+}
+/* filet bas : fondu aux deux extrémités, entre les équerres */
+.bloc__cadre::after {
+  content: ""; position: absolute; bottom: calc(var(--trait) / -2);
+  left: calc(var(--bras) + 293 * var(--u));
+  right: calc(var(--bras) + 293 * var(--u));
+  height: calc(var(--trait) * .83);
+  background: linear-gradient(90deg, rgb(232 235 239 / 0), rgb(232 235 239 / .85) 15%, rgb(232 235 239 / .85) 85%, rgb(232 235 239 / 0));
+}
+
+/* --- Équerres : 3 coins × 2 bras, dégradé coin → extrémité --------------- */
+.bloc__eq { position: absolute; inset: 0; transition: opacity .25s ease; }
+.bloc__eq--cyan { opacity: 0; filter: drop-shadow(0 0 calc(70 * var(--u)) rgb(63 220 255 / .85)); }
+.bloc--actif .bloc__eq--cyan { opacity: 1; }
+.bloc--actif .bloc__eq--argent { opacity: 0; }
+
+.bloc__eq i { position: absolute; display: block; }
+.bloc__eq--argent { --c0: rgb(var(--argent)); --c1: var(--argent-2); }
+.bloc__eq--cyan   { --c0: rgb(var(--cyan));   --c1: var(--cyan-2); }
+/* l'unité de dégradé : couleur pleine au coin, 95 % à 45 % du bras, 30 % à l'extrémité */
+.bloc__eq i { --g: var(--c0), rgb(var(--c1) / .95) 45%, rgb(var(--c1) / .3); }
+.bloc__eq .h { height: var(--trait); width: calc(var(--bras) + var(--trait) / 2); }
+.bloc__eq .v { width: var(--trait);  height: calc(var(--bras) + var(--trait) / 2); }
+/* haut droit */
+.bloc__eq .hd-h { top: calc(var(--trait) / -2); right: calc(var(--trait) / -2); background: linear-gradient(270deg, var(--g)); }
+.bloc__eq .hd-v { top: calc(var(--trait) / -2); right: calc(var(--trait) / -2); background: linear-gradient(180deg, var(--g)); }
+/* bas gauche */
+.bloc__eq .bg-h { bottom: calc(var(--trait) / -2); left: calc(var(--trait) / -2); background: linear-gradient(90deg, var(--g)); }
+.bloc__eq .bg-v { bottom: calc(var(--trait) / -2); left: calc(var(--trait) / -2); background: linear-gradient(0deg, var(--g)); }
+/* bas droit */
+.bloc__eq .bd-h { bottom: calc(var(--trait) / -2); right: calc(var(--trait) / -2); background: linear-gradient(270deg, var(--g)); }
+.bloc__eq .bd-v { bottom: calc(var(--trait) / -2); right: calc(var(--trait) / -2); background: linear-gradient(0deg, var(--g)); }
+/* les équerres du bas apparaissent en fin d'ouverture */
+.bloc__eq .bg-h, .bloc__eq .bg-v, .bloc__eq .bd-h, .bloc__eq .bd-v,
+.bloc__cadre::after { opacity: 0; transition: opacity .15s ease; }
+.bloc--ouvert .bloc__eq .bg-h, .bloc--ouvert .bloc__eq .bg-v,
+.bloc--ouvert .bloc__eq .bd-h, .bloc--ouvert .bloc__eq .bd-v,
+.bloc--ouvert .bloc__cadre::after { opacity: 1; transition-delay: calc(var(--duree) * .7); }
+
+/* --- Corps : ouverture par hauteur de grille (aucune hauteur à connaître) - */
+.bloc__corps {
+  position: relative; z-index: 1;
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duree) ease, margin-top var(--duree) ease;
+}
+.bloc--ouvert .bloc__corps { grid-template-rows: 1fr; margin-top: calc(-78 * var(--u)); } /* démarre juste sous le titre */
+.bloc__contenu { overflow: hidden; min-height: 0; }
+.bloc__contenu-int {
+  /* 70 px (à 800 px de titre) à l'intérieur de l'encart, de chaque côté */
+  padding: calc(290 * var(--u)) calc(85 * var(--u)) calc(600 * var(--u)) calc(748 * var(--u));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bloc, .bloc * { transition-duration: 0s !important; transition-delay: 0s !important; }
+}

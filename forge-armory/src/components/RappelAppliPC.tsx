@@ -38,10 +38,10 @@ export default function RappelAppliPC({ web = estVersionWeb(), bureau = estBurea
     <div className="connexion-rappel-appli-pc" data-rappel-appli-pc="" style={{ borderTop: "1px solid #2a2e38", marginTop: "0.6rem", paddingTop: "0.6rem", display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", fontSize: "0.85rem", color: "#9a968a" }}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v11" /><path d="M7 10l5 5 5-5" /><path d="M5 19h14" /></svg>
       <span>Vous préférez l'application PC ?</span>
-      {/* FR : ⚠️ CHANGÉ (12/11/2026, archive « telechargement-concept-3 ») - le lien est le BOUTON DE LA CHARTE « Télécharger l'application » (papillon + pastille de téléchargement) : image de repos, et image lumineuse au SURVOL et au focus clavier (règles `.lien-telecharger-appli` dans index.css) ; 3,5 rem (56 px) de haut, le bas de la fourchette conseillée (56 à 80 px). Texte en tracés : l'`aria-label` porte le nom complet. / EN: ⚠️ CHANGED - the link is the charter's "Download the app" button, with a hover image. */}
+      {/* FR : ⚠️ CHANGÉ (22/11/2026, pack v14 de l'archive : le « concept 3 » est retiré, le bouton de la charte conservé est `actions.telecharger.*` avec le « A » épaissi) - le lien est le BOUTON DE LA CHARTE « Télécharger l'application » (papillon + pastille de téléchargement) : image de repos, et image lumineuse au SURVOL et au focus clavier (règles `.lien-telecharger-appli` dans index.css) ; 3,5 rem (56 px) de haut, le bas de la fourchette conseillée (56 à 80 px). Texte en tracés : l'`aria-label` porte le nom complet. / EN: ⚠️ CHANGED - the link is the charter's "Download the app" button, with a hover image. */}
       <a href={lien} target="_blank" rel="noopener noreferrer" data-lien-appli-pc="" className="lien-telecharger-appli" aria-label={LIBELLE_TELECHARGEMENT} title={LIBELLE_TELECHARGEMENT}>
-        <img className="lien-telecharger-appli__repos" src={urlVisuel("actions.telecharger-application.repos")} alt="" width={355} height={56} draggable={false} />
-        <img className="lien-telecharger-appli__survol" src={urlVisuel("actions.telecharger-application.selectionne")} alt="" width={355} height={56} draggable={false} />
+        <img className="lien-telecharger-appli__repos" src={urlVisuel("actions.telecharger.repos")} alt="" width={355} height={56} draggable={false} />
+        <img className="lien-telecharger-appli__survol" src={urlVisuel("actions.telecharger.selectionne")} alt="" width={355} height={56} draggable={false} />
       </a>
     </div>
   );

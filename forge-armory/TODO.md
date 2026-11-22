@@ -55,8 +55,21 @@ Le renommage « Forge Armory » est lui aussi validé (06/10/2026, section 12).
    `draft-sec`~~ ✅ (constat du 06/11/2026 : le durcissement — chiffrement des
    jetons `safeStorage`, liste blanche réseau, permissions refusées — est déjà
    dans `main` depuis la PR #6 ; la branche rouverte `draft-sec` lui a ajouté
-   sa couverture de tests : 3 suites / 47 contrôles). Reste : Node.js >=24.22.1
-   exigé depuis le 24/10/2026 (correctifs CVE octobre 2026).
+   sa couverture de tests : 3 suites / 47 contrôles). Node.js >=24.22.1 exigé
+   depuis le 24/10/2026 (correctifs CVE octobre 2026). ✅ **Mise à jour de
+   sécurité du 08/11/2026 (branche `draft-deps-electron-sec`)** : Electron
+   45.0.0 → **45.3.4** (correctifs Chromium/V8/Skia d'octobre-novembre :
+   CVE-2026-76024 critique + correctif Brotli de Node2Shell/CVE-2026-111497),
+   `react-router-dom` 7.18.6, `sql.js` 1.16.0, `electron-builder` 26.18.0 ;
+   `npm audit --omit=dev` : 0 vulnérabilité (6 modérées restent dans les
+   outils de build via `minimatch`, advisory GHSA-g3hv-75wg-m249, sans impact
+   runtime — « fix » = downgrade cassant, refusé). ⏳ **À venir : versions de
+   sécurité Node.js le 11/11/2026** (sévérité max HIGH, lignes 22/24/26) —
+   ✅ **FAIT le 19/11/2026, branche `draft-node-24-22-3`** : `engines.node`
+   >=24.22.1 → **>=24.22.3** (24.22.3 = ligne 24.x corrigée, 16 CVE dont 7
+   HIGH, surtout serveur HTTP/2/TLS — impact direct nul pour ce client
+   desktop) ; workflows CI et Release Windows re-épinglés de 24.22.1 vers
+   24.22.3.
 
 ⏸️ **En attente d'une décision** : l'agent IA (section 3). **À décider** :
 le canal du lien « Contact » (section 23).
@@ -270,8 +283,16 @@ Vite `?url` — puis imports TS sans extension). Il est désormais un LANCEUR
 esbuild + Node (même mécanisme que la batterie logique `lancer.mjs`) qui
 empaquette le corps (`scripts/fixtures-corps.mjs`) avant de l'exécuter.
 Vérifié : exit 0, tous les « Attendu » conformes, tsc 0, batterie 60/60
-(1244/1244), build OK. **Reste à faire** : exécution et validation côté
-utilisateur, puis contrôle régulier avant chaque version.
+(1244/1244), build OK.
+
+✅ **EXÉCUTÉ ET VALIDÉ le 18/11/2026 (côté assistant)** : le script tourne
+dorénavant dans l'environnement de l'assistant (Node + `node_modules`
+présents). Sortie : **exit 0, zéro échec**, tous les affichages conformes aux
+« Attendu » — dont la détection des chaînes de verbes (Ralentissement → Gel →
+Brisure, ricochet à 2 sauts), des ressources générées (grenade par Dévoration,
+classe par Brèche abyssale), et l'enrichissement des chaînes du 26/08 (+24 pts :
+Gel et Brisure « absent » → « source_seule », score 48 → 72). **L'item est
+TERMINÉ** ; le lancer avant chaque version devient le rituel (contrôle régulier).
 
 ---
 
@@ -756,6 +777,23 @@ tag + release + `.exe` joint à chaque version.
 
 **Chantier léger** (spec courte attendue : conditions d'affichage, repli hors
 ligne silencieux, test logique de la comparaison de versions).
+
+### 28. Chantier mobile — phase 0 : déploiement et validation Android (spéc `SPEC-MOBILE-PHASE-0-2026-11-05`, livrée le 14/11/2026 sur `draft-pwa`)
+
+**Livré** (code prêt, tsc 0, batterie 68/68) : Manifest **français seul sur
+téléphone** (détection `lib/appareil.ts`, démarrage `demarrage.ts`, bouton dédié
+~100 Mo), **diagnostic mobile** (mémoire, stockage, durées de chargement,
+« Copier » — mode diagnostic uniquement), **connexion durcie** dans le
+navigateur (état OAuth introuvable = refus).
+
+**Reste** :
+- ⚠️ **Déploiement Netlify DIFFÉRÉ** : plus de crédits de build (cf. §26) —
+  fusionner `draft-pwa` vers `main`, puis déployer à la recharge mensuelle ;
+- **Validation utilisateur** sur Android (`documentation/sources/A-TESTER-0.7.2.md`) :
+  critères d'acceptation §5 de la spec + relevé d'affichage (alimentera la spec
+  de la phase 2) ; consigner le résultat dans le DEVLOG ;
+- Phase 4 (Manifest allégé) remonte AVANT la phase 2 si l'onglet ne tient pas
+  la charge même en français seul (spec §7).
 
 ## Pistes abandonnées ou mises de côté (à ne pas reproposer sans raison)
 

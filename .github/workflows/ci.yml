@@ -30,7 +30,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           # Doit correspondre au engines.node de package.json et au .nvmrc
-          node-version: 24.22.1
+          node-version: 24.22.3
           cache: npm
           cache-dependency-path: forge-armory/package-lock.json
 

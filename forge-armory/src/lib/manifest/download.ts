@@ -115,6 +115,24 @@ export interface ResultatManifest {
 const instancesOuvertes = new Map<string, { version: string; db: Database }>();
 const chargementsEnCours = new Map<string, Promise<ResultatManifest>>();
 
+// FR : ⚠️ AJOUT (05/11/2026, spec mobile-phase-0 §2.5) - RELEVÉ DES DURÉES de
+// chaque étape du DERNIER chargement du Manifest (téléchargement,
+// décompression, ouverture — l'indexation est relevée par l'appelant), pour
+// le diagnostic mobile (mode diagnostic uniquement). Rien d'autre ne change :
+// ni ce qui est téléchargé, ni la façon de le stocker. / EN: ⚠️ ADDED -
+// per-step durations of the last Manifest load, for the mobile diagnostic.
+export const DUREES_DERNIER_CHARGEMENT: Record<string, number> = {};
+
+/** FR : horloge commune (performance.now si disponible, sinon Date.now). / EN: shared clock. */
+export function maintenantMs(): number {
+  return typeof performance !== "undefined" ? performance.now() : Date.now();
+}
+
+/** FR : enregistre la durée d'une étape (en millisecondes) ; les étapes non relevées (instance déjà en mémoire) ne créent AUCUNE entrée. / EN: records a step's duration in ms. */
+export function enregistrerDureeEtape(etape: string, debutMs: number): void {
+  DUREES_DERNIER_CHARGEMENT[etape] = maintenantMs() - debutMs;
+}
+
 // FR : ⚠️ RETIRÉ (23/10/2026, audit) - `manifestsEnCacheAJour` : AUCUN appelant en production (seul un test l'appelait, en l'appelant lui-même « ancienne fonction »). La logique vivante est dans `etatCachesManifests` (appelée par le démarrage). / EN: ⚠️ REMOVED - dead code, no production caller.
 
 /**
@@ -214,8 +232,10 @@ async function assurerManifestAJourInterne(
 
   if (versionActuelle === meta.version && cacheBrut) {
     onProgress?.(`Manifest (${langue.toUpperCase()}) déjà à jour (cache local)`);
+    const debutOuverture = maintenantMs();
     const SQL = await obtenirModuleSql();
     const instance = new SQL.Database(new Uint8Array(cacheBrut));
+    enregistrerDureeEtape(`ouverture (${langue.toUpperCase()})`, debutOuverture);
     instancesOuvertes.set(langue, { version: meta.version, db: instance });
     return { db: instance, version: meta.version };
   }
@@ -223,9 +243,12 @@ async function assurerManifestAJourInterne(
   onProgress?.(`Téléchargement du Manifest (${langue.toUpperCase()})...`);
   const chemin = meta.mobileWorldContentPaths[langue] ?? meta.mobileWorldContentPaths["en"];
   if (!chemin) throw new Error(`Aucun chemin de Manifest disponible pour la langue "${langue}".`);
+  // FR : ⚠️ durées (spec mobile-phase-0 §2.5) : téléchargement, puis décompression, puis ouverture. / EN: step durations.
+  let debut = maintenantMs();
   const reponse = await fetch(`${BUNGIE_ROOT}${chemin}`);
   if (!reponse.ok) throw new Error(`Téléchargement du Manifest échoué (${reponse.status}).`);
   const arrayBufferZip = await reponse.arrayBuffer();
+  enregistrerDureeEtape(`téléchargement (${langue.toUpperCase()})`, debut);
 
   // FR : ⚠️ BUG TROUVÉ ET CORRIGÉ (02/08/2026) : le fichier téléchargé par
   // Bungie à cette adresse est en réalité une ARCHIVE ZIP contenant la
@@ -240,6 +263,7 @@ async function assurerManifestAJourInterne(
   // (ZIP bytes don't match the SQLite format). We now unzip before
   // caching / opening.
   onProgress?.("Décompression du Manifest...");
+  debut = maintenantMs();
   const fichiers = unzipSync(new Uint8Array(arrayBufferZip));
   const nomsFichiers = Object.keys(fichiers);
   if (nomsFichiers.length === 0) {
@@ -253,13 +277,16 @@ async function assurerManifestAJourInterne(
     fichiers[nom].length > fichiers[plusGros].length ? nom : plusGros
   );
   const arrayBuffer = fichiers[nomFichierSqlite].slice().buffer;
+  enregistrerDureeEtape(`décompression (${langue.toUpperCase()})`, debut);
 
   onProgress?.("Mise en cache locale (IndexedDB)...");
   await db.put("manifest", arrayBuffer, cleSqlite);
   await db.put("meta", meta.version, cleVersion);
 
+  debut = maintenantMs();
   const SQL = await obtenirModuleSql();
   const instance = new SQL.Database(new Uint8Array(arrayBuffer));
+  enregistrerDureeEtape(`ouverture (${langue.toUpperCase()})`, debut);
   instancesOuvertes.set(langue, { version: meta.version, db: instance });
   return { db: instance, version: meta.version };
 }
