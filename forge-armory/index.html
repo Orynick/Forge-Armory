@@ -28,6 +28,35 @@
     <link rel="icon" type="image/png" sizes="32x32" href="%BASE_URL%favicon-32.png" />
     <link rel="icon" type="image/png" sizes="48x48" href="%BASE_URL%favicon-48.png" />
     <title>Forge Armory — Destiny 2 Build Analyzer</title>
+    <!-- FR : ⚠️ AJOUT (23/11/2026, branche draft-apercu-lien-og) - aperçu de lien
+    (Open Graph) STATIQUE : méta og:* + twitter:card + image fixe
+    public/og-image.png (1200x630, logo complet sur fond noir). Zéro coût
+    Netlify : servi tel quel par le CDN, aucune fonction, aucun prerendering.
+    Les scrapers (Discord, Slack, Facebook, agents IA) exigent une URL
+    ABSOLUE pour og:image : on hardcode donc https://forge-armory.orynick.fr
+    (à remettre à jour en cas de changement de domaine, voir
+    documentation/GUIDE-MISE-EN-LIGNE.md §3). Le build Electron hérite des
+    balises sans effet (rien ne scrape un fichier local).
+    EN: ⚠️ ADDED (2026-11-23, branch draft-apercu-lien-og) - STATIC link
+    preview (Open Graph): og:* meta tags + twitter:card + fixed image
+    public/og-image.png (1200x630, full logo on black). Zero Netlify cost:
+    served as-is by the CDN, no function, no prerendering. Scrapers require
+    an ABSOLUTE URL for og:image, hence the hardcoded
+    https://forge-armory.orynick.fr (update on domain change, see
+    documentation/GUIDE-MISE-EN-LIGNE.md §3). The Electron build inherits
+    the tags harmlessly (nothing scrapes a local file). -->
+    <meta name="description" content="Analyseur de builds Destiny 2 : scorez votre build sur 5 piliers à partir de vos données Bungie.net, en ligne ou en application Windows." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Forge Armory" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:title" content="Forge Armory — Destiny 2 Build Analyzer" />
+    <meta property="og:description" content="Analysez votre build Destiny 2 (5 piliers) depuis vos données Bungie.net — en ligne ou en application Windows." />
+    <meta property="og:url" content="https://forge-armory.orynick.fr" />
+    <meta property="og:image" content="https://forge-armory.orynick.fr/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Logo Forge Armory — Destiny 2 Build Analyzer" />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <div id="root"></div>

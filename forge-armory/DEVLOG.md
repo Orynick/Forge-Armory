@@ -2,6 +2,22 @@
 
 > **Historique complet du développement.** Depuis la v0.5.1, le `CHANGELOG.md` est réservé aux utilisateurs (changements visibles) ; ce fichier conserve l'historique détaillé de chaque livraison, décision et correctif.
 
+## 23/11/2026 — Aperçu de lien (Open Graph) statique : image fixe + méta, zéro crédit Netlify
+
+**Contexte** : question de l'utilisateur du 23/11/2026 — au lieu du prerendering Netlify (extension facturée en invocations de fonctions à chaque visite de crawler), avoir un aperçu de lien fixe (titre + logo) qui ne consomme aucun crédit.
+
+**Réalisé (branche `draft-apercu-lien-og`, aucun code applicatif)** :
+- `public/og-image.png` (NOUVEAU, 1200×630, ~122 Ko) : logo complet `public/assets/marque/logo-forge-armory.png` (1092×1092) redimensionné à 600×600 et centré sur fond noir uni (couleur de fond du logo lui-même, aucun raccord visible) — composé avec Pillow, reproductible.
+- `index.html` : méta `description` + `og:type/site_name/locale/title/description/url/image/width/height/alt` + `twitter:card=summary_large_image`. `og:image` et `og:url` en URL **absolue** hardcodée (`https://forge-armory.orynick.fr/...`) car les scrapers (Discord, Slack, Facebook, agents IA) ignorent une URL relative ; le build Electron hérite des balises sans effet. Chemin `%BASE_URL%` volontairement NON utilisé ici (il donnerait `/og-image.png` sur Netlify, insuffisant pour les scrapers) — à l'inverse des favicons.
+- `documentation/GUIDE-MISE-EN-LIGNE.md` §3 : étape ajoutée — en cas de changement de domaine, mettre à jour `og:url`/`og:image` dans `index.html`.
+- Alternative écartée : le prerendering (extension Netlify) — utile seulement si le contenu rendu en JS devait être lisible par les crawlers ; ici tout le contenu utile est derrière l'OAuth Bungie, la page d'accueil statique + l'image OG suffisent. Aucun prerendering activé.
+
+**Coût** : zéro crédit Netlify — l'image et les méta sont servis tels quels par le CDN (aucune fonction, aucun build supplémentaire).
+
+**Vérifié** : `og-image.png` 1200×630 RGB valide (Pillow) ; `tsc -b` 0 erreur ; `npm run build` OK (les balises et l'image passent dans `dist/`) ; batterie logique OK. CI attendue verte. À contrôler visuellement après déploiement : partager le lien sur Discord/Slack et vérifier la carte d'aperçu.
+
+---
+
 ## 22/11/2026 — Intégration du pack v14 de l'archive (lettre « A » épaissie + encarts à équerres)
 
 **Contexte** : commit `405729f` (« MàJ assets visuels ») livrait le pack v14 UNIQUEMENT dans l'archive de référence `ressources-installateur/forge-armory/app-assets/` (37 visuels au « A » stylisé (Λ) épaissi : titres, sélecteur, profils, actions, blocs repliables, logo et planche PNG ; nouveau composant d'encart `composants/BlocRepliable.tsx/.css` + `ENCARTS-BLOCS.md` + maquettes `docs/encart-*.png` ; retrait des 3 fichiers « concept 3 » `telecharger-application`). La CI rouge (66/68 suites) venait de ce que `public/assets/`, le catalogue applicatif et les visuels dérivés n'avaient pas suivi.
