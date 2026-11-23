@@ -22,7 +22,8 @@
 
 1. **Bungie** (bungie.net → Paramètres → Applications) : modifier l'application « web » — adresse de retour `https://<nouvelle adresse>/auth/callback` et Origin Header `https://<nouvelle adresse>`.
 2. **Netlify** (réglages du site → Domain management) : ajouter le domaine ; mettre à jour `VITE_BUNGIE_REDIRECT_URI` dans les variables d'environnement.
-3. Relancer un déploiement.
+3. **`forge-armory/index.html`** : mettre à jour les URL absolues des balises Open Graph (`og:url` = `https://<nouvelle adresse>`, `og:image` = `https://<nouvelle adresse>/og-image.png`) — les scrapers exigent une URL absolue (ajout du 23/11/2026).
+4. Relancer un déploiement.
 
 ## 4. Créer une application Bungie supplémentaire (un environnement = une application)
 
