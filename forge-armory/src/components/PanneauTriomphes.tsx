@@ -30,6 +30,7 @@ import { Database } from "sql.js";
 import { lireTriomphesSoloFlawless } from "../lib/bungie/triomphes";
 import IconeCrane from "./IconeCrane";
 import VitrineSoloFlawless from "./VitrineSoloFlawless";
+import BoutonAction from "./BoutonAction";   // ⚠️ AJOUT : la croix du tiroir devient le bouton charte « Fermer » (`actions.fermer`)
 
 interface Props {
   /** FR : profil complet renvoyé par l'API (composant 900 inclus). null tant qu'il n'est pas chargé. / EN: full profile from the API (component 900 included). */
@@ -45,6 +46,10 @@ export default function PanneauTriomphes({ profil, db }: Props) {
 
   if (!ouvert) {
     return (
+      // FR : ⚠️ À BRANCHER - l'onglet vertical recevra un BOUTON SPÉCIFIQUE de la charte (nouvel
+      // asset, id réservé `selecteur.tiroir-solo.repos|selectionne`, plaque verticale) dès que
+      // l'auteur des visuels le livre ; en attendant, onglet texte vertical inchangé.
+      // EN: the vertical tab will get its own charter button (reserved id) once the asset pack lands.
       <button
         onClick={() => setOuvert(true)}
         style={{
@@ -86,12 +91,8 @@ export default function PanneauTriomphes({ profil, db }: Props) {
           <IconeCrane taille={18} />
           Solo sans mourir
         </strong>
-        <button
-          onClick={() => setOuvert(false)}
-          style={{ background: "none", border: "none", color: "#7d7a70", cursor: "pointer", fontSize: "1rem" }}
-        >
-          ✕
-        </button>
+        {/* FR : ⚠️ CHANGÉ - la croix du tiroir devient le bouton charte « Fermer » (`actions.fermer`). / EN: the drawer's cross becomes the charter "Close" button. */}
+        <BoutonAction id="actions.fermer" libelle="Fermer" onClick={() => setOuvert(false)} hauteur="2.5rem" />
       </div>
 
       <VitrineSoloFlawless profil={profil} db={db} />

@@ -147,10 +147,14 @@ ok("critère 3 : l'ordre des classes verrouillé est bien Titan → Chasseur →
   ];
   const GUILLEMET = String.fromCharCode(34);
   const CROIX = "aria-label=" + GUILLEMET + "Fermer" + GUILLEMET;   // « aria-label="Fermer" » construit sans guillemets droits dans la source
+  // ⚠️ AJOUT : la croix des fiches est désormais le bouton charte « Fermer » (`BoutonAction id="actions.fermer"`, libelle="Fermer" → aria-label au rendu) ; on accepte les deux repères, au plus tôt dans le DOM.
+  const CROIX_CHARTE = "id=" + GUILLEMET + "actions.fermer" + GUILLEMET;
   const CROIX_POPUP = "setDetailsOuverts(false)";   // SelecteurInventaire : la croix de la pop-up Détails n'a pas d'aria-label, elle porte le gestionnaire de fermeture
   for (const [nom, chemin] of fiches) {
     const src = lire(chemin);
-    const iCroix = chemin.includes("SelecteurInventaire") ? src.indexOf(CROIX_POPUP) : src.indexOf(CROIX);   // (CROIX_POPUP ne sert plus que si une fiche reprend l'ancienne pop-up)
+    const iCroix = chemin.includes("SelecteurInventaire")
+      ? src.indexOf(CROIX_POPUP)   // (CROIX_POPUP ne sert plus que si une fiche reprend l'ancienne pop-up)
+      : [src.indexOf(CROIX), src.indexOf(CROIX_CHARTE)].filter((i) => i !== -1).sort((a, b) => a - b)[0] ?? -1;
     const iBouton = src.indexOf("<BoutonLireLore");
     ok("critère 5 : " + nom + " — le bouton « Lire le Lore » est SOUS la croix de fermeture (dans le DOM, après la croix) et UNIQUEMENT si onLireLore est fourni",
       iCroix !== -1 && iBouton !== -1 && iBouton > iCroix && /\{onLireLore && <BoutonLireLore/.test(src),
