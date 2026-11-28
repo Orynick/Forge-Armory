@@ -83,6 +83,10 @@ export default function BlocPartage({ build, db, auteur = null, onVoirLoadouts, 
       </p>
 
       <div data-sauvegarde="" style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", marginBottom: "0.4rem" }}>
+        {/* FR : ⚠️ À BRANCHER - « Enregistrer le build… » recevra un bouton charte dédié (nouvel asset,
+        id réservé `actions.enregistrer-le-build`, à livrer par l'auteur des visuels) : remplacer le
+        bouton texte par <BoutonAction id="actions.enregistrer-le-build" libelle="Enregistrer le build…" ... />,
+        en gardant `data-enregistrer-build`. / EN: will become the dedicated charter "Save build" button (reserved id). */}
         <button
           type="button"
           data-enregistrer-build=""

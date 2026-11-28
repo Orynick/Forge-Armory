@@ -7,6 +7,7 @@ import IconeSaison from "./IconeSaison";   // ⚠️ AJOUT (14/10/2026, v0.4.11)
 import { useEffect, useMemo, useState } from "react";
 import type { Database } from "sql.js";
 import BoutonLireLore from "./BoutonLireLore";   // ⚠️ AJOUT (21/10/2026, Legendarium étape 5) : bouton « Lire le Lore » (fiche → page de Lore)
+import BoutonAction from "./BoutonAction";   // ⚠️ AJOUT : la croix de la fenêtre devient le bouton charte « Fermer » (`actions.fermer`)
 import type { DestinyMembership } from "../lib/bungie/api";
 import { construireCatalogueArmes, filtrerArmes, valeursDistinctes, FILTRES_ARMES_PAR_DEFAUT, ArmeCatalogue, FiltresArmes } from "../lib/manifest/catalogueArmes";
 import { lireCollections, classerObtention, ObtenusParCollectible } from "../lib/bungie/collections";
@@ -142,7 +143,8 @@ export default function CollectionArmes({ db, membership, onLireLore }: Props) {
                 {/* FR : ⚠️ AJOUT (14/10/2026, v0.4.11) - ICÔNE DE SAISON directement à droite du nom (demande de l'utilisateur). / EN: season icon right of the name. */}
                 <IconeSaison db={db} itemHash={ouverte.hash} />
               </span>
-              <button onClick={() => setOuverte(null)} aria-label="Fermer">✕</button>
+              {/* FR : ⚠️ CHANGÉ - croix → bouton charte « Fermer » (`actions.fermer`) ; même nom accessible. / EN: cross → charter "Close" button; same accessible name. */}
+              <BoutonAction id="actions.fermer" libelle="Fermer" onClick={() => setOuverte(null)} hauteur="2.5rem" />
             </div>
             {/* FR : ⚠️ AJOUT (21/10/2026, Legendarium étape 5) - « Lire le Lore » : EN HAUT DE FICHE, JUSTIFIÉ À DROITE, SOUS LA CROIX (spécification §6), affiché UNIQUEMENT si l'objet a un Lore. / EN: ⚠️ ADDED - "Read the Lore": top of sheet, right-justified, under the close cross (spec §6), shown ONLY if the item has a lore. */}
             {onLireLore && <BoutonLireLore db={db} itemHash={ouverte.hash} nomObjet={ouverte.nom ?? ""} onLireLore={onLireLore} />}

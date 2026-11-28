@@ -15,6 +15,7 @@ import VignetteArme from "./VignetteArme";   // ⚠️ AJOUT (14/10/2026, v0.4.1
 import { estFaconnee } from "../lib/forge/faconnee";
 import TitreRepliable from "./TitreRepliable";
 import PastilleContexte, { ECHELLE_CONTEXTE_RANGEE } from "./PastilleContexte";
+import BoutonAction from "./BoutonAction";   // ⚠️ AJOUT : « Équiper le build en jeu » en bouton charte (réutilise `actions.appliquer-en-jeu`, comme la fenêtre Détails)
 import { LIBELLES_CONTEXTE, ORDRE_CONTEXTES } from "./icones/BadgeContexte";
 import type { ContexteBuild } from "../lib/scoring/stats";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -580,11 +581,18 @@ export default function ResumeBuild({ build, membership, personnages, db = null,
       quand "Équiper" ne l'est pas (aucune pièce équipable). */}
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.75rem" }}>
         {piecesEquipables.length > 0 && (
-          <button onClick={gererEquiperTout} disabled={!membership || !personnageCible || !!enCours}>
-            {enCours === "__tout__"
-              ? "Équipement en cours..."
-              : `Équiper le build en jeu — ${piecesEquipables.length} pièce(s)`}
-          </button>
+          // FR : ⚠️ CHANGÉ - le bouton texte devient le bouton charte « Appliquer en jeu »
+          // (`actions.appliquer-en-jeu`, même visuel que la fenêtre Détails) ; le libellé
+          // accessible garde le texte complet pour les lecteurs d'écran et les tests.
+          // EN: text button becomes the charter "Apply in game" button; the accessible label is kept.
+          <BoutonAction
+            id="actions.appliquer-en-jeu.repos"
+            libelle={enCours === "__tout__" ? "Équipement en cours..." : `Équiper le build en jeu — ${piecesEquipables.length} pièce(s)`}
+            onClick={gererEquiperTout}
+            disabled={!membership || !personnageCible || !!enCours}
+            hauteur="2.5rem"
+            donnees={{ "equiper-build": true }}
+          />
         )}
         {/* FR : ⚠️ AJOUT (24/08/2026) - diagnostic ponctuel pour "Signal
         perdu" : interroge Bungie DIRECTEMENT sur un itemInstanceId précis

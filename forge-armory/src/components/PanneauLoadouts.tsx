@@ -28,6 +28,8 @@ import { obtenirIconeElementDoctrine, obtenirIconePerkDoctrine, obtenirNomPerkDo
 import BarreRechercheLoadouts from "./BarreRechercheLoadouts";
 import BadgeSimule from "./BadgeSimule";   // ⚠️ AJOUT (20/10/2026, branche draft-optimiseur) : badge « simulé » d'un loadout issu d'une simulation
 import ZoneEnregistrement from "./ZoneEnregistrement";
+import BoutonAction from "./BoutonAction";   // ⚠️ AJOUT : boutons charte réutilisés — « Fermer » (✕ du tiroir), « Modifier » (carte), icône « Appliquer en jeu » (carte)
+import { urlVisuel } from "../lib/visuelsForge";
 import { CRITERES_VIDES, CriteresLoadouts, construireIndexRecherche, criteresActifs, filtrerLoadouts, valeursDisponibles } from "../lib/loadouts/recherche";
 import { DamageElement } from "../types/build";
 import { equiperPlusieursObjets } from "../lib/bungie/equiper";
@@ -340,6 +342,10 @@ export default function PanneauLoadouts({ objetsPossedes, onChargerLoadout, memb
 
   if (mode === "tiroir" && !ouvert) {
     return (
+      // FR : ⚠️ À BRANCHER - l'onglet vertical recevra un BOUTON SPÉCIFIQUE de la charte (nouvel
+      // asset, id réservé `selecteur.tiroir-loadouts.repos|selectionne`, plaque verticale) dès que
+      // l'auteur des visuels le livre ; en attendant, onglet texte vertical inchangé.
+      // EN: the vertical tab will get its own charter button (reserved id) once the asset pack lands.
       <button
         onClick={() => setOuvert(true)}
         style={{
@@ -389,9 +395,9 @@ export default function PanneauLoadouts({ objetsPossedes, onChargerLoadout, memb
           🗂️ Loadouts{enPage ? ` (${loadouts.length})` : ""}
         </strong>
         {!enPage && (
-          <button onClick={() => setOuvert(false)} style={{ background: "none", border: "none", color: "#7d7a70", cursor: "pointer", fontSize: "1rem" }}>
-            ✕
-          </button>
+          // FR : ⚠️ CHANGÉ - la croix du tiroir devient le bouton charte « Fermer » (`actions.fermer`).
+          // EN: the drawer's cross becomes the charter "Close" button.
+          <BoutonAction id="actions.fermer" libelle="Fermer" onClick={() => setOuvert(false)} hauteur="2.5rem" />
         )}
       </div>
 
@@ -780,17 +786,24 @@ export default function PanneauLoadouts({ objetsPossedes, onChargerLoadout, memb
                 👁 Voir
               </button>
               {membership && (
+                // FR : ⚠️ CHANGÉ - « Équiper en jeu » sur la carte devient l'ICÔNE charte seule
+                // (`icones.appliquer-en-jeu`, même repère que les cartes d'inventaire, la rangée
+                // de cartes restant compacte) ; le libellé accessible est conservé.
+                // EN: the card's "Equip in game" becomes the charter icon alone; accessible label kept.
                 <button
+                  type="button"
                   onClick={() => gererEquiper(l)}
                   disabled={equipementEnCours !== null}
-                  style={{ fontSize: "0.7rem" }}
+                  data-appliquer-en-jeu={l.id}
+                  aria-label={equipementEnCours === l.id ? "Équipement..." : "Équiper en jeu"}
                   title={
                     l.classeFigee
                       ? `Équiper ce loadout en jeu sur votre ${l.classeFigee.charAt(0).toUpperCase()}${l.classeFigee.slice(1)} (action réelle)`
                       : "Équiper ce loadout en jeu : vous choisirez le personnage (action réelle)"
                   }
+                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, border: 0, background: "transparent", cursor: equipementEnCours !== null ? "default" : "pointer", lineHeight: 0, borderRadius: 6, opacity: equipementEnCours !== null ? 0.45 : 1 }}
                 >
-                  {equipementEnCours === l.id ? "Équipement..." : "🎮 Équiper en jeu"}
+                  <img src={urlVisuel("icones.appliquer-en-jeu")} alt="" width={24} height={24} draggable={false} style={{ display: "block", pointerEvents: "none" }} />
                 </button>
               )}
               {/* FR : ⚠️ CHANGÉ (01/10/2026, v0.3.0) - « Icône », « Décrire » et « Renommer » sont
@@ -807,13 +820,8 @@ export default function PanneauLoadouts({ objetsPossedes, onChargerLoadout, memb
               to be safe on the "2 lines max" rule: measured in the real page (302 px row), "Edit..." fits
               2 lines with every font tried; the long label fits with Arial but takes 3 lines with the
               widest font tried, and Windows' real font can't be tested here. */}
-              <button
-                onClick={() => setModif(l)}
-                style={{ fontSize: "0.7rem" }}
-                title="Modifier le nom, la description et l'icône de ce build"
-              >
-                Modifier...
-              </button>
+              {/* FR : ⚠️ CHANGÉ - « Modifier... » sur la carte devient le bouton charte « Modifier » (`actions.modifier`, même visuel que la fenêtre Détails) ; libellé accessible conservé. / EN: charter "Edit" button; accessible label kept. */}
+              <BoutonAction id="actions.modifier" libelle="Modifier..." title="Modifier le nom, la description et l'icône de ce build" onClick={() => setModif(l)} hauteur="2.5rem" donnees={{ "modifier-loadout": l.id }} />
               <button
                 onClick={() => {
                   if (window.confirm(`Supprimer le loadout "${l.nom}" ? Cette action est définitive.`)) {

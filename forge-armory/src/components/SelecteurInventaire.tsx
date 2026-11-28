@@ -24,6 +24,7 @@ import { estFaconnee } from "../lib/forge/faconnee";
 
 import TitreRepliable from "./TitreRepliable";
 import FenetreDetailsPiece from "./FenetreDetailsPiece";   // ⚠️ AJOUT (30/10/2026) : la fenêtre de détails UNIQUE (Build Analyzer et Forge)
+import BoutonAction from "./BoutonAction";   // ⚠️ AJOUT : bouton charte « Actualisation de l'inventaire » (même visuel que la Forge) quand l'inventaire est déjà chargé
 import { useState, useMemo, useEffect, useRef } from "react";
 import { defilerVers } from "../lib/defilerVers";   // ⚠️ AJOUT (12/10/2026, v0.4.0) : « Aller à »
 import { surlignerVerbesConnus, IconeMunitionArme } from "./RenduTextePerk";
@@ -824,10 +825,20 @@ export default function SelecteurInventaire({ membership, db, onAjouterObjet, on
       )}
 
       {!indisponible && (
-        <button onClick={charger} disabled={enCours} style={{ marginBottom: "0.75rem" }}>
-          {enCours && <span className="indicateur-chargement" />}
-          {enCours ? "Chargement..." : objets ? "Recharger mon inventaire" : "Charger mon inventaire"}
-        </button>
+        // FR : ⚠️ CHANGÉ - même pattern que la Forge (InventaireArmes/Armures) : tant que l'inventaire
+        // n'est PAS chargé, bouton texte « Charger mon inventaire » ; une fois chargé, le bouton
+        // STYLISÉ de la charte « Actualisation de l'inventaire » (réutilise `actions.actualisation-inventaire`).
+        // EN: same pattern as the Forge: text button on first load, charter button once loaded.
+        <div style={{ marginBottom: "0.75rem" }}>
+          {objets ? (
+            <BoutonAction id="actions.actualisation-inventaire" libelle="Actualisation de l'inventaire : recharger mon inventaire" onClick={charger} disabled={enCours} hauteur="2.5rem" donnees={{ "actualiser-inventaire": true }} />
+          ) : (
+            <button onClick={charger} disabled={enCours}>
+              {enCours && <span className="indicateur-chargement" />}
+              {enCours ? "Chargement..." : "Charger mon inventaire"}
+            </button>
+          )}
+        </div>
       )}
 
       {erreur && <p style={{ color: "#e08080" }}>⚠️ {erreur}</p>}

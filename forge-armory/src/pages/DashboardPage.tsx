@@ -513,6 +513,10 @@ export default function DashboardPage() {
           threw, the button did nothing visible, with no message - hence the
           errors surfaced now. */}
           {!connecte && (
+            // FR : ⚠️ À BRANCHER - ce bouton recevra le visuel de la charte « Connexion Bungie.net »
+            // (nouvel asset, id réservé `actions.connexion-bungie`, à livrer par l'auteur des visuels)
+            // : remplacer le bouton texte par <BoutonAction id="actions.connexion-bungie" libelle="Connexion Bungie.net" ... />.
+            // EN: this button will become the charter "Connect to Bungie.net" button (reserved id).
             <button
               onClick={async () => {
                 setErreurTest(null);

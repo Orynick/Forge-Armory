@@ -123,7 +123,8 @@ export default function FenetreDetailsPiece({ db, piece: ouverte, onFermer, onLi
               ? <span data-icones-fenetre="" style={{ display: "inline-flex", alignItems: "center" }}><IconesArme db={db} itemHash={ouverte.itemHash} type={ouverte.typeArme} slot={ouverte.slot as string} tailleType={35} taille={16} texteAccessible={[ouverte.typeArme, LIBELLES_SLOT[ouverte.slot as string], ouverte.elementArme].filter(Boolean).join(", ")} /></span>
               : <IconeSlotArmure slot={ouverte.slot as never} taille={18} />}
           </span>
-          <button onClick={fermer} aria-label="Fermer" title="Fermer (Échap)">✕</button>
+          {/* FR : ⚠️ CHANGÉ - croix → bouton charte « Fermer » (`actions.fermer`) ; mêmes nom accessible et infobulle. / EN: cross → charter "Close" button; same accessible name and tooltip. */}
+          <BoutonAction id="actions.fermer" libelle="Fermer" title="Fermer (Échap)" onClick={fermer} hauteur="2.5rem" />
         </div>
         {/* (2) « Lire le Lore » */}
         {onLireLore && <BoutonLireLore db={db} itemHash={ouverte.itemHash} nomObjet={ouverte.nom ?? ""} onLireLore={onLireLore} />}
